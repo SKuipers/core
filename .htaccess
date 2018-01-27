@@ -7,6 +7,12 @@ Deny from all
 
 <IfModule mod_rewrite.c>
 RewriteEngine on
+
+RewriteRule ^index\.php$ - [L]
+
+RewriteCond %{REQUEST_FILENAME} \.php$
+RewriteRule . index.php [L]
+
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule . index.php [L]
