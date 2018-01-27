@@ -2,3 +2,14 @@
 Order Allow,Deny
 Deny from all
 </FilesMatch>
+
+## BEGIN Gibbon Redirect
+
+<IfModule mod_rewrite.c>
+RewriteEngine on
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule . index.php [L]
+</IfModule>
+
+## END Gibbon Redirect
