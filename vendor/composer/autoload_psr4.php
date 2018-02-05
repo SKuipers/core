@@ -7,6 +7,7 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Slim\\' => array($vendorDir . '/slim/slim/Slim'),
+    'Rakit\\Validation\\' => array($vendorDir . '/rakit/validation/src'),
     'Psr\\Http\\Message\\' => array($vendorDir . '/psr/http-message/src'),
     'Psr\\Container\\' => array($vendorDir . '/psr/container/src'),
     'Interop\\Container\\' => array($vendorDir . '/container-interop/container-interop/src/Interop/Container'),

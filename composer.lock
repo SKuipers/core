@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "ab3d12ee8f4f5a8d23c8280479294ccc",
+    "content-hash": "29f5950ec51440e9f91b162897481392",
     "packages": [
         {
             "name": "container-interop/container-interop",
@@ -228,6 +228,45 @@
                 "response"
             ],
             "time": "2016-08-06T14:39:51+00:00"
+        },
+        {
+            "name": "rakit/validation",
+            "version": "v0.14.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/rakit/validation.git",
+                "reference": "40837c49180d2e8e36c2ed9188e34d994474e55c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/rakit/validation/zipball/40837c49180d2e8e36c2ed9188e34d994474e55c",
+                "reference": "40837c49180d2e8e36c2ed9188e34d994474e55c",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.5.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "4.*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Rakit\\Validation\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Muhammad Syifa",
+                    "email": "emsifa@gmail.com"
+                }
+            ],
+            "description": "PHP Laravel like standalone validation library",
+            "time": "2018-01-25T12:41:55+00:00"
         },
         {
             "name": "slim/slim",
