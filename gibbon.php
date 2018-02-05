@@ -19,6 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
+use Rakit\Validation\Validator;
 
 $basePath = dirname(__FILE__);
 $basePath = rtrim(str_replace('\\', '/', $basePath), '/');
@@ -102,7 +103,26 @@ $app->get('/module/{module}[/{actions:.*}]', function (Request $request, Respons
 
 $app->get('/account[/{action}]', function (Request $request, Response $response, array $args) {
 
-    $response->getBody()->write('Hello again, lovely.');
+    $validator = new Validator;
+
+    $validation = $validator->validate($request->getQueryParams(), [
+        'name'                  => 'required|min:3',
+        'number'                => 'required|numeric',
+    ]);
+
+    if ($validation->fails()) {
+        $errors = $validation->errors();
+        $response->getBody()->write('Validation: FAILED!! <br/>');
+
+        echo '<pre>';
+        print_r($errors->all());
+        echo '</pre>';
+        // Return a standardized validation failed response
+    } else {
+        $response->getBody()->write('Validation: Passed<br/>');
+        // Carry on ...
+    }
+
     return $response;
 });
 
