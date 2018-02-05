@@ -60,7 +60,7 @@ $version = $gibbon->getVersion();
 
 
 // Require the system-wide functions
-// require_once $basePath.'/functions.php';
+// require_once './functions.php';
 
 
 if ($gibbon->isInstalled() == true) {
@@ -72,6 +72,7 @@ if ($gibbon->isInstalled() == true) {
 	// Initialize using the database connection
 	$gibbon->initializeCore($pdo);
 }
+
 
 
 $config = [
@@ -159,7 +160,9 @@ $app->get('/[{page}]', function (Request $request, Response $response, array $ar
 
     require_once './functions.php';
     
+    
     $gibbon = $this->gibbon;
+    $guid = $gibbon->guid();
     $pdo = $this->pdo;
     $version = $this->get('settings')['version'];
 
@@ -169,7 +172,11 @@ $app->get('/[{page}]', function (Request $request, Response $response, array $ar
         <link rel="stylesheet" type="text/css" href="./themes/Default/css/main.css?v='.$version.'" />
     </head>
     <body>
-    <div id="wrap"><div id="header"><div id="header-menu">');
+    <div id="wrap"><div id="header">
+    <div id="header-logo">
+							<a href="'.$_SESSION[$guid]['absoluteURL'].'"><img height="100" width="400" class="logo" alt="Logo" src="'.$_SESSION[$guid]['absoluteURL'].'/'.$_SESSION[$guid]['organisationLogo'].'"/></a>
+                        </div>
+                        <div id="header-menu">');
 
     // Display the main menu
     $mainMenu = new Gibbon\menuMain($gibbon, $pdo);
@@ -212,3 +219,6 @@ $app->run();
 
 
 exit;
+
+// Done breaking things?
+// ---------------------------------------------------
