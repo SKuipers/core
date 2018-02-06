@@ -35,17 +35,15 @@ if (file_exists($basePath.'/config.php') == false || filesize($basePath.'/config
 }
 
 // Setup the composer autoloader
-require_once 'vendor/autoload.php';
+$autoloader = require_once 'vendor/autoload.php';
+$autoloader->addPsr4('Gibbon\\', [ $basePath . '/src']);
+$autoloader->addPsr4('Gibbon\\', [ $basePath . '/src/Gibbon']);
+$autoloader->addPsr4('Library\\', [ $basePath . '/src/Library']);
+$autoloader->register(true);
 
-// Setup the autoloader
+// Setup the old autoloader (depricate)
 require_once $basePath.'/src/Autoloader.php';
-
 $loader = new Autoloader($basePath);
-
-$loader->addNameSpace('Gibbon\\', 'src');
-$loader->addNameSpace('Gibbon\\', 'src/Gibbon');
-$loader->addNameSpace('Library\\', 'src/Library');
-
 $loader->register();
 
 
@@ -79,12 +77,7 @@ $config = [
     'settings' => [
         'displayErrorDetails' => true,
         'version' => $version,
-        // 'outputBuffering' => false,
-        // 'logger' => [
-        //     'name' => 'slim-app',
-        //     'level' => Monolog\Logger::DEBUG,
-        //     'path' => __DIR__ . '/../logs/app.log',
-        // ],
+        'outputBuffering' => 'append',
     ],
 ];
 
@@ -102,7 +95,7 @@ $app->get('/module/{module}[/{actions:.*}]', function (Request $request, Respons
     return $response;
 });
 
-$app->get('/account[/{action}]', function (Request $request, Response $response, array $args) {
+$app->get('/user[/[{action}]]', function (Request $request, Response $response, array $args) {
 
     $validator = new Validator;
 
@@ -199,9 +192,14 @@ $app->get('/[{page}]', function (Request $request, Response $response, array $ar
 });
 
 
-$app->post('/modules/{module}/{page}', function (Request $request, Response $response, array $args) use ($gibbon, $connection2, $pdo) {
+$app->post('/modules/{module}/{page}', function (Request $request, Response $response, array $args)  {
 
+    // Provide expected global variables
+    $gibbon = $this->gibbon;
+    $connection2 = $this->pdo->getConnection();
+    $pdo = $this->pdo;
     $guid = $gibbon->guid();
+    $version = $this->get('settings')['version'];
 
     $destination = '/modules/'.$args['module'].'/'.$args['page'];
 
