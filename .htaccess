@@ -12,7 +12,7 @@ RewriteEngine on
 RewriteRule ^index\.php$ - [L]
 
 # Prevent direct access to core PHP files
-RewriteCond %{REQUEST_FILENAME} /(modules|src|tests|lib)(.*)\.php$
+RewriteCond %{REQUEST_FILENAME} /(modules|tests|lib|src|config)(.*)\.php$
 RewriteRule . index.php [L]
 
 # Redirect all other requests to index except for those to existing files and directories

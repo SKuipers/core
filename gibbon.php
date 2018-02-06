@@ -17,8 +17,8 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use \Psr\Http\Message\ServerRequestInterface as Request;
-use \Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Message\ResponseInterface as Response;
 use Rakit\Validation\Validator;
 
 $basePath = dirname(__FILE__);
@@ -72,6 +72,8 @@ if ($gibbon->isInstalled() == true) {
 }
 
 
+// ---------------------------------------------------
+// Start breaking things!
 
 $config = [
     'settings' => [
@@ -83,12 +85,15 @@ $config = [
 
 $app = new \Slim\App($config);
 
+
+// Register services with the container
 $container = $app->getContainer();
 $container['gibbon'] = $gibbon;
 $container['pdo'] = $pdo;
 $container['autoloader'] = $loader;
 
 
+// Register core routes
 $app->get('/module/{module}[/{actions:.*}]', function (Request $request, Response $response, array $args) {
 
     $response->getBody()->write('Hello, lovely.');
@@ -121,96 +126,21 @@ $app->get('/user[/[{action}]]', function (Request $request, Response $response, 
 });
 
 
-$app->get('/[{page}]', function (Request $request, Response $response, array $args) {
-
-    require_once './functions.php';
-
-    $gibbon = $this->gibbon;
-    $connection2 = $this->pdo->getConnection();
-    $loader = $this->autoloader;
-    $pdo = $this->pdo;
-    $guid = $gibbon->guid();
-    $version = $this->get('settings')['version'];
+$app->get('/[{page}]', function(Request $request, Response $response, array $args) {
 
     $params = $request->getQueryParams();
-
-    $destination = isset($params['q'])? '/'.trim($params['q'], '/') : '';
-
-    $gibbon->session->set('address', $destination);
-    $gibbon->session->set('q', $destination);
-    $gibbon->session->set('module', getModuleName($destination));
-    $gibbon->session->set('action', getActionName($destination));
-
-    if (!empty($destination)) {
-        include '.'.$destination;
+    if (!empty($params['q'])) {
+        $controller = new Gibbon\HTTP\LegacyPageController($this);
+        $response = $controller($request, $response, $args);
+    } else {
+        $response->getBody()->write('Do some dashboard stuff');
     }
 
-    // $response->getBody()->write('You want to go to '.($destination?? 'nowhere') );
-    // $response->getBody()->write($args['page']?? '');
-
     return $response;
-})->add(function ($request, $response, $next) {
-
-    require_once './functions.php';
-    
-    
-    $gibbon = $this->gibbon;
-    $guid = $gibbon->guid();
-    $pdo = $this->pdo;
-    $version = $this->get('settings')['version'];
-
-    print('
-    <html>
-    <head>
-        <link rel="stylesheet" type="text/css" href="./themes/Default/css/main.css?v='.$version.'" />
-    </head>
-    <body>
-    <div id="wrap"><div id="header">
-    <div id="header-logo">
-							<a href="'.$_SESSION[$guid]['absoluteURL'].'"><img height="100" width="400" class="logo" alt="Logo" src="'.$_SESSION[$guid]['absoluteURL'].'/'.$_SESSION[$guid]['organisationLogo'].'"/></a>
-                        </div>
-                        <div id="header-menu">');
-
-    // Display the main menu
-    $mainMenu = new Gibbon\menuMain($gibbon, $pdo);
-    $mainMenu->setMenu();
-    print($mainMenu->getMenu());
-
-    print('</div></div><div id="content-wrap"><div id="content">');
-
-    $response = $next($request, $response);
-
-    print('</div><div id="sidebar">');
-
-    //Invoke and show Module Menu
-    $menuModule = new Gibbon\menuModule($gibbon, $pdo);
-    print($menuModule->getMenu('full'));
-
-    print('</div><br style="clear: both"></div></body></html>');
-
-    return $response;
-});
+})->add(Gibbon\HTTP\HeaderFooterMiddleware::class);
 
 
-$app->post('/modules/{module}/{page}', function (Request $request, Response $response, array $args)  {
-
-    // Provide expected global variables
-    $gibbon = $this->gibbon;
-    $connection2 = $this->pdo->getConnection();
-    $pdo = $this->pdo;
-    $guid = $gibbon->guid();
-    $version = $this->get('settings')['version'];
-
-    $destination = '/modules/'.$args['module'].'/'.$args['page'];
-
-    chdir('./modules/'.$args['module'].'/');
-
-    if (!empty($destination)) {
-        include './'.$args['page'];
-    }
-
-    return $response->withHeader('Location', $URL);
-});
+$app->post('/modules/{module}/{page}', Gibbon\HTTP\LegacyProcessController::class);
 
 
 $app->run();
