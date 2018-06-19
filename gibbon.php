@@ -30,6 +30,10 @@ $container->add('autoloader', $autoloader);
 
 $container->addServiceProvider(new Gibbon\Services\CoreServiceProvider(__DIR__));
 
+// Inflectors
+$container->inflector(Gibbon\Contracts\Inflectors\SessionAwareInterface::class)
+          ->invokeMethod('setSession', ['session']);
+
 // Globals for backwards compatibility
 $gibbon = $container->get('config');
 $gibbon->session = $container->get('session');

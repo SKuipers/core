@@ -19,10 +19,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 namespace Gibbon\Domain\User;
 
-use Gibbon\Domain\Traits\TableAware;
-use Gibbon\Domain\Traits\SharedUserLogic;
 use Gibbon\Domain\QueryCriteria;
 use Gibbon\Domain\QueryableGateway;
+use Gibbon\Domain\Traits\TableAware;
+use Gibbon\Domain\Traits\SharedUserLogic;
 
 /**
  * User Gateway
@@ -36,6 +36,7 @@ class UserGateway extends QueryableGateway
     use SharedUserLogic;
 
     private static $tableName = 'gibbonPerson';
+    private static $primaryKey = 'gibbonPersonID';
 
     private static $searchableColumns = ['preferredName', 'surname', 'username', 'studentID', 'email', 'emailAlternate', 'phone1', 'phone2', 'phone3', 'phone4', 'vehicleRegistration', 'gibbonRole.name'];
     
