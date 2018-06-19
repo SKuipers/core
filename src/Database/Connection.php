@@ -119,7 +119,7 @@ class Connection implements ConnectionInterface
      */
     public function update($query, $bindings = [])
     {
-        return $this->affectingStatement($query, $bindings);
+        return $this->statement($query, $bindings);
     }
 
     /**
