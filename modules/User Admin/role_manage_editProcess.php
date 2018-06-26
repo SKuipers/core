@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\User\RoleGateway;
+
 include '../../gibbon.php';
 
 $gibbonRoleID = $_GET['gibbonRoleID'];
@@ -80,16 +82,11 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/role_manage_edi
                     header("Location: {$URL}");
                 } else {
                     //Write to database
-                    try {
-                        $data = array('category' => $category, 'name' => $name, 'nameShort' => $nameShort, 'description' => $description, 'canLoginRole' => $canLoginRole, 'futureYearsLogin' => $futureYearsLogin, 'pastYearsLogin' => $pastYearsLogin, 'restriction' => $restriction, 'gibbonRoleID' => $gibbonRoleID);
-                        $sql = 'UPDATE gibbonRole SET category=:category, name=:name, nameShort=:nameShort, description=:description, canLoginRole=:canLoginRole, futureYearsLogin=:futureYearsLogin, pastYearsLogin=:pastYearsLogin, restriction=:restriction WHERE gibbonRoleID=:gibbonRoleID';
-                        $result = $connection2->prepare($sql);
-                        $result->execute($data);
-                    } catch (PDOException $e) {
-                        $URL .= '&return=error2';
-                        header("Location: {$URL}");
-                        exit();
-                    }
+
+                    $data = array('gibbonRoleID' => $gibbonRoleID, 'category' => $category, 'name' => $name, 'nameShort' => $nameShort, 'description' => $description, 'canLoginRole' => $canLoginRole, 'futureYearsLogin' => $futureYearsLogin, 'pastYearsLogin' => $pastYearsLogin, 'restriction' => $restriction);
+
+                    $roleGateway = $container->get(RoleGateway::class);
+                    $updated = $roleGateway->updateRole($data);
 
                     $URL .= '&return=success0';
                     header("Location: {$URL}");

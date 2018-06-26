@@ -19,19 +19,22 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 namespace Gibbon\Domain\User;
 
-use Gibbon\Domain\Traits\TableAware;
 use Gibbon\Domain\QueryCriteria;
-use Gibbon\Domain\QueryableGateway;
+use Gibbon\Domain\AuditableGateway;
+use Gibbon\Domain\Traits\TableAware;
+use Gibbon\Domain\Traits\TableQueryAware;
 
 /**
  * @version v16
  * @since   v16
  */
-class RoleGateway extends QueryableGateway
+class RoleGateway extends AuditableGateway
 {
     use TableAware;
+    use TableQueryAware;
 
     private static $tableName = 'gibbonRole';
+    private static $primaryKey = 'gibbonRoleID';
 
     private static $searchableColumns = ['name', 'nameShort'];
     
@@ -68,5 +71,20 @@ class RoleGateway extends QueryableGateway
                 WHERE gibbonPersonID=:gibbonPersonID";
 
         return $this->db()->select($sql, $data);
+    }
+    
+    public function insertRole($data)
+    {
+        return $this->insertRow($this->getTableName(), $this->getPrimaryKey(), $data);
+    }
+
+    public function updateRole($data)
+    {
+        return $this->updateRow($this->getTableName(), $this->getPrimaryKey(), $data);
+    }
+
+    public function deleteRole($primaryKey)
+    {
+        return $this->deleteRow($this->getTableName(), $this->getPrimaryKey(), $primaryKey);
     }
 }

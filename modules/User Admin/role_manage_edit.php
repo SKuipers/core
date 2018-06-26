@@ -18,6 +18,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
+use Gibbon\Tables\DataTable;
+use Gibbon\Domain\User\RoleGateway;
+use Gibbon\Services\Format;
 
 if (isActionAccessible($guid, $connection2, '/modules/User Admin/role_manage_edit.php') == false) {
     //Acess denied
@@ -130,6 +133,29 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/role_manage_edi
                 $row->addSubmit();
 
             echo $form->getOutput();
+
+            echo '<h5>';
+            echo __('Change Log');
+            echo '</h5>';
+
+            $roleGateway = $container->get(RoleGateway::class);
+
+            $criteria = $roleGateway->newQueryCriteria()
+                ->sortBy('changeTimestamp', 'DESC')
+                ->fromArray($_POST);
+            $audits = $roleGateway->queryAudits($criteria, $gibbonRoleID);
+
+            // DATA TABLE
+            $table = DataTable::createPaginated('dataAudits', $criteria);
+            $table->getRenderer()->addClass('smallIntBorder');
+
+            $table->addColumn('event', __('Event'));
+            $table->addColumn('changeTimestamp', __('Date & Time'))->format(Format::using('dateTime', 'changeTimestamp'));
+            $table->addColumn('person', __('Person'))
+                ->sortable(['gibbonPerson.preferredName', 'gibbonPerson.surname'])
+                ->format(Format::using('name', ['', 'preferredName', 'surname', 'Staff']));
+
+            echo $table->render($audits);
         }
     }
 }

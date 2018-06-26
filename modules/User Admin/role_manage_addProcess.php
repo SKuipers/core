@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\User\RoleGateway;
+
 include '../../gibbon.php';
 
 $URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/role_manage_add.php';
@@ -57,20 +59,12 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/role_manage_add
             header("Location: {$URL}");
         } else {
             //Write to database
-            try {
-                $data = array('category' => $category, 'name' => $name, 'nameShort' => $nameShort, 'description' => $description, 'canLoginRole' => $canLoginRole, 'futureYearsLogin' => $futureYearsLogin, 'pastYearsLogin' => $pastYearsLogin, 'restriction' => $restriction);
-                $sql = "INSERT INTO gibbonRole SET category=:category, name=:name, nameShort=:nameShort, description=:description, type='Additional', canLoginRole=:canLoginRole, futureYearsLogin=:futureYearsLogin, pastYearsLogin=:pastYearsLogin, restriction=:restriction";
-                $result = $connection2->prepare($sql);
-                $result->execute($data);
-            } catch (PDOException $e) {
-                $URL .= '&return=error2';
-                header("Location: {$URL}");
-                exit();
-            }
 
-            //Last insert ID
-            $AI = str_pad($connection2->lastInsertID(), 3, '0', STR_PAD_LEFT);
-
+            $data = array('category' => $category, 'name' => $name, 'nameShort' => $nameShort, 'type' => 'Additional', 'description' => $description, 'canLoginRole' => $canLoginRole, 'futureYearsLogin' => $futureYearsLogin, 'pastYearsLogin' => $pastYearsLogin, 'restriction' => $restriction);
+            
+            $roleGateway = $container->get(RoleGateway::class);
+            $AI = $roleGateway->insertRole($data);
+                    
             $URL .= "&return=success0&editID=$AI";
             header("Location: {$URL}");
         }
