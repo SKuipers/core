@@ -1847,6 +1847,27 @@ button[disabled], input[disabled], textarea[disabled] {
     opacity: 0.65;
 }
 
+.dataAuditMessage {
+    padding: 8px 12px 12px 2px;
+    text-align: left;
+    color: #666;
+    border: 0;
+    background: transparent;
+    opacity: 0.6;
+}
+.dataAuditMessage:hover {
+    opacity: 1;
+}
+
+.dataAudit.active .dataAuditMessage {
+    display: none;
+}
+
+.dataAudit:not(.active) .dataAuditChanges {
+    display: none;
+}
+
+
 /* PRINT STYLES */
 body.print div.trail {
     display: none;
@@ -1856,4 +1877,3 @@ body.print div.trail {
     table tr {
         page-break-inside: avoid;
     }
-}

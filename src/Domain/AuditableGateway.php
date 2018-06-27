@@ -65,7 +65,7 @@ abstract class AuditableGateway extends QueryableGateway implements SessionAware
         $insertID = parent::runInsert($query);
 
         if (!empty($insertID) && $this->db()->getQuerySuccess()) {
-            $this->createAudit($insertID, 'INSERT');
+            $this->createAudit($insertID, 'Created');
         }
 
         return $insertID;
@@ -77,7 +77,7 @@ abstract class AuditableGateway extends QueryableGateway implements SessionAware
         $updated = parent::runUpdate($query);
 
         if (!empty($updateID) && $this->db()->getQuerySuccess()) {
-            $this->createAudit($updateID, 'UPDATE');
+            $this->createAudit($updateID, 'Updated');
         }
 
         return $updated;
@@ -91,7 +91,7 @@ abstract class AuditableGateway extends QueryableGateway implements SessionAware
         $deleted = parent::runDelete($query);
 
         if (!empty($deleteID) && $this->db()->getQuerySuccess()) {
-            $this->createAudit($deleteID, 'DELETE', $rowData);
+            $this->createAudit($deleteID, 'Deleted', $rowData);
         }
 
         return $deleted;

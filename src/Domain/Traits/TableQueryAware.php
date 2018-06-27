@@ -24,8 +24,11 @@ namespace Gibbon\Domain\Traits;
  */
 trait TableQueryAware
 {
-    protected function selectRow($tableName, $primaryKey, $primaryKeyValue)
+    protected function selectRow($primaryKeyValue, $tableName = null, $primaryKey = null)
     {
+        if (empty($tableName)) $tableName = $this->getTableName();
+        if (empty($primaryKey)) $primaryKey = $this->getPrimaryKey();
+
         if (empty($primaryKeyValue)) {
             throw new \InvalidArgumentException("Gateway select method for {$tableName} must provide a primary key value.");
         }
@@ -40,8 +43,11 @@ trait TableQueryAware
         return $this->runSelect($query);
     }
     
-    protected function insertRow($tableName, $primaryKey, $data)
+    protected function insertRow($data, $tableName = null, $primaryKey = null)
     {
+        if (empty($tableName)) $tableName = $this->getTableName();
+        if (empty($primaryKey)) $primaryKey = $this->getPrimaryKey();
+
         unset($data[$primaryKey]);
 
         $query = $this
@@ -52,8 +58,11 @@ trait TableQueryAware
         return $this->runInsert($query);
     }
 
-    protected function updateRow($tableName, $primaryKey, $data)
+    protected function updateRow($data, $tableName = null, $primaryKey = null)
     {
+        if (empty($tableName)) $tableName = $this->getTableName();
+        if (empty($primaryKey)) $primaryKey = $this->getPrimaryKey();
+
         if (empty($data[$primaryKey])) {
             throw new \InvalidArgumentException("Gateway update method for {$tableName} must provide a primary key value.");
         }
@@ -71,8 +80,11 @@ trait TableQueryAware
         return $this->runUpdate($query);
     }
 
-    protected function deleteRow($tableName, $primaryKey, $primaryKeyValue)
+    protected function deleteRow($primaryKeyValue, $tableName = null, $primaryKey = null)
     {
+        if (empty($tableName)) $tableName = $this->getTableName();
+        if (empty($primaryKey)) $primaryKey = $this->getPrimaryKey();
+
         if (empty($primaryKeyValue)) {
             throw new \InvalidArgumentException("Gateway delete method for {$tableName} must provide a primary key value.");
         }

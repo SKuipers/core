@@ -25,6 +25,16 @@ jQuery(function($){
     });
 
     /**
+     * Generic active/inactive toggle.
+     */
+    $(document).on('click', '.activatable', function () {
+        $(this).addClass('active');
+    });
+    $(document).on('click', '.toggleable', function () {
+        $(this).addClass('active');
+    });
+
+    /**
      * Bluk Actions: show/hide the bulk action panel, highlight selected
      */
     $(document).on('click, change', '.bulkActionForm .bulkCheckbox :checkbox', function () {

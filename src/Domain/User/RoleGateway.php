@@ -75,16 +75,16 @@ class RoleGateway extends AuditableGateway
     
     public function insertRole($data)
     {
-        return $this->insertRow($this->getTableName(), $this->getPrimaryKey(), $data);
+        return $this->insertRow($data);
     }
 
     public function updateRole($data)
     {
-        return $this->updateRow($this->getTableName(), $this->getPrimaryKey(), $data);
+        return $this->updateRow($data);
     }
 
-    public function deleteRole($primaryKey)
+    public function deleteRole($gibbonRoleID)
     {
-        return $this->deleteRow($this->getTableName(), $this->getPrimaryKey(), $primaryKey);
+        return $this->deleteRow($gibbonRoleID);
     }
 }
