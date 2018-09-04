@@ -155,7 +155,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
 
             if ($roleCategory == 'Parent' and $highestAction == 'View Activities_studentRegisterByParent') {
                 if (empty($gibbonPersonID) && $countChild > 0) {
-                    echo '<div class="warning">';
+                    echo '<div class="message">';
                     echo __('Select the child you are registering for to view their available activities.');
                     echo '</div>';
                     return;
@@ -281,7 +281,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                     echo '</div>';
                 } else {
                     if ($result->rowCount() > $_SESSION[$guid]['pagination']) {
-                        printPagination($guid, $result->rowCount(), $page, $_SESSION[$guid]['pagination'], 'top', "search=$search");
+                        printPagination($guid, $result->rowCount(), $page, $_SESSION[$guid]['pagination'], 'top', "search=$search&gibbonPersonID=$gibbonPersonID");
                     }
 
                     if (($roleCategory == 'Student' and $highestAction == 'View Activities_studentRegister') or ($roleCategory == 'Parent' and $highestAction == 'View Activities_studentRegisterByParent' and $gibbonPersonID != '' and $countChild > 0)) {
@@ -522,7 +522,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                     echo '</table>';
 
                     if ($result->rowCount() > $_SESSION[$guid]['pagination']) {
-                        printPagination($guid, $result->rowCount(), $page, $_SESSION[$guid]['pagination'], 'bottom', "search=$search");
+                        printPagination($guid, $result->rowCount(), $page, $_SESSION[$guid]['pagination'], 'bottom', "search=$search&gibbonPersonID=$gibbonPersonID");
                     }
                 }
             }
