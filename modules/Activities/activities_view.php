@@ -114,10 +114,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                                 ++$countChild;
                             }
 
-                            if ($resultChild->rowCount() == 1) {
-                                $gibbonPersonID = key($options);
-                            }
+                            
                         }
+                    }
+
+                    if (count($options) == 1) {
+                        $gibbonPersonID = key($options);
                     }
 
                     if ($countChild == 0) {
