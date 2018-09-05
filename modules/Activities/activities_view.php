@@ -55,19 +55,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
 
         if (!($allActivityAccess == 'View' or $allActivityAccess == 'Register')) {
             echo "<div class='error'>";
-            echo __($guid, 'Activity listing is currently closed.');
+            echo __('Activity listing is currently closed.');
             echo '</div>';
         } else {
             if ($allActivityAccess == 'View') {
                 echo "<div class='warning'>";
-                echo __($guid, 'Registration is currently closed, but you can still view activities.');
+                echo __('Registration is currently closed, but you can still view activities.');
                 echo '</div>';
             }
 
             $disableExternalProviderSignup = getSettingByScope($connection2, 'Activities', 'disableExternalProviderSignup');
             if ($disableExternalProviderSignup == 'Y') {
                 echo "<div class='warning'>";
-                echo __($guid, 'Registration for activities offered by outside providers is disabled. Check activity details for instructions on how to register for such acitvities.');
+                echo __('Registration for activities offered by outside providers is disabled. Check activity details for instructions on how to register for such acitvities.');
                 echo '</div>';
             }
 
@@ -95,7 +95,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
 
                 if ($result->rowCount() < 1) {
                     echo "<div class='error'>";
-                    echo __($guid, 'Access denied.');
+                    echo __('Access denied.');
                     echo '</div>';
                 } else {
                     $options = array();
@@ -113,8 +113,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                                 $options[$rowChild['gibbonPersonID']] = formatName('', $rowChild['preferredName'], $rowChild['surname'], 'Student', true);
                                 ++$countChild;
                             }
-
-                            
                         }
                     }
 
@@ -124,14 +122,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
 
                     if ($countChild == 0) {
                         echo "<div class='error'>";
-                        echo __($guid, 'There are no records to display.');
+                        echo __('There are no records to display.');
                         echo '</div>';
                     }
                 }
             }
 
             echo '<h2>';
-            echo __($guid, 'Filter & Search');
+            echo __('Filter & Search');
             echo '</h2>';
 
             $search = isset($_GET['search'])? $_GET['search'] : null;
@@ -157,19 +155,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
             echo $form->getOutput();
 
             echo '<h2>';
-            echo __($guid, 'Activities');
+            echo __('Activities');
             echo '</h2>';
-
-            //Set pagination variable
-            $page = 1;
-            if (isset($_GET['page'])) {
-                $page = $_GET['page'];
-            }
-            if ((!is_numeric($page)) or $page < 1) {
-                $page = 1;
-            }
-
-            $today = date('Y-m-d');
 
             //Set special where params for different roles and permissions
             $continue = true;
@@ -229,10 +216,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                         }
                     }
                 } else {
-                    echo '<div class="message" style="font-size:14px;padding: 16px;">';
+                    echo '<div class="message">';
                     echo __('Select a child in your family view their available activities.');
                     echo '</div>';
-                    return;
                 }
             }
 
@@ -293,16 +279,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                                 $activityCountRemaining = max(0, $activity['maxPerStudent'] - $activityCountByType);
 
                                 if ($activityCountRemaining > 0) { 
-                                    echo '<div class="warning" style="font-size:14px;padding: 16px;">';
-                                    echo '<strong>'.$activity['name'].' '.__('Registration Available').':</strong> ';
-                                    echo sprintf(__('Each student can register for %1$s %2$s activities.'), $activity['maxPerStudent'], $activity['name']).'<br/>&nbsp;<br/>';
-                                    echo sprintf(__('Your current registration count is: %1$s'), $activityCountByType).'<br/>&nbsp;<br/>';
-                                    echo '<span style="font-weight: bold; color: #444;">'.sprintf(__('You can register for %1$s more %2$s activities.'), $activityCountRemaining, $activity['name']).'</span>';
+                                    echo '<div class="warning">';
+                                        echo '<strong>'.$activity['name'].' '.__('Registration Available').':</strong> ';
+                                        echo sprintf(__('Each student can register for %1$s %2$s activities.'), $activity['maxPerStudent'], $activity['name']).'<br/>&nbsp;<br/>';
+                                        echo sprintf(__('Your current registration count is: %1$s'), $activityCountByType).'<br/>&nbsp;<br/>';
+                                        echo '<span style="font-weight: bold; color: #444;">'.sprintf(__('You can register for %1$s more %2$s activities.'), $activityCountRemaining, $activity['name']).'</span>';
                                     echo '</div>';
                                 } else if ($activityCountByType > 0) {
-                                    echo '<div class="success" style="font-size:14px;padding: 16px;">';
-                                    echo '<strong>'.$activity['name'].' '.__('Registration Complete').':</strong> ';
-                                    echo sprintf(__('You have registered for %1$s %2$s activities.'), $activityCountByType, $activity['name']);
+                                    echo '<div class="success">';
+                                        echo '<strong>'.$activity['name'].' '.__('Registration Complete').':</strong> ';
+                                        echo sprintf(__('You have registered for %1$s %2$s activities.'), $activityCountByType, $activity['name']);
                                     echo '</div>';
                                 }
                             }
