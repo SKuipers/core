@@ -219,6 +219,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                     echo '<div class="message">';
                     echo __('Select a child in your family view their available activities.');
                     echo '</div>';
+                    $continue = true;
                 }
             }
 
@@ -242,8 +243,20 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                 $canAccessRegistration = !empty($gibbonPersonID) && (($roleCategory == 'Student' && $highestAction == 'View Activities_studentRegister') || ($roleCategory == 'Parent' && $highestAction == 'View Activities_studentRegisterByParent' && $countChild > 0));
                 $paymentOn = getSettingByScope($connection2, 'Activities', 'payment') != 'None' && getSettingByScope($connection2, 'Activities', 'payment') != 'Single';
 
+                $activityGateway = $container->get(ActivityGateway::class);
+    
+                // CRITERIA
+                $criteria = $activityGateway->newQueryCriteria()
+                    ->searchBy($activityGateway->getSearchableColumns(), $search)
+                    ->sortBy($dateType != 'Date' ? ['registrationOrder', 'gibbonSchoolYearTermIDList'] : ['registrationOrder', 'gibbonActivity.type'] )
+                    ->sortBy('gibbonActivity.name')
+                    ->pageSize(50)
+                    ->fromArray($_POST);
+
+                $activities = $activityGateway->queryActivitiesBySchoolYear($criteria, $_SESSION[$guid]['gibbonSchoolYearID'], $dateType, $gibbonYearGroupID);
+
                 // Registration Limit Check
-                if ($allActivityAccess == 'Register' && $canAccessRegistration) {
+                if ($allActivityAccess == 'Register' && $canAccessRegistration && $activities->count() > 0) {
                     if ($dateType == 'Term' and $maxPerTerm > 0) {
                         echo "<div class='warning'>";
                         echo __($guid, "Remember, each student can register for no more than $maxPerTerm activities per term. Your current registration count by term is:");
@@ -295,18 +308,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                         }
                     }
                 }
-
-                $activityGateway = $container->get(ActivityGateway::class);
-    
-                // CRITERIA
-                $criteria = $activityGateway->newQueryCriteria()
-                    ->searchBy($activityGateway->getSearchableColumns(), $search)
-                    ->sortBy($dateType != 'Date' ? ['registrationOrder', 'gibbonSchoolYearTermIDList'] : ['registrationOrder', 'gibbonActivity.type'] )
-                    ->sortBy('gibbonActivity.name')
-                    ->pageSize(50)
-                    ->fromArray($_POST);
-
-                $activities = $activityGateway->queryActivitiesBySchoolYear($criteria, $_SESSION[$guid]['gibbonSchoolYearID'], $dateType, $gibbonYearGroupID);
 
                 // DATA TABLE
                 $table = DataTable::createPaginated('viewActivities', $criteria);
