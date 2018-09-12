@@ -35,6 +35,7 @@ class RoleGateway extends AuditableGateway
 
     private static $tableName = 'gibbonRole';
     private static $primaryKey = 'gibbonRoleID';
+    private static $primaryName = 'name';
 
     private static $searchableColumns = ['name', 'nameShort'];
     

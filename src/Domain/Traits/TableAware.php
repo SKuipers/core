@@ -56,6 +56,20 @@ trait TableAware
     }
 
     /**
+     * Gets the primary column used to identify the row (eg: name).
+     *
+     * @return string
+     */
+    public function getPrimaryName()
+    {
+        if (empty(static::$primaryName)) {
+            throw new \BadMethodCallException(get_called_class().' must define a $primaryName');
+        }
+
+        return static::$primaryName;
+    }
+
+    /**
      * Gets the schema information for the columns in this database table.
      *
      * @return array

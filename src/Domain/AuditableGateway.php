@@ -49,8 +49,13 @@ abstract class AuditableGateway extends QueryableGateway implements SessionAware
             ->newQuery()
             ->from('gibbonDataAudit')
             ->cols([
-                'gibbonDataAuditID', 'event', 'eventData', 'foreignTable', 'foreignTableID', 'gibbonActionURL', 'gibbonDataAudit.gibbonActionID', 'gibbonDataAudit.gibbonRoleID', 'gibbonDataAudit.gibbonPersonID', 'changeDate', 'changeCount', 'changeTimestamp', 'gibbonPerson.preferredName', 'gibbonPerson.surname'])
+                'gibbonDataAuditID', 'event', 'eventData', 'foreignTable', 'foreignTableID', 'gibbonActionURL', 'gibbonDataAudit.gibbonActionID', 'gibbonDataAudit.gibbonRoleID', 'gibbonDataAudit.gibbonPersonID', 'changeDate', 'changeCount', 'changeTimestamp', 'gibbonPerson.preferredName', 'gibbonPerson.surname', 'gibbonModule.name as moduleName', 
+                $this->getTableName().'.'.$this->getPrimaryName().' AS primaryName',
+                $this->getTableName().'.'.$this->getPrimaryKey().' AS primaryKeyValue'])
             ->leftJoin('gibbonPerson', 'gibbonPerson.gibbonPersonID=gibbonDataAudit.gibbonPersonID')
+            ->leftJoin($this->getTableName(), $this->getTableName().'.'.$this->getPrimaryKey().'=gibbonDataAudit.foreignTableID')
+            ->leftJoin('gibbonAction', 'gibbonAction.gibbonActionID=gibbonDataAudit.gibbonActionID')
+            ->leftJoin('gibbonModule', 'gibbonModule.gibbonModuleID=gibbonAction.gibbonModuleID')
             ->where('foreignTable=:foreignTable', ['foreignTable' => $this->getTableName()]);
 
         if (!empty($foreignTableID)) {
@@ -65,7 +70,7 @@ abstract class AuditableGateway extends QueryableGateway implements SessionAware
         $insertID = parent::runInsert($query);
 
         if (!empty($insertID) && $this->db()->getQuerySuccess()) {
-            $this->createAudit($insertID, 'Created');
+            $this->createAudit($insertID, 'Created', $query->getBindValues());
         }
 
         return $insertID;
@@ -74,10 +79,13 @@ abstract class AuditableGateway extends QueryableGateway implements SessionAware
     protected function runUpdate(UpdateInterface $query)
     {
         $updateID = $this->getPrimaryKeyFromQuery($query);
+        $rowData = $this->getRow($updateID);
+        $rowDifference = $this->getArrayDifference($rowData, $query->getBindValues());
+        
         $updated = parent::runUpdate($query);
 
-        if (!empty($updateID) && $this->db()->getQuerySuccess()) {
-            $this->createAudit($updateID, 'Updated');
+        if (!empty($updateID) && !empty($rowDifference) && $this->db()->getQuerySuccess()) {
+            $this->createAudit($updateID, 'Updated', $rowDifference);
         }
 
         return $updated;
@@ -87,7 +95,7 @@ abstract class AuditableGateway extends QueryableGateway implements SessionAware
     {
         $deleteID = $this->getPrimaryKeyFromQuery($query);
 
-        $rowData = $this->db()->selectOne("SELECT * FROM {$this->getTableName()} WHERE {$this->getPrimaryKey()}=:primaryKey", ['primaryKey' => $deleteID]);
+        $rowData = $this->getRow($deleteID);
         $deleted = parent::runDelete($query);
 
         if (!empty($deleteID) && $this->db()->getQuerySuccess()) {
@@ -102,6 +110,13 @@ abstract class AuditableGateway extends QueryableGateway implements SessionAware
         $bindings = $query->getBindValues();
 
         return isset($bindings['primaryKey']) ? $bindings['primaryKey'] : false;
+    }
+
+    private function getArrayDifference($original, $new)
+    {
+        return array_filter($new, function ($key) use ($original, $new) {
+            return $original[$key] != $new[$key] && $key != 'primaryKey';
+        }, ARRAY_FILTER_USE_KEY);
     }
 
     private function createAudit($foreignTableID, $event, $eventData = array())
@@ -135,9 +150,7 @@ abstract class AuditableGateway extends QueryableGateway implements SessionAware
                 gibbonRoleID=:gibbonRoleID, 
                 gibbonPersonID=:gibbonPersonID,
                 changeDate=NOW(),
-                changeCount=1,
                 changeTimestamp=NOW()
-                ON DUPLICATE KEY UPDATE changeCount=changeCount+1, changeTimestamp=NOW()
         ";
 
         $this->db()->affectingStatement($sql, $data);
