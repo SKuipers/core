@@ -19,6 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Tables\DataTable;
 use Gibbon\Domain\User\RoleGateway;
+use Gibbon\Tables\Prefab\AuditTable;
 
 if (isActionAccessible($guid, $connection2, '/modules/User Admin/role_manage.php') == false) {
     //Acess denied
@@ -89,4 +90,6 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/role_manage.php
         });
 
     echo $table->render($roles);
+
+    echo AuditTable::createTable($roleGateway)->getOutput();
 }

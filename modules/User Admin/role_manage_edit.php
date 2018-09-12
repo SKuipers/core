@@ -18,9 +18,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
+use Gibbon\Domain\DataSet;
+use Gibbon\Services\Format;
 use Gibbon\Tables\DataTable;
 use Gibbon\Domain\User\RoleGateway;
-use Gibbon\Services\Format;
+use Gibbon\Tables\Prefab\AuditTable;
 
 if (isActionAccessible($guid, $connection2, '/modules/User Admin/role_manage_edit.php') == false) {
     //Acess denied
@@ -135,42 +137,8 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/role_manage_edi
             echo $form->getOutput();
 
             
-
             $roleGateway = $container->get(RoleGateway::class);
-
-            $criteria = $roleGateway->newQueryCriteria()
-                ->sortBy('changeTimestamp', 'DESC')
-                ->fromArray($_POST);
-            $audits = $roleGateway->queryAudits($criteria, $gibbonRoleID);
-
-            // DATA TABLE
-            $table = DataTable::createPaginated('dataAudits', $criteria);
-            $table->getRenderer()->addClass('smallIntBorder');
-
-            $table->addColumn('event', __('Event'))
-                ->format(function($row) {
-                    return ucfirst(strtolower($row['event'])).($row['changeCount'] > 1? ' <i>x'.$row['changeCount'].'</i>' : '');
-                });
-            $table->addColumn('changeTimestamp', __('Date & Time'))->format(Format::using('dateTime', 'changeTimestamp'));
-            $table->addColumn('person', __('Person'))
-                ->sortable(['gibbonPerson.preferredName', 'gibbonPerson.surname'])
-                ->format(Format::using('name', ['', 'preferredName', 'surname', 'Staff']));
-
-            if ($audits->count() > 0) {
-                echo '<section class="dataAudit activatable">';
-                echo '<button class="dataAuditMessage">';
-                echo '<img src="./themes/Default/img/zoom.png" style="vertical-align:bottom;" height="14" /> <small>'.__('Change Log').' ('.$audits->getResultCount().')'.'</small>';
-                echo '</button>';
-
-                echo '<div class="dataAuditChanges">';
-                echo '<h5 style="margin-top:20px;">';
-                echo __('Change Log');
-                echo '</h5>';
-
-                echo $table->render($audits);
-                echo '</div>';
-                echo '</section>';
-            }
+            echo AuditTable::createTable($roleGateway, $gibbonRoleID)->getOutput();
         }
     }
 }
