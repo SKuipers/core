@@ -53,7 +53,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/role_manage_del
             //Write to database
 
             $roleGateway = $container->get(RoleGateway::class);
-            $deleted = $roleGateway->deleteRole($gibbonRoleID);
+            $deleted = $roleGateway->delete($gibbonRoleID);
             
             $URLDelete = $URLDelete.'&return=success0';
             header("Location: {$URLDelete}");

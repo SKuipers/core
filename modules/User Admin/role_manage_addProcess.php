@@ -63,7 +63,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/role_manage_add
             $data = array('category' => $category, 'name' => $name, 'nameShort' => $nameShort, 'type' => 'Additional', 'description' => $description, 'canLoginRole' => $canLoginRole, 'futureYearsLogin' => $futureYearsLogin, 'pastYearsLogin' => $pastYearsLogin, 'restriction' => $restriction);
             
             $roleGateway = $container->get(RoleGateway::class);
-            $AI = $roleGateway->insertRole($data);
+            $AI = $roleGateway->insert($data);
                     
             $URL .= "&return=success0&editID=$AI";
             header("Location: {$URL}");

@@ -86,7 +86,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/role_manage_edi
                     $data = array('gibbonRoleID' => $gibbonRoleID, 'category' => $category, 'name' => $name, 'nameShort' => $nameShort, 'description' => $description, 'canLoginRole' => $canLoginRole, 'futureYearsLogin' => $futureYearsLogin, 'pastYearsLogin' => $pastYearsLogin, 'restriction' => $restriction);
 
                     $roleGateway = $container->get(RoleGateway::class);
-                    $updated = $roleGateway->updateRole($data);
+                    $updated = $roleGateway->update($data);
 
                     $URL .= '&return=success0';
                     header("Location: {$URL}");

@@ -24,7 +24,12 @@ namespace Gibbon\Domain\Traits;
  */
 trait TableQueryAware
 {
-    protected function selectRow($primaryKeyValue, $tableName = null, $primaryKey = null)
+    public function get($primaryKeyValue, $tableName = null, $primaryKey = null)
+    {
+        return $this->selectRow($primaryKeyValue, $tableName, $primaryKey)->fetch();
+    }
+    
+    public function select($primaryKeyValue, $tableName = null, $primaryKey = null)
     {
         if (empty($tableName)) $tableName = $this->getTableName();
         if (empty($primaryKey)) $primaryKey = $this->getPrimaryKey();
@@ -43,7 +48,7 @@ trait TableQueryAware
         return $this->runSelect($query);
     }
     
-    protected function insertRow($data, $tableName = null, $primaryKey = null)
+    public function insert($data, $tableName = null, $primaryKey = null)
     {
         if (empty($tableName)) $tableName = $this->getTableName();
         if (empty($primaryKey)) $primaryKey = $this->getPrimaryKey();
@@ -58,7 +63,7 @@ trait TableQueryAware
         return $this->runInsert($query);
     }
 
-    protected function updateRow($data, $tableName = null, $primaryKey = null)
+    public function update($data, $tableName = null, $primaryKey = null)
     {
         if (empty($tableName)) $tableName = $this->getTableName();
         if (empty($primaryKey)) $primaryKey = $this->getPrimaryKey();
@@ -80,7 +85,7 @@ trait TableQueryAware
         return $this->runUpdate($query);
     }
 
-    protected function deleteRow($primaryKeyValue, $tableName = null, $primaryKey = null)
+    public function delete($primaryKeyValue, $tableName = null, $primaryKey = null)
     {
         if (empty($tableName)) $tableName = $this->getTableName();
         if (empty($primaryKey)) $primaryKey = $this->getPrimaryKey();
