@@ -49,7 +49,7 @@ abstract class AuditableGateway extends QueryableGateway implements SessionAware
             ->newQuery()
             ->from('gibbonDataAudit')
             ->cols([
-                'gibbonDataAuditID', 'event', 'eventData', 'foreignTable', 'foreignTableID', 'gibbonActionURL', 'gibbonDataAudit.gibbonActionID', 'gibbonDataAudit.gibbonRoleID', 'gibbonDataAudit.gibbonPersonID', 'changeDate', 'changeCount', 'changeTimestamp', 'gibbonPerson.preferredName', 'gibbonPerson.surname', 'gibbonModule.name as moduleName', 
+                'gibbonDataAuditID', 'event', 'eventData', 'foreignTable', 'foreignTableID', 'gibbonActionURL', 'gibbonDataAudit.gibbonActionID', 'gibbonDataAudit.gibbonRoleID', 'gibbonDataAudit.gibbonPersonID', 'gibbonDataAudit.timestamp', 'gibbonPerson.preferredName', 'gibbonPerson.surname', 'gibbonModule.name as moduleName', 
                 $this->getTableName().'.'.$this->getPrimaryName().' AS primaryName',
                 $this->getTableName().'.'.$this->getPrimaryKey().' AS primaryKeyValue'])
             ->leftJoin('gibbonPerson', 'gibbonPerson.gibbonPersonID=gibbonDataAudit.gibbonPersonID')
@@ -70,7 +70,7 @@ abstract class AuditableGateway extends QueryableGateway implements SessionAware
         $insertID = parent::runInsert($query);
 
         if (!empty($insertID) && $this->db()->getQuerySuccess()) {
-            $this->createAudit($insertID, 'Created', $query->getBindValues());
+            $this->createAudit($insertID, 'Created');
         }
 
         return $insertID;
@@ -120,10 +120,6 @@ abstract class AuditableGateway extends QueryableGateway implements SessionAware
             }
             return $group;
         }, array());
-
-        // return array_filter($new, function ($key) use ($old, $new) {
-        //     return $old[$key] != $new[$key] && $key != 'primaryKey';
-        // }, ARRAY_FILTER_USE_KEY);
     }
 
     private function createAudit($foreignTableID, $event, $eventData = array())
@@ -156,8 +152,7 @@ abstract class AuditableGateway extends QueryableGateway implements SessionAware
                     ORDER BY gibbonAction.precedence DESC LIMIT 1), 
                 gibbonRoleID=:gibbonRoleID, 
                 gibbonPersonID=:gibbonPersonID,
-                changeDate=NOW(),
-                changeTimestamp=NOW()
+                timestamp=NOW()
         ";
 
         $this->db()->affectingStatement($sql, $data);

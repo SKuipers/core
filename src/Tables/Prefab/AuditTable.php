@@ -48,8 +48,8 @@ class AuditTable extends DataTable
         $gateway = $gateway;
 
         $criteria = $gateway->newQueryCriteria()
-                ->sortBy('changeTimestamp', 'DESC')
-                ->fromArray($_POST);
+            ->sortBy('timestamp', 'DESC')
+            ->fromPost('dataAudits');
 
         $audits = $gateway->queryAudits($criteria, $primaryKeyValue);
                 
@@ -86,28 +86,41 @@ class AuditTable extends DataTable
 
         if (empty($primaryKeyValue)) {
             $table->addColumn('record', __('Record'))
-                ->format(function($row) {
-                    return !empty($row['primaryName'])? $row['primaryName'] : '<i class="small subdued">'.__('N/A').'</i>';
+                ->notSortable()
+                ->format(function($row) use ($gateway) {
+                    if ($row['event'] == 'Deleted') {
+                        $eventData = json_decode($row['eventData'], true);
+                        $primaryName = isset($eventData[$gateway->getPrimaryName()])? $eventData[$gateway->getPrimaryName()] : '';
+                    } else {
+                        $primaryName = isset($row['primaryName'])? $row['primaryName'] : '';
+                    }
+
+                    return !empty($primaryName)? $primaryName : '<i class="small subdued">'.__('N/A').'</i>';
                 });
         }
 
-        $table->addColumn('changeTimestamp', __('Date & Time'))->format(Format::using('dateTime', 'changeTimestamp'));
+        $table->addColumn('timestamp', __('Date & Time'))->format(Format::using('dateTime', 'timestamp'));
         $table->addColumn('person', __('Person'))
             ->sortable(['gibbonPerson.preferredName', 'gibbonPerson.surname'])
             ->format(Format::using('name', ['', 'preferredName', 'surname', 'Staff']));
 
         $table->addActionColumn()
+            ->addParam('gibbonDataAuditID')
+            ->addParam('redirect', $_GET['q'])
             ->format(function ($row, $actions) use ($gateway) {
-                if ( ($row['event'] == 'Updated' || $row['event'] == 'Created') && !empty($row['primaryKeyValue'])) {
-                    $actions->addAction('edit', __('Edit'))
-                        ->addParam($gateway->getPrimaryKey(), $row['primaryKeyValue'])
-                        ->setURL('/modules/'.$row['moduleName'].'/'.$row['gibbonActionURL']);
+                if ( ($row['event'] == 'Updated') && !empty($row['primaryKeyValue'])) {
+                    $actions->addAction('revert', __('Undo Changes'))
+                        
+                        ->setIcon('reincarnate')
+                        ->isModal(650, 135)
+                        ->setURL('/modules/System Admin/dataAudit_revert.php');
                 }
     
                 if ($row['event'] == 'Deleted') {
-                    $actions->addAction('restore', __('Restore'))
-                        ->setIcon('refresh')
-                        ->setURL('/modules/'.$row['moduleName'].'/'.$row['gibbonActionURL']);
+                    $actions->addAction('restore', __('Restore Record'))
+                        ->setIcon('reincarnate')
+                        ->isModal(650, 135)
+                        ->setURL('/modules/System Admin/dataAudit_restore.php');
                 }
             });
         
