@@ -79,7 +79,7 @@ abstract class AuditableGateway extends QueryableGateway implements SessionAware
     protected function runUpdate(UpdateInterface $query)
     {
         $updateID = $this->getPrimaryKeyFromQuery($query);
-        $rowData = $this->getRow($updateID);
+        $rowData = $this->get($updateID);
         $rowDifference = $this->getArrayDifference($rowData, $query->getBindValues());
         
         $updated = parent::runUpdate($query);
@@ -95,7 +95,7 @@ abstract class AuditableGateway extends QueryableGateway implements SessionAware
     {
         $deleteID = $this->getPrimaryKeyFromQuery($query);
 
-        $rowData = $this->getRow($deleteID);
+        $rowData = $this->get($deleteID);
         $deleted = parent::runDelete($query);
 
         if (!empty($deleteID) && $this->db()->getQuerySuccess()) {
@@ -112,24 +112,31 @@ abstract class AuditableGateway extends QueryableGateway implements SessionAware
         return isset($bindings['primaryKey']) ? $bindings['primaryKey'] : false;
     }
 
-    private function getArrayDifference($original, $new)
+    private function getArrayDifference($old, $new)
     {
-        return array_filter($new, function ($key) use ($original, $new) {
-            return $original[$key] != $new[$key] && $key != 'primaryKey';
-        }, ARRAY_FILTER_USE_KEY);
+        return array_reduce(array_keys($new), function($group, $key) use ($old, $new) {
+            if ($old[$key] != $new[$key] && $key != 'primaryKey') {
+                $group[$key] = array('old' => $old[$key], 'new' => $new[$key]);
+            }
+            return $group;
+        }, array());
+
+        // return array_filter($new, function ($key) use ($old, $new) {
+        //     return $old[$key] != $new[$key] && $key != 'primaryKey';
+        // }, ARRAY_FILTER_USE_KEY);
     }
 
     private function createAudit($foreignTableID, $event, $eventData = array())
     {
         $data = [
-            'event'          => $event,
-            'eventData'      => json_encode($eventData),
-            'foreignTable'   => $this->getTableName(),
-            'foreignTableID' => $foreignTableID,
-            'gibbonModule'   => $this->session->get('module'),
-            'gibbonActionURL'   => $this->session->get('action'),
-            'gibbonPersonID' => $this->session->get('gibbonPersonID'),
-            'gibbonRoleID'   => $this->session->get('gibbonRoleIDCurrent'),
+            'event'           => $event,
+            'eventData'       => json_encode($eventData),
+            'foreignTable'    => $this->getTableName(),
+            'foreignTableID'  => $foreignTableID,
+            'gibbonModule'    => $this->session->get('module'),
+            'gibbonActionURL' => $this->session->get('action'),
+            'gibbonPersonID'  => $this->session->get('gibbonPersonID'),
+            'gibbonRoleID'    => $this->session->get('gibbonRoleIDCurrent'),
         ];
         $sql = "INSERT INTO gibbonDataAudit SET 
                 event=:event, 

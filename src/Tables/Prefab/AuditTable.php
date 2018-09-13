@@ -61,15 +61,18 @@ class AuditTable extends DataTable
             $table->addExpandableColumn('eventData', __('Data'))
                 ->notSortable()
                 ->format(function($row) {
+                    if ($row['event'] != 'Updated') return '';
+
                     $eventData = json_decode($row['eventData'], true);
                     $changes = array_map(function($key, $value) {
-                        return array('field' => $key, 'value' => $value);
+                        return array('field' => $key, 'valueOld' => $value['old'], 'valueNew' => $value['new'] );
                     }, array_keys($eventData), $eventData);
 
                     $table = DataTable::create('changes');
-                    $table->getRenderer()->setClass('mini');
+                    $table->getRenderer()->setClass('mini blank');
                     $table->addColumn('field', __('Field'))->width('25%');
-                    $table->addColumn('value', __('Value'));
+                    $table->addColumn('valueOld', __('Original Value'))->width('25%');
+                    $table->addColumn('valueNew', __('New View'))->width('25%');
 
                     return '<strong>'.__('Changes').'</strong>: <br/>'.$table->render(new DataSet($changes));
                 });

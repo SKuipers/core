@@ -26,7 +26,7 @@ trait TableQueryAware
 {
     public function get($primaryKeyValue, $tableName = null, $primaryKey = null)
     {
-        return $this->selectRow($primaryKeyValue, $tableName, $primaryKey)->fetch();
+        return $this->select($primaryKeyValue, $tableName, $primaryKey)->fetch();
     }
     
     public function select($primaryKeyValue, $tableName = null, $primaryKey = null)
