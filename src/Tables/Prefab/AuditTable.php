@@ -19,7 +19,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 namespace Gibbon\Tables\Prefab;
 
-use Gibbon\Domain\DataSet;
 use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
 use Gibbon\Domain\AuditableGateway;
@@ -43,7 +42,7 @@ class AuditTable extends DataTable
      * @param string $guid
      * @return self
      */
-    public static function createTable(AuditableGateway $gateway, $primaryKeyValue = null)
+    public static function createChangeLog(AuditableGateway $gateway, $primaryKeyValue = null)
     {
         $gateway = $gateway;
 
@@ -57,29 +56,15 @@ class AuditTable extends DataTable
         $table = parent::createPaginated('dataAudits', $criteria)->withData($audits);
         $table->getRenderer()->addClass('smallIntBorder');
 
-        // if (!empty($primaryKeyValue)) {
-            $table->addExpandableColumn('eventData', __('Data'))
-                ->notSortable()
-                ->format(function($row) {
-                    if ($row['event'] != 'Updated') return '';
-
-                    $eventData = json_decode($row['eventData'], true);
-                    $changes = array_map(function($key, $value) {
-                        return array('field' => $key, 'valueOld' => $value['old'], 'valueNew' => $value['new'] );
-                    }, array_keys($eventData), $eventData);
-
-                    $table = DataTable::create('changes');
-                    $table->getRenderer()->setClass('mini blank');
-                    $table->addColumn('field', __('Field'))->width('25%');
-                    $table->addColumn('valueOld', __('Original Value'))->width('25%');
-                    $table->addColumn('valueNew', __('New View'))->width('25%');
-
-                    return '<strong>'.__('Changes').'</strong>: <br/>'.$table->render(new DataSet($changes));
-                });
-        // }
+        $table->addMetaData('filterOptions', [
+            'event:created'  => __('Event').': '.__('Created'),
+            'event:updated'  => __('Event').': '.__('Updated'),
+            'event:deleted'  => __('Event').': '.__('Deleted'),
+            'event:restored' => __('Event').': '.__('Restored'),
+        ]);
 
         $table->addColumn('event', __('Event'))
-            ->format(function($row) {
+            ->format(function ($row) {
                 $eventData = json_decode($row['eventData'], true);
                 return ucfirst(strtolower($row['event'])).($row['event'] == 'Updated' ? ' <i>('.count($eventData).')</i>' : '');
             });
@@ -87,7 +72,7 @@ class AuditTable extends DataTable
         if (empty($primaryKeyValue)) {
             $table->addColumn('record', __('Record'))
                 ->notSortable()
-                ->format(function($row) use ($gateway) {
+                ->format(function ($row) use ($gateway) {
                     if ($row['event'] == 'Deleted') {
                         $eventData = json_decode($row['eventData'], true);
                         $primaryName = isset($eventData[$gateway->getPrimaryName()])? $eventData[$gateway->getPrimaryName()] : '';
@@ -108,13 +93,17 @@ class AuditTable extends DataTable
             ->addParam('gibbonDataAuditID')
             ->addParam('redirect', $_GET['q'])
             ->format(function ($row, $actions) use ($gateway) {
-                if ( ($row['event'] == 'Updated') && !empty($row['primaryKeyValue'])) {
-                    $actions->addAction('revert', __('Undo Changes'))
-                        
-                        ->setIcon('reincarnate')
-                        ->isModal(650, 135)
-                        ->setURL('/modules/System Admin/dataAudit_revert.php');
-                }
+
+                $actions->addAction('view', __('View Details'))
+                    ->isModal(650, 650)
+                    ->setURL('/modules/System Admin/dataAudit_view.php');
+
+                // if (($row['event'] == 'Updated') && !empty($row['primaryKeyValue'])) {
+                //     $actions->addAction('revert', __('Undo Changes'))
+                //         ->setIcon('reincarnate')
+                //         ->isModal(650, 135)
+                //         ->setURL('/modules/System Admin/dataAudit_revert.php');
+                // }
     
                 if ($row['event'] == 'Deleted') {
                     $actions->addAction('restore', __('Restore Record'))
@@ -128,26 +117,24 @@ class AuditTable extends DataTable
         return $table;
     }
 
-    public function getOutput() 
+    public function getOutput()
     {
         $output = '';
-        if ($this->data->count() > 0) {
-            $output .= '<section class="dataAudit activatable">';
-            $output .= '<button class="dataAuditMessage">';
-            $output .= '<img src="./themes/Default/img/zoom.png" style="vertical-align:bottom;" height="14" /> <small>'.__('Change Log').' ('.$this->data->getResultCount().')'.'</small>';
-            $output .= '</button>';
 
-            $output .= '<div class="dataAuditChanges">';
-            $output .= '<h5 style="margin-top:20px;">';
-            $output .= __('Change Log');
-            $output .= '</h5>';
+        $output .= '<section class="dataAudit activatable">';
+        $output .= '<button class="dataAuditMessage">';
+        $output .= '<img src="./themes/Default/img/zoom.png" style="vertical-align:bottom;" height="14" /> <small>'.__('Change Log').' ('.$this->data->getResultCount().')'.'</small>';
+        $output .= '</button>';
 
-            $output .= parent::getOutput();
-            $output .= '</div>';
-            $output .= '</section>';
-        }
+        $output .= '<div class="dataAuditChanges">';
+        $output .= '<h5 style="margin-top:20px;">';
+        $output .= __('Change Log');
+        $output .= '</h5>';
+
+        $output .= parent::getOutput();
+        $output .= '</div>';
+        $output .= '</section>';
 
         return $output;
     }
-
 }

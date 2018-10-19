@@ -65,6 +65,8 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/systemSetting
     $dataAudit = $dataAuditGateway->get($gibbonDataAuditID);
     $dataAudit['event'] = 'Restored';
     $dataAudit['timestamp'] = date('Y-m-d H:i:s');
+    $dataAudit['gibbonPersonID'] = $gibbon->session->get('gibbonPersonID');
+    $dataAudit['gibbonRoleID'] = $gibbon->session->get('gibbonRoleIDCurrent');
     $dataAuditGateway->update($dataAudit);
 
     if (!$success) {

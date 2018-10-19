@@ -42,8 +42,6 @@ class DataAuditGateway extends QueryableGateway
     private static $searchableColumns = [''];
     
     /**
-     * Queries the list of strings for the Manage String Replacements page.
-     *
      * @param QueryCriteria $criteria
      * @return DataSet
      */

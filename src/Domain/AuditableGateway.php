@@ -52,15 +52,24 @@ abstract class AuditableGateway extends QueryableGateway implements SessionAware
                 'gibbonDataAuditID', 'event', 'eventData', 'foreignTable', 'foreignTableID', 'gibbonActionURL', 'gibbonDataAudit.gibbonActionID', 'gibbonDataAudit.gibbonRoleID', 'gibbonDataAudit.gibbonPersonID', 'gibbonDataAudit.timestamp', 'gibbonPerson.preferredName', 'gibbonPerson.surname', 'gibbonModule.name as moduleName', 
                 $this->getTableName().'.'.$this->getPrimaryName().' AS primaryName',
                 $this->getTableName().'.'.$this->getPrimaryKey().' AS primaryKeyValue'])
-            ->leftJoin('gibbonPerson', 'gibbonPerson.gibbonPersonID=gibbonDataAudit.gibbonPersonID')
             ->leftJoin($this->getTableName(), $this->getTableName().'.'.$this->getPrimaryKey().'=gibbonDataAudit.foreignTableID')
+            ->leftJoin('gibbonPerson', 'gibbonPerson.gibbonPersonID=gibbonDataAudit.gibbonPersonID')
             ->leftJoin('gibbonAction', 'gibbonAction.gibbonActionID=gibbonDataAudit.gibbonActionID')
             ->leftJoin('gibbonModule', 'gibbonModule.gibbonModuleID=gibbonAction.gibbonModuleID')
-            ->where('foreignTable=:foreignTable', ['foreignTable' => $this->getTableName()]);
+            ->where('foreignTable=:foreignTable', ['foreignTable' => $this->getTableName()])
+            ->having("primaryKeyValue IS NOT NULL OR event='Deleted'");
 
         if (!empty($foreignTableID)) {
             $query->where('foreignTableID=:foreignTableID', ['foreignTableID' => $foreignTableID]);
         }
+
+        $criteria->addFilterRules([
+            'event' => function ($query, $event) {
+                return $query
+                    ->where('gibbonDataAudit.event = :event')
+                    ->bindValue('event', ucfirst($event));
+            },
+        ]);
 
         return $this->runQuery($query, $criteria);
     }
@@ -70,7 +79,7 @@ abstract class AuditableGateway extends QueryableGateway implements SessionAware
         $insertID = parent::runInsert($query);
 
         if (!empty($insertID) && $this->db()->getQuerySuccess()) {
-            $this->createAudit($insertID, 'Created');
+            $this->createAudit($insertID, 'Created', $query->getBindValues());
         }
 
         return $insertID;

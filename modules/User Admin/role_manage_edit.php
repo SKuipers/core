@@ -138,7 +138,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/role_manage_edi
 
             
             $roleGateway = $container->get(RoleGateway::class);
-            echo AuditTable::createTable($roleGateway, $gibbonRoleID)->getOutput();
+            echo AuditTable::createChangeLog($roleGateway, $gibbonRoleID)->getOutput();
         }
     }
 }

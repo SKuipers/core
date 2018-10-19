@@ -41,7 +41,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/role_manage.php
     // QUERY
     $criteria = $roleGateway->newQueryCriteria()
         ->sortBy(['type', 'name'])
-        ->fromPOST();
+        ->fromPOST('roleManage');
 
     $roles = $roleGateway->queryRoles($criteria);
 
@@ -91,5 +91,5 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/role_manage.php
 
     echo $table->render($roles);
 
-    echo AuditTable::createTable($roleGateway)->getOutput();
+    echo AuditTable::createChangeLog($roleGateway)->getOutput();
 }
