@@ -175,6 +175,13 @@ class Select extends Input
     {
         $output = '';
 
+        if ($this->getReadonly()) {
+            $this->setValue($this->selected);
+            $output = '<input type="text" '.$this->getAttributeString().'>';
+
+            return $output;
+        }
+
         if (!empty($this->getAttribute('multiple'))) {
             if (empty($this->getAttribute('size'))) {
                 $this->setAttribute('size', 8);
