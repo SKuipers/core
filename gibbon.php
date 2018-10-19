@@ -28,6 +28,14 @@ $container = new League\Container\Container();
 $container->delegate(new League\Container\ReflectionContainer);
 $container->add('autoloader', $autoloader);
 
+$container->add(\Gibbon\Forms\FormFactoryInterface::class, function () {
+    return new \Gibbon\Forms\FormFactory();
+});
+
+$container->add(\Gibbon\Forms\FormRendererInterface::class, function () {
+    return new \Gibbon\Forms\FormRenderer();
+});
+
 $container->addServiceProvider(new Gibbon\Services\CoreServiceProvider(__DIR__));
 
 // Globals for backwards compatibility
@@ -47,7 +55,10 @@ if (!$gibbon->isInstalled() && !$gibbon->isInstalling()) {
 // Autoload the current module namespace
 if (!empty($gibbon->session->get('module'))) {
     $moduleNamespace = preg_replace('/[^a-zA-Z0-9]/', '', $gibbon->session->get('module'));
-    $autoloader->addPsr4('Gibbon\\'.$moduleNamespace.'\\', realpath(__DIR__).'/modules/'.$gibbon->session->get('module'));
+    $modulePath = realpath(__DIR__).'/modules/'.$gibbon->session->get('module');
+
+    $autoloader->addPsr4('Gibbon\\'.$moduleNamespace.'\\', $modulePath);
+    $autoloader->addPsr4('Gibbon\\'.$moduleNamespace.'\\', $modulePath.'/src');
     $autoloader->register(true);
 }
 

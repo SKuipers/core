@@ -47,7 +47,7 @@ class Form implements OutputableInterface
      * @param    string                 $action
      * @param    string                 $method
      */
-    public function __construct(FormFactoryInterface $factory, FormRendererInterface $renderer, $action, $method)
+    public function __construct(FormFactoryInterface $factory, FormRendererInterface $renderer, $action = '', $method = '')
     {
         $this->factory = $factory;
         $this->renderer = $renderer;
