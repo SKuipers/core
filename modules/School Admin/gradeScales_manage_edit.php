@@ -23,7 +23,7 @@ use Gibbon\Services\Format;
 use Gibbon\Domain\School\GradeScaleGateway;
 
 //Module includes
-include './modules/'.$_SESSION[$guid]['module'].'/moduleFunctions.php';
+require_once __DIR__ . '/moduleFunctions.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/gradeScales_manage_edit.php') == false) {
     //Acess denied
@@ -113,7 +113,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/gradeScales_m
             // QUERY
             $criteria = $gradeScaleGateway->newQueryCriteria()
                 ->sortBy('sequenceNumber')
-                ->fromArray($_POST);
+                ->fromPOST();
 
             $grades = $gradeScaleGateway->queryGradeScaleGrades($criteria, $gibbonScaleID);
 
