@@ -2,3 +2,23 @@
 Order Allow,Deny
 Deny from all
 </FilesMatch>
+
+#### BEGIN Gibbon Redirect
+
+<IfModule mod_rewrite.c>
+RewriteEngine on
+
+# Always redirect index first
+RewriteRule ^index\.php$ - [L]
+
+# Prevent direct access to core PHP files
+RewriteCond %{REQUEST_FILENAME} /(modules|tests|src|config)(.*)\.php$
+RewriteRule . index.php [L]
+
+# Redirect all other requests to index except for those to existing files and directories
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule . index.php [L]
+</IfModule>
+
+#### END Gibbon Redirect

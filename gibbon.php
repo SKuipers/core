@@ -17,6 +17,12 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Gibbon\Services\DefaultServicesProvider;
+
+if (!empty($autoloader)) return;
+
 // Setup the composer autoloader
 $autoloader = require_once __DIR__.'/vendor/autoload.php';
 
@@ -29,6 +35,7 @@ $container->delegate(new League\Container\ReflectionContainer);
 $container->add('autoloader', $autoloader);
 
 $container->addServiceProvider(new Gibbon\Services\CoreServiceProvider(__DIR__));
+$container->addServiceProvider(Gibbon\Services\HTTPServiceProvider::class);
 
 // Globals for backwards compatibility
 $gibbon = $container->get('config');
@@ -70,3 +77,83 @@ if ($gibbon->isInstalled() == true) {
         }
     }
 }
+
+$container->add('settings', [
+    'httpVersion'                       => '1.1',
+    'responseChunkSize'                 => 4096,
+    'outputBuffering'                   => 'append',
+    'determineRouteBeforeAppMiddleware' => false,
+    'displayErrorDetails'               => false,
+    'addContentLengthHeader'            => true,
+    'routerCacheFile'                   => false,
+]);
+
+
+$app = new \Slim\App($container);
+
+
+$app->post('/modules/{module}/{page}', function (Request $request, Response $response, array $args) {
+
+    // Globals for backwards compatibility
+    $container = $this;
+    $gibbon = $this->get('config');
+    $guid = $gibbon->getConfig('guid');
+    $caching = $gibbon->getConfig('caching');
+    $version = $gibbon->getConfig('version');
+    $autoloader = $this->get('autoloader');
+    $pdo = $this->get('db');
+    $connection2 = $pdo->getConnection();
+
+    $target = urldecode($request->getUri()->getPath());
+
+    $basePath = realpath('./');
+
+    chdir('./modules/'.$args['module'].'/');
+
+    if (is_file($basePath.'/'.$target)) {
+        include $basePath.'/'.$target;
+    }
+
+    exit;
+
+    return $response;
+});
+
+$app->any('/', function (Request $request, Response $response, array $args) {
+
+    // Globals for backwards compatibility
+    $container = $this;
+    $gibbon = $this->get('config');
+    $guid = $gibbon->getConfig('guid');
+    $caching = $gibbon->getConfig('caching');
+    $version = $gibbon->getConfig('version');
+    $autoloader = $this->get('autoloader');
+    $pdo = $this->get('db');
+    $connection2 = $pdo->getConnection();
+
+    $target = basename($request->getUri()->getBasePath());
+
+    if (!is_file('./'.$target)) {
+        $target = 'index.php';
+    }
+
+    include './'.$target;
+
+    $locationRedirect = array_filter(headers_list(), function ($item) {
+        return stripos($item, 'Location:') !== false;
+    });
+
+    if (!empty($locationRedirect)) {
+        header_remove("Location");
+        $responseRedirect = trim(str_replace('Location:', '', current($locationRedirect)));
+
+        return $response->withRedirect($responseRedirect, 301);
+    }
+
+    return $response;
+});
+
+
+$app->run();
+
+exit;

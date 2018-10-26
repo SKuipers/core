@@ -716,4 +716,4 @@ if ($showSidebar) {
 /**
  * DONE!!
  */
-echo $page->render('index.twig.html');
+$response->getBody()->write($page->render('index.twig.html'));
