@@ -23,6 +23,8 @@ use Gibbon\Core;
 use Gibbon\Locale;
 use Gibbon\Session;
 use Gibbon\View\Page;
+use Gibbon\View\AssetBundle;
+use Gibbon\View\Components\Breadcrumbs;
 use Gibbon\Services\Format;
 use Gibbon\Services\ErrorHandler;
 use Gibbon\Domain\System\Theme;
@@ -57,6 +59,7 @@ class CoreServiceProvider extends AbstractServiceProvider implements BootableSer
         'config',
         'session',
         'locale',
+        'errorHandler',
         'twig',
         'page',
         'module',
@@ -81,6 +84,7 @@ class CoreServiceProvider extends AbstractServiceProvider implements BootableSer
         $container->add('config', new Core($this->absolutePath));
         $container->add('session', new Session($container));
         $container->add('locale', new Locale($container));
+        $container->add('errorHandler', new ErrorHandler($container->get('session')->get('installType')));
 
         Format::setupFromSession($container->get('session'));
     }
@@ -174,14 +178,17 @@ class CoreServiceProvider extends AbstractServiceProvider implements BootableSer
             }
 
             $page = new Page($container->get('twig'), [
-                'title'   => $pageTitle,
-                'address' => $session->get('address'),
-                'action'  => $container->get('action'),
-                'module'  => $container->get('module'),
-                'theme'   => $container->get('theme'),
+                'title'        => $pageTitle,
+                'address'      => $session->get('address'),
+                'action'       => $container->get('action'),
+                'module'       => $container->get('module'),
+                'theme'        => $container->get('theme'),
+                'breadcrumbs'  => new Breadcrumbs(),
+                'stylesheets'  => new AssetBundle(),
+                'scripts'      => new AssetBundle(),
+                'errorHandler' => $container->get('errorHandler'),
             ]);
 
-            $container->add('errorHandler', new ErrorHandler($session->get('installType'), $page));
 
             return $page;
         });

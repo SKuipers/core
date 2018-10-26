@@ -20,8 +20,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 namespace Gibbon\View;
 
 use Gibbon\View\View;
-use Gibbon\View\AssetBundle;
-use Gibbon\View\Components\Breadcrumbs;
 
 /**
  * Holds the details for rendering the current page.
@@ -59,10 +57,7 @@ class Page extends View
     public function __construct($templateEngine = null, array $params = [])
     {
         parent::__construct($templateEngine);
-        
-        $this->breadcrumbs = new Breadcrumbs();
-        $this->stylesheets = new AssetBundle();
-        $this->scripts = new AssetBundle();
+
 
         // Merge constructor params into class properties
         foreach ($params as $key => $value) {

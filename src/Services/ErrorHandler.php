@@ -30,14 +30,34 @@ class ErrorHandler
     protected $page;
     protected $installType;
 
-    public function __construct(string $installType, Page $page = null)
-    {
-        $this->page = $page;
-        $this->installType = $installType;
+    protected $defaultAlerts;
 
+    public function __construct(string $installType)
+    {
+        $this->installType = $installType;
+        
         set_error_handler([$this, 'handleError']);
         set_exception_handler([$this, 'handleException']);
         register_shutdown_function([$this, 'handleFatalErrorShutdown']);
+    }
+
+    public function setPage(Page $page)
+    {
+        $this->page = $page;
+
+        $this->defaultAlerts = [
+            'success0' => __('Your request was completed successfully.'),
+            'error0'   => __('Your request failed because you do not have access to this action.'),
+            'error1'   => __('Your request failed because your inputs were invalid.'),
+            'error2'   => __('Your request failed due to a database error.'),
+            'error3'   => __('Your request failed because your inputs were invalid.'),
+            'error4'   => __('Your request failed because your passwords did not match.'),
+            'error5'   => __('Your request failed because there are no records to show.'),
+            'error6'   => __('Your request was completed successfully, but one or more images were the wrong size and so were not saved.'),
+            'warning0' => __('Your optional extra data failed to save.'),
+            'warning1' => __('Your request was successful, but some data was not properly saved.'),
+            'warning2' => __('Your request was successful, but some data was not properly deleted.'),
+        ];
     }
 
     public function handleError($code, $message = '', $file = null, $line = null)
@@ -83,9 +103,8 @@ class ErrorHandler
 
     protected function handleGracefulShutdown()
     {
-        @ob_end_clean();
-        
         if ($this->page) {
+            @ob_end_clean();
 
             if (!ini_get('display_errors') || !(error_reporting() & E_ERROR)) {
                 $this->page->writeFromTemplate('error.twig.html');
@@ -126,7 +145,7 @@ class ErrorHandler
             if ($this->page) {
                 $this->page->addAlert('exception', $output);
             } else {
-                echo $output;
+                echo '<div style="font-family:sans-serif;border-left: 6px solid #444;color: #444;background-color: #f9f9f9;font-size: 12px;padding: 10px;margin: 10px 0px 15px 0px;box-shadow: 2px 2px 2px rgba(50,50,50,0.15);">'.$output.'</div>';
             }
         }
 

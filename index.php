@@ -381,7 +381,7 @@ if ($isLoggedIn) {
  * Page class to allow them to register custom messages, or use Session flash
  * to add the message directly from the Process pages.
  */
-if (!$session->has('address') && !empty($_GET['return'])) {
+if (!empty($_GET['return'])) {
     $customReturns = [
         'success1' => __('Password reset was successful: you may now log in.')
     ];
@@ -389,6 +389,9 @@ if (!$session->has('address') && !empty($_GET['return'])) {
     if ($alert = returnProcessGetAlert($_GET['return'], '', $customReturns)) {
         $page->addAlert($alert['context'], $alert['text']);
     }
+
+    // Unset the global to prevent the old returnProcess from kicking in.
+    unset($_GET['return']);
 }
 
 /**
