@@ -37,8 +37,9 @@ class Column
     protected $depth = 0;
     protected $sortable = false;
     protected $formatter;
+    protected $details;
 
-    protected $columns = array();
+    protected $subColumns = [];
     protected $cellModifiers = [];
 
     public function __construct($id, $label = '', $depth = 0)
@@ -197,28 +198,58 @@ class Column
     }
 
     /**
-     * Add a nested column, by name and optional label. Returns the created column.
+     * Add a details column, by id and label. Details are often displayed as smaller
+     * text below the values for the current column, but the exact implementation
+     * depends on the renderer. Details can have formats just like a regular column.
+     *
+     * @param string $id
+     * @param string $label
+     * @return Column
+     */
+    public function addDetails($id, $label = null, callable $formatter = null)
+    {
+        $this->details = new Column($id, $label);
+
+        if ($formatter) {
+            $this->details->format($formatter);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Get the current details column, if any.
+     *
+     * @return Column
+     */
+    public function getDetails()
+    {
+        return $this->details;
+    }
+
+    /**
+     * Add a nested sub-column, by name and optional label. Returns the created column.
      *
      * @param string $name
      * @param string $label
      * @return Column
      */
-    public function addColumn($id, $label = '')
+    public function addSubColumn($id, $label = '')
     {
-        $this->columns[$id] = new Column($id, $label, $this->depth + 1);
+        $this->subColumns[$id] = new Column($id, $label, $this->depth + 1);
         $this->sortable = false;
 
-        return $this->columns[$id];
+        return $this->subColumns[$id];
     }
 
     /**
-     * Get all nested columns under this column.
+     * Get all nested sub-columns under this column.
      *
      * @return array
      */
-    public function getColumns()
+    public function getSubColumns()
     {
-        return $this->columns;
+        return $this->subColumns;
     }
 
     /**
@@ -226,22 +257,22 @@ class Column
      *
      * @return bool
      */
-    public function hasNestedColumns()
+    public function hasSubColumns()
     {
-        return count($this->columns) > 0;
+        return count($this->subColumns) > 0;
     }
 
     /**
-     * Gets the total column depth of all nested columns.
+     * Gets the total column depth of all nested sub-columns.
      *
      * @return int
      */
     public function getTotalDepth()
     {
-        if (!$this->hasNestedColumns()) return 1;
+        if (!$this->hasSubColumns()) return 1;
 
         $depth = 1;
-        foreach ($this->getColumns() as $column) {
+        foreach ($this->getSubColumns() as $column) {
             $depth = max($depth, $column->getTotalDepth());
         }
         
@@ -255,10 +286,10 @@ class Column
      */
     public function getTotalSpan()
     {
-        if (!$this->hasNestedColumns()) return 1;
+        if (!$this->hasSubColumns()) return 1;
 
         $count = 0;
-        foreach ($this->getColumns() as $column) {
+        foreach ($this->getSubColumns() as $column) {
             $count += $column->getTotalSpan();
         }
 

@@ -197,7 +197,9 @@ class SimpleRenderer implements RendererInterface
         $th->setTitle($column->getTitle())
            ->setClass('column');
 
-        if ($description = $column->getDescription()) {
+        if ($details = $column->getDetails()) {
+            $th->append('<br/><small><i>'.$details->getLabel().'</i></small>');
+        } elseif ($description = $column->getDescription()) {
             $th->append('<br/><small><i>'.$column->getDescription().'</i></small>');
         }
 
@@ -234,6 +236,10 @@ class SimpleRenderer implements RendererInterface
 
         foreach ($column->getCellModifiers() as $callable) {
             $cell = $callable($data, $cell, $table->getColumnCount());
+        }
+
+        if ($details = $column->getDetails()) {
+            $cell->append('<br/><small><i>'.$details->getOutput($data).'</i></small>');
         }
 
         return $cell;

@@ -143,15 +143,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/studentEnrolment_
         // COLUMNS
         $table->addColumn('student', __('Student'))
             ->sortable(['surname', 'preferredName'])
-            ->format(function ($person) {
-                return Format::name('', $person['preferredName'], $person['surname'], 'Student', true, true) . '<br/><small><i>'.Format::userStatusInfo($person).'</i></small>';
-            });
+            ->format(Format::using('name', ['', 'preferredName', 'surname', 'Student', true, true]))
+            ->addDetails('userStatus', '', Format::using('userStatusInfo'));
         $table->addColumn('yearGroup', __('Year Group'));
         $table->addColumn('rollGroup', __('Roll Group'))
-            ->description(__('Roll Order'))
-            ->format(function($row) {
-                return $row['rollGroup'] . (!empty($row['rollOrder']) ? '<br/><span class="small emphasis">'.$row['rollOrder'].'</span>' : '');
-            });
+            ->addDetails('rollOrder', __('Roll Order'));
 
         $table->addActionColumn()
             ->addParam('gibbonStudentEnrolmentID')

@@ -117,7 +117,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/report_activity
         foreach ($terms as $termName => $days) {
             $termColumn = $table->addColumn($termName, $termName);
             foreach ($days as $day) {
-                $termColumn->addColumn($day['nameShort'], $day['nameShort'])
+                $termColumn->addSubColumn($day['nameShort'], $day['nameShort'])
                     ->notSortable()
                     ->format(function($student) use ($displayActivityCount, $day) {
                         $key = $day['gibbonSchoolYearTermID'].'-'.$day['gibbonDaysOfWeekID'];

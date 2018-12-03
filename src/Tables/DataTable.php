@@ -249,8 +249,8 @@ class DataTable implements OutputableInterface
 
         $getNestedColumns = function($columns, &$allColumns = array()) use (&$getNestedColumns, &$depth, &$maxDepth) {
             foreach ($columns as $column) {
-                if ($column->hasNestedColumns() && (is_null($maxDepth) || $column->getDepth() < $maxDepth) ) {
-                    $getNestedColumns($column->getColumns(), $allColumns);
+                if ($column->hasSubColumns() && (is_null($maxDepth) || $column->getDepth() < $maxDepth) ) {
+                    $getNestedColumns($column->getSubColumns(), $allColumns);
                 } else {
                     $allColumns[] = $column;
                 }
