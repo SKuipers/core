@@ -25,41 +25,19 @@ use Gibbon\Domain\Traits\TableAware;
 use Gibbon\Domain\Traits\TableQueryAware;
 
 /**
- * Staff Absence Type Gateway
+ * Staff Absence Gateway
  *
  * @version v18
  * @since   v18
  */
-class StaffAbsenceTypeGateway extends QueryableGateway
+class StaffAbsenceGateway extends QueryableGateway
 {
     use TableAware;
     use TableQueryAware;
 
-    private static $tableName = 'gibbonStaffAbsenceType';
-    private static $primaryKey = 'gibbonStaffAbsenceTypeID';
+    private static $tableName = 'gibbonStaffAbsence';
+    private static $primaryKey = 'gibbonStaffAbsenceID';
 
-    private static $searchableColumns = ['name', 'nameShort'];
+    private static $searchableColumns = [];
     
-    /**
-     * @param QueryCriteria $criteria
-     * @return DataSet
-     */
-    public function queryAbsenceTypes(QueryCriteria $criteria)
-    {
-        $query = $this
-            ->newQuery()
-            ->from($this->getTableName())
-            ->cols([
-                'gibbonStaffAbsenceTypeID', 'name', 'nameShort', 'reasons'
-            ]);
-
-        return $this->runQuery($query, $criteria);
-    }
-
-    public function selectAllTypes()
-    {
-        $sql = "SELECT * FROM gibbonStaffAbsenceType ORDER BY sequenceNumber, nameShort";
-
-        return $this->db()->select($sql);
-    }
 }
