@@ -811,6 +811,9 @@ CREATE TABLE `gibbonStaffAbsence` (
     `date` DATE NULL,
     `reason` VARCHAR(60) NULL,
     `comment` VARCHAR(255) NULL,
+    `allDay` ENUM('N','Y') DEFAULT 'Y',
+    `timestampStart` timestamp NULL DEFAULT NULL,
+    `timestampEnd` timestamp NULL DEFAULT NULL,
     `gibbonPersonIDCreator` int(10) UNSIGNED ZEROFILL NOT NULL,
     `timestampCreator` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`gibbonStaffAbsenceID`)
@@ -823,5 +826,9 @@ CREATE TABLE `gibbonStaffAbsenceType` (
     `sequenceNumber` INT(3) NOT NULL,
     PRIMARY KEY (`gibbonStaffAbsenceTypeID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;end
-
+INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES ((SELECT gibbonModuleID FROM gibbonModule WHERE name='Staff'), 'New Absence_mine', 0, 'Absences', 'Allows a user to submit their own staff absences.', 'absence_manage_add.php', 'absence_manage_add.php', 'Y', 'Y', 'N', 'N', 'Y', 'Y', 'N', 'N', 'Y');end
+INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('001', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Staff' AND gibbonAction.name='New Absence_mine'));end
+INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('002', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Staff' AND gibbonAction.name='New Absence_mine'));end
+INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES ((SELECT gibbonModuleID FROM gibbonModule WHERE name='Staff'), 'New Absence_any', 2, 'Absences', 'Submit staff absences for any user.', 'absence_manage_add.php', 'absence_manage_add.php', 'Y', 'N', 'N', 'N', 'N', 'Y', 'N', 'N', 'N');end
+INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('001', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Staff' AND gibbonAction.name='New Absence_any'));end
 ";

@@ -96,7 +96,7 @@ trait TableQueryAware
             foreach ($uniqueKeys as $i => $key) {
                 if (empty($data[$key])) return false;
 
-                $query->orWhere("{$key} = :key{$i}")
+                $query->where("{$key} = :key{$i}")
                     ->bindValue("key{$i}", $data[$key]);
             }
         });
