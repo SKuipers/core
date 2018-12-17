@@ -803,6 +803,28 @@ DELETE FROM gibbonAction WHERE name='Import Users' AND gibbonModuleID=(SELECT gi
 INSERT IGNORE INTO `gibbonLanguage` (`name`) VALUES ('Sinhala');end
 INSERT INTO `gibboni18n` (`code`, `name`, `active`, `systemDefault`, `dateFormat`, `dateFormatRegEx`, `dateFormatPHP`,`rtl`) VALUES ('tr_TR','Türkçe - Türkiye', 'N', 'N', 'dd.mm.yyyy', '/^(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\\\d\\\d$/i', 'd.m.Y', 'N');end
 UPDATE gibboni18n SET active='Y' WHERE code='tr_TR';end
+INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES ((SELECT gibbonModuleID FROM gibbonModule WHERE name='School Admin'), 'Manage Staff Settings', 0, 'People', 'Manage settings for the Staff module', 'staffSettings.php,staffSettings_manage_add.php,staffSettings_manage_edit.php,staffSettings_manage_delete.php', 'staffSettings.php', 'Y', 'N', 'N', 'N', 'N', 'Y', 'N', 'N', 'N');end
+INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('001', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='School Admin' AND gibbonAction.name='Manage Staff Settings'));end
+CREATE TABLE `gibbonStaffAbsence` (
+    `gibbonStaffAbsenceID` INT(14) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
+    `gibbonStaffAbsenceTypeID` INT(6) UNSIGNED ZEROFILL NOT NULL,
+    `gibbonPersonID` int(10) UNSIGNED ZEROFILL NOT NULL,
+    `date` DATE NULL,
+    `reason` VARCHAR(60) NULL,
+    `comment` VARCHAR(255) NULL,
+    `gibbonPersonIDCreator` int(10) UNSIGNED ZEROFILL NOT NULL,
+    `timestampCreator` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`gibbonStaffAbsenceID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;end
+CREATE TABLE `gibbonStaffAbsenceType` (
+    `gibbonStaffAbsenceTypeID` INT(6) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(60) NULL,
+    `nameShort` VARCHAR(10) NULL,
+    `reasons` TEXT NULL,
+    `sequenceNumber` INT(3) NOT NULL,
+    PRIMARY KEY (`gibbonStaffAbsenceTypeID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;end
+
 ";
 
 //v18.0.00
