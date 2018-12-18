@@ -131,6 +131,7 @@ function __($text, $params=[], $options=[])
 function __n(string $singular, string $plural, int $n, array $params = [], array $options = [])
 {
     global $gibbon;
+    $params['count'] = $n;
     return $gibbon->locale->translateN($singular, $plural, $n, $params, $options);
 }
 
