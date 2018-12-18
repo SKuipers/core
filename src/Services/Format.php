@@ -117,7 +117,7 @@ class Format
      */
     public static function dateReadable($dateString)
     {
-        return static::date($dateString, 'F j, Y');
+        return static::date($dateString, 'M j, Y');
     }
 
     /**
@@ -148,11 +148,11 @@ class Format
         $endDate = ($dateTo instanceof DateTime)? $dateTo : new DateTime($dateTo);
 
         if ($startDate->format('Y-m') == $endDate->format('Y-m')) {
-            $output = $startDate->format('M Y');
-        } else if ($startDate->format('Y') == $endDate->format('Y')) {
-            $output = $startDate->format('M').' - '.$endDate->format('M Y');
+            $output = $startDate->format('M j').' - '.$endDate->format('j, Y');
+        } elseif ($startDate->format('Y') == $endDate->format('Y')) {
+            $output = $startDate->format('M j').' - '.$endDate->format('M j, Y');
         } else {
-            $output = $startDate->format('M Y').' - '.$endDate->format('M Y');
+            $output = $startDate->format('M j, Y').' - '.$endDate->format('M j, Y');
         }
 
         return $output;
