@@ -276,7 +276,7 @@ class DatabaseFormFactory extends FormFactory
             }
         }
 
-        return $this->createSelect($name)->fromArray($values);
+        return $this->createPerson($name)->fromArray($values);
     }
 
     public function createSelectUsers($name, $gibbonSchoolYearID = false, $params = array())
@@ -336,7 +336,7 @@ class DatabaseFormFactory extends FormFactory
             }, array());
         }
 
-        return $this->createSelect($name)->fromArray($users);
+        return $this->createPerson($name)->fromArray($users);
     }
 
     /*
@@ -442,7 +442,7 @@ class DatabaseFormFactory extends FormFactory
             }
         }
 
-        return $this->createSelect($name)->fromArray($values);
+        return $this->createPerson($name)->fromArray($values);
     }
 
     public function createSelectGradeScale($name)
