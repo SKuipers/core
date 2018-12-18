@@ -216,6 +216,11 @@ class FormFactory implements FormFactoryInterface
         return new Input\Username($name);
     }
 
+    public function createPerson($name)
+    {
+        return new Input\Person($name);
+    }
+
     /* PRE-DEFINED LAYOUT --------------------------- */
 
     public function createSubheading($content, $tag = 'h4')
