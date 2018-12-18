@@ -39,5 +39,27 @@ class StaffAbsenceGateway extends QueryableGateway
     private static $primaryKey = 'gibbonStaffAbsenceID';
 
     private static $searchableColumns = [];
-    
+
+    /**
+     * Queries the list of users for the Manage Staff page.
+     *
+     * @param QueryCriteria $criteria
+     * @return DataSet
+     */
+    public function queryAbsencesByPerson(QueryCriteria $criteria, $gibbonPersonID)
+    {
+        $query = $this
+            ->newQuery()
+            ->from($this->getTableName())
+            ->cols([
+                'gibbonStaffAbsence.gibbonStaffAbsenceID', 'gibbonStaffAbsence.gibbonPersonID', 'gibbonStaffAbsenceType.name as type', 'reason', 'comment', 'date', 'COUNT(*) as days', 'allDay', 'timestampStart', 'timestampEnd', 'timestampCreator', 'gibbonStaffAbsence.gibbonPersonIDCreator', 'gibbonPerson.title', 'gibbonPerson.preferredName', 'gibbonPerson.surname', 
+            ])
+            ->innerJoin('gibbonStaffAbsenceType', 'gibbonStaffAbsence.gibbonStaffAbsenceTypeID=gibbonStaffAbsenceType.gibbonStaffAbsenceTypeID')
+            ->leftJoin('gibbonPerson', 'gibbonStaffAbsence.gibbonPersonIDCreator=gibbonPerson.gibbonPersonID')
+            ->where('gibbonStaffAbsence.gibbonPersonID = :gibbonPersonID')
+            ->bindValue('gibbonPersonID', $gibbonPersonID)
+            ->groupBy(['timestampStart', 'timestampEnd']);
+
+        return $this->runQuery($query, $criteria);
+    }
 }
