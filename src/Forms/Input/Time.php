@@ -31,6 +31,7 @@ class Time extends TextField
 {
     protected $format = 'H:i'; // Default to 24 hour clock
     protected $chained;
+    protected $showDuration;
 
     /**
      * Set the format to output time values (default 'H:i').
@@ -47,9 +48,11 @@ class Time extends TextField
      * @param   string  $chained
      * @return  self
      */
-    public function chainedTo($chained)
+    public function chainedTo($chained, $showDuration = true)
     {
         $this->chained = $chained;
+        $this->showDuration = $showDuration;
+        
         return $this;
     }
 
@@ -87,7 +90,7 @@ class Time extends TextField
             // On change, update this time and set duration
             $output .= '$("#'.$this->chained.'").on("changeTime", function() {';
             $output .= 'if ($("#'.$this->getID().'").val() == "") $("#'.$this->getID().'").val($(this).val());';
-            $output .= '$("#'.$this->getID().'").timepicker({ "minTime": $(this).val(), "timeFormat" : "'.$this->format.'", "showDuration" : true});';
+            $output .= '$("#'.$this->getID().'").timepicker({ "minTime": $(this).val(), "timeFormat" : "'.$this->format.'", "showDuration" : "'.$this->showDuration.'"});';
             $output .= '});';
         }
         $output .= '</script>';

@@ -128,6 +128,7 @@ class Date extends TextField
         if ($this->from) {
             $output .= '$("#'.$this->getID().'").datepicker( "option", "onSelect", function() {
                 '.$this->from.'.datepicker( "option", "maxDate", getDate(this) );
+                $(this).blur();
             });';
         }
         if ($this->to) {
@@ -136,6 +137,7 @@ class Date extends TextField
                 if ($("#'.$this->to.'").val() == "") {
                     '.$this->to.'.datepicker( "setDate", getDate(this) );
                 }
+                $(this).blur();
             });';
         }
         $output .= '});';
