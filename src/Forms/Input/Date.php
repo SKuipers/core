@@ -121,27 +121,26 @@ class Date extends TextField
 
         $output = '<input type="text" '.$this->getAttributeString().' maxlength="10">';
 
-
-        $output .= '<script type="text/javascript">';
-        $output .= '$(function() { '.$this->getID().' = $("#'.$this->getID().'").datepicker({onSelect: function(){$(this).blur();}, onClose: function(){$(this).change();} }); ';
+        $onSelect = 'function(){$(this).blur();}';
 
         if ($this->from) {
-            $output .= '$("#'.$this->getID().'").datepicker( "option", "onSelect", function() {
+            $onSelect = 'function() {
                 '.$this->from.'.datepicker( "option", "maxDate", getDate(this) );
                 $(this).blur();
-            });';
+            }';
         }
         if ($this->to) {
-            $output .= '$("#'.$this->getID().'").datepicker( "option", "onSelect", function() {
+            $onSelect = 'function() {
                 '.$this->to.'.datepicker( "option", "minDate", getDate(this) );
                 if ($("#'.$this->to.'").val() == "") {
                     '.$this->to.'.datepicker( "setDate", getDate(this) );
                 }
                 $(this).blur();
-            });';
+            }';
         }
-        $output .= '});';
 
+        $output .= '<script type="text/javascript">';
+        $output .= '$(function() { '.$this->getID().' = $("#'.$this->getID().'").datepicker({onSelect: '.$onSelect.', onClose: function(){$(this).change();} }); });';
 
         if ($this->to || $this->from) {
             $output .= 'function getDate(element) {
