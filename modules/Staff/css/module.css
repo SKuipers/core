@@ -16,3 +16,65 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
+
+.calendarTable {
+    border-collapse: collapse !important;
+    background: transparent !important;
+    border-right: 1px solid transparent;
+    border-bottom: 1px solid transparent;
+}
+
+.calendarTable thead {
+    display: none;
+}
+
+.calendarTable td {
+    background: #fbfbfb !important;
+    border: 1px solid #dfdfdf !important;
+    text-align: center;
+    height: 40px;
+    width: 30px;
+}
+
+.calendarTable td:first-child {
+    border-top: 1px solid transparent !important;
+    border-bottom: 1px solid transparent !important;
+    border-left: 1px solid transparent !important;
+    background: transparent !important;
+    font-weight: bold;
+}
+
+.calendarTable a {
+    color: inherit;
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+    vertical-align: middle;
+    text-decoration: none;
+}
+
+.calendarTable .dayHighlight1 {
+    background: #e2ccf6 !important; // #c6e48b
+}
+
+.calendarTable .dayHighlight2 {
+    background: #d2b8ec !important; // #7bc96f
+}
+
+.calendarTable .dayHighlight3 {
+    color: #f1f1f1;
+    background: #9d7cc6 !important; // #239a3b
+}
+
+.calendarTable .dayHighlight4 {
+    color: #f1f1f1;
+    background: #7c5aa4 !important; // #196127
+}
+
+.calendarTable .weekend {
+    background: #f1f1f1 !important;
+}
+
+.calendarTable .today {
+    background: #fef9dd !important;
+}

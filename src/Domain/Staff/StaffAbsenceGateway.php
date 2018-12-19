@@ -41,8 +41,6 @@ class StaffAbsenceGateway extends QueryableGateway
     private static $searchableColumns = [];
 
     /**
-     * Queries the list of users for the Manage Staff page.
-     *
      * @param QueryCriteria $criteria
      * @return DataSet
      */
@@ -52,13 +50,68 @@ class StaffAbsenceGateway extends QueryableGateway
             ->newQuery()
             ->from($this->getTableName())
             ->cols([
-                'gibbonStaffAbsence.gibbonStaffAbsenceID', 'gibbonStaffAbsence.gibbonPersonID', 'gibbonStaffAbsenceType.name as type', 'reason', 'comment', 'date', 'COUNT(*) as days', 'allDay', 'timestampStart', 'timestampEnd', 'timestampCreator', 'gibbonStaffAbsence.gibbonPersonIDCreator', 'gibbonPerson.title', 'gibbonPerson.preferredName', 'gibbonPerson.surname', 
+                'gibbonStaffAbsence.gibbonStaffAbsenceID', 'gibbonStaffAbsence.gibbonPersonID', 'gibbonStaffAbsenceType.name as type', 'reason', 'comment', 'date', 'COUNT(*) as days', 'allDay', 'timestampStart', 'timestampEnd', 'timestampCreator', 'gibbonStaffAbsence.gibbonPersonIDCreator', 'creator.preferredName AS preferredNameCreator', 'creator.surname AS surnameCreator', 
             ])
             ->innerJoin('gibbonStaffAbsenceType', 'gibbonStaffAbsence.gibbonStaffAbsenceTypeID=gibbonStaffAbsenceType.gibbonStaffAbsenceTypeID')
-            ->leftJoin('gibbonPerson', 'gibbonStaffAbsence.gibbonPersonIDCreator=gibbonPerson.gibbonPersonID')
+            ->leftJoin('gibbonPerson AS creator', 'gibbonStaffAbsence.gibbonPersonIDCreator=creator.gibbonPersonID')
             ->where('gibbonStaffAbsence.gibbonPersonID = :gibbonPersonID')
             ->bindValue('gibbonPersonID', $gibbonPersonID)
             ->groupBy(['timestampStart', 'timestampEnd']);
+
+        return $this->runQuery($query, $criteria);
+    }
+
+    /**
+     * @param QueryCriteria $criteria
+     * @return DataSet
+     */
+    public function queryAbsencesByDateRange(QueryCriteria $criteria, $dateStart, $dateEnd)
+    {
+        if (empty($dateEnd)) $dateEnd = $dateStart;
+        
+        $query = $this
+            ->newQuery()
+            ->from($this->getTableName())
+            ->cols([
+                'gibbonStaffAbsence.gibbonStaffAbsenceID', 'gibbonStaffAbsence.gibbonPersonID', 'gibbonStaffAbsenceType.name as type', 'reason', 'comment', 'date', '1 as days', 'allDay', 'timestampStart', 'timestampEnd', 'timestampCreator', 'gibbonStaffAbsence.gibbonPersonIDCreator', 'gibbonPerson.title', 'gibbonPerson.preferredName', 'gibbonPerson.surname', 'creator.preferredName AS preferredNameCreator', 'creator.surname AS surnameCreator', 
+            ])
+            ->innerJoin('gibbonStaffAbsenceType', 'gibbonStaffAbsence.gibbonStaffAbsenceTypeID=gibbonStaffAbsenceType.gibbonStaffAbsenceTypeID')
+            ->leftJoin('gibbonPerson', 'gibbonStaffAbsence.gibbonPersonID=gibbonPerson.gibbonPersonID')
+            ->leftJoin('gibbonPerson AS creator', 'gibbonStaffAbsence.gibbonPersonIDCreator=creator.gibbonPersonID')
+            ->where('gibbonStaffAbsence.date BETWEEN :dateStart AND :dateEnd')
+            ->bindValue('dateStart', $dateStart)
+            ->bindValue('dateEnd', $dateEnd);
+
+        $criteria->addFilterRules([
+            'type' => function ($query, $type) {
+                return $query
+                    ->where('gibbonStaffAbsence.gibbonStaffAbsenceTypeID = :type')
+                    ->bindValue('type', $type);
+            },
+        ]);
+
+        return $this->runQuery($query, $criteria);
+    }
+
+    public function queryAbsencesBySchoolYear($criteria, $gibbonSchoolYearID)
+    {
+        $query = $this
+            ->newQuery()
+            ->from($this->getTableName())
+            ->cols([
+                'gibbonStaffAbsence.*',
+            ])
+            ->innerJoin('gibbonSchoolYear', 'date BETWEEN firstDay AND lastDay')
+            ->where('gibbonSchoolYear.gibbonSchoolYearID = :gibbonSchoolYearID')
+            ->bindValue('gibbonSchoolYearID', $gibbonSchoolYearID);
+
+        $criteria->addFilterRules([
+            'type' => function ($query, $type) {
+                return $query
+                    ->where('gibbonStaffAbsence.gibbonStaffAbsenceTypeID = :type')
+                    ->bindValue('type', $type);
+            },
+        ]);
 
         return $this->runQuery($query, $criteria);
     }
