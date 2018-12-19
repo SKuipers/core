@@ -26,9 +26,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absence_manage_add.p
     $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed!
-    $page->breadcrumbs
-        ->add(__('View Absences'), 'absence_view.php')
-        ->add(__('New Absence'));
+    $page->breadcrumbs->add(__('New Absence'));
 
     $highestAction = getHighestGroupedAction($guid, $_GET['q'], $connection2);
     if (empty($highestAction)) {
@@ -50,7 +48,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absence_manage_add.p
 
     $form->setFactory(DatabaseFormFactory::create($pdo));
     $form->setClass('smallIntBorder fullWidth');
-
     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
 
     $form->addRow()->addHeading(__('Basic Information'));
@@ -112,16 +109,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absence_manage_add.p
 
     $form->toggleVisibilityByClass('timeOptions')->onRadio('allDay')->when('N');
 
+    $date = $_GET['date'] ?? '';
     $row = $form->addRow();
         $row->addLabel('dateStart', __('Start Date'));
         $col = $row->addColumn('dateStart')->addClass('right');
-        $col->addDate('dateStart')->to('dateEnd')->isRequired();
+        $col->addDate('dateStart')->to('dateEnd')->isRequired()->setValue($date);
         $col->addTime('timeStart')->addClass('timeOptions');
 
     $row = $form->addRow();
         $row->addLabel('dateEnd', __('End Date'));
         $col = $row->addColumn('dateEnd')->addClass('right');
-        $col->addDate('dateEnd')->from('dateStart')->isRequired();
+        $col->addDate('dateEnd')->from('dateStart')->isRequired()->setValue($date);
         $col->addTime('timeEnd')->chainedTo('timeStart', false)->addClass('timeOptions');
 
     $row = $form->addRow();

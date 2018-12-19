@@ -23,11 +23,11 @@ use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 
-if (isActionAccessible($guid, $connection2, '/modules/Staff/absence_view.php') == false) {
+if (isActionAccessible($guid, $connection2, '/modules/Staff/absence_view_byPerson.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
-    $page->breadcrumbs->add(__('View Absences'));
+    $page->breadcrumbs->add(__('View Absences by Person'));
 
     $highestAction = getHighestGroupedAction($guid, $_GET['q'], $connection2);
     if (empty($highestAction)) {
@@ -36,19 +36,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absence_view.php') =
     }
 
     $staffAbsenceGateway = $container->get(StaffAbsenceGateway::class);
-    
 
-    if ($highestAction == 'View Absences_any') {
+    if ($highestAction == 'View Absences by Person_any') {
 
         $gibbonPersonID = $_GET['gibbonPersonID'] ?? $_SESSION[$guid]['gibbonPersonID'];
 
-        $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/index.php', 'get');
+        $form = Form::create('filter', $_SESSION[$guid]['absoluteURL'].'/index.php', 'get');
         $form->setFactory(DatabaseFormFactory::create($pdo));
         $form->setTitle(__('Filter'));
         $form->setClass('noIntBorder fullWidth');
 
         $form->addHiddenValue('address', $_SESSION[$guid]['address']);
-        $form->addHiddenValue('q', '/modules/Staff/absence_view.php');
+        $form->addHiddenValue('q', '/modules/Staff/absence_view_byPerson.php');
 
         $row = $form->addRow();
             $row->addLabel('gibbonPersonID', __('Person'));
@@ -68,7 +67,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absence_view.php') =
         ->sortBy('date', 'DESC')
         ->fromPOST();
 
-    $staff = $staffAbsenceGateway->queryAbsencesByPerson($criteria, $gibbonPersonID);
+    $absences = $staffAbsenceGateway->queryAbsencesByPerson($criteria, $gibbonPersonID);
 
     // DATA TABLE
     $table = DataTable::createPaginated('staffAbsences', $criteria);
@@ -94,18 +93,21 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absence_view.php') =
             
             return $output;
         });
+        
     $table->addColumn('type', __('Type'))
         ->description(__('Reason'))
         ->format(function ($absence) {
             return $absence['type'] .'<br/>'.Format::small($absence['reason']);
         });
+
     $table->addColumn('comment', __('Comment'));
+
     $table->addColumn('created', __('Created'))
         ->width('20%')
         ->format(function ($absence) {
             $output = Format::time($absence['timestampCreator'], 'M j, Y H:i');
             if ($absence['gibbonPersonID'] != $absence['gibbonPersonIDCreator']) {
-                $output .= '<br/>'.Format::small(__('By').' '.Format::nameList([$absence], 'Staff', false, true));
+                $output .= '<br/>'.Format::small(__('By').' '.Format::name('', $absence['preferredNameCreator'], $absence['surnameCreator'], 'Staff', false, true));
             }
             return $output;
         });
@@ -119,6 +121,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absence_view.php') =
                     ->setURL('/modules/Staff/absence_view_details.php');
         });
 
-    echo $table->render($staff);
+    echo $table->render($absences);
 
 }
