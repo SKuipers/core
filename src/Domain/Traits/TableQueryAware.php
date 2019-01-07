@@ -24,6 +24,11 @@ namespace Gibbon\Domain\Traits;
  */
 trait TableQueryAware
 {
+    public function getByID($primaryKeyValue)
+    {
+        return $this->select($primaryKeyValue)->fetch();
+    }
+
     public function select($primaryKeyValue)
     {
         if (empty($primaryKeyValue)) {
