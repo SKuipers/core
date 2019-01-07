@@ -82,13 +82,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
     $table->addColumn('date', __('Date'))
         ->width('22%')
         ->format(function ($absence) {
-            $output = $absence['days'] > 1 
-                ? Format::dateRangeReadable($absence['timestampStart'], $absence['timestampEnd'])
-                : Format::dateReadable($absence['date']);
+            $output = Format::dateRangeReadable($absence['dateStart'], $absence['dateEnd']);
             if ($absence['allDay'] == 'Y') {
                 $output .= '<br/>'.Format::small(__n('{count} Day', '{count} Days', $absence['days']));
             } else {
-                $output .= '<br/>'.Format::small(Format::timeRange($absence['timestampStart'], $absence['timestampEnd']));
+                $output .= '<br/>'.Format::small(Format::timeRange($absence['timeStart'], $absence['timeEnd']));
             }
             
             return $output;
@@ -105,7 +103,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
     $table->addColumn('created', __('Created'))
         ->width('20%')
         ->format(function ($absence) {
-            $output = Format::time($absence['timestampCreator'], 'M j, Y H:i');
+            $output = Format::relativeTime($absence['timestampCreator']);
             if ($absence['gibbonPersonID'] != $absence['gibbonPersonIDCreator']) {
                 $output .= '<br/>'.Format::small(__('By').' '.Format::name('', $absence['preferredNameCreator'], $absence['surnameCreator'], 'Staff', false, true));
             }
@@ -114,7 +112,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
 
     // ACTIONS
     $table->addActionColumn()
-        ->addParam('gibbonPersonID')
+        ->addParam('gibbonStaffAbsenceID')
         ->addParam('search', $criteria->getSearchText(true))
         ->format(function ($person, $actions) use ($guid) {
             $actions->addAction('view', __('View Details'))
