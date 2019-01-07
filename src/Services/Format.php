@@ -147,7 +147,9 @@ class Format
         $startDate = ($dateFrom instanceof DateTime)? $dateFrom : new DateTime($dateFrom);
         $endDate = ($dateTo instanceof DateTime)? $dateTo : new DateTime($dateTo);
 
-        if ($startDate->format('Y-m') == $endDate->format('Y-m')) {
+        if ($startDate->format('Y-m-d') == $endDate->format('Y-m-d')) {
+            $output = $startDate->format('M j, Y');
+        } elseif ($startDate->format('Y-m') == $endDate->format('Y-m')) {
             $output = $startDate->format('M j').' - '.$endDate->format('j, Y');
         } elseif ($startDate->format('Y') == $endDate->format('Y')) {
             $output = $startDate->format('M j').' - '.$endDate->format('M j, Y');
@@ -169,6 +171,47 @@ class Format
     {
         $date = DateTime::createFromFormat('U', $timestamp);
         return $date ? $date->format($format ? $format : static::$settings['dateFormatPHP']) : $timestamp;
+    }
+
+    /**
+     * Formats a Date or DateTime string relative to the current time. Eg: 1 hr ago, 3 mins from now.
+     *
+     * @param string $dateString
+     * @return string
+     */
+    public static function relativeTime($dateString)
+    {
+        if (strlen($dateString) == 10) $dateString .= ' 00:00:00';
+        $date = DateTime::createFromFormat('Y-m-d H:i:s', $dateString);
+
+        $timeDifference = time() - $date->format('U');
+        $seconds = abs($timeDifference);
+
+        switch ($seconds) {
+            case ($seconds < 60):
+                $time = __('Less than 1 min');
+                break;
+            case ($seconds >= 60 && $seconds < 3600):
+                $minutes = floor($seconds / 60);
+                $time = __n('{count} min', '{count} mins', $minutes);
+                break;
+            case ($seconds >= 3600 && $seconds < 86400):
+                $hours = floor($seconds / 3600);
+                $time = __n('{count} hr', '{count} hrs', $hours);
+                break;
+            case ($seconds >= 86400 && $seconds < 2419200):
+                $days = floor($seconds / 86400);
+                $time = __n('{count} day', '{count} days', $days);
+                break;
+            default:
+                return self::tooltip($date->format(static::$settings['dateTimeFormatPHP'], $dateString));
+        }
+
+        $time = ($timeDifference >= 0)
+            ? __('{time} ago', ['time' => $time])
+            : __('{time} from now', ['time' => $time]);
+
+        return self::tooltip($time, $dateString);
     }
 
     /**
@@ -272,6 +315,17 @@ class Format
     public static function small($value)
     {
         return '<span class="small emphasis">'.$value.'</span>';
+    }
+
+    /**
+     * Formats a string of additional details for a hover-over tooltip.
+     *
+     * @param string $value
+     * @return string
+     */
+    public static function tooltip($value, $tooltip = '')
+    {
+        return '<span title="'.$tooltip.'">'.$value.'</span>';
     }
 
     /**
