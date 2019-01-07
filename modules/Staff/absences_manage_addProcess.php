@@ -22,9 +22,9 @@ use Gibbon\Services\Format;
 
 require_once '../../gibbon.php';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/absence_manage_add.php';
+$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/absences_manage_add.php';
 
-if (isActionAccessible($guid, $connection2, '/modules/Staff/absence_manage_add.php') == false) {
+if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
 } else {

@@ -21,7 +21,7 @@ use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
 
-if (isActionAccessible($guid, $connection2, '/modules/Staff/absence_manage_add.php') == false) {
+if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
@@ -36,7 +36,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absence_manage_add.p
 
     $editLink = '';
     if (isset($_GET['editID'])) {
-        $editLink = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/absence_manage_edit.php&gibbonStaffAbsenceID='.$_GET['editID'];
+        $editLink = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/absences_manage_edit.php&gibbonStaffAbsenceID='.$_GET['editID'];
     }
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], $editLink, null);
@@ -44,7 +44,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absence_manage_add.p
 
     $staffAbsenceTypeGateway = $container->get(StaffAbsenceTypeGateway::class);
 
-    $form = Form::create('staffAbsence', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/absence_manage_addProcess.php');
+    $form = Form::create('staffAbsence', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/absences_manage_addProcess.php');
 
     $form->setFactory(DatabaseFormFactory::create($pdo));
     $form->setClass('smallIntBorder fullWidth');
