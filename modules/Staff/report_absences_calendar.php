@@ -68,6 +68,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_cale
 
     $criteria = $staffAbsenceGateway->newQueryCriteria()
         ->filterBy('type', $gibbonStaffAbsenceTypeID)
+        ->pageSize(0)
         ->fromPOST();
 
     $schoolYear = $schoolYearGateway->getSchoolYearByID($gibbonSchoolYearID);
@@ -120,17 +121,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_cale
 
     $table->addColumn('name', '')->notSortable();
 
+    $baseURL = isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php')
+        ? $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/absences_manage.php'
+        : $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/absences_view_byDate.php';
+
     for ($dayCount = 1; $dayCount <= 31; $dayCount++) {
         $table->addColumn($dayCount, '')
             ->notSortable()
-            ->format(function ($month) use ($guid, $dayCount, $gibbonStaffAbsenceTypeID, $dateFormat) {
+            ->format(function ($month) use ($baseURL, $dayCount, $gibbonStaffAbsenceTypeID, $dateFormat) {
                 $day = $month['days'][$dayCount] ?? null;
                 if (empty($day)) return '';
 
-                $url = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/absences_view_byDate.php&dateStart='.$day['date']->format($dateFormat).'&gibbonStaffAbsenceTypeID='.$gibbonStaffAbsenceTypeID;
+                $url = $baseURL.'&dateStart='.$day['date']->format($dateFormat).'&gibbonStaffAbsenceTypeID='.$gibbonStaffAbsenceTypeID;
                 $title = $day['date']->format('l');
                 $title .= '<br/>'.$day['date']->format('M j, Y');
-                $title .= '<br/>'.__n('{count} Absence', '{count} Absences', $day['count']);
+                if ($day['count'] > 0) {
+                    $title .= '<br/>'.__n('{count} Absence', '{count} Absences', $day['count']);
+                }
 
                 return Format::link($url, $day['number'], $title);
             })

@@ -50,13 +50,14 @@ class StaffAbsenceGateway extends QueryableGateway
             ->newQuery()
             ->from($this->getTableName())
             ->cols([
-                'gibbonStaffAbsence.gibbonStaffAbsenceID', 'gibbonStaffAbsence.gibbonPersonID', 'gibbonStaffAbsenceType.name as type', 'reason', 'comment', 'date', 'COUNT(*) as days', 'allDay', 'timestampStart', 'timestampEnd', 'timestampCreator', 'gibbonStaffAbsence.gibbonPersonIDCreator', 'creator.preferredName AS preferredNameCreator', 'creator.surname AS surnameCreator', 
+                'gibbonStaffAbsence.gibbonStaffAbsenceID', 'gibbonStaffAbsence.gibbonPersonID', 'gibbonStaffAbsenceType.name as type', 'reason', 'comment', 'date', 'COUNT(*) as days', 'MIN(date) as dateStart', 'MAX(date) as dateEnd', 'allDay', 'timeStart', 'timeEnd', 'timestampCreator', 'gibbonStaffAbsence.gibbonPersonIDCreator', 'creator.preferredName AS preferredNameCreator', 'creator.surname AS surnameCreator', 
             ])
+            ->innerJoin('gibbonStaffAbsenceDate', 'gibbonStaffAbsenceDate.gibbonStaffAbsenceID=gibbonStaffAbsence.gibbonStaffAbsenceID')
             ->innerJoin('gibbonStaffAbsenceType', 'gibbonStaffAbsence.gibbonStaffAbsenceTypeID=gibbonStaffAbsenceType.gibbonStaffAbsenceTypeID')
             ->leftJoin('gibbonPerson AS creator', 'gibbonStaffAbsence.gibbonPersonIDCreator=creator.gibbonPersonID')
             ->where('gibbonStaffAbsence.gibbonPersonID = :gibbonPersonID')
             ->bindValue('gibbonPersonID', $gibbonPersonID)
-            ->groupBy(['timestampStart', 'timestampEnd']);
+            ->groupBy(['gibbonStaffAbsence.gibbonStaffAbsenceID']);
 
         return $this->runQuery($query, $criteria);
     }
@@ -71,16 +72,19 @@ class StaffAbsenceGateway extends QueryableGateway
         
         $query = $this
             ->newQuery()
-            ->from($this->getTableName())
+            ->from('gibbonStaffAbsenceDate')
             ->cols([
-                'gibbonStaffAbsence.gibbonStaffAbsenceID', 'gibbonStaffAbsence.gibbonPersonID', 'gibbonStaffAbsenceType.name as type', 'reason', 'comment', 'date', '1 as days', 'allDay', 'timestampStart', 'timestampEnd', 'timestampCreator', 'gibbonStaffAbsence.gibbonPersonIDCreator', 'gibbonPerson.title', 'gibbonPerson.preferredName', 'gibbonPerson.surname', 'creator.preferredName AS preferredNameCreator', 'creator.surname AS surnameCreator', 
+                'gibbonStaffAbsence.gibbonStaffAbsenceID', 'gibbonStaffAbsence.gibbonPersonID', 'gibbonStaffAbsenceType.name as type', 'reason', 'comment', 'gibbonStaffAbsenceDate.date', 'COUNT(DISTINCT dates.gibbonStaffAbsenceDateID) as days', 'MIN(dates.date) as dateStart', 'MAX(dates.date) as dateEnd', 'gibbonStaffAbsenceDate.allDay', 'gibbonStaffAbsenceDate.timeStart', 'gibbonStaffAbsenceDate.timeEnd', 'timestampCreator', 'gibbonStaffAbsence.gibbonPersonIDCreator', 'gibbonPerson.title', 'gibbonPerson.preferredName', 'gibbonPerson.surname', 'creator.preferredName AS preferredNameCreator', 'creator.surname AS surnameCreator', 
             ])
+            ->innerJoin('gibbonStaffAbsence', 'gibbonStaffAbsence.gibbonStaffAbsenceID=gibbonStaffAbsenceDate.gibbonStaffAbsenceID')
             ->innerJoin('gibbonStaffAbsenceType', 'gibbonStaffAbsence.gibbonStaffAbsenceTypeID=gibbonStaffAbsenceType.gibbonStaffAbsenceTypeID')
+            ->leftJoin('gibbonStaffAbsenceDate AS dates', 'dates.gibbonStaffAbsenceID=gibbonStaffAbsence.gibbonStaffAbsenceID')
             ->leftJoin('gibbonPerson', 'gibbonStaffAbsence.gibbonPersonID=gibbonPerson.gibbonPersonID')
             ->leftJoin('gibbonPerson AS creator', 'gibbonStaffAbsence.gibbonPersonIDCreator=creator.gibbonPersonID')
-            ->where('gibbonStaffAbsence.date BETWEEN :dateStart AND :dateEnd')
+            ->where('gibbonStaffAbsenceDate.date BETWEEN :dateStart AND :dateEnd')
             ->bindValue('dateStart', $dateStart)
-            ->bindValue('dateEnd', $dateEnd);
+            ->bindValue('dateEnd', $dateEnd)
+            ->groupBy(['gibbonStaffAbsence.gibbonStaffAbsenceID']);
 
         $criteria->addFilterRules([
             'type' => function ($query, $type) {
@@ -93,17 +97,28 @@ class StaffAbsenceGateway extends QueryableGateway
         return $this->runQuery($query, $criteria);
     }
 
-    public function queryAbsencesBySchoolYear($criteria, $gibbonSchoolYearID)
+    public function queryAbsencesBySchoolYear($criteria, $gibbonSchoolYearID, $grouped = false)
     {
         $query = $this
             ->newQuery()
             ->from($this->getTableName())
             ->cols([
-                'gibbonStaffAbsence.*',
+                'gibbonStaffAbsence.*', 'gibbonStaffAbsenceDate.*', 'gibbonStaffAbsenceType.name as type', 'gibbonPerson.title', 'gibbonPerson.preferredName', 'gibbonPerson.surname', 'creator.preferredName AS preferredNameCreator', 'creator.surname AS surnameCreator'
             ])
+            ->innerJoin('gibbonStaffAbsenceDate', 'gibbonStaffAbsenceDate.gibbonStaffAbsenceID=gibbonStaffAbsence.gibbonStaffAbsenceID')
+            ->innerJoin('gibbonStaffAbsenceType', 'gibbonStaffAbsence.gibbonStaffAbsenceTypeID=gibbonStaffAbsenceType.gibbonStaffAbsenceTypeID')
             ->innerJoin('gibbonSchoolYear', 'date BETWEEN firstDay AND lastDay')
+            ->leftJoin('gibbonPerson', 'gibbonStaffAbsence.gibbonPersonID=gibbonPerson.gibbonPersonID')
+            ->leftJoin('gibbonPerson AS creator', 'gibbonStaffAbsence.gibbonPersonIDCreator=creator.gibbonPersonID')
             ->where('gibbonSchoolYear.gibbonSchoolYearID = :gibbonSchoolYearID')
             ->bindValue('gibbonSchoolYearID', $gibbonSchoolYearID);
+
+        if ($grouped) {
+            $query->cols(['COUNT(*) as days', 'MIN(date) as dateStart', 'MAX(date) as dateEnd'])
+                ->groupBy(['gibbonStaffAbsence.gibbonStaffAbsenceID']);
+        } else {
+            $query->cols(['1 as days', 'date as dateStart', 'date as dateEnd']);
+        }
 
         $criteria->addFilterRules([
             'type' => function ($query, $type) {

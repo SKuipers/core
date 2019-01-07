@@ -114,13 +114,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
         $row->addLabel('dateStart', __('Start Date'));
         $col = $row->addColumn('dateStart')->addClass('right');
         $col->addDate('dateStart')->to('dateEnd')->isRequired()->setValue($date);
-        $col->addTime('timeStart')->addClass('timeOptions');
+        $col->addTime('timeStart')
+            ->addClass('timeOptions')
+            ->isRequired();
 
     $row = $form->addRow();
         $row->addLabel('dateEnd', __('End Date'));
         $col = $row->addColumn('dateEnd')->addClass('right');
         $col->addDate('dateEnd')->from('dateStart')->isRequired()->setValue($date);
-        $col->addTime('timeEnd')->chainedTo('timeStart', false)->addClass('timeOptions');
+        $col->addTime('timeEnd')
+            ->chainedTo('timeStart', false)
+            ->addClass('timeOptions')
+            ->isRequired();
 
     $row = $form->addRow();
         $row->addFooter();
