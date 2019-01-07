@@ -22,6 +22,9 @@ use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
+use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
+use Gibbon\Domain\School\SchoolYearGateway;
+use Gibbon\Domain\DataSet;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPerson.php') == false) {
     // Access denied
@@ -35,7 +38,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
         return;
     }
 
+    $gibbonSchoolYearID = $_SESSION[$guid]['gibbonSchoolYearID'];
+
+    $schoolYearGateway = $container->get(SchoolYearGateway::class);
     $staffAbsenceGateway = $container->get(StaffAbsenceGateway::class);
+    $staffAbsenceDateGateway = $container->get(StaffAbsenceDateGateway::class);
 
     if ($highestAction == 'View Absences by Person_any') {
 
@@ -61,6 +68,68 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
     } else {
         $gibbonPersonID = $_SESSION[$guid]['gibbonPersonID'];
     }
+
+    // CALENDAR VIEW
+    $absences = $staffAbsenceDateGateway->selectAbsenceDatesByPerson($gibbonPersonID)->fetchGrouped();
+
+    $schoolYear = $schoolYearGateway->getSchoolYearByID($gibbonSchoolYearID);
+    $startDate = new DateTime($schoolYear['firstDay']);
+    $endDate = new DateTime($schoolYear['lastDay']);
+
+    $dateRange = new DatePeriod($startDate, new DateInterval('P1M'), $endDate);
+    $calendar = [];
+
+    foreach ($dateRange as $month) {
+        $days = [];
+        for ($dayCount = 1; $dayCount <= $month->format('t'); $dayCount++) {
+            $date = new DateTime($month->format('Y-m').'-'.$dayCount);
+            $absenceCount = count($absences[$date->format('Y-m-d')] ?? []);
+
+            $days[$dayCount] = [
+                'date'    => $date,
+                'number'  => $dayCount,
+                'count'   => $absenceCount,
+                'weekend' => $date->format('N') >= 6,
+            ];
+        }
+
+        $calendar[] = [
+            'name'  => $month->format('M'),
+            'days'  => $days,
+        ];
+    }
+
+    $table = DataTable::create('staffAbsenceCalendar');
+    $table->setTitle(__('Calendar'));
+    $table->getRenderer()->setClass('mini calendarTable calendarTableSmall');
+
+    $table->addColumn('name', '')->notSortable();
+
+    for ($dayCount = 1; $dayCount <= 31; $dayCount++) {
+        $table->addColumn($dayCount, '')
+            ->notSortable()
+            ->modifyCells(function ($month, $cell) use ($dayCount) {
+                $day = $month['days'][$dayCount] ?? null;
+                if (empty($day)) return '';
+
+                if ($day['date']->format('Y-m-d') == date('Y-m-d')) $cell->addClass('today');
+                elseif ($day['count'] > 0) $cell->addClass('dayHighlight3');
+                elseif ($day['weekend']) $cell->addClass('weekend');
+
+                if ($day['count'] > 0) {
+                    $title = $day['date']->format('l').'<br/>'.$day['date']->format('M j, Y');
+                    // $title .= '<br/>'.__n('{count} Absence', '{count} Absences', $day['count']);
+
+                    $cell->setTitle($title);
+                }
+
+                return $cell;
+            });
+    }
+
+    echo $table->render(new DataSet($calendar));
+
+
 
     // QUERY
     $criteria = $staffAbsenceGateway->newQueryCriteria()
@@ -100,7 +169,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
 
     $table->addColumn('comment', __('Comment'));
 
-    $table->addColumn('created', __('Created'))
+    $table->addColumn('timestampCreator', __('Created'))
         ->width('20%')
         ->format(function ($absence) {
             $output = Format::relativeTime($absence['timestampCreator']);
@@ -116,7 +185,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
         ->addParam('search', $criteria->getSearchText(true))
         ->format(function ($person, $actions) use ($guid) {
             $actions->addAction('view', __('View Details'))
-                    ->setURL('/modules/Staff/absences_view_details.php');
+                ->isModal(800, 550)
+                ->setURL('/modules/Staff/absences_view_details.php');
         });
 
     echo $table->render($absences);

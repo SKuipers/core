@@ -105,8 +105,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_cale
 
         $calendar[] = [
             'name'  => $month->format('M'),
-            'year'  => $month->format('Y'),
-            'month' => $month->format('m'),
             'days'  => $days,
         ];
     }
