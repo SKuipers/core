@@ -808,15 +808,20 @@ CREATE TABLE `gibbonStaffAbsence` (
     `gibbonStaffAbsenceID` INT(14) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
     `gibbonStaffAbsenceTypeID` INT(6) UNSIGNED ZEROFILL NOT NULL,
     `gibbonPersonID` int(10) UNSIGNED ZEROFILL NOT NULL,
-    `date` DATE NULL,
     `reason` VARCHAR(60) NULL,
     `comment` VARCHAR(255) NULL,
-    `allDay` ENUM('N','Y') DEFAULT 'Y',
-    `timestampStart` timestamp NULL DEFAULT NULL,
-    `timestampEnd` timestamp NULL DEFAULT NULL,
     `gibbonPersonIDCreator` int(10) UNSIGNED ZEROFILL NOT NULL,
     `timestampCreator` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`gibbonStaffAbsenceID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;end
+CREATE TABLE `gibbonStaffAbsenceDate` (
+    `gibbonStaffAbsenceDateID` INT(14) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
+    `gibbonStaffAbsenceID` INT(14) UNSIGNED ZEROFILL NOT NULL,
+    `date` DATE NULL,
+    `allDay` ENUM('N','Y') DEFAULT 'Y',
+    `timeStart` time NULL DEFAULT NULL,
+    `timeEnd` time NULL DEFAULT NULL,
+    PRIMARY KEY (`gibbonStaffAbsenceDateID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;end
 CREATE TABLE `gibbonStaffAbsenceType` (
     `gibbonStaffAbsenceTypeID` INT(6) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
