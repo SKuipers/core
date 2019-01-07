@@ -18,54 +18,57 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
+use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Tables\DataTable;
-use Gibbon\Forms\Prefab\BulkActionForm;
 use Gibbon\Services\Format;
-use Gibbon\Domain\Staff\StaffGateway;
+use Gibbon\Domain\Staff\StaffAbsenceGateway;
+use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
 
-if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage.php') == false) {
+if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php') == false) {
     //Acess denied
     echo "<div class='error'>";
     echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    $page->breadcrumbs->add(__('Manage Staff'));
+    $page->breadcrumbs->add(__('Manage Staff Absences'));
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, null);
     }
 
-    $search = (isset($_GET['search']) ? $_GET['search'] : '');
-    $allStaff = (isset($_GET['allStaff']) ? $_GET['allStaff'] : '');
+    $gibbonSchoolYearID = $_SESSION[$guid]['gibbonSchoolYearID'];
+    $gibbonStaffAbsenceTypeID = $_GET['gibbonStaffAbsenceTypeID'] ?? '';
+    $dateStart = $_GET['dateStart'] ?? '';
+    $dateEnd = $_GET['dateEnd'] ?? '';
 
-    $staffGateway = $container->get(StaffGateway::class);
-
-    // CRITERIA
-    $criteria = $staffGateway->newQueryCriteria()
-        ->searchBy($staffGateway->getSearchableColumns(), $search)
-        ->filterBy('all', $allStaff)
-        ->sortBy(['surname', 'preferredName'])
-        ->fromPOST();
-
-    echo '<h2>';
-    echo __('Search & Filter');
-    echo '</h2>';
-
-    $form = Form::create('searchForm', $_SESSION[$guid]['absoluteURL']."/index.php", 'get');
-
+    $staffAbsenceGateway = $container->get(StaffAbsenceGateway::class);
+    $staffAbsenceTypeGateway = $container->get(StaffAbsenceTypeGateway::class);
+    
+    $form = Form::create('filter', $_SESSION[$guid]['absoluteURL'].'/index.php', 'get');
+    $form->setTitle(__('Filter'));
     $form->setClass('noIntBorder fullWidth');
 
     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
-    $form->addHiddenValue('q', "/modules/".$_SESSION[$guid]['module']."/staff_manage.php");
+    $form->addHiddenValue('q', '/modules/Staff/absences_manage.php');
 
     $row = $form->addRow();
-        $row->addLabel('search', __('Search For'))->description(__('Preferred, surname, username.'));
-        $row->addTextField('search')->setValue($criteria->getSearchText())->maxLength(20);
+        $row->addLabel('dateStart', __('Start Date'));
+        $row->addDate('dateStart')->setValue($dateStart);
 
     $row = $form->addRow();
-        $row->addLabel('allStaff', __('All Staff'))->description('Include Expected and Left.');
-        $row->addCheckbox('allStaff')->checked($allStaff);
+        $row->addLabel('dateEnd', __('End Date'));
+        $row->addDate('dateEnd')->setValue($dateEnd);
+
+    $types = $staffAbsenceTypeGateway->selectAllTypes()->fetchAll();
+    $types = array_combine(array_column($types, 'gibbonStaffAbsenceTypeID'), array_column($types, 'name'));
+    
+    $row = $form->addRow();
+        $row->addLabel('gibbonStaffAbsenceTypeID', __('Type'));
+        $row->addSelect('gibbonStaffAbsenceTypeID')
+            ->fromArray(['' => __('All')])
+            ->fromArray($types)
+            ->selected($gibbonStaffAbsenceTypeID);
 
     $row = $form->addRow();
         $row->addFooter();
@@ -73,82 +76,89 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage.php') =
 
     echo $form->getOutput();
 
-    echo '<h2>';
-    echo __('View');
-    echo '</h2>';
 
-    $staff = $staffGateway->queryAllStaff($criteria);
+    // QUERY
+    $criteria = $staffAbsenceGateway->newQueryCriteria()
+        ->sortBy('date', 'DESC')
+        ->filterBy('type', $gibbonStaffAbsenceTypeID)
+        ->fromPOST();
 
-    // FORM
-    $form = BulkActionForm::create('bulkAction', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/staff_manageProcessBulk.php?search='.$search.'&allStaff='.$allStaff);
-    $form->addHiddenValue('search', $search);
-
-    $bulkActions = array(
-        'Left' => __('Mark as Left'),
-    );
-
-    $col = $form->createBulkActionColumn($bulkActions);
-        $col->addDate('dateEnd')
-            ->isRequired()
-            ->placeholder(__('Date End'))
-            ->setClass('shortWidth dateEnd');
-        $col->addSubmit(__('Go'));
-
-    $form->toggleVisibilityByClass('dateEnd')->onSelect('action')->when('Left');
-
+    if (!empty($dateStart) ) {
+        $absences = $staffAbsenceGateway->queryAbsencesByDateRange($criteria, Format::dateConvert($dateStart), Format::dateConvert($dateEnd));
+    } else {
+        $absences = $staffAbsenceGateway->queryAbsencesBySchoolYear($criteria, $gibbonSchoolYearID, true);
+    }
 
     // DATA TABLE
-    $table = $form->addRow()->addDataTable('staffManage', $criteria)->withData($staff);
+    $table = DataTable::createPaginated('staffAbsences', $criteria);
+    $table->setTitle(__('View'));
 
-    $table->addHeaderAction('add', __('Add'))
-        ->setURL('/modules/Staff/staff_manage_add.php')
-        ->addParam('search', $search)
+    if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_calendar.php')) {
+        $table->addHeaderAction('view', __('View'))
+            ->setIcon('planner')
+            ->setURL('/modules/Staff/report_absences_calendar.php')
+            ->displayLabel()
+            ->append('&nbsp;|&nbsp;');
+    }
+
+    $table->addHeaderAction('add', __('New Absence'))
+        ->setURL('/modules/Staff/absences_manage_add.php')
+        ->addParam('gibbonPersonID', '')
+        ->addParam('date', $dateStart)
         ->displayLabel();
 
-    $table->modifyRows(function($person, $row) {
-        if (!empty($person['status']) && $person['status'] != 'Full') $row->addClass('error');
-        return $row;
-    });
-
-    $table->addMetaData('filterOptions', [
-        'all:on'          => __('All Staff'),
-        'type:teaching'   => __('Staff Type').': '.__('Teaching'),
-        'type:support'    => __('Staff Type').': '.__('Support'),
-        'type:other'      => __('Staff Type').': '.__('Other'),
-        'status:full'     => __('Status').': '.__('Full'),
-        'status:left'     => __('Status').': '.__('Left'),
-        'status:expected' => __('Status').': '.__('Expected'),
-    ]);
-
-    $table->addMetaData('bulkActions', $col);
+    
 
     // COLUMNS
-    $table->addColumn('fullName', __('Name'))
-        ->description(__('Initials'))
-        ->width('35%')
-        ->sortable(['surname', 'preferredName'])
-        ->format(function($person) {
-            return Format::name($person['title'], $person['preferredName'], $person['surname'], 'Staff', true, true)
-                .'<br/><span style="font-size: 85%; font-style: italic">'.$person['initials']."</span>";
+    $table->addColumn('date', __('Date'))
+        ->width('22%')
+        ->format(function ($absence) {
+            $output = Format::dateRangeReadable($absence['dateStart'], $absence['dateEnd']);
+            if ($absence['days'] > 1) {
+                $output .= '<br/>'.Format::small(__n('{count} Day', '{count} Days', $absence['days']));
+            } elseif ($absence['allDay'] == 'N') {
+                $output .= '<br/>'.Format::small(Format::timeRange($absence['timeStart'], $absence['timeEnd']));
+            }
+            
+            return $output;
         });
 
-    $table->addColumn('type', __('Staff Type'))->width('20%');
-    $table->addColumn('status', __('Status'))->width('10%');
-    $table->addColumn('jobTitle', __('Job Title'))->width('20%');
+    $table->addColumn('fullName', __('Name'))
+        ->width('20%')
+        ->sortable(['surname', 'preferredName'])
+        ->format(function ($absence) use ($guid) {
+            $text = Format::name($absence['title'], $absence['preferredName'], $absence['surname'], 'Staff', false, true);
+            $url = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/absences_view_byPerson.php&gibbonPersonID='.$absence['gibbonPersonID'];
+
+            return Format::link($url, $text);
+        });
+
+    $table->addColumn('type', __('Type'))
+        ->description(__('Reason'))
+        ->format(function ($absence) {
+            return $absence['type'] .'<br/>'.Format::small($absence['reason']);
+        });
+    $table->addColumn('comment', __('Comment'));
+    $table->addColumn('timestampCreator', __('Created'))
+        ->width('20%')
+        ->format(function ($absence) {
+            $output = Format::relativeTime($absence['timestampCreator'], 'M j, Y H:i');
+            if ($absence['gibbonPersonID'] != $absence['gibbonPersonIDCreator']) {
+                $output .= '<br/>'.Format::small(__('By').' '.Format::name('', $absence['preferredNameCreator'], $absence['surnameCreator'], 'Staff', false, true));
+            }
+            return $output;
+        });
 
     // ACTIONS
     $table->addActionColumn()
-        ->addParam('gibbonStaffID')
-        ->addParam('search', $criteria->getSearchText(true))
+        ->addParam('gibbonStaffAbsenceID')
         ->format(function ($person, $actions) use ($guid) {
             $actions->addAction('edit', __('Edit'))
-                    ->setURL('/modules/Staff/staff_manage_edit.php');
+                    ->setURL('/modules/Staff/absences_manage_edit.php');
 
             $actions->addAction('delete', __('Delete'))
-                    ->setURL('/modules/Staff/staff_manage_delete.php');
+                    ->setURL('/modules/Staff/absences_manage_delete.php');
         });
 
-    $table->addCheckboxColumn('gibbonStaffID');
-
-    echo $form->getOutput();
+    echo $table->render($absences);
 }
