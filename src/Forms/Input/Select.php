@@ -175,6 +175,12 @@ class Select extends Input
     {
         $output = '';
 
+        if ($this->getReadonly()) {
+            $keys = is_array($this->selected)? $this->selected : [$this->selected];
+            $this->options = array_intersect_key($this->options, array_flip($keys));
+            $this->setRequired(false)->placeholder(null);
+        }
+
         if (!empty($this->getAttribute('multiple'))) {
             if (empty($this->getAttribute('size'))) {
                 $this->setAttribute('size', 8);
