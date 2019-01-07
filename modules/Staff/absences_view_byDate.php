@@ -119,7 +119,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byDate
         
     $table->addColumn('comment', __('Comment'));
 
-    $table->addColumn('created', __('Created'))
+    $table->addColumn('timestampCreator', __('Created'))
         ->width('20%')
         ->format(function ($absence) {
             $output = Format::relativeTime($absence['timestampCreator']);
@@ -135,7 +135,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byDate
         ->addParam('search', $criteria->getSearchText(true))
         ->format(function ($person, $actions) use ($guid) {
             $actions->addAction('view', __('View Details'))
-                    ->setURL('/modules/Staff/absences_view_details.php');
+                ->isModal(800, 550)
+                ->setURL('/modules/Staff/absences_view_details.php');
         });
 
     echo $table->render($absences);

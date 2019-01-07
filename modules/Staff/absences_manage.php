@@ -153,11 +153,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
     $table->addActionColumn()
         ->addParam('gibbonStaffAbsenceID')
         ->format(function ($person, $actions) use ($guid) {
+            $actions->addAction('view', __('View Details'))
+                ->isModal(800, 550)
+                ->setURL('/modules/Staff/absences_view_details.php');
+
             $actions->addAction('edit', __('Edit'))
-                    ->setURL('/modules/Staff/absences_manage_edit.php');
+                ->setURL('/modules/Staff/absences_manage_edit.php');
 
             $actions->addAction('delete', __('Delete'))
-                    ->setURL('/modules/Staff/absences_manage_delete.php');
+                ->setURL('/modules/Staff/absences_manage_delete.php');
         });
 
     echo $table->render($absences);
