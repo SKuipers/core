@@ -25,7 +25,7 @@ use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\School\SchoolYearGateway;
 use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
 
-if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absence_calendar.php') == false) {
+if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_calendar.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
@@ -47,7 +47,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absence_calen
 
         $form->addHiddenValue('address', $_SESSION[$guid]['address']);
         $form->addHiddenValue('sidebar', 'false');
-        $form->addHiddenValue('q', '/modules/Staff/report_absence_calendar.php');
+        $form->addHiddenValue('q', '/modules/Staff/report_absences_calendar.php');
 
         $types = $staffAbsenceTypeGateway->selectAllTypes()->fetchAll();
         $types = array_combine(array_column($types, 'gibbonStaffAbsenceTypeID'), array_column($types, 'name'));
@@ -127,7 +127,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absence_calen
                 $day = $month['days'][$dayCount] ?? null;
                 if (empty($day)) return '';
 
-                $url = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/absence_view_byDate.php&dateStart='.$day['date']->format($dateFormat).'&gibbonStaffAbsenceTypeID='.$gibbonStaffAbsenceTypeID;
+                $url = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/absences_view_byDate.php&dateStart='.$day['date']->format($dateFormat).'&gibbonStaffAbsenceTypeID='.$gibbonStaffAbsenceTypeID;
                 $title = $day['date']->format('l');
                 $title .= '<br/>'.$day['date']->format('M j, Y');
                 $title .= '<br/>'.__n('{count} Absence', '{count} Absences', $day['count']);

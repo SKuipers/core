@@ -23,7 +23,7 @@ use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 
-if (isActionAccessible($guid, $connection2, '/modules/Staff/absence_view_byPerson.php') == false) {
+if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPerson.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
@@ -47,7 +47,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absence_view_byPerso
         $form->setClass('noIntBorder fullWidth');
 
         $form->addHiddenValue('address', $_SESSION[$guid]['address']);
-        $form->addHiddenValue('q', '/modules/Staff/absence_view_byPerson.php');
+        $form->addHiddenValue('q', '/modules/Staff/absences_view_byPerson.php');
 
         $row = $form->addRow();
             $row->addLabel('gibbonPersonID', __('Person'));
@@ -74,7 +74,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absence_view_byPerso
     $table->setTitle(__('View'));
 
     $table->addHeaderAction('add', __('New Absence'))
-        ->setURL('/modules/Staff/absence_manage_add.php')
+        ->setURL('/modules/Staff/absences_manage_add.php')
         ->addParam('gibbonPersonID', $gibbonPersonID)
         ->displayLabel();
 
@@ -118,7 +118,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absence_view_byPerso
         ->addParam('search', $criteria->getSearchText(true))
         ->format(function ($person, $actions) use ($guid) {
             $actions->addAction('view', __('View Details'))
-                    ->setURL('/modules/Staff/absence_view_details.php');
+                    ->setURL('/modules/Staff/absences_view_details.php');
         });
 
     echo $table->render($absences);
