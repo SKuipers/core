@@ -78,3 +78,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 .calendarTable .today {
     background: #fef9dd !important;
 }
+
+.calendarTableSmall td {
+    padding: 0px !important;
+    height: 14px;
+    width: 14px;
+}
+
+.calendarTableSmall a {
+    font-size: 0;
+}
