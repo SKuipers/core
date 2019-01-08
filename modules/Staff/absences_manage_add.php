@@ -131,8 +131,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
 
         $coverageOptions = [
             'N'         => __('No'),
-            'request'   => __('Request a specific substitute'),
-            'broadcast' => __('Notify all available substitutes'),
+            'request'   => __('Specific substitute'),
+            'broadcast' => __('Any available substitute'),
         ];
         $row = $form->addRow();
             $row->addLabel('coverage', __('Substitute Required?'));
@@ -142,8 +142,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
         $form->toggleVisibilityByClass('broadcastOptions')->onSelect('coverage')->when('broadcast');
             
         $row = $form->addRow()->addClass('coverageOptions');
-            $row->addLabel('gibbonPersonIDSubstitute', __('Substitute'));
-            $row->addSelectStaff('gibbonPersonIDSubstitute')->placeholder()->isRequired();
+            $row->addLabel('gibbonPersonIDCoverage', __('Substitute'));
+            $row->addSelectStaff('gibbonPersonIDCoverage')->placeholder()->isRequired();
     
         $notification = __("SMS and email");
         $row = $form->addRow()->addClass('coverageOptions');

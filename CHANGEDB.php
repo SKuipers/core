@@ -816,7 +816,8 @@ CREATE TABLE `gibbonStaffAbsence` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;end
 CREATE TABLE `gibbonStaffAbsenceDate` (
     `gibbonStaffAbsenceDateID` INT(14) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
-    `gibbonStaffAbsenceID` INT(14) UNSIGNED ZEROFILL NOT NULL,
+    `gibbonStaffAbsenceID` INT(14) UNSIGNED ZEROFILL NULL,
+    `gibbonStaffCoverageID` INT(14) UNSIGNED ZEROFILL NULL,
     `date` DATE NULL,
     `allDay` ENUM('N','Y') DEFAULT 'Y',
     `timeStart` time NULL DEFAULT NULL,
@@ -830,6 +831,18 @@ CREATE TABLE `gibbonStaffAbsenceType` (
     `reasons` TEXT NULL,
     `sequenceNumber` INT(3) NOT NULL,
     PRIMARY KEY (`gibbonStaffAbsenceTypeID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;end
+CREATE TABLE `gibbonStaffCoverage` (
+    `gibbonStaffCoverageID` INT(14) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
+    `gibbonStaffAbsenceID` INT(14) UNSIGNED ZEROFILL NOT NULL,
+    `status` ENUM('Requested','Accepted','Declined','Cancelled') DEFAULT 'Requested',
+    `gibbonPersonIDRequested` int(10) UNSIGNED ZEROFILL NOT NULL,
+    `timestampRequested` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `notesRequested` VARCHAR(255) NULL,
+    `gibbonPersonIDCoverage` int(10) UNSIGNED ZEROFILL NULL,
+    `timestampCoverage` timestamp NULL,
+    `notesCoverage` VARCHAR(255) NULL,
+    PRIMARY KEY (`gibbonStaffCoverageID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;end
 INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES ((SELECT gibbonModuleID FROM gibbonModule WHERE name='Staff'), 'New Absence_mine', 0, 'Absences', 'Allows a user to submit their own staff absences.', 'absences_manage_add.php', 'absences_manage_add.php', 'Y', 'Y', 'N', 'N', 'Y', 'Y', 'N', 'N', 'Y');end
 INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('002', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Staff' AND gibbonAction.name='New Absence_mine'));end
@@ -847,5 +860,8 @@ INSERT INTO `gibbonNotificationEvent` (`event`, `moduleName`, `actionName`, `typ
 INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES ((SELECT gibbonModuleID FROM gibbonModule WHERE name='Staff'), 'Weekly Absences', 0, 'Reports', 'A week-by-week overview of staff absences.', 'report_absences_weekly.php', 'report_absences_weekly.php', 'Y', 'Y', 'N', 'N', 'N', 'Y', 'N', 'N', 'Y');end
 INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('001', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Staff' AND gibbonAction.name='Weekly Absences'));end
 INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('002', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Staff' AND gibbonAction.name='Weekly Absences'));end
+INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES ((SELECT gibbonModuleID FROM gibbonModule WHERE name='Staff'), 'My Coverage', 0, 'Coverage', 'Provides an overview of coverage for staff absences.', 'coverage_my.php,coverage_request.php', 'coverage_my.php', 'Y', 'Y', 'N', 'N', 'Y', 'Y', 'N', 'N', 'Y');end
+INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('001', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Staff' AND gibbonAction.name='My Coverage'));end
+INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('002', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Staff' AND gibbonAction.name='My Coverage'));end
 
 ";

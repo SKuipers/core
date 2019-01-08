@@ -132,6 +132,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
     $event->sendNotificationsAsBcc($pdo, $gibbon->session);
 
 
+    // Redirect to coverage request
+    $coverage = $_POST['coverage'] ?? 'N';
+
+    if ($coverage != 'N') {
+        $gibbonPersonIDCoverage = $_POST['gibbonPersonIDCoverage'] ?? '';
+        $URL = $_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Staff/coverage_request.php&coverage=$coverage&gibbonStaffAbsenceID=$gibbonStaffAbsenceID&gibbonPersonIDCoverage=$gibbonPersonIDCoverage";
+
+        $URL .= '&return=success1';
+        header("Location: {$URL}");
+        exit;
+    }
+
+
     $URL .= $partialFail
         ? "&return=warning1"
         : "&return=success0";
