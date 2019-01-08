@@ -38,7 +38,7 @@ class StaffAbsenceGateway extends QueryableGateway
     private static $tableName = 'gibbonStaffAbsence';
     private static $primaryKey = 'gibbonStaffAbsenceID';
 
-    private static $searchableColumns = [];
+    private static $searchableColumns = ['gibbonStaffAbsence.reason', 'gibbonStaffAbsence.comment', 'gibbonStaffAbsenceType.name', 'gibbonPerson.preferredName', 'gibbonPerson.surname'];
 
     /**
      * @param QueryCriteria $criteria
@@ -66,7 +66,7 @@ class StaffAbsenceGateway extends QueryableGateway
      * @param QueryCriteria $criteria
      * @return DataSet
      */
-    public function queryAbsencesByDateRange(QueryCriteria $criteria, $dateStart, $dateEnd)
+    public function queryAbsencesByDateRange(QueryCriteria $criteria, $dateStart, $dateEnd = null)
     {
         if (empty($dateEnd)) $dateEnd = $dateStart;
         
