@@ -17,9 +17,12 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+use Gibbon\Comms\NotificationEvent;
+use Gibbon\Domain\User\UserGateway;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
-use Gibbon\Services\Format;
+use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
 
 require_once '../../gibbon.php';
 
@@ -35,20 +38,29 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
     $staffAbsenceDateGateway = $container->get(StaffAbsenceDateGateway::class);
 
     $dateStart = $_POST['dateStart'] ?? '';
-    $timeStart = $_POST['timeStart'] ?? '';
     $dateEnd = $_POST['dateEnd'] ?? '';
-    $timeEnd = $_POST['timeEnd'] ?? '';
 
     $data = [
-        'gibbonStaffAbsenceTypeID' => $_POST['gibbonStaffAbsenceTypeID'] ?? '',
         'gibbonPersonID'           => $_POST['gibbonPersonID'] ?? '',
+        'gibbonStaffAbsenceTypeID' => $_POST['gibbonStaffAbsenceTypeID'] ?? '',
         'reason'                   => $_POST['reason'] ?? '',
         'comment'                  => $_POST['comment'] ?? '',
         'gibbonPersonIDCreator'    => $_SESSION[$guid]['gibbonPersonID'],
     ];
 
+    // Validate the required values are present
     if (empty($data['gibbonStaffAbsenceTypeID']) || empty($data['gibbonPersonID']) || empty($dateStart) || empty($dateEnd)) {
         $URL .= '&return=error1';
+        header("Location: {$URL}");
+        exit;
+    }
+
+    // Validate the database relationships exist
+    $type = $container->get(StaffAbsenceTypeGateway::class)->getByID($data['gibbonStaffAbsenceTypeID']);
+    $person = $container->get(UserGateway::class)->getByID($data['gibbonPersonID']);
+
+    if (empty($type) || empty($person)) {
+        $URL .= '&return=error2';
         header("Location: {$URL}");
         exit;
     }
@@ -71,20 +83,20 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
 
     // Create separate dates within the absence time span
     foreach ($dateRange as $date) {
-        $data = [
+        $dateData = [
             'gibbonStaffAbsenceID' => $gibbonStaffAbsenceID,
             'date'                 => $date->format('Y-m-d'),
             'allDay'               => $_POST['allDay'] ?? '',
-            'timeStart'            => $timeStart,
-            'timeEnd'              => $timeEnd,
+            'timeStart'            => $_POST['timeStart'] ?? '',
+            'timeEnd'              => $_POST['timeEnd'] ?? '',
         ];
 
-        if (!isSchoolOpen($guid, $data['date'], $connection2)) {
+        if (!isSchoolOpen($guid, $dateData['date'], $connection2)) {
             continue;
         }
 
-        if ($staffAbsenceDateGateway->unique($data, ['gibbonStaffAbsenceID', 'date'])) {
-            $partialFail &= !$staffAbsenceDateGateway->insert($data);
+        if ($staffAbsenceDateGateway->unique($dateData, ['gibbonStaffAbsenceID', 'date'])) {
+            $partialFail &= !$staffAbsenceDateGateway->insert($dateData);
             $absenceCount++;
         } else {
             $partialFail = true;
@@ -96,6 +108,29 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
         header("Location: {$URL}");
         exit;
     }
+
+    // Raise a new notification event
+    $event = new NotificationEvent('Staff', 'New Staff Absence');
+    
+    $notificationText = __('A new staff absence has been recorded for {name}: {type} on {date}', [
+        'name' => Format::nameList([$person], 'Staff', false, true),
+        'type' => $data['reason'] ? "{$type['name']} ({$data['reason']})" : $type['name'],
+        'date' => Format::dateRangeReadable($start->format('Y-m-d'), $end->format('Y-m-d')),
+    ]);
+    if (!empty($data['comment'])) {
+        $notificationText .= '<br/><br/>'.__('Comment').': '.$data['comment'].'<br/>';
+    }
+
+    $event->setNotificationText($notificationText);
+    $event->setActionLink('/index.php?q=/modules/Staff/absences_view_byPerson.php&gibbonPersonID='.$data['gibbonPersonID']);
+
+    // Notify the target staff member, if they're not the one who created the absence
+    // if ($data['gibbonPersonID'] != $_SESSION[$guid]['gibbonPersonID']) {
+    //     $event->addRecipient($data['gibbonPersonID']);
+    // }
+
+    $event->sendNotificationsAsBcc($pdo, $gibbon->session);
+
 
     $URL .= $partialFail || $absenceCount == 0
         ? "&return=warning1"
