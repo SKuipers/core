@@ -51,10 +51,25 @@ class StaffAbsenceDateGateway extends QueryableGateway
     public function selectAbsenceDatesByPerson($gibbonPersonID)
     {
         $data = ['gibbonPersonID' => $gibbonPersonID];
-        $sql = 'SELECT gibbonStaffAbsenceDate.date as groupBy, gibbonStaffAbsence.*, gibbonStaffAbsenceDate.* 
+        $sql = 'SELECT gibbonStaffAbsenceDate.date as groupBy, gibbonStaffAbsence.*, gibbonStaffAbsenceDate.*, gibbonStaffAbsenceType.name as type
                 FROM gibbonStaffAbsence 
                 JOIN gibbonStaffAbsenceDate ON (gibbonStaffAbsenceDate.gibbonStaffAbsenceID=gibbonStaffAbsence.gibbonStaffAbsenceID) 
+                JOIN gibbonStaffAbsenceType ON (gibbonStaffAbsenceType.gibbonStaffAbsenceTypeID=gibbonStaffAbsence.gibbonStaffAbsenceTypeID)
                 WHERE gibbonStaffAbsence.gibbonPersonID=:gibbonPersonID';
+
+        return $this->db()->select($sql, $data);
+    }
+
+    public function selectAbsenceDatesByDateRange($dateStart, $dateEnd = null)
+    {
+        if (empty($dateEnd)) $dateEnd = $dateStart;
+
+        $data = ['dateStart' => $dateStart, 'dateEnd' => $dateEnd];
+        $sql = 'SELECT gibbonStaffAbsenceDate.date as groupBy, gibbonStaffAbsence.*, gibbonStaffAbsenceDate.*, gibbonStaffAbsenceType.name as type
+                FROM gibbonStaffAbsence 
+                JOIN gibbonStaffAbsenceDate ON (gibbonStaffAbsenceDate.gibbonStaffAbsenceID=gibbonStaffAbsence.gibbonStaffAbsenceID) 
+                JOIN gibbonStaffAbsenceType ON (gibbonStaffAbsenceType.gibbonStaffAbsenceTypeID=gibbonStaffAbsence.gibbonStaffAbsenceTypeID)
+                WHERE gibbonStaffAbsenceDate.date BETWEEN :dateStart AND :dateEnd';
 
         return $this->db()->select($sql, $data);
     }
