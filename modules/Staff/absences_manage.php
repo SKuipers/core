@@ -39,6 +39,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
 
     $gibbonSchoolYearID = $_SESSION[$guid]['gibbonSchoolYearID'];
     $gibbonStaffAbsenceTypeID = $_GET['gibbonStaffAbsenceTypeID'] ?? '';
+    $search = $_GET['search'] ?? '';
     $dateStart = $_GET['dateStart'] ?? '';
     $dateEnd = $_GET['dateEnd'] ?? '';
 
@@ -49,8 +50,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
     $form->setTitle(__('Filter'));
     $form->setClass('noIntBorder fullWidth');
 
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
     $form->addHiddenValue('q', '/modules/Staff/absences_manage.php');
+
+    $row = $form->addRow();
+        $row->addLabel('search', __('Search'));
+        $row->addTextField('search')->setValue($search);
 
     $row = $form->addRow();
         $row->addLabel('dateStart', __('Start Date'));
@@ -79,6 +83,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
 
     // QUERY
     $criteria = $staffAbsenceGateway->newQueryCriteria()
+        ->searchBy($staffAbsenceGateway->getSearchableColumns(), $search)
         ->sortBy('date', 'DESC')
         ->filterBy('type', $gibbonStaffAbsenceTypeID)
         ->fromPOST();
@@ -106,10 +111,21 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
         ->addParam('gibbonPersonID', '')
         ->addParam('date', $dateStart)
         ->displayLabel();
-
     
 
     // COLUMNS
+    
+
+    $table->addColumn('fullName', __('Name'))
+        ->width('20%')
+        ->sortable(['surname', 'preferredName'])
+        ->format(function ($absence) use ($guid) {
+            $text = Format::name($absence['title'], $absence['preferredName'], $absence['surname'], 'Staff', false, true);
+            $url = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/absences_view_byPerson.php&gibbonPersonID='.$absence['gibbonPersonID'];
+
+            return Format::link($url, $text);
+        });
+
     $table->addColumn('date', __('Date'))
         ->width('22%')
         ->format(function ($absence) {
@@ -123,22 +139,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
             return $output;
         });
 
-    $table->addColumn('fullName', __('Name'))
-        ->width('20%')
-        ->sortable(['surname', 'preferredName'])
-        ->format(function ($absence) use ($guid) {
-            $text = Format::name($absence['title'], $absence['preferredName'], $absence['surname'], 'Staff', false, true);
-            $url = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/absences_view_byPerson.php&gibbonPersonID='.$absence['gibbonPersonID'];
-
-            return Format::link($url, $text);
-        });
-
     $table->addColumn('type', __('Type'))
         ->description(__('Reason'))
         ->format(function ($absence) {
             return $absence['type'] .'<br/>'.Format::small($absence['reason']);
         });
-    $table->addColumn('comment', __('Comment'));
+    $table->addColumn('comment', __('Comment'))->format(Format::using('truncate', 'comment'));
+
     $table->addColumn('timestampCreator', __('Created'))
         ->width('20%')
         ->format(function ($absence) {
