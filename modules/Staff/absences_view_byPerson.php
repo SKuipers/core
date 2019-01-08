@@ -23,6 +23,7 @@ use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
+use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
 use Gibbon\Domain\School\SchoolYearGateway;
 use Gibbon\Domain\DataSet;
 
@@ -30,7 +31,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
-    $page->breadcrumbs->add(__('View Absences by Person'));
+    $page->breadcrumbs->add(__('View Absences'));
 
     $highestAction = getHighestGroupedAction($guid, $_GET['q'], $connection2);
     if (empty($highestAction)) {
@@ -43,8 +44,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
     $schoolYearGateway = $container->get(SchoolYearGateway::class);
     $staffAbsenceGateway = $container->get(StaffAbsenceGateway::class);
     $staffAbsenceDateGateway = $container->get(StaffAbsenceDateGateway::class);
+    $staffAbsenceTypeGateway = $container->get(StaffAbsenceTypeGateway::class);
 
-    if ($highestAction == 'View Absences by Person_any') {
+    if ($highestAction == 'View Absences_any') {
 
         $gibbonPersonID = $_GET['gibbonPersonID'] ?? $_SESSION[$guid]['gibbonPersonID'];
 
@@ -69,27 +71,31 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
         $gibbonPersonID = $_SESSION[$guid]['gibbonPersonID'];
     }
 
-    // CALENDAR VIEW
+    
     $absences = $staffAbsenceDateGateway->selectAbsenceDatesByPerson($gibbonPersonID)->fetchGrouped();
-
     $schoolYear = $schoolYearGateway->getSchoolYearByID($gibbonSchoolYearID);
-    $startDate = new DateTime($schoolYear['firstDay']);
-    $endDate = new DateTime($schoolYear['lastDay']);
 
-    $dateRange = new DatePeriod($startDate, new DateInterval('P1M'), $endDate);
+    // CALENDAR VIEW
     $calendar = [];
+    $dateRange = new DatePeriod(
+        new DateTime($schoolYear['firstDay']),
+        new DateInterval('P1M'),
+        new DateTime($schoolYear['lastDay'])
+    );
 
     foreach ($dateRange as $month) {
         $days = [];
         for ($dayCount = 1; $dayCount <= $month->format('t'); $dayCount++) {
             $date = new DateTime($month->format('Y-m').'-'.$dayCount);
-            $absenceCount = count($absences[$date->format('Y-m-d')] ?? []);
+            $absenceListByDay = $absences[$date->format('Y-m-d')] ?? [];
+            $absenceCount = count($absenceListByDay);
 
             $days[$dayCount] = [
                 'date'    => $date,
                 'number'  => $dayCount,
                 'count'   => $absenceCount,
                 'weekend' => $date->format('N') >= 6,
+                'absence' => current($absenceListByDay),
             ];
         }
 
@@ -101,13 +107,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
 
     $table = DataTable::create('staffAbsenceCalendar');
     $table->setTitle(__('Calendar'));
-    $table->getRenderer()->setClass('mini calendarTable calendarTableSmall');
+    $table->getRenderer()->setClass('calendarTable calendarTableSmall');
 
     $table->addColumn('name', '')->notSortable();
 
     for ($dayCount = 1; $dayCount <= 31; $dayCount++) {
         $table->addColumn($dayCount, '')
             ->notSortable()
+            ->format(function ($month) use ($guid, $dayCount) {
+                $day = $month['days'][$dayCount] ?? null;
+                if (empty($day) || $day['count'] <= 0) return '';
+
+                $url = $_SESSION[$guid]['absoluteURL'].'/fullscreen.php?q=/modules/Staff/absences_view_details.php&gibbonStaffAbsenceID='.$day['absence']['gibbonStaffAbsenceID'].'&width=800&height=550';
+                $title = $day['date']->format('l').'<br/>'.$day['date']->format('M j, Y');
+                $title .= '<br/>'.$day['absence']['type'];
+
+                return Format::link($url, $day['number'], ['title' => $title, 'class' => 'thickbox']);
+            })
             ->modifyCells(function ($month, $cell) use ($dayCount) {
                 $day = $month['days'][$dayCount] ?? null;
                 if (empty($day)) return '';
@@ -116,20 +132,30 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
                 elseif ($day['count'] > 0) $cell->addClass('dayHighlight3');
                 elseif ($day['weekend']) $cell->addClass('weekend');
 
-                if ($day['count'] > 0) {
-                    $title = $day['date']->format('l').'<br/>'.$day['date']->format('M j, Y');
-                    // $title .= '<br/>'.__n('{count} Absence', '{count} Absences', $day['count']);
-
-                    $cell->setTitle($title);
-                }
-
                 return $cell;
             });
     }
 
     echo $table->render(new DataSet($calendar));
+    echo '<br/>';
 
+    // COUNT TYPES
+    $absenceTypes = $staffAbsenceTypeGateway->selectAllTypes()->fetchAll();
+    $types = array_fill_keys(array_column($absenceTypes, 'name'), 0);
 
+    foreach ($absences as $days) {
+        foreach ($days as $absence) {
+            $types[$absence['type']] += $absence['allDay'] == 'Y' ? 1 : 0.5;
+        }
+    }
+
+    $table = DataTable::create('staffAbsenceTypes');
+
+    foreach ($types as $name => $count) {
+        $table->addColumn($name, $name)->width((100 / count($types)).'%');
+    }
+
+    echo $table->render(new DataSet([$types]));
 
     // QUERY
     $criteria = $staffAbsenceGateway->newQueryCriteria()

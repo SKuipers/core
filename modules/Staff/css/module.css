@@ -29,12 +29,16 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 }
 
 .calendarTable td {
+    color: #999999;
+    padding: 0px !important;
     background: #fbfbfb !important;
     border: 1px solid #dfdfdf !important;
     text-align: center;
     height: 40px;
     width: 30px;
+    font-size: 90%;
 }
+
 
 .calendarTable td:first-child {
     border-top: 1px solid transparent !important;
@@ -45,6 +49,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 }
 
 .calendarTable a {
+    padding: 5px 0px;
     color: inherit;
     display: inline-block;
     width: 100%;
@@ -54,10 +59,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 }
 
 .calendarTable .dayHighlight1 {
+    color: hsl(268, 29%, 55%);
     background: #e2ccf6 !important; // #c6e48b
 }
 
 .calendarTable .dayHighlight2 {
+    color: hsl(268, 29%, 55%);
     background: #d2b8ec !important; // #7bc96f
 }
 
@@ -80,11 +87,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 }
 
 .calendarTableSmall td {
-    padding: 0px !important;
-    height: 14px;
-    width: 14px;
+    height: 22px;
+    width: 22px;
 }
 
 .calendarTableSmall a {
     font-size: 0;
+    padding: 0px;
 }

@@ -113,7 +113,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_cale
     $table = ReportTable::createPaginated('staffAbsence', $criteria)->setViewMode($viewMode, $gibbon->session);
     $table->setTitle(__('Staff Absences'));
     $table->setDescription(__n('{count} Absence', '{count} Absences', $totalAbsence));
-    $table->getRenderer()->setClass('mini calendarTable');
+    $table->getRenderer()->setClass('calendarTable');
 
     $table->addMetaData('hidePagination', true);
 
