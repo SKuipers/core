@@ -40,6 +40,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_dele
         return;
     }
 
-    $form = DeleteForm::createForm($_SESSION[$guid]['absoluteURL'].'/modules/Staff/absences_manage_deleteProcess.php?gibbonStaffAbsenceID='.$gibbonStaffAbsenceID);
+    $form = DeleteForm::createForm($_SESSION[$guid]['absoluteURL'].'/modules/Staff/absences_manage_deleteProcess.php?gibbonStaffAbsenceID='.$gibbonStaffAbsenceID, true);
     echo $form->getOutput();
 }
