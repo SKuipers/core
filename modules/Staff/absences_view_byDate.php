@@ -86,6 +86,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byDate
         ->displayLabel();
 
     // COLUMNS
+    $table->addColumn('fullName', __('Name'))
+        ->width('25%')
+        ->sortable(['surname', 'preferredName'])
+        ->format(function ($absence) {
+            $output = Format::name($absence['title'], $absence['preferredName'], $absence['surname'], 'Staff', false, true);
+            if ($absence['allDay'] != 'Y') {
+                $output .= '<br/>'.Format::small(Format::timeRange($absence['timeStart'], $absence['timeEnd']));
+            }
+            return $output;
+        });
+
     if ($dateStart != $dateEnd) {
         $table->addColumn('date', __('Date'))
             ->width('22%')
@@ -99,17 +110,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byDate
                 return $output;
             });
     }
-
-    $table->addColumn('fullName', __('Name'))
-        ->width('25%')
-        ->sortable(['surname', 'preferredName'])
-        ->format(function ($absence) {
-            $output = Format::name($absence['title'], $absence['preferredName'], $absence['surname'], 'Staff', false, true);
-            if ($absence['allDay'] != 'Y') {
-                $output .= '<br/>'.Format::small(Format::timeRange($absence['timeStart'], $absence['timeEnd']));
-            }
-            return $output;
-        });
 
     $table->addColumn('type', __('Type'))
         ->description(__('Reason'))
