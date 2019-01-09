@@ -98,10 +98,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
     $table = DataTable::createPaginated('staffAbsences', $criteria);
     $table->setTitle(__('View'));
 
-    if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_calendar.php')) {
+    if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_summary.php')) {
         $table->addHeaderAction('view', __('View'))
             ->setIcon('planner')
-            ->setURL('/modules/Staff/report_absences_calendar.php')
+            ->setURL('/modules/Staff/report_absences_summary.php')
             ->displayLabel()
             ->append('&nbsp;|&nbsp;');
     }
