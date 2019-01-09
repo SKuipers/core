@@ -31,7 +31,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 .calendarTable td {
     color: #999999;
     padding: 0px !important;
-    background: #fbfbfb !important;
     border: 1px solid #dfdfdf !important;
     text-align: center;
     height: 40px;
@@ -46,6 +45,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
     border-left: 1px solid transparent !important;
     background: transparent !important;
     font-weight: bold;
+    padding-right: 4px !important;
 }
 
 .calendarTable a {
@@ -78,12 +78,16 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
     background: #7c5aa4 !important; // #196127
 }
 
+.calendarTable .day {
+    background: #fbfbfb !important;
+}
+
 .calendarTable .weekend {
     background: #f1f1f1 !important;
 }
 
 .calendarTable .today {
-    background: #fef9dd !important;
+    border: 2px solid #777777 !important;
 }
 
 .calendarTableSmall td {
@@ -95,3 +99,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
     font-size: 0;
     padding: 0px;
 }
+
+.bg-color0 {    background: rgba(153, 102, 255, 1.0) !important; }
+.bg-color1 {    background: rgba(255, 99, 132, 1.0) !important; }
+.bg-color2 {    background: rgba(255, 206, 86, 1.0) !important; }
+.bg-color3 {    background: rgba(54, 162, 235, 1.0) !important; }
+.bg-color4 {    background: rgba(133, 233, 194, 1.0) !important; }
+.bg-color5 {    background: rgba(255, 159, 64, 1.0) !important; }
+.bg-color6 {    background: rgba(237, 85, 88, 1.0) !important; }
+.bg-color7 {    background: rgba(75, 192, 192, 1.0) !important; }
+.bg-color8 {    background: rgba(161, 89, 173, 1.0) !important; }
+.bg-color9 {    background: rgba(29, 109, 163, 1.0) !important; }
