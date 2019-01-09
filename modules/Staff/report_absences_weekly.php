@@ -109,12 +109,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_week
     $absencesThisWeek = $staffAbsenceGateway->queryAbsencesByDateRange($criteria, $dateStart->format('Y-m-d'), $dateEnd->format('Y-m-d'), false)->toArray();
     $absenceTypes = $staffAbsenceTypeGateway->selectAllTypes()->fetchAll();
 
-    $chartData = array_fill_keys(array_column($absenceTypes, 'name'), array_fill_keys($weekdayNames, 0));
     $listData = [];
+    $chartData = array_fill_keys($weekdayNames, 0);
+    // $chartData = array_fill_keys(array_column($absenceTypes, 'name'), array_fill_keys($weekdayNames, 0));
+
+    // foreach ($absencesThisWeek as $absence) {
+    //     $weekday = __(DateTime::createFromFormat('Y-m-d', $absence['date'])->format('D'));
+    //     $chartData[$absence['type']][$weekday] += 1;
+    //     $listData[$absence['date']][] = $absence;
+    // }
 
     foreach ($absencesThisWeek as $absence) {
         $weekday = __(DateTime::createFromFormat('Y-m-d', $absence['date'])->format('D'));
-        $chartData[$absence['type']][$weekday] += 1;
+        $chartData[$weekday] += 1;
         $listData[$absence['date']][] = $absence;
     }
 
@@ -122,12 +129,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_week
         ->setTitle(Format::dateRangeReadable($dateStart->format('Y-m-d'), $dateEnd->format('Y-m-d')))
         ->setOptions($chartConfig)
         ->setLabels($weekdayNames)
-        ->setLegend(false);
+        ->setLegend(false)
+        ->setColors(['hsl(260, 90%, 70%)']);
+        // ->setColors(['hsl(260, 90%, 70%)', 'hsl(260, 90%, 75%)', 'hsl(260, 90%, 80%)', 'hsl(260, 90%, 85%)', 'hsl(260, 90%, 90%)']);
 
-    foreach ($absenceTypes as $type) {
-        $data = array_values($chartData[$type['name']]);
-        $barGraph->addDataset($type['name'], __($type['name']))->setData($data);
-    }
+    $barGraph->addDataset('absent', __('Absent'))->setData($chartData);
+
+    // foreach ($absenceTypes as $type) {
+    //     $data = array_values($chartData[$type['name']]);
+    //     $barGraph->addDataset($type['name'], __($type['name']))->setData($data);
+    // }
 
     echo '<div style="height: 175px;overflow: visible;">'.$barGraph->render().'</div>';
 
