@@ -83,7 +83,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_summ
             return $group;
         }, []);
         
-        $dateStart = new DateTime($schoolYear['firstDay']);
+        $dateStart = new DateTime(substr($schoolYear['firstDay'], 0, 7).'-01');
         $dateEnd = new DateTime($schoolYear['lastDay']);
 
         $dateRange = new DatePeriod($dateStart, new DateInterval('P1M'), $dateEnd);

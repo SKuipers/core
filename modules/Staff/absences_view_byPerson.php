@@ -78,7 +78,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
     // CALENDAR VIEW
     $calendar = [];
     $dateRange = new DatePeriod(
-        new DateTime($schoolYear['firstDay']),
+        new DateTime(substr($schoolYear['firstDay'], 0, 7).'-01'),
         new DateInterval('P1M'),
         new DateTime($schoolYear['lastDay'])
     );
