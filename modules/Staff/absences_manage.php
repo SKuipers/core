@@ -114,10 +114,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
     
 
     // COLUMNS
-    
-
     $table->addColumn('fullName', __('Name'))
-        ->width('20%')
         ->sortable(['surname', 'preferredName'])
         ->format(function ($absence) use ($guid) {
             $text = Format::name($absence['title'], $absence['preferredName'], $absence['surname'], 'Staff', false, true);
@@ -127,7 +124,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
         });
 
     $table->addColumn('date', __('Date'))
-        ->width('22%')
+        ->width('18%')
         ->format(function ($absence) {
             $output = Format::dateRangeReadable($absence['dateStart'], $absence['dateEnd']);
             if ($absence['days'] > 1) {
@@ -144,10 +141,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
         ->format(function ($absence) {
             return $absence['type'] .'<br/>'.Format::small($absence['reason']);
         });
-    $table->addColumn('comment', __('Comment'))->format(Format::using('truncate', 'comment'));
+
+    if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php')) {
+        $table->addColumn('coverage', __('Coverage'))
+            ->format(function ($absence) {
+                if (empty($absence['coverage'])) {
+                    return Format::small(__('N/A'));
+                }
+
+                return $absence['coverage'] == 'Accepted'
+                        ? $absence['coverageNames']
+                        : Format::small(__('Pending'));
+            });
+    } else {
+        $table->addColumn('comment', __('Comment'))->format(Format::using('truncate', 'comment'));
+    }
 
     $table->addColumn('timestampCreator', __('Created'))
-        ->width('20%')
         ->format(function ($absence) {
             $output = Format::relativeTime($absence['timestampCreator'], 'M j, Y H:i');
             if ($absence['gibbonPersonID'] != $absence['gibbonPersonIDCreator']) {

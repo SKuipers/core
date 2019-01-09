@@ -43,7 +43,23 @@ class StaffAbsenceDateGateway extends QueryableGateway
     public function selectDatesByAbsence($gibbonStaffAbsenceID)
     {
         $data = ['gibbonStaffAbsenceID' => $gibbonStaffAbsenceID];
-        $sql = 'SELECT * FROM gibbonStaffAbsenceDate WHERE gibbonStaffAbsenceID=:gibbonStaffAbsenceID';
+        $sql = 'SELECT gibbonStaffAbsenceDate.*, gibbonStaffCoverage.status as coverage, coverage.title as titleCoverage, coverage.preferredName as preferredNameCoverage, coverage.surname as surnameCoverage
+                FROM gibbonStaffAbsenceDate
+                LEFT JOIN gibbonStaffCoverage ON (gibbonStaffCoverage.gibbonStaffCoverageID=gibbonStaffAbsenceDate.gibbonStaffCoverageID)
+                LEFT JOIN gibbonPerson AS coverage ON (gibbonStaffCoverage.gibbonPersonIDCoverage=coverage.gibbonPersonID)
+                WHERE gibbonStaffAbsenceDate.gibbonStaffAbsenceID=:gibbonStaffAbsenceID';
+
+        return $this->db()->select($sql, $data);
+    }
+
+    public function selectDatesByCoverage($gibbonStaffCoverageID)
+    {
+        $data = ['gibbonStaffCoverageID' => $gibbonStaffCoverageID];
+        $sql = 'SELECT gibbonStaffAbsenceDate.*, gibbonStaffCoverage.status as coverage, coverage.title as titleCoverage, coverage.preferredName as preferredNameCoverage, coverage.surname as surnameCoverage
+                FROM gibbonStaffAbsenceDate
+                LEFT JOIN gibbonStaffCoverage ON (gibbonStaffCoverage.gibbonStaffCoverageID=gibbonStaffAbsenceDate.gibbonStaffCoverageID)
+                LEFT JOIN gibbonPerson AS coverage ON (gibbonStaffCoverage.gibbonPersonIDCoverage=coverage.gibbonPersonID)
+                WHERE gibbonStaffAbsenceDate.gibbonStaffCoverageID=:gibbonStaffCoverageID';
 
         return $this->db()->select($sql, $data);
     }

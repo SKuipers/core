@@ -111,6 +111,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_detail
         }
     });
 
+    $table->addColumn('coverage', __('Coverage'))
+        ->format(function ($absence) {
+            if (empty($absence['coverage'])) {
+                return Format::small(__('N/A'));
+            }
+
+            return $absence['coverage'] == 'Accepted'
+                    ? Format::name($absence['titleCoverage'], $absence['preferredNameCoverage'], $absence['surnameCoverage'], 'Staff', false, true)
+                    : Format::small(__('Pending'));
+        });
+    
+
     echo $table->render($absenceDates->toDataSet());
 
 }
