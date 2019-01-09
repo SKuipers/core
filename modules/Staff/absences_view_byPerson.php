@@ -129,8 +129,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
                 if (empty($day)) return '';
 
                 if ($day['date']->format('Y-m-d') == date('Y-m-d')) $cell->addClass('today');
-                elseif ($day['count'] > 0) $cell->addClass('dayHighlight3');
+                
+                if ($day['count'] > 0) $cell->addClass('bg-color'.$day['absence']['sequenceNumber']);
                 elseif ($day['weekend']) $cell->addClass('weekend');
+                else $cell->addClass('day');
 
                 return $cell;
             });
@@ -206,13 +208,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
         });
 
     // ACTIONS
+    $canManage = isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php');
+
     $table->addActionColumn()
         ->addParam('gibbonStaffAbsenceID')
         ->addParam('search', $criteria->getSearchText(true))
-        ->format(function ($person, $actions) use ($guid) {
+        ->format(function ($person, $actions) use ($canManage) {
             $actions->addAction('view', __('View Details'))
                 ->isModal(800, 550)
                 ->setURL('/modules/Staff/absences_view_details.php');
+
+            if ($canManage) {
+                $actions->addAction('edit', __('Edit'))
+                    ->setURL('/modules/Staff/absences_manage_edit.php');
+
+                $actions->addAction('delete', __('Delete'))
+                    ->setURL('/modules/Staff/absences_manage_delete.php');
+            }
         });
 
     echo $table->render($absences);
