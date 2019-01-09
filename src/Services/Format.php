@@ -117,7 +117,18 @@ class Format
      */
     public static function dateReadable($dateString)
     {
-        return static::date($dateString, 'M j, Y');
+        return ucfirst(strftime('%b %e, %G', strtotime($dateString)));
+    }
+
+    /**
+     * Formats a YYYY-MM-DD date as a readable string with month names and times.
+     *
+     * @param string $dateString
+     * @return string
+     */
+    public static function dateTimeReadable($dateString)
+    {
+        return ucfirst(strftime('%b %e, %G %H:%M', strtotime($dateString)));
     }
 
     /**
@@ -147,17 +158,20 @@ class Format
         $startDate = ($dateFrom instanceof DateTime)? $dateFrom : new DateTime($dateFrom);
         $endDate = ($dateTo instanceof DateTime)? $dateTo : new DateTime($dateTo);
 
+        $startTime = $startDate->format('U');
+        $endTime = $endDate->format('U');
+
         if ($startDate->format('Y-m-d') == $endDate->format('Y-m-d')) {
-            $output = $startDate->format('M j, Y');
+            $output = strftime('%b %e, %G', $startTime);
         } elseif ($startDate->format('Y-m') == $endDate->format('Y-m')) {
-            $output = $startDate->format('M j').' - '.$endDate->format('j, Y');
+            $output = strftime('%b %e', $startTime).' - '.strftime('%e, %G', $endTime);
         } elseif ($startDate->format('Y') == $endDate->format('Y')) {
-            $output = $startDate->format('M j').' - '.$endDate->format('M j, Y');
+            $output = strftime('%b %e', $startTime).' - '.strftime('%b %e, %G', $endTime);
         } else {
-            $output = $startDate->format('M j, Y').' - '.$endDate->format('M j, Y');
+            $output = strftime('%b %e, %G', $startTime).' - '.strftime('%b %e, %G', $endTime);
         }
 
-        return $output;
+        return ucfirst($output);
     }  
 
     /**
