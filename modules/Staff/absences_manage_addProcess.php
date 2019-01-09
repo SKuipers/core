@@ -132,7 +132,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
     $event->sendNotificationsAsBcc($pdo, $gibbon->session);
 
 
-    $URL .= $partialFail || $absenceCount == 0
+    $URL .= $partialFail
         ? "&return=warning1"
         : "&return=success0";
 
