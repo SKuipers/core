@@ -53,7 +53,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_edit
     $updated = $staffAbsenceGateway->update($gibbonStaffAbsenceID, $data);
 
     $URL .= !$updated
-        ? '&return=warning1'
+        ? '&return=error2'
         : '&return=success0';
 
     header("Location: {$URL}");

@@ -68,10 +68,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
 
     $row = $form->addRow();
         $row->addLabel('gibbonPersonIDCoverage', __('Substitute'));
-        $row->addSelectStaff('gibbonPersonIDCoverage')->placeholder()->isRequired()->selected($gibbonPersonIDCoverage);
+        $row->addSelectStaff('gibbonPersonIDCoverage')->placeholder()->selected($gibbonPersonIDCoverage);
 
     $row = $form->addRow();
-        $row->addLabel('notesRequested', __('Notes'));
+        $row->addLabel('notesRequested', __('Comment'));
         $row->addTextArea('notesRequested')->setRows(2);
 
     // DATA TABLE

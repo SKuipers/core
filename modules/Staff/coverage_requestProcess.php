@@ -41,14 +41,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
 
     $data = [
         'gibbonStaffAbsenceID'    => $gibbonStaffAbsenceID,
-        'gibbonPersonIDCoverage'  => $_POST['gibbonPersonIDCoverage'] ?? '',
+        'gibbonPersonIDCoverage'  => $_POST['gibbonPersonIDCoverage'] ?? null,
         'gibbonPersonIDRequested' => $_SESSION[$guid]['gibbonPersonID'],
         'notesRequested'          => $_POST['notesRequested'],
         'status'                  => 'Requested',
     ];
 
     // Validate the required values are present
-    if (empty($data['gibbonStaffAbsenceID']) || empty($data['gibbonPersonIDCoverage'])) {
+    if (empty($data['gibbonStaffAbsenceID'])) {
         $URL .= '&return=error1';
         header("Location: {$URL}");
         exit;
@@ -56,9 +56,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
 
     // Validate the database relationships exist
     $absence = $container->get(StaffAbsenceGateway::class)->getByID($data['gibbonStaffAbsenceID']);
-    $person = $container->get(UserGateway::class)->getByID($data['gibbonPersonIDCoverage']);
+    // $person = $container->get(UserGateway::class)->getByID($data['gibbonPersonIDCoverage']);
 
-    if (empty($absence) || empty($person)) {
+    if (empty($absence)) {
         $URL .= '&return=error2';
         header("Location: {$URL}");
         exit;
@@ -81,7 +81,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     // Link each absence date to the coverage request
     foreach ($absenceDates as $date) {
         if (in_array($date['date'], $requestDates)) {
-            echo $date['date'];
             $updated = $staffAbsenceDateGateway->update($date['gibbonStaffAbsenceDateID'], [
                 'gibbonStaffCoverageID' => $gibbonStaffCoverageID,
             ]);
