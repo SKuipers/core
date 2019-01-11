@@ -132,17 +132,6 @@ class Format
     }
 
     /**
-     * Formats a YYYY-MM-DD date as a readable string with month names and times.
-     *
-     * @param string $dateString
-     * @return string
-     */
-    public static function dateTimeReadable($dateString)
-    {
-        return static::date($dateString, 'M j, Y H:i');
-    }
-
-    /**
      * Formats two YYYY-MM-DD dates with the language-specific format. Optionally provide a format string to use instead.
      *
      * @param string $dateFrom
