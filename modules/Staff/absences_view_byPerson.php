@@ -130,7 +130,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
 
                 if ($day['date']->format('Y-m-d') == date('Y-m-d')) $cell->addClass('today');
                 
-                if ($day['count'] > 0) $cell->addClass('bg-color'.$day['absence']['sequenceNumber']);
+                if ($day['count'] > 0) $cell->addClass('bg-color'.($day['absence']['sequenceNumber'] % 10));
                 elseif ($day['weekend']) $cell->addClass('weekend');
                 else $cell->addClass('day');
 
