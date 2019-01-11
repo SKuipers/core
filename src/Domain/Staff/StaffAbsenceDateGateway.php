@@ -44,11 +44,11 @@ class StaffAbsenceDateGateway extends QueryableGateway
     {
         $gibbonStaffAbsenceIDList = is_array($gibbonStaffAbsenceID)? $gibbonStaffAbsenceID : [$gibbonStaffAbsenceID];
         $data = ['gibbonStaffAbsenceIDList' => implode(',', $gibbonStaffAbsenceIDList) ];
-        $sql = 'SELECT gibbonStaffAbsenceDate.gibbonStaffAbsenceID as groupBy, gibbonStaffAbsenceDate.*, gibbonStaffCoverage.status as coverage, coverage.title as titleCoverage, coverage.preferredName as preferredNameCoverage, coverage.surname as surnameCoverage
+        $sql = "SELECT gibbonStaffAbsenceDate.gibbonStaffAbsenceID as groupBy, gibbonStaffAbsenceDate.*, gibbonStaffCoverage.status as coverage, coverage.title as titleCoverage, coverage.preferredName as preferredNameCoverage, coverage.surname as surnameCoverage
                 FROM gibbonStaffAbsenceDate
                 LEFT JOIN gibbonStaffCoverage ON (gibbonStaffCoverage.gibbonStaffCoverageID=gibbonStaffAbsenceDate.gibbonStaffCoverageID)
                 LEFT JOIN gibbonPerson AS coverage ON (gibbonStaffCoverage.gibbonPersonIDCoverage=coverage.gibbonPersonID)
-                WHERE FIND_IN_SET(gibbonStaffAbsenceDate.gibbonStaffAbsenceID, :gibbonStaffAbsenceIDList)';
+                WHERE FIND_IN_SET(gibbonStaffAbsenceDate.gibbonStaffAbsenceID, :gibbonStaffAbsenceIDList)";
 
         return $this->db()->select($sql, $data);
     }
@@ -56,11 +56,11 @@ class StaffAbsenceDateGateway extends QueryableGateway
     public function selectAbsenceDatesByPerson($gibbonPersonID)
     {
         $data = ['gibbonPersonID' => $gibbonPersonID];
-        $sql = 'SELECT gibbonStaffAbsenceDate.date as groupBy, gibbonStaffAbsence.*, gibbonStaffAbsenceDate.*, gibbonStaffAbsenceType.name as type, gibbonStaffAbsenceType.sequenceNumber
+        $sql = "SELECT gibbonStaffAbsenceDate.date as groupBy, gibbonStaffAbsence.*, gibbonStaffAbsenceDate.*, gibbonStaffAbsenceType.name as type, gibbonStaffAbsenceType.sequenceNumber
                 FROM gibbonStaffAbsence 
                 JOIN gibbonStaffAbsenceDate ON (gibbonStaffAbsenceDate.gibbonStaffAbsenceID=gibbonStaffAbsence.gibbonStaffAbsenceID) 
                 JOIN gibbonStaffAbsenceType ON (gibbonStaffAbsenceType.gibbonStaffAbsenceTypeID=gibbonStaffAbsence.gibbonStaffAbsenceTypeID)
-                WHERE gibbonStaffAbsence.gibbonPersonID=:gibbonPersonID';
+                WHERE gibbonStaffAbsence.gibbonPersonID=:gibbonPersonID";
 
         return $this->db()->select($sql, $data);
     }

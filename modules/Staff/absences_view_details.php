@@ -121,6 +121,20 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_detail
                     ? Format::name($absence['titleCoverage'], $absence['preferredNameCoverage'], $absence['surnameCoverage'], 'Staff', false, true)
                     : Format::small(__('Pending'));
         });
+
+    $canManage = isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php') || $values['gibbonPersonID'] == $_SESSION[$guid]['gibbonPersonID'];
+
+    if ($canManage && isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php')) {
+        $table->addActionColumn()
+            ->addParam('gibbonStaffAbsenceID')
+            ->format(function ($absence, $actions) {
+                if (!empty($absence['gibbonStaffCoverageID'])) return;
+
+                $actions->addAction('coverage', __('Coverage Request'))
+                    ->setIcon('attendance')
+                    ->setURL('/modules/Staff/coverage_request.php');
+            });
+    }
     
 
     echo $table->render($absenceDates->toDataSet());

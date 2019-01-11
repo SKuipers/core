@@ -125,9 +125,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
     $event->setActionLink('/index.php?q=/modules/Staff/absences_view_byPerson.php&gibbonPersonID='.$data['gibbonPersonID']);
 
     // Notify the target staff member, if they're not the one who created the absence
-    // if ($data['gibbonPersonID'] != $_SESSION[$guid]['gibbonPersonID']) {
-    //     $event->addRecipient($data['gibbonPersonID']);
-    // }
+    if ($data['gibbonPersonID'] != $_SESSION[$guid]['gibbonPersonID']) {
+        $event->addRecipient($data['gibbonPersonID']);
+    }
 
     $event->sendNotificationsAsBcc($pdo, $gibbon->session);
 
@@ -136,6 +136,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
     $coverage = $_POST['coverage'] ?? 'N';
 
     if ($coverage != 'N') {
+        $gibbonStaffAbsenceID = str_pad($gibbonStaffAbsenceID, 14, '0', STR_PAD_LEFT);
         $gibbonPersonIDCoverage = $_POST['gibbonPersonIDCoverage'] ?? '';
         $URL = $_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Staff/coverage_request.php&coverage=$coverage&gibbonStaffAbsenceID=$gibbonStaffAbsenceID&gibbonPersonIDCoverage=$gibbonPersonIDCoverage";
 
@@ -143,7 +144,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
         header("Location: {$URL}");
         exit;
     }
-
 
     $URL .= $partialFail
         ? "&return=warning1"
