@@ -127,7 +127,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
             ->addClass('timeOptions')
             ->isRequired();
 
-    $form->addRow()->addHeading(__('Coverage'));
+    if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php')) {
+        $form->addRow()->addHeading(__('Coverage'));
 
         $coverageOptions = [
             'N'         => __('No'),
@@ -151,6 +152,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
     
         $row = $form->addRow()->addClass('broadcastOptions');
             $row->addAlert(__("This option sends a request by {notification} out to <b>ALL</b> available subs.", ['notification' => $notification]).' '.__("You'll receive a notification once your request is accepted."), 'message');
+    } else {
+        $form->addHiddenValue('coverage', 'N');
+    }
 
     $row = $form->addRow();
         $row->addFooter();

@@ -36,13 +36,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
     $schoolYearGateway = $container->get(SchoolYearGateway::class);
     $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
 
-    $criteria = $staffCoverageGateway->newQueryCriteria()
-        ->sortBy('date', 'DESC')
-        ->fromPOST('staffCoverageSelf');
+    if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php')) {
 
-    $coverage = $staffCoverageGateway->queryCoverageByPersonAbsent($criteria, $gibbonPersonID);
+        $criteria = $staffCoverageGateway->newQueryCriteria()
+            ->sortBy('date', 'DESC')
+            ->fromPOST('staffCoverageSelf');
 
-    if ($coverage->getResultCount() > 0) {
+        $coverage = $staffCoverageGateway->queryCoverageByPersonAbsent($criteria, $gibbonPersonID);
+
         // DATA TABLE
         $table = DataTable::createPaginated('staffCoverageSelf', $criteria);
         $table->setTitle(__('Covering Me'));
@@ -88,14 +89,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
         echo $table->render($coverage);
     }
 
-    $criteria = $staffCoverageGateway->newQueryCriteria()
-        ->sortBy('date', 'DESC')
-        ->fromPOST('staffCoverageOther');
+    
+    if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_accept.php')) {
 
-    $coverage = $staffCoverageGateway->queryCoverageByPersonCovering($criteria, $gibbonPersonID);
+        $criteria = $staffCoverageGateway->newQueryCriteria()
+            ->sortBy('date', 'DESC')
+            ->fromPOST('staffCoverageOther');
 
-
-    if ($coverage->getResultCount() > 0) {
+        $coverage = $staffCoverageGateway->queryCoverageByPersonCovering($criteria, $gibbonPersonID);
 
         $coverageByDate = array_reduce($coverage->toArray(), function ($group, $item) {
             $group[$item['date']][] = $item;

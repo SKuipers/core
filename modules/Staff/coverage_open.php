@@ -44,7 +44,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_open.php') 
     $coverage = $staffCoverageGateway->queryCoverageWithNoPersonAssigned($criteria, $gibbonPersonID);
 
     if ($coverage->getResultCount() == 0) {
-        echo Format::alert(__('All coverage requests have been filled. Yeah!'), 'success');
+        echo Format::alert(__('All coverage requests have been filled!'), 'success');
     } else {
         // DATA TABLE
         $table = DataTable::createPaginated('staffCoverageAvailable', $criteria);

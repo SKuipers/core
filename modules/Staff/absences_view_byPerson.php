@@ -200,26 +200,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
             return $absence['type'] .'<br/>'.Format::small($absence['reason']);
         });
 
-    if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php')) {
-        $table->addColumn('coverage', __('Coverage'))
-            ->format(function ($absence) {
-                if (empty($absence['coverage']) || empty($absence['coverageList'])) {
-                    return '';
-                } elseif ($absence['coverage'] != 'Accepted') {
-                    return Format::small(__('Pending'));
-                }
+    
+    $table->addColumn('coverage', __('Coverage'))
+        ->format(function ($absence) {
+            if (empty($absence['coverage']) || empty($absence['coverageList'])) {
+                return '';
+            } elseif ($absence['coverage'] != 'Accepted') {
+                return Format::small(__('Pending'));
+            }
 
-                $names = array_unique(array_map(function ($person) {
-                    return $person['coverage'] == 'Accepted'
-                        ? Format::name($person['titleCoverage'], $person['preferredNameCoverage'], $person['surnameCoverage'], 'Staff', false, true)
-                        : Format::small(__('Pending'));
-                }, $absence['coverageList'] ?? []));
+            $names = array_unique(array_map(function ($person) {
+                return $person['coverage'] == 'Accepted'
+                    ? Format::name($person['titleCoverage'], $person['preferredNameCoverage'], $person['surnameCoverage'], 'Staff', false, true)
+                    : Format::small(__('Pending'));
+            }, $absence['coverageList'] ?? []));
 
-                return implode('<br/>', $names);
-            });
-    } else {
-        $table->addColumn('comment', __('Comment'))->format(Format::using('truncate', 'comment'));
-    }
+            return implode('<br/>', $names);
+        });
 
     $table->addColumn('timestampCreator', __('Created'))
         ->width('20%')

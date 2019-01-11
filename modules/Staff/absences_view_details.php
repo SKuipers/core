@@ -130,7 +130,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_detail
             ->format(function ($absence, $actions) {
                 if (!empty($absence['gibbonStaffCoverageID'])) return;
 
-                $actions->addAction('coverage', __('Coverage Request'))
+                $actions->addAction('coverage', __('Request Coverage'))
                     ->setIcon('attendance')
                     ->setURL('/modules/Staff/coverage_request.php');
             });
