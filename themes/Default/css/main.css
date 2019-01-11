@@ -1878,7 +1878,7 @@ button[disabled], input[disabled], textarea[disabled] {
 
 .personSelect + .LV_validation_message {
     position: absolute;
-    top: 90px;
+    top: 40%;
     left: -12px;
 }
 
