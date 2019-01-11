@@ -54,15 +54,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
 
         $table->addColumn('status', __('Status'))->width('15%');
 
-        $table->addColumn('requested', __('Coverage'))
-            ->width('30%')
-            ->sortable(['surname', 'preferredName'])
-            ->format(function ($coverage) {
-                return $coverage['gibbonPersonIDCoverage'] 
-                    ? Format::name($coverage['titleCoverage'], $coverage['preferredNameCoverage'], $coverage['surnameCoverage'], 'Staff', false, true)
-                    : Format::small(__('Pending'));
-            });
-
         $table->addColumn('date', __('Date'))
             ->format(function ($coverage) {
                 $output = Format::dateRangeReadable($coverage['dateStart'], $coverage['dateEnd']);
@@ -74,6 +65,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
                 
                 return $output;
             });
+
+        $table->addColumn('requested', __('Coverage'))
+            ->width('30%')
+            ->sortable(['surname', 'preferredName'])
+            ->format(function ($coverage) {
+                return $coverage['gibbonPersonIDCoverage'] 
+                    ? Format::name($coverage['titleCoverage'], $coverage['preferredNameCoverage'], $coverage['surnameCoverage'], 'Staff', false, true)
+                    : Format::small(__('Pending'));
+            });
+
+        $table->addColumn('notesCoverage', __('Comment'));
 
         $table->addActionColumn()
             ->addParam('gibbonStaffCoverageID')
@@ -185,13 +187,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
 
         $table->addColumn('status', __('Status'))->width('15%');
 
-        $table->addColumn('requested', __('Person'))
-            ->width('30%')
-            ->sortable(['surname', 'preferredName'])
-            ->format(function ($coverage) {
-                return Format::name($coverage['titleAbsence'], $coverage['preferredNameAbsence'], $coverage['surnameAbsence'], 'Staff', false, true);
-            });
-
         $table->addColumn('date', __('Date'))
             ->format(function ($coverage) {
                 $output = Format::dateRangeReadable($coverage['dateStart'], $coverage['dateEnd']);
@@ -203,6 +198,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
                 
                 return $output;
             });
+
+        $table->addColumn('requested', __('Person'))
+            ->width('30%')
+            ->sortable(['surname', 'preferredName'])
+            ->format(function ($coverage) {
+                return Format::name($coverage['titleAbsence'], $coverage['preferredNameAbsence'], $coverage['surnameAbsence'], 'Staff', false, true);
+            });
+
+        $table->addColumn('notesRequested', __('Comment'));
 
         $table->addActionColumn()
             ->addParam('gibbonStaffCoverageID')
