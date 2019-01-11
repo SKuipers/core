@@ -42,24 +42,13 @@ class StaffAbsenceDateGateway extends QueryableGateway
 
     public function selectDatesByAbsence($gibbonStaffAbsenceID)
     {
-        $data = ['gibbonStaffAbsenceID' => $gibbonStaffAbsenceID];
-        $sql = 'SELECT gibbonStaffAbsenceDate.*, gibbonStaffCoverage.status as coverage, coverage.title as titleCoverage, coverage.preferredName as preferredNameCoverage, coverage.surname as surnameCoverage
+        $gibbonStaffAbsenceIDList = is_array($gibbonStaffAbsenceID)? $gibbonStaffAbsenceID : [$gibbonStaffAbsenceID];
+        $data = ['gibbonStaffAbsenceIDList' => implode(',', $gibbonStaffAbsenceIDList) ];
+        $sql = 'SELECT gibbonStaffAbsenceDate.gibbonStaffAbsenceID as groupBy, gibbonStaffAbsenceDate.*, gibbonStaffCoverage.status as coverage, coverage.title as titleCoverage, coverage.preferredName as preferredNameCoverage, coverage.surname as surnameCoverage
                 FROM gibbonStaffAbsenceDate
                 LEFT JOIN gibbonStaffCoverage ON (gibbonStaffCoverage.gibbonStaffCoverageID=gibbonStaffAbsenceDate.gibbonStaffCoverageID)
                 LEFT JOIN gibbonPerson AS coverage ON (gibbonStaffCoverage.gibbonPersonIDCoverage=coverage.gibbonPersonID)
-                WHERE gibbonStaffAbsenceDate.gibbonStaffAbsenceID=:gibbonStaffAbsenceID';
-
-        return $this->db()->select($sql, $data);
-    }
-
-    public function selectDatesByCoverage($gibbonStaffCoverageID)
-    {
-        $data = ['gibbonStaffCoverageID' => $gibbonStaffCoverageID];
-        $sql = 'SELECT gibbonStaffAbsenceDate.*, gibbonStaffCoverage.status as coverage, coverage.title as titleCoverage, coverage.preferredName as preferredNameCoverage, coverage.surname as surnameCoverage
-                FROM gibbonStaffAbsenceDate
-                LEFT JOIN gibbonStaffCoverage ON (gibbonStaffCoverage.gibbonStaffCoverageID=gibbonStaffAbsenceDate.gibbonStaffCoverageID)
-                LEFT JOIN gibbonPerson AS coverage ON (gibbonStaffCoverage.gibbonPersonIDCoverage=coverage.gibbonPersonID)
-                WHERE gibbonStaffAbsenceDate.gibbonStaffCoverageID=:gibbonStaffCoverageID';
+                WHERE FIND_IN_SET(gibbonStaffAbsenceDate.gibbonStaffAbsenceID, :gibbonStaffAbsenceIDList)';
 
         return $this->db()->select($sql, $data);
     }
@@ -72,20 +61,6 @@ class StaffAbsenceDateGateway extends QueryableGateway
                 JOIN gibbonStaffAbsenceDate ON (gibbonStaffAbsenceDate.gibbonStaffAbsenceID=gibbonStaffAbsence.gibbonStaffAbsenceID) 
                 JOIN gibbonStaffAbsenceType ON (gibbonStaffAbsenceType.gibbonStaffAbsenceTypeID=gibbonStaffAbsence.gibbonStaffAbsenceTypeID)
                 WHERE gibbonStaffAbsence.gibbonPersonID=:gibbonPersonID';
-
-        return $this->db()->select($sql, $data);
-    }
-
-    public function selectAbsenceDatesByDateRange($dateStart, $dateEnd = null)
-    {
-        if (empty($dateEnd)) $dateEnd = $dateStart;
-
-        $data = ['dateStart' => $dateStart, 'dateEnd' => $dateEnd];
-        $sql = 'SELECT gibbonStaffAbsenceDate.date as groupBy, gibbonStaffAbsence.*, gibbonStaffAbsenceDate.*, gibbonStaffAbsenceType.name as type, gibbonStaffAbsenceType.sequenceNumber
-                FROM gibbonStaffAbsence 
-                JOIN gibbonStaffAbsenceDate ON (gibbonStaffAbsenceDate.gibbonStaffAbsenceID=gibbonStaffAbsence.gibbonStaffAbsenceID) 
-                JOIN gibbonStaffAbsenceType ON (gibbonStaffAbsenceType.gibbonStaffAbsenceTypeID=gibbonStaffAbsence.gibbonStaffAbsenceTypeID)
-                WHERE gibbonStaffAbsenceDate.date BETWEEN :dateStart AND :dateEnd';
 
         return $this->db()->select($sql, $data);
     }

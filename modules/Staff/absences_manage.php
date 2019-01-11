@@ -23,6 +23,7 @@ use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
+use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php') == false) {
     //Acess denied
@@ -45,6 +46,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
 
     $staffAbsenceGateway = $container->get(StaffAbsenceGateway::class);
     $staffAbsenceTypeGateway = $container->get(StaffAbsenceTypeGateway::class);
+    $staffAbsenceDateGateway = $container->get(StaffAbsenceDateGateway::class);
     
     $form = Form::create('filter', $_SESSION[$guid]['absoluteURL'].'/index.php', 'get');
     $form->setTitle(__('Filter'));
@@ -93,6 +95,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
     } else {
         $absences = $staffAbsenceGateway->queryAbsencesBySchoolYear($criteria, $gibbonSchoolYearID, true);
     }
+
+    // Join a set of coverage data per absence
+    $absenceIDs = $absences->getColumn('gibbonStaffAbsenceID');
+    $coverageData = $staffAbsenceDateGateway->selectDatesByAbsence($absenceIDs)->fetchGrouped();
+    $absences->joinColumn('gibbonStaffAbsenceID', 'coverageList', $coverageData);
 
     // DATA TABLE
     $table = DataTable::createPaginated('staffAbsences', $criteria);
@@ -145,13 +152,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
     if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php')) {
         $table->addColumn('coverage', __('Coverage'))
             ->format(function ($absence) {
-                if (empty($absence['coverage'])) {
-                    return Format::small(__('N/A'));
+                if (empty($absence['coverage']) || empty($absence['coverageList'])) {
+                    return '';
+                } elseif ($absence['coverage'] != 'Accepted') {
+                    return Format::small(__('Pending'));
                 }
 
-                return $absence['coverage'] == 'Accepted'
-                        ? $absence['coverageNames']
+                $names = array_unique(array_map(function ($person) {
+                    return $person['coverage'] == 'Accepted'
+                        ? Format::name($person['titleCoverage'], $person['preferredNameCoverage'], $person['surnameCoverage'], 'Staff', false, true)
                         : Format::small(__('Pending'));
+                }, $absence['coverageList'] ?? []));
+
+                return implode('<br/>', $names);
             });
     } else {
         $table->addColumn('comment', __('Comment'))->format(Format::using('truncate', 'comment'));

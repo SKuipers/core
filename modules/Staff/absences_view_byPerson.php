@@ -166,6 +166,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
 
     $absences = $staffAbsenceGateway->queryAbsencesByPerson($criteria, $gibbonPersonID);
 
+    // Join a set of coverage data per absence
+    $absenceIDs = $absences->getColumn('gibbonStaffAbsenceID');
+    $coverageData = $staffAbsenceDateGateway->selectDatesByAbsence($absenceIDs)->fetchGrouped();
+    $absences->joinColumn('gibbonStaffAbsenceID', 'coverageList', $coverageData);
+
     // DATA TABLE
     $table = DataTable::createPaginated('staffAbsences', $criteria);
     $table->setTitle(__('View'));
@@ -195,7 +200,26 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
             return $absence['type'] .'<br/>'.Format::small($absence['reason']);
         });
 
-    $table->addColumn('comment', __('Comment'));
+    if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php')) {
+        $table->addColumn('coverage', __('Coverage'))
+            ->format(function ($absence) {
+                if (empty($absence['coverage']) || empty($absence['coverageList'])) {
+                    return '';
+                } elseif ($absence['coverage'] != 'Accepted') {
+                    return Format::small(__('Pending'));
+                }
+
+                $names = array_unique(array_map(function ($person) {
+                    return $person['coverage'] == 'Accepted'
+                        ? Format::name($person['titleCoverage'], $person['preferredNameCoverage'], $person['surnameCoverage'], 'Staff', false, true)
+                        : Format::small(__('Pending'));
+                }, $absence['coverageList'] ?? []));
+
+                return implode('<br/>', $names);
+            });
+    } else {
+        $table->addColumn('comment', __('Comment'))->format(Format::using('truncate', 'comment'));
+    }
 
     $table->addColumn('timestampCreator', __('Created'))
         ->width('20%')

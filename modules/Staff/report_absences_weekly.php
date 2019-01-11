@@ -169,7 +169,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_week
 
         // COLUMNS
         $table->addColumn('fullName', __('Name'))
-            ->width('25%')
+            ->width('30%')
             ->sortable(['surname', 'preferredName'])
             ->format(function ($absence) {
                 $output = Format::name($absence['title'], $absence['preferredName'], $absence['surname'], 'Staff', false, true);
@@ -184,6 +184,20 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_week
             ->format(function ($absence) {
                 return $absence['type'] .'<br/>'.Format::small($absence['reason']);
             });
+
+        if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php')) {
+            $table->addColumn('coverage', __('Coverage'))
+                ->width('30%')
+                ->format(function ($absence) {
+                    if (empty($absence['coverage'])) {
+                        return '';
+                    } elseif ($absence['coverage'] != 'Accepted') {
+                        return Format::small(__('Pending'));
+                    }
+
+                    return Format::name($absence['titleCoverage'], $absence['preferredNameCoverage'], $absence['surnameCoverage'], 'Staff', false, true);
+                });
+        }
 
         echo $table->render(new DataSet($absencesThisDay));
     }
