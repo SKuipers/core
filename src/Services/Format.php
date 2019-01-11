@@ -193,7 +193,7 @@ class Format
      * @param string $dateString
      * @return string
      */
-    public static function relativeTime($dateString)
+    public static function relativeTime($dateString, $tooltip = true)
     {
         if (strlen($dateString) == 10) $dateString .= ' 00:00:00';
         $date = DateTime::createFromFormat('Y-m-d H:i:s', $dateString);
@@ -225,7 +225,9 @@ class Format
             ? __('{time} ago', ['time' => $time])
             : __('{time} from now', ['time' => $time]);
 
-        return self::tooltip($time, $dateString);
+        return $tooltip 
+            ? self::tooltip($time, $dateString)
+            : $time;
     }
 
     /**
