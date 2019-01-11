@@ -58,24 +58,29 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
     text-decoration: none;
 }
 
-.calendarTable .dayHighlight1 {
+.bg-purple0 {
+    background: #eee3f8 !important;
     color: hsl(268, 29%, 55%);
-    background: #e2ccf6 !important; // #c6e48b
 }
 
-.calendarTable .dayHighlight2 {
+.bg-purple1 {
+    background: #e2ccf6 !important;
     color: hsl(268, 29%, 55%);
-    background: #d2b8ec !important; // #7bc96f
 }
 
-.calendarTable .dayHighlight3 {
-    color: #f1f1f1;
-    background: #9d7cc6 !important; // #239a3b
+.bg-purple2 {
+    background: #d2b8ec !important;
+    color: hsl(268, 29%, 55%);
 }
 
-.calendarTable .dayHighlight4 {
+.bg-purple3 {
+    background: #9d7cc6 !important;
     color: #f1f1f1;
-    background: #7c5aa4 !important; // #196127
+}
+
+.bg-purple4 {
+    background: #7c5aa4 !important;
+    color: #f1f1f1;
 }
 
 .calendarTable .day {

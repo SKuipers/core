@@ -151,10 +151,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_summ
 
                     if ($day['date']->format('Y-m-d') == date('Y-m-d')) $cell->addClass('today');
                     
-                    if ($count > ceil($maxAbsence * 0.8)) $cell->addClass('dayHighlight4');
-                    elseif ($count > ceil($maxAbsence * 0.5)) $cell->addClass('dayHighlight3');
-                    elseif ($count > ceil($maxAbsence * 0.2)) $cell->addClass('dayHighlight2');
-                    elseif ($count > 0) $cell->addClass('dayHighlight1');
+                    if ($count > ceil($maxAbsence * 0.8)) $cell->addClass('bg-purple4');
+                    elseif ($count > ceil($maxAbsence * 0.5)) $cell->addClass('bg-purple3');
+                    elseif ($count > ceil($maxAbsence * 0.2)) $cell->addClass('bg-purple2');
+                    elseif ($count > 0) $cell->addClass('bg-purple1');
                     elseif ($day['weekend']) $cell->addClass('weekend');
                     else $cell->addClass('day');
 

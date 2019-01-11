@@ -48,7 +48,8 @@ class StaffAbsenceDateGateway extends QueryableGateway
                 FROM gibbonStaffAbsenceDate
                 LEFT JOIN gibbonStaffCoverage ON (gibbonStaffCoverage.gibbonStaffCoverageID=gibbonStaffAbsenceDate.gibbonStaffCoverageID)
                 LEFT JOIN gibbonPerson AS coverage ON (gibbonStaffCoverage.gibbonPersonIDCoverage=coverage.gibbonPersonID)
-                WHERE FIND_IN_SET(gibbonStaffAbsenceDate.gibbonStaffAbsenceID, :gibbonStaffAbsenceIDList)";
+                WHERE FIND_IN_SET(gibbonStaffAbsenceDate.gibbonStaffAbsenceID, :gibbonStaffAbsenceIDList)
+                ORDER BY gibbonStaffAbsenceDate.date";
 
         return $this->db()->select($sql, $data);
     }
@@ -60,7 +61,8 @@ class StaffAbsenceDateGateway extends QueryableGateway
                 FROM gibbonStaffAbsence 
                 JOIN gibbonStaffAbsenceDate ON (gibbonStaffAbsenceDate.gibbonStaffAbsenceID=gibbonStaffAbsence.gibbonStaffAbsenceID) 
                 JOIN gibbonStaffAbsenceType ON (gibbonStaffAbsenceType.gibbonStaffAbsenceTypeID=gibbonStaffAbsence.gibbonStaffAbsenceTypeID)
-                WHERE gibbonStaffAbsence.gibbonPersonID=:gibbonPersonID";
+                WHERE gibbonStaffAbsence.gibbonPersonID=:gibbonPersonID
+                ORDER BY gibbonStaffAbsenceDate.date";
 
         return $this->db()->select($sql, $data);
     }

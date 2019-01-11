@@ -39,4 +39,70 @@ class StaffCoverageGateway extends QueryableGateway
     private static $primaryKey = 'gibbonStaffCoverageID';
 
     private static $searchableColumns = [];
+
+    /**
+     * @param QueryCriteria $criteria
+     * @return DataSet
+     */
+    public function queryCoverageByPersonCovering(QueryCriteria $criteria, $gibbonPersonID)
+    {
+        $query = $this
+            ->newQuery()
+            ->from($this->getTableName())
+            ->cols([
+                'gibbonStaffCoverage.gibbonStaffCoverageID', 'gibbonStaffCoverage.status',  'gibbonStaffAbsenceType.name as type', 'reason', 'date', 'COUNT(*) as days', 'MIN(date) as dateStart', 'MAX(date) as dateEnd', 'allDay', 'timeStart', 'timeEnd', 'timestampRequested', 'gibbonStaffCoverage.gibbonPersonIDCoverage', 'gibbonStaffAbsence.gibbonPersonID', 
+                'absence.title AS titleAbsence', 'absence.preferredName AS preferredNameAbsence', 'absence.surname AS surnameAbsence',
+            ])
+            ->innerJoin('gibbonStaffAbsenceDate', 'gibbonStaffAbsenceDate.gibbonStaffCoverageID=gibbonStaffCoverage.gibbonStaffCoverageID')
+            ->innerJoin('gibbonStaffAbsence', 'gibbonStaffAbsenceDate.gibbonStaffAbsenceID=gibbonStaffAbsence.gibbonStaffAbsenceID')
+            ->innerJoin('gibbonStaffAbsenceType', 'gibbonStaffAbsence.gibbonStaffAbsenceTypeID=gibbonStaffAbsenceType.gibbonStaffAbsenceTypeID')
+            ->leftJoin('gibbonPerson AS absence', 'gibbonStaffAbsence.gibbonPersonID=absence.gibbonPersonID')
+            ->where("gibbonStaffCoverage.status <> 'Requested'")
+            ->where('gibbonStaffCoverage.gibbonPersonIDCoverage = :gibbonPersonID')
+            ->bindValue('gibbonPersonID', $gibbonPersonID)
+            ->groupBy(['gibbonStaffCoverage.gibbonStaffCoverageID']);
+
+        return $this->runQuery($query, $criteria);
+    }
+
+    public function queryCoverageByPersonAbsent(QueryCriteria $criteria, $gibbonPersonID)
+    {
+        $query = $this
+            ->newQuery()
+            ->from($this->getTableName())
+            ->cols([
+                'gibbonStaffCoverage.gibbonStaffCoverageID', 'gibbonStaffCoverage.status',  'gibbonStaffAbsenceType.name as type', 'reason', 'date', 'COUNT(*) as days', 'MIN(date) as dateStart', 'MAX(date) as dateEnd', 'allDay', 'timeStart', 'timeEnd', 'timestampRequested', 'gibbonStaffCoverage.gibbonPersonIDCoverage', 'gibbonStaffAbsence.gibbonPersonID', 
+                'coverage.title as titleCoverage', 'coverage.preferredName as preferredNameCoverage', 'coverage.surname as surnameCoverage', 
+            ])
+            ->innerJoin('gibbonStaffAbsenceDate', 'gibbonStaffAbsenceDate.gibbonStaffCoverageID=gibbonStaffCoverage.gibbonStaffCoverageID')
+            ->innerJoin('gibbonStaffAbsence', 'gibbonStaffAbsenceDate.gibbonStaffAbsenceID=gibbonStaffAbsence.gibbonStaffAbsenceID')
+            ->innerJoin('gibbonStaffAbsenceType', 'gibbonStaffAbsence.gibbonStaffAbsenceTypeID=gibbonStaffAbsenceType.gibbonStaffAbsenceTypeID')
+            ->leftJoin('gibbonPerson AS coverage', 'gibbonStaffCoverage.gibbonPersonIDCoverage=coverage.gibbonPersonID')
+            ->where('gibbonStaffAbsence.gibbonPersonID = :gibbonPersonID')
+            ->bindValue('gibbonPersonID', $gibbonPersonID)
+            ->groupBy(['gibbonStaffCoverage.gibbonStaffCoverageID']);
+
+        return $this->runQuery($query, $criteria);
+    }
+
+    public function queryCoverageWithNoPersonAssigned(QueryCriteria $criteria, $gibbonPersonID)
+    {
+        $query = $this
+            ->newQuery()
+            ->from($this->getTableName())
+            ->cols([
+                'gibbonStaffCoverage.gibbonStaffCoverageID', 'gibbonStaffCoverage.status',  'gibbonStaffAbsenceType.name as type', 'reason', 'date', 'COUNT(*) as days', 'MIN(date) as dateStart', 'MAX(date) as dateEnd', 'allDay', 'timeStart', 'timeEnd', 'timestampRequested', 'gibbonStaffCoverage.gibbonPersonIDCoverage', 'gibbonStaffAbsence.gibbonPersonID', 
+                'absence.title AS titleAbsence', 'absence.preferredName AS preferredNameAbsence', 'absence.surname AS surnameAbsence',
+            ])
+            ->innerJoin('gibbonStaffAbsenceDate', 'gibbonStaffAbsenceDate.gibbonStaffCoverageID=gibbonStaffCoverage.gibbonStaffCoverageID')
+            ->innerJoin('gibbonStaffAbsence', 'gibbonStaffAbsenceDate.gibbonStaffAbsenceID=gibbonStaffAbsence.gibbonStaffAbsenceID')
+            ->innerJoin('gibbonStaffAbsenceType', 'gibbonStaffAbsence.gibbonStaffAbsenceTypeID=gibbonStaffAbsenceType.gibbonStaffAbsenceTypeID')
+            ->leftJoin('gibbonPerson AS absence', 'gibbonStaffAbsence.gibbonPersonID=absence.gibbonPersonID')
+            ->where("gibbonStaffCoverage.status = 'Requested'")
+            ->where('(gibbonStaffCoverage.gibbonPersonIDCoverage=:gibbonPersonID OR gibbonStaffCoverage.gibbonPersonIDCoverage IS NULL)')
+            ->bindValue('gibbonPersonID', $gibbonPersonID)
+            ->groupBy(['gibbonStaffCoverage.gibbonStaffCoverageID']);
+
+        return $this->runQuery($query, $criteria);
+    }
 }
