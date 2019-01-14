@@ -119,6 +119,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
         ->addParam('date', $dateStart)
         ->displayLabel();
     
+    $table->addMetaData('filterOptions', [
+        'date:upcoming'    => __('Upcoming'),
+        'date:today'       => __('Today'),
+        'date:past'        => __('Past'),
+        'status:requested' => __('Coverage').': '.__('Requested'),
+        'status:accepted'  => __('Coverage').': '.__('Accepted'),
+        'status:declined'  => __('Coverage').': '.__('Declined'),
+        'status:cancelled' => __('Coverage').': '.__('Cancelled'),
+    ]);
 
     // COLUMNS
     $table->addColumn('fullName', __('Name'))
@@ -155,13 +164,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
             if (empty($absence['coverage']) || empty($absence['coverageList'])) {
                 return '';
             } elseif ($absence['coverage'] != 'Accepted') {
-                return Format::small(__('Pending'));
+                return '<div class="badge success">'.__('Pending').'</div>';
             }
 
             $names = array_unique(array_map(function ($person) {
                 return $person['coverage'] == 'Accepted'
                     ? Format::name($person['titleCoverage'], $person['preferredNameCoverage'], $person['surnameCoverage'], 'Staff', false, true)
-                    : Format::small(__('Pending'));
+                    : '<div class="badge success">'.__('Pending').'</div>';
             }, $absence['coverageList'] ?? []));
 
             return implode('<br/>', $names);

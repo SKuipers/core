@@ -60,6 +60,8 @@ class StaffAbsenceGateway extends QueryableGateway
             ->bindValue('gibbonPersonID', $gibbonPersonID)
             ->groupBy(['gibbonStaffAbsence.gibbonStaffAbsenceID']);
 
+        $criteria->addFilterRules($this->getSharedFilterRules());
+
         return $this->runQuery($query, $criteria);
     }
 
@@ -99,13 +101,7 @@ class StaffAbsenceGateway extends QueryableGateway
                 ->groupBy(['gibbonStaffAbsenceDate.gibbonStaffAbsenceDateID']);
         }
 
-        $criteria->addFilterRules([
-            'type' => function ($query, $type) {
-                return $query
-                    ->where('gibbonStaffAbsence.gibbonStaffAbsenceTypeID = :type')
-                    ->bindValue('type', $type);
-            },
-        ]);
+        $criteria->addFilterRules($this->getSharedFilterRules());
 
         return $this->runQuery($query, $criteria);
     }
@@ -135,14 +131,30 @@ class StaffAbsenceGateway extends QueryableGateway
                 ->groupBy(['gibbonStaffAbsenceDate.gibbonStaffAbsenceDateID']);
         }
 
-        $criteria->addFilterRules([
+        $criteria->addFilterRules($this->getSharedFilterRules());
+
+        return $this->runQuery($query, $criteria);
+    }
+
+    protected function getSharedFilterRules()
+    {
+        return [
             'type' => function ($query, $type) {
                 return $query
                     ->where('gibbonStaffAbsence.gibbonStaffAbsenceTypeID = :type')
                     ->bindValue('type', $type);
             },
-        ]);
-
-        return $this->runQuery($query, $criteria);
+            'status' => function ($query, $status) {
+                return $query->where('gibbonStaffCoverage.status = :status')
+                             ->bindValue('status', $status);
+            },
+            'date' => function ($query, $date) {
+                switch (ucfirst($date)) {
+                    case 'Upcoming': return $query->where("gibbonStaffAbsenceDate.date >= CURRENT_DATE()");
+                    case 'Today'   : return $query->where("gibbonStaffAbsenceDate.date = CURRENT_DATE()");
+                    case 'Past'    : return $query->where("gibbonStaffAbsenceDate.date < CURRENT_DATE()");
+                }
+            },
+        ];
     }
 }

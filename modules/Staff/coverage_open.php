@@ -39,62 +39,97 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_open.php') 
     // QUERY
     $criteria = $staffCoverageGateway->newQueryCriteria()
         ->sortBy('date', 'ASC')
-        ->fromPOST('staffCoverageAvailable');
+        ->filterBy('requested', 'Y')
+        ->pageSize(0)
+        ->fromPOST('myCoverage');
 
-    $coverage = $staffCoverageGateway->queryCoverageWithNoPersonAssigned($criteria, $gibbonPersonID);
+    $myCoverage = $staffCoverageGateway->queryCoverageByPersonCovering($criteria, $gibbonPersonID, true);
 
-    if ($coverage->getResultCount() == 0) {
+    $criteria = $staffCoverageGateway->newQueryCriteria()
+        ->sortBy('date', 'ASC')
+        ->filterBy('requested', 'Y')
+        ->pageSize(0)
+        ->fromPOST('allCoverage');
+
+    $allCoverage = $staffCoverageGateway->queryCoverageWithNoPersonAssigned($criteria, true);
+
+    if ($myCoverage->getResultCount() == 0 && $allCoverage->getResultCount() == 0) {
         echo Format::alert(__('All coverage requests have been filled!'), 'success');
-    } else {
-        // DATA TABLE
-        $table = DataTable::createPaginated('staffCoverageAvailable', $criteria);
-        $table->setTitle(__('Available Coverage Requests'));
+        return;
+    }
 
-        $table->modifyRows(function ($coverage, $row) {
-            if ($coverage['status'] == 'Accepted') $row->addClass('current');
-            return $row;
+    // DATA TABLE
+    $table = DataTable::createPaginated('staffCoverageAvailable', $criteria);
+
+    $table->addMetaData('hidePagination', true);
+    
+    $table->modifyRows(function ($coverage, $row) {
+        if ($coverage['status'] == 'Accepted') $row->addClass('current');
+        return $row;
+    });
+
+    $table->addColumn('status', __('Status'))
+        ->width('15%')
+        ->format(function ($coverage) {
+            $relativeSeconds = strtotime($coverage['dateStart']) - time();
+            if ($relativeSeconds <= (86400 * 3)) { // Less than three days
+                return '<span style="color: #CC0000; font-weight: bold; border: 2px solid #CC0000; padding: 2px 4px; background-color: #F6CECB;margin:0 auto;">'.__('Urgent').'</span>';
+            } elseif ($relativeSeconds <= (86400 * 12)) { // Less than twelve days
+                return '<span style="color: #FF7414; font-weight: bold; border: 2px solid #FF7414; padding: 2px 4px; background-color: #FFD2A9;margin:0 auto;">'.__('Upcoming').'</span>';
+            } else {
+                return Format::small(__('Upcoming'));
+            }
         });
 
-        $table->addColumn('status', __('Status'))
-            ->width('15%')
-            ->format(function ($coverage) {
-                $relativeSeconds = strtotime($coverage['dateStart']) - time();
-                if ($relativeSeconds <= (86400 * 3)) { // Less than three days
-                    return '<span style="color: #CC0000; font-weight: bold; border: 2px solid #CC0000; padding: 2px 4px; background-color: #F6CECB;margin:0 auto;">'.__('Urgent').'</span>';
-                } elseif ($relativeSeconds <= (86400 * 7)) { // Less than three days
-                    return '<span style="color: #FF7414; font-weight: bold; border: 2px solid #FF7414; padding: 2px 4px; background-color: #FFD2A9;margin:0 auto;">'.__('Upcoming').'</span>';
-                } else {
-                    return Format::small(__('Available'));
-                }
-            });
+    $table->addColumn('requested', __('Person'))
+        ->width('30%')
+        ->sortable(['surname', 'preferredName'])
+        ->format(function ($coverage) {
+            return Format::name($coverage['titleAbsence'], $coverage['preferredNameAbsence'], $coverage['surnameAbsence'], 'Staff', false, true).'<br/>'.
+                   Format::small($coverage['jobTitleAbsence']);
+        });
 
-        $table->addColumn('requested', __('Person'))
-            ->width('30%')
-            ->sortable(['surname', 'preferredName'])
-            ->format(function ($coverage) {
-                return Format::name($coverage['titleAbsence'], $coverage['preferredNameAbsence'], $coverage['surnameAbsence'], 'Staff', false, true);
-            });
+    $table->addColumn('date', __('Date'))
+        ->format(function ($coverage) {
+            $output = Format::dateRangeReadable($coverage['dateStart'], $coverage['dateEnd']);
+            if ($coverage['allDay'] == 'Y') {
+                $output .= '<br/>'.Format::small(__n('{count} Day', '{count} Days', $coverage['days']));
+            } else {
+                $output .= '<br/>'.Format::small(Format::timeRange($coverage['timeStart'], $coverage['timeEnd']));
+            }
+            
+            return $output;
+        });
 
-        $table->addColumn('date', __('Date'))
-            ->format(function ($coverage) {
-                $output = Format::dateRangeReadable($coverage['dateStart'], $coverage['dateEnd']);
-                if ($coverage['allDay'] == 'Y') {
-                    $output .= '<br/>'.Format::small(__n('{count} Day', '{count} Days', $coverage['days']));
-                } else {
-                    $output .= '<br/>'.Format::small(Format::timeRange($coverage['timeStart'], $coverage['timeEnd']));
-                }
-                
-                return $output;
-            });
+    $table->addActionColumn()
+        ->addParam('gibbonStaffCoverageID')
+        ->format(function ($coverage, $actions) use ($gibbonPersonID) {
+            $actions->addAction('accept', __('Accept'))
+                ->setIcon('iconTick')
+                ->setURL('/modules/Staff/coverage_accept.php');
 
-        $table->addActionColumn()
-            ->addParam('gibbonStaffCoverageID')
-            ->format(function ($coverage, $actions) {
-                $actions->addAction('accept', __('Accept'))
-                    ->setIcon('page_right')
-                    ->setURL('/modules/Staff/coverage_accept.php');
-            });
+            if ($gibbonPersonID == $coverage['gibbonPersonIDCoverage']) {
+                $actions->addAction('decline', __('Decline'))
+                    ->setIcon('iconCross')
+                    ->setURL('/modules/Staff/coverage_decline.php');
+            }
+        });
 
-        echo $table->render($coverage);
+    if ($myCoverage->getResultCount() > 0) {
+        $myRequestsTable = clone $table;
+        $myRequestsTable->setID('myCoverage');
+        $myRequestsTable->setTitle(__('Personal Coverage Requests'));
+        $myRequestsTable->setDescription(Format::alert(__('These requests have been submitted to you personally. If you are unable to accept the request, please decline it so that the requesting staff member is notified and can find a different substitute.'), 'message'));
+
+        echo $myRequestsTable->render($myCoverage);
+    }
+
+    if ($allCoverage->getResultCount() > 0) {
+        $allRequestsTable = clone $table;
+        $allRequestsTable->setID('allCoverage');
+        $allRequestsTable->setTitle(__('All Coverage Requests'));
+        $allRequestsTable->setDescription(__('These requests are open for any available substitute to accept. '));
+
+        echo $allRequestsTable->render($allCoverage);
     }
 }

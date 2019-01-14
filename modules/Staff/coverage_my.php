@@ -39,6 +39,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
     if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php')) {
 
         $criteria = $staffCoverageGateway->newQueryCriteria()
+            ->filterBy('date:upcoming')
             ->sortBy('date', 'DESC')
             ->fromPOST('staffCoverageSelf');
 
@@ -50,10 +51,30 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
 
         $table->modifyRows(function ($coverage, $row) {
             if ($coverage['status'] == 'Accepted') $row->addClass('current');
+            if ($coverage['status'] == 'Declined') $row->addClass('error');
+            if ($coverage['status'] == 'Cancelled') $row->addClass('dull');
             return $row;
         });
 
+        $table->addMetaData('filterOptions', [
+            'date:upcoming'    => __('Upcoming'),
+            'date:past'        => __('Past'),
+            'status:requested' => __('Status').': '.__('Requested'),
+            'status:accepted'  => __('Status').': '.__('Accepted'),
+            'status:declined'  => __('Status').': '.__('Declined'),
+            'status:cancelled' => __('Status').': '.__('Cancelled'),
+        ]);
+
         $table->addColumn('status', __('Status'))->width('15%');
+
+        $table->addColumn('requested', __('Coverage'))
+            ->width('30%')
+            ->sortable(['surname', 'preferredName'])
+            ->format(function ($coverage) {
+                return $coverage['gibbonPersonIDCoverage'] 
+                    ? Format::name($coverage['titleCoverage'], $coverage['preferredNameCoverage'], $coverage['surnameCoverage'], 'Staff', false, true)
+                    : Format::small(__('Pending'));
+            });
 
         $table->addColumn('date', __('Date'))
             ->format(function ($coverage) {
@@ -65,15 +86,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
                 }
                 
                 return $output;
-            });
-
-        $table->addColumn('requested', __('Coverage'))
-            ->width('30%')
-            ->sortable(['surname', 'preferredName'])
-            ->format(function ($coverage) {
-                return $coverage['gibbonPersonIDCoverage'] 
-                    ? Format::name($coverage['titleCoverage'], $coverage['preferredNameCoverage'], $coverage['surnameCoverage'], 'Staff', false, true)
-                    : Format::small(__('Pending'));
             });
 
         $table->addColumn('notesCoverage', __('Comment'));
@@ -92,11 +104,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
     
     if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_accept.php')) {
 
-        $criteria = $staffCoverageGateway->newQueryCriteria()
-            ->sortBy('date', 'DESC')
-            ->fromPOST('staffCoverageOther');
-
-        $coverage = $staffCoverageGateway->queryCoverageByPersonCovering($criteria, $gibbonPersonID);
+        $coverage = $staffCoverageGateway->queryCoverageByPersonCovering($staffCoverageGateway->newQueryCriteria(), $gibbonPersonID);
 
         $coverageByDate = array_reduce($coverage->toArray(), function ($group, $item) {
             $group[$item['date']][] = $item;
@@ -177,16 +185,44 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
 
 
 
+        $criteria = $staffCoverageGateway->newQueryCriteria()
+            ->sortBy('date', 'DESC')
+            ->filterBy('date:upcoming')
+            // ->filterBy('requested', 'N')
+            ->fromPOST('staffCoverageOther');
+
+        $coverage = $staffCoverageGateway->queryCoverageByPersonCovering($criteria, $gibbonPersonID);
+
         // DATA TABLE
         $table = DataTable::createPaginated('staffCoverageOther', $criteria);
         $table->setTitle(__('Covering Them'));
 
         $table->modifyRows(function ($coverage, $row) {
             if ($coverage['status'] == 'Accepted') $row->addClass('current');
+            if ($coverage['status'] == 'Declined') $row->addClass('error');
+            if ($coverage['status'] == 'Cancelled') $row->addClass('dull');
             return $row;
         });
 
+        $table->addMetaData('filterOptions', [
+            'date:upcoming'    => __('Upcoming'),
+            'date:past'        => __('Past'),
+            'status:requested' => __('Status').': '.__('Requested'),
+            'status:accepted'  => __('Status').': '.__('Accepted'),
+            'status:declined'  => __('Status').': '.__('Declined'),
+            'status:cancelled' => __('Status').': '.__('Cancelled'),
+            // 'requested:Y'          => __('Requested').': '.__('Yes'),
+            // 'requested:N'          => __('Requested').': '.__('No'),
+        ]);
+
         $table->addColumn('status', __('Status'))->width('15%');
+
+        $table->addColumn('requested', __('Person'))
+            ->width('30%')
+            ->sortable(['surname', 'preferredName'])
+            ->format(function ($coverage) {
+                return Format::name($coverage['titleAbsence'], $coverage['preferredNameAbsence'], $coverage['surnameAbsence'], 'Staff', false, true);
+            });
 
         $table->addColumn('date', __('Date'))
             ->format(function ($coverage) {
@@ -200,21 +236,21 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
                 return $output;
             });
 
-        $table->addColumn('requested', __('Person'))
-            ->width('30%')
-            ->sortable(['surname', 'preferredName'])
-            ->format(function ($coverage) {
-                return Format::name($coverage['titleAbsence'], $coverage['preferredNameAbsence'], $coverage['surnameAbsence'], 'Staff', false, true);
-            });
-
         $table->addColumn('notesRequested', __('Comment'));
 
         $table->addActionColumn()
             ->addParam('gibbonStaffCoverageID')
             ->format(function ($coverage, $actions) {
-                $actions->addAction('view', __('View Details'))
-                    ->isModal(800, 550)
-                    ->setURL('/modules/Staff/coverage_view_details.php');
+
+                if ($coverage['status'] == 'Requested') {
+                    $actions->addAction('accept', __('Accept'))
+                        ->setIcon('page_right')
+                        ->setURL('/modules/Staff/coverage_accept.php');
+                } else {
+                    $actions->addAction('view', __('View Details'))
+                        ->isModal(800, 550)
+                        ->setURL('/modules/Staff/coverage_view_details.php');
+                }
             });
 
         echo $table->render($coverage);
