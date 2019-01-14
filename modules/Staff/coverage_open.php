@@ -69,6 +69,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_open.php') 
     
     $table->modifyRows(function ($coverage, $row) {
         if ($coverage['status'] == 'Accepted') $row->addClass('current');
+        if ($coverage['status'] == 'Declined') $row->addClass('error');
+        if ($coverage['status'] == 'Cancelled') $row->addClass('dull');
         return $row;
     });
 

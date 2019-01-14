@@ -78,7 +78,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
 
     $row = $form->addRow();
         $row->addFooter();
-        $row->addSearchSubmit($gibbon->session);
+        $row->addSearchSubmit($gibbon->session, __('Clear Filters'));
 
     echo $form->getOutput();
 
@@ -86,15 +86,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
     // QUERY
     $criteria = $staffAbsenceGateway->newQueryCriteria()
         ->searchBy($staffAbsenceGateway->getSearchableColumns(), $search)
-        ->sortBy('date', 'DESC')
-        ->filterBy('type', $gibbonStaffAbsenceTypeID)
+        ->sortBy('date', 'ASC')
+        ->filterBy('startDate', Format::dateConvert($dateStart))
+        ->filterBy('endDate', Format::dateConvert($dateEnd))
+        ->filterBy('type', $gibbonStaffAbsenceTypeID);
+
+    $criteria->filterBy('date', !$criteria->hasFilter() && !$criteria->hasSearchText() ? 'upcoming' : '')
         ->fromPOST();
 
-    if (!empty($dateStart) ) {
-        $absences = $staffAbsenceGateway->queryAbsencesByDateRange($criteria, Format::dateConvert($dateStart), Format::dateConvert($dateEnd));
-    } else {
-        $absences = $staffAbsenceGateway->queryAbsencesBySchoolYear($criteria, $gibbonSchoolYearID, true);
-    }
+    $absences = $staffAbsenceGateway->queryAbsencesBySchoolYear($criteria, $gibbonSchoolYearID, true);
 
     // Join a set of coverage data per absence
     $absenceIDs = $absences->getColumn('gibbonStaffAbsenceID');

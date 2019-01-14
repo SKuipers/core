@@ -67,9 +67,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
 
         $table->addColumn('status', __('Status'))->width('15%');
 
-        $table->addColumn('requested', __('Coverage'))
+        $table->addColumn('requested', __('Substitute'))
             ->width('30%')
-            ->sortable(['surname', 'preferredName'])
+            ->sortable(['surnameCoverage', 'preferredNameCoverage'])
             ->format(function ($coverage) {
                 return $coverage['gibbonPersonIDCoverage'] 
                     ? Format::name($coverage['titleCoverage'], $coverage['preferredNameCoverage'], $coverage['surnameCoverage'], 'Staff', false, true)
