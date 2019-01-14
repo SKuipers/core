@@ -72,7 +72,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
 
     $row = $form->addRow();
         $row->addLabel('notesRequested', __('Comment'));
-        $row->addTextArea('notesRequested')->setRows(2);
+        $row->addTextArea('notesRequested')->setRows(3);
 
     // DATA TABLE
     $absenceDates = $staffAbsenceDateGateway->selectDatesByAbsence($gibbonStaffAbsenceID);

@@ -206,13 +206,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
             if (empty($absence['coverage']) || empty($absence['coverageList'])) {
                 return '';
             } elseif ($absence['coverage'] != 'Accepted') {
-                return Format::small(__('Pending'));
+                return '<div class="badge success">'.__('Pending').'</div>';
             }
 
             $names = array_unique(array_map(function ($person) {
                 return $person['coverage'] == 'Accepted'
                     ? Format::name($person['titleCoverage'], $person['preferredNameCoverage'], $person['surnameCoverage'], 'Staff', false, true)
-                    : Format::small(__('Pending'));
+                    : '<div class="badge success">'.__('Pending').'</div>';
             }, $absence['coverageList'] ?? []));
 
             return implode('<br/>', $names);

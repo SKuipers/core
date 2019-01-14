@@ -77,11 +77,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_open.php') 
         ->format(function ($coverage) {
             $relativeSeconds = strtotime($coverage['dateStart']) - time();
             if ($relativeSeconds <= (86400 * 3)) { // Less than three days
-                return '<span style="color: #CC0000; font-weight: bold; border: 2px solid #CC0000; padding: 2px 4px; background-color: #F6CECB;margin:0 auto;">'.__('Urgent').'</span>';
+                return '<div class="error badge">'.__('Urgent').'</div>';
             } elseif ($relativeSeconds <= (86400 * 12)) { // Less than twelve days
-                return '<span style="color: #FF7414; font-weight: bold; border: 2px solid #FF7414; padding: 2px 4px; background-color: #FFD2A9;margin:0 auto;">'.__('Upcoming').'</span>';
+                return '<div class="badge warning">'.__('Upcoming').'</div>';
             } else {
-                return Format::small(__('Upcoming'));
+                return __('Upcoming');
             }
         });
 

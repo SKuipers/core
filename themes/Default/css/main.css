@@ -1883,6 +1883,17 @@ button[disabled], input[disabled], textarea[disabled] {
     white-space: nowrap; 
 }
 
+.badge, div.badge {
+    display: inline-block;
+    padding: 4px 4px 2px;
+    margin: 2px 0px;
+    border-width: 2px 2px 2px 2px;
+    border-color: currentColor;
+    border-style: solid;
+    font-weight: bold;
+    box-shadow: none;
+}
+
 /* PRINT STYLES */
 body.print div.trail {
     display: none;

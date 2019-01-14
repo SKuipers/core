@@ -119,7 +119,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_detail
 
             return $absence['coverage'] == 'Accepted'
                     ? Format::name($absence['titleCoverage'], $absence['preferredNameCoverage'], $absence['surnameCoverage'], 'Staff', false, true)
-                    : Format::small(__('Pending'));
+                    : '<div class="badge success">'.__('Pending').'</div>';
         });
 
     $canManage = isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php') || $values['gibbonPersonID'] == $_SESSION[$guid]['gibbonPersonID'];

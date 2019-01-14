@@ -145,7 +145,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_edit
 
             return $absence['coverage'] == 'Accepted'
                     ? Format::name($absence['titleCoverage'], $absence['preferredNameCoverage'], $absence['surnameCoverage'], 'Staff', false, true)
-                    : Format::small(__('Pending'));
+                    : '<div class="badge success">'.__('Pending').'</div>';
         });
 
     // ACTIONS

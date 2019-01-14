@@ -73,7 +73,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
             ->format(function ($coverage) {
                 return $coverage['gibbonPersonIDCoverage'] 
                     ? Format::name($coverage['titleCoverage'], $coverage['preferredNameCoverage'], $coverage['surnameCoverage'], 'Staff', false, true)
-                    : Format::small(__('Pending'));
+                    : '<div class="badge success">'.__('Pending').'</div>';
             });
 
         $table->addColumn('date', __('Date'))

@@ -192,7 +192,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_week
                     if (empty($absence['coverage'])) {
                         return '';
                     } elseif ($absence['coverage'] != 'Accepted') {
-                        return Format::small(__('Pending'));
+                        return '<div class="badge success">'.__('Pending').'</div>';
                     }
 
                     return Format::name($absence['titleCoverage'], $absence['preferredNameCoverage'], $absence['surnameCoverage'], 'Staff', false, true);
