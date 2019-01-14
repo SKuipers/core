@@ -150,15 +150,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_edit
 
     // ACTIONS
     if ($absenceDates->rowCount() > 1) {
+        $canRequestCoverage = isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php');
+
         $table->addActionColumn()
             ->addParam('gibbonStaffAbsenceID', $gibbonStaffAbsenceID)
             ->addParam('gibbonStaffAbsenceDateID')
-            ->format(function ($absence, $actions) {
+            ->format(function ($absence, $actions) use ($canRequestCoverage) {
                 $actions->addAction('deleteInstant', __('Delete'))
                         ->setIcon('garbage')
                         ->isDirect()
                         ->setURL('/modules/Staff/absences_manage_edit_deleteProcess.php')
                         ->addConfirmation(__('Are you sure you wish to delete this record?'));
+
+                if ($canRequestCoverage && empty($absence['coverage'])) {
+                    $actions->addAction('coverage', __('Request Coverage'))
+                        ->setIcon('attendance')
+                        ->setURL('/modules/Staff/coverage_request.php');
+                }
             });
     }
 
