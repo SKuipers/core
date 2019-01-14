@@ -244,8 +244,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
 
                 if ($coverage['status'] == 'Requested') {
                     $actions->addAction('accept', __('Accept'))
-                        ->setIcon('page_right')
+                        ->setIcon('iconTick')
                         ->setURL('/modules/Staff/coverage_accept.php');
+
+                    $actions->addAction('decline', __('Decline'))
+                        ->setIcon('iconCross')
+                        ->setURL('/modules/Staff/coverage_decline.php');
                 } else {
                     $actions->addAction('view', __('View Details'))
                         ->isModal(800, 550)

@@ -64,6 +64,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
         exit;
     }
 
+    if (empty($data['gibbonPersonIDCoverage'])) {
+        $data['gibbonPersonIDCoverage'] = null;
+    }
+
     // Create the coverage request
     $gibbonStaffCoverageID = $staffCoverageGateway->insert($data);
 
