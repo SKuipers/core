@@ -24,7 +24,7 @@ use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Domain\School\SchoolYearGateway;
 use Gibbon\Domain\DataSet;
 
-if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_open.php') == false) {
+if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
@@ -112,12 +112,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_open.php') 
         ->format(function ($coverage, $actions) use ($gibbonPersonID) {
             $actions->addAction('accept', __('Accept'))
                 ->setIcon('iconTick')
-                ->setURL('/modules/Staff/coverage_accept.php');
+                ->setURL('/modules/Staff/coverage_view_accept.php');
 
             if ($gibbonPersonID == $coverage['gibbonPersonIDCoverage']) {
                 $actions->addAction('decline', __('Decline'))
                     ->setIcon('iconCross')
-                    ->setURL('/modules/Staff/coverage_decline.php');
+                    ->setURL('/modules/Staff/coverage_view_decline.php');
             }
         });
 

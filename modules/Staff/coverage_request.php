@@ -24,6 +24,7 @@ use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
+use Gibbon\Domain\Staff\StaffCoverageGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php') == false) {
     // Access denied
@@ -42,6 +43,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     $gibbonPersonIDCoverage = $_GET['gibbonPersonIDCoverage'] ?? '';
 
     $staffAbsenceGateway = $container->get(StaffAbsenceGateway::class);
+    $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
     $staffAbsenceDateGateway = $container->get(StaffAbsenceDateGateway::class);
     $staffAbsenceTypeGateway = $container->get(StaffAbsenceTypeGateway::class);
 
@@ -76,7 +78,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
 
     // DATA TABLE
     $absenceDates = $staffAbsenceDateGateway->selectDatesByAbsence($gibbonStaffAbsenceID);
-    
+    $unavailable = $staffCoverageGateway->selectUnavailableDatesByPerson($gibbonPersonIDCoverage)->fetchKeyPair();
+
     $table = DataTable::create('staffAbsenceDates');
     $table->setTitle(__('Dates'));
 
@@ -94,9 +97,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
 
     $datesAvailableToRequest = 0;
     $table->addColumn('requestDates', __('Request'))
-        ->width('8%')
-        ->format(function ($absence) use ($form, &$datesAvailableToRequest) {
+        ->width('12%')
+        ->format(function ($absence) use ($form, &$datesAvailableToRequest, &$unavailable) {
+            // Has this date already been requested?
             if (!empty($absence['gibbonStaffCoverageID'])) return __('Requested');
+
+            // Is this date unavailable: absent, already booked, or has an availability exception
+            if (isset($unavailable[$absence['date']])) return Format::small(__('Not Available'));
 
             $datesAvailableToRequest++;
 

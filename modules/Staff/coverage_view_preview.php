@@ -26,7 +26,7 @@ use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 
 include './modules/Timetable/moduleFunctions.php';
 
-if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_open.php') == false) {
+if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {

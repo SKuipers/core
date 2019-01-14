@@ -28,10 +28,10 @@ require_once '../../gibbon.php';
 
 $gibbonStaffCoverageID = $_POST['gibbonStaffCoverageID'] ?? '';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/coverage_accept.php&gibbonStaffCoverageID='.$gibbonStaffCoverageID;
-$URLSuccess = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/coverage_open.php';
+$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/coverage_view_accept.php&gibbonStaffCoverageID='.$gibbonStaffCoverageID;
+$URLSuccess = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/coverage_view.php';
 
-if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_accept.php') == false) {
+if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
     exit;

@@ -176,11 +176,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage.php'
         ->format(function ($person, $actions) {
             // $actions->addAction('accept', __('Accept'))
             //     ->setIcon('iconTick')
-            //     ->setURL('/modules/Staff/coverage_accept.php');
+            //     ->setURL('/modules/Staff/coverage_view_accept.php');
 
             // $actions->addAction('decline', __('Decline'))
             //     ->setIcon('iconCross')
-            //     ->setURL('/modules/Staff/coverage_decline.php')
+            //     ->setURL('/modules/Staff/coverage_view_decline.php')
             //     ->append('<br/>');
 
             $actions->addAction('edit', __('Edit'))

@@ -102,9 +102,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
     }
 
     
-    if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_accept.php')) {
+    if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept.php')) {
 
         $coverage = $staffCoverageGateway->queryCoverageByPersonCovering($staffCoverageGateway->newQueryCriteria(), $gibbonPersonID);
+        $exceptions = $staffCoverageGateway->selectCoverageExceptionsByPerson($gibbonPersonID)->fetchGroupedUnique();
 
         $coverageByDate = array_reduce($coverage->toArray(), function ($group, $item) {
             $group[$item['date']][] = $item;
@@ -134,6 +135,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
                     'count'   => $coverageCount,
                     'weekend' => $date->format('N') >= 6,
                     'coverage' => current($coverageListByDay),
+                    'exception' => isset($exceptions[$date->format('Y-m-d')])
                 ];
             }
     
@@ -143,10 +145,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
             ];
         }
     
-        $table = DataTable::create('staffAbsenceCalendar');
-        $table->setTitle(__('Calendar'));
+        $table = DataTable::create('staffAbsenceCalendar')
+            ->setTitle(__('Calendar'));
+
         $table->getRenderer()->setClass('calendarTable calendarTableSmall');
     
+        $table->addHeaderAction('availability', __('Edit Availability'))
+            ->setURL('/modules/Staff/coverage_availability.php')
+            ->setIcon('planner')
+            ->displayLabel();
+
         $table->addColumn('name', '')->notSortable();
     
         for ($dayCount = 1; $dayCount <= 31; $dayCount++) {
@@ -154,17 +162,24 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
                 ->notSortable()
                 ->format(function ($month) use ($guid, $dayCount) {
                     $day = $month['days'][$dayCount] ?? null;
-                    if (empty($day) || $day['count'] <= 0) return '';
+                    if (empty($day) || ($day['count'] <= 0 && !$day['exception'])) return '';
     
                     $coverage = $day['coverage'];
     
-                    // $url = $_SESSION[$guid]['absoluteURL'].'/fullscreen.php?q=/modules/Staff/absences_view_details.php&gibbonStaffAbsenceID='.$day['absence']['gibbonStaffAbsenceID'].'&width=800&height=550';
-                    $url = '#';
-                    $title = $day['date']->format('l').'<br/>'.$day['date']->format('M j, Y');
-                    $title .= '<br/>'.Format::name($coverage['titleAbsence'], $coverage['preferredNameAbsence'], $coverage['surnameAbsence'], 'Staff', false, true);
-                    $title .= '<br/>'.$coverage['status'];
+                    $url = $_SESSION[$guid]['absoluteURL'].'/fullscreen.php?q=/modules/Staff/coverage_view_details.php&gibbonStaffCoverageID='.$day['coverage']['gibbonStaffCoverageID'].'&width=800&height=550';
+
+                    $params['title'] = $day['date']->format('l').'<br/>'.$day['date']->format('M j, Y');
+                    $params['class'] = '';
+                    if ($day['count'] > 0) {
+                        $params['class'] = 'thickbox';
+                        $params['title'] .= '<br/>'.Format::name($coverage['titleAbsence'], $coverage['preferredNameAbsence'], $coverage['surnameAbsence'], 'Staff', false, true);
+                        $params['title'] .= '<br/>'.$coverage['status'];
+                    } elseif ($day['exception']) {
+                        $url = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/coverage_availability.php';
+                        $params['title'] .= '<br/>'.__('Not Available');
+                    }
     
-                    return Format::link($url, $day['number'], ['title' => $title, 'class' => 'thickbox']);
+                    return Format::link($url, $day['number'], $params);
                 })
                 ->modifyCells(function ($month, $cell) use ($dayCount) {
                     $day = $month['days'][$dayCount] ?? null;
@@ -172,7 +187,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
     
                     if ($day['date']->format('Y-m-d') == date('Y-m-d')) $cell->addClass('today');
                     
-                    if ($day['count'] > 0) $cell->addClass($day['coverage']['status'] == 'Requested' ? 'bg-color2' : 'bg-color0');
+                    if ($day['exception']) $cell->addClass('bg-grey');
+                    elseif ($day['count'] > 0) $cell->addClass($day['coverage']['status'] == 'Requested' ? 'bg-color2' : 'bg-color0');
                     elseif ($day['weekend']) $cell->addClass('weekend');
                     else $cell->addClass('day');
     
@@ -245,11 +261,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
                 if ($coverage['status'] == 'Requested') {
                     $actions->addAction('accept', __('Accept'))
                         ->setIcon('iconTick')
-                        ->setURL('/modules/Staff/coverage_accept.php');
+                        ->setURL('/modules/Staff/coverage_view_accept.php');
 
                     $actions->addAction('decline', __('Decline'))
                         ->setIcon('iconCross')
-                        ->setURL('/modules/Staff/coverage_decline.php');
+                        ->setURL('/modules/Staff/coverage_view_decline.php');
                 } else {
                     $actions->addAction('view', __('View Details'))
                         ->isModal(800, 550)
