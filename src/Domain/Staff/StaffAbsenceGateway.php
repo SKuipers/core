@@ -44,6 +44,36 @@ class StaffAbsenceGateway extends QueryableGateway
      * @param QueryCriteria $criteria
      * @return DataSet
      */
+    public function queryAbsencesBySchoolYear($criteria, $gibbonSchoolYearID, $grouped = true)
+    {
+        $query = $this
+            ->newQuery()
+            ->from($this->getTableName())
+            ->cols([
+                'gibbonStaffAbsence.*', 'gibbonStaffAbsenceDate.*', 'gibbonStaffAbsenceType.name as type', 'gibbonPerson.gibbonPersonID', 'gibbonPerson.title', 'gibbonPerson.preferredName', 'gibbonPerson.surname', 'creator.preferredName AS preferredNameCreator', 'creator.surname AS surnameCreator', 'MIN(gibbonStaffCoverage.status) as coverage',
+            ])
+            ->innerJoin('gibbonStaffAbsenceType', 'gibbonStaffAbsence.gibbonStaffAbsenceTypeID=gibbonStaffAbsenceType.gibbonStaffAbsenceTypeID')
+            ->innerJoin('gibbonStaffAbsenceDate', 'gibbonStaffAbsenceDate.gibbonStaffAbsenceID=gibbonStaffAbsence.gibbonStaffAbsenceID')
+            ->innerJoin('gibbonSchoolYear', 'gibbonStaffAbsenceDate.date BETWEEN firstDay AND lastDay')
+            ->leftJoin('gibbonStaffCoverage', 'gibbonStaffCoverage.gibbonStaffCoverageID=gibbonStaffAbsenceDate.gibbonStaffCoverageID')
+            ->leftJoin('gibbonPerson', 'gibbonStaffAbsence.gibbonPersonID=gibbonPerson.gibbonPersonID')
+            ->leftJoin('gibbonPerson AS creator', 'gibbonStaffAbsence.gibbonPersonIDCreator=creator.gibbonPersonID')
+            ->where('gibbonSchoolYear.gibbonSchoolYearID = :gibbonSchoolYearID')
+            ->bindValue('gibbonSchoolYearID', $gibbonSchoolYearID);
+
+        if ($grouped) {
+            $query->cols(['COUNT(*) as days', 'MIN(date) as dateStart', 'MAX(date) as dateEnd'])
+                ->groupBy(['gibbonStaffAbsence.gibbonStaffAbsenceID']);
+        } else {
+            $query->cols(['1 as days', 'date as dateStart', 'date as dateEnd'])
+                ->groupBy(['gibbonStaffAbsenceDate.gibbonStaffAbsenceDateID']);
+        }
+
+        $criteria->addFilterRules($this->getSharedFilterRules());
+
+        return $this->runQuery($query, $criteria);
+    }
+
     public function queryAbsencesByPerson(QueryCriteria $criteria, $gibbonPersonID)
     {
         $query = $this
@@ -65,10 +95,6 @@ class StaffAbsenceGateway extends QueryableGateway
         return $this->runQuery($query, $criteria);
     }
 
-    /**
-     * @param QueryCriteria $criteria
-     * @return DataSet
-     */
     public function queryAbsencesByDateRange(QueryCriteria $criteria, $dateStart, $dateEnd = null, $grouped = true)
     {
         if (empty($dateEnd)) $dateEnd = $dateStart;
@@ -106,36 +132,6 @@ class StaffAbsenceGateway extends QueryableGateway
         return $this->runQuery($query, $criteria);
     }
 
-    public function queryAbsencesBySchoolYear($criteria, $gibbonSchoolYearID, $grouped = true)
-    {
-        $query = $this
-            ->newQuery()
-            ->from($this->getTableName())
-            ->cols([
-                'gibbonStaffAbsence.*', 'gibbonStaffAbsenceDate.*', 'gibbonStaffAbsenceType.name as type', 'gibbonPerson.gibbonPersonID', 'gibbonPerson.title', 'gibbonPerson.preferredName', 'gibbonPerson.surname', 'creator.preferredName AS preferredNameCreator', 'creator.surname AS surnameCreator', 'MIN(gibbonStaffCoverage.status) as coverage',
-            ])
-            ->innerJoin('gibbonStaffAbsenceType', 'gibbonStaffAbsence.gibbonStaffAbsenceTypeID=gibbonStaffAbsenceType.gibbonStaffAbsenceTypeID')
-            ->innerJoin('gibbonStaffAbsenceDate', 'gibbonStaffAbsenceDate.gibbonStaffAbsenceID=gibbonStaffAbsence.gibbonStaffAbsenceID')
-            ->innerJoin('gibbonSchoolYear', 'date BETWEEN firstDay AND lastDay')
-            ->leftJoin('gibbonStaffCoverage', 'gibbonStaffCoverage.gibbonStaffCoverageID=gibbonStaffAbsenceDate.gibbonStaffCoverageID')
-            ->leftJoin('gibbonPerson', 'gibbonStaffAbsence.gibbonPersonID=gibbonPerson.gibbonPersonID')
-            ->leftJoin('gibbonPerson AS creator', 'gibbonStaffAbsence.gibbonPersonIDCreator=creator.gibbonPersonID')
-            ->where('gibbonSchoolYear.gibbonSchoolYearID = :gibbonSchoolYearID')
-            ->bindValue('gibbonSchoolYearID', $gibbonSchoolYearID);
-
-        if ($grouped) {
-            $query->cols(['COUNT(*) as days', 'MIN(date) as dateStart', 'MAX(date) as dateEnd'])
-                ->groupBy(['gibbonStaffAbsence.gibbonStaffAbsenceID']);
-        } else {
-            $query->cols(['1 as days', 'date as dateStart', 'date as dateEnd'])
-                ->groupBy(['gibbonStaffAbsenceDate.gibbonStaffAbsenceDateID']);
-        }
-
-        $criteria->addFilterRules($this->getSharedFilterRules());
-
-        return $this->runQuery($query, $criteria);
-    }
-
     protected function getSharedFilterRules()
     {
         return [
@@ -147,6 +143,14 @@ class StaffAbsenceGateway extends QueryableGateway
             'status' => function ($query, $status) {
                 return $query->where('gibbonStaffCoverage.status = :status')
                              ->bindValue('status', $status);
+            },
+            'startDate' => function ($query, $dateStart) {
+                return $query->where("gibbonStaffAbsenceDate.date >= :dateStart")
+                             ->bindValue('dateStart', $dateStart);
+            },
+            'endDate' => function ($query, $dateEnd) {
+                return $query->where("gibbonStaffAbsenceDate.date <= :dateEnd")
+                             ->bindValue('dateEnd', $dateEnd);
             },
             'date' => function ($query, $date) {
                 switch (ucfirst($date)) {
