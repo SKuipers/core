@@ -179,7 +179,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_edit
     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
     $form->addHiddenValue('gibbonStaffAbsenceID', $gibbonStaffAbsenceID);
 
-    $form->addRow()->addHeading(__('Add Date'));
+    $form->addRow()->addHeading(__('Add'));
 
     $row = $form->addRow();
         $row->addLabel('allDay', __('All Day'));

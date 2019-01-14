@@ -115,3 +115,5 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 .bg-color7 {    background: rgba(75, 192, 192, 1.0) !important; }
 .bg-color8 {    background: rgba(161, 89, 173, 1.0) !important; }
 .bg-color9 {    background: rgba(29, 109, 163, 1.0) !important; }
+
+.bg-grey { background: #aaaaaa !important; }

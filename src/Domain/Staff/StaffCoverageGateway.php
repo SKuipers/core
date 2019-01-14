@@ -65,7 +65,6 @@ class StaffCoverageGateway extends QueryableGateway
             ->where('gibbonSchoolYear.gibbonSchoolYearID = :gibbonSchoolYearID')
             ->bindValue('gibbonSchoolYearID', $gibbonSchoolYearID)
             ->groupBy(['gibbonStaffCoverage.gibbonStaffCoverageID']);
-            // ->orderBy(["gibbonStaffCoverage.status = 'Requested' DESC"]);
 
         $criteria->addFilterRules($this->getSharedFilterRules());
 
@@ -139,6 +138,61 @@ class StaffCoverageGateway extends QueryableGateway
         $criteria->addFilterRules($this->getSharedFilterRules());
 
         return $this->runQuery($query, $criteria);
+    }
+
+    public function selectUnavailableDatesByPerson($gibbonPersonID)
+    {
+        $data = ['gibbonPersonID' => $gibbonPersonID];
+        $sql = "(SELECT date as groupBy, 'Not Available' as status 
+                FROM gibbonStaffCoverageException 
+                WHERE gibbonStaffCoverageException.gibbonPersonIDCoverage=:gibbonPersonID 
+                ORDER BY DATE)
+            UNION ALL (
+                SELECT date as groupBy, 'Exception' as status
+                FROM gibbonStaffCoverage
+                JOIN gibbonStaffAbsenceDate ON (gibbonStaffAbsenceDate.gibbonStaffCoverageID=gibbonStaffCoverage.gibbonStaffCoverageID)
+                WHERE gibbonStaffCoverage.gibbonPersonIDCoverage=:gibbonPersonID 
+            )
+            UNION ALL (
+                SELECT date as groupBy, 'Absent' as status
+                FROM gibbonStaffAbsence
+                JOIN gibbonStaffAbsenceDate ON (gibbonStaffAbsenceDate.gibbonStaffAbsenceID=gibbonStaffAbsence.gibbonStaffAbsenceID)
+                WHERE gibbonStaffAbsence.gibbonPersonID=:gibbonPersonID 
+            )";
+
+        return $this->db()->select($sql, $data);
+    }
+
+    public function selectCoverageExceptionsByPerson($gibbonPersonIDCoverage)
+    {
+        $data = ['gibbonPersonIDCoverage' => $gibbonPersonIDCoverage];
+        $sql = "SELECT date as groupBy, gibbonStaffCoverageException.* 
+                FROM gibbonStaffCoverageException 
+                WHERE gibbonPersonIDCoverage=:gibbonPersonIDCoverage 
+                ORDER BY DATE";
+
+        return $this->db()->select($sql, $data);
+    }
+
+    public function insertCoverageException($data)
+    {
+        $query = $this
+            ->newInsert()
+            ->into('gibbonStaffCoverageException')
+            ->cols($data);
+
+        return $this->runInsert($query);
+    }
+
+    public function deleteCoverageException($gibbonStaffCoverageExceptionID)
+    {
+        $query = $this
+            ->newDelete()
+            ->from('gibbonStaffCoverageException')
+            ->where('gibbonStaffCoverageExceptionID=:gibbonStaffCoverageExceptionID')
+            ->bindValue('gibbonStaffCoverageExceptionID', $gibbonStaffCoverageExceptionID);
+
+        return $this->runDelete($query);
     }
 
     protected function getSharedFilterRules()
