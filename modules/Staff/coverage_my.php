@@ -39,8 +39,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
     if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php')) {
 
         $criteria = $staffCoverageGateway->newQueryCriteria()
-            ->filterBy('date:upcoming')
             ->sortBy('date')
+            ->filterBy('date:upcoming')
             ->fromPOST('staffCoverageSelf');
 
         $coverage = $staffCoverageGateway->queryCoverageByPersonAbsent($criteria, $gibbonPersonID);
@@ -104,13 +104,21 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
     
     if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept.php')) {
 
-        $coverage = $staffCoverageGateway->queryCoverageByPersonCovering($staffCoverageGateway->newQueryCriteria(), $gibbonPersonID);
-        $exceptions = $staffCoverageGateway->selectCoverageExceptionsByPerson($gibbonPersonID)->fetchGroupedUnique();
+        $criteria = $staffCoverageGateway->newQueryCriteria()
+            ->pageSize(0);
 
+        $coverage = $staffCoverageGateway->queryCoverageByPersonCovering($criteria, $gibbonPersonID);
         $coverageByDate = array_reduce($coverage->toArray(), function ($group, $item) {
             $group[$item['date']][] = $item;
             return $group;
         }, []);
+
+        $exceptions = $staffCoverageGateway->queryCoverageExceptionsByPerson($criteria, $gibbonPersonID);
+        $exceptionsByDate = array_reduce($exceptions->toArray(), function ($group, $item) {
+            $group[$item['date']][] = $item;
+            return $group;
+        }, []);
+        
     
         $schoolYear = $schoolYearGateway->getSchoolYearByID($gibbonSchoolYearID);
     
@@ -135,7 +143,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
                     'count'   => $coverageCount,
                     'weekend' => $date->format('N') >= 6,
                     'coverage' => current($coverageListByDay),
-                    'exception' => isset($exceptions[$date->format('Y-m-d')])
+                    'exception' => isset($exceptionsByDate[$date->format('Y-m-d')])
                 ];
             }
     
@@ -187,8 +195,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
     
                     if ($day['date']->format('Y-m-d') == date('Y-m-d')) $cell->addClass('today');
                     
-                    if ($day['exception']) $cell->addClass('bg-grey');
-                    elseif ($day['count'] > 0) $cell->addClass($day['coverage']['status'] == 'Requested' ? 'bg-color2' : 'bg-color0');
+                    if ($day['count'] > 0) $cell->addClass($day['coverage']['status'] == 'Requested' ? 'bg-color2' : 'bg-color0');
+                    elseif ($day['exception']) $cell->addClass('bg-grey');
                     elseif ($day['weekend']) $cell->addClass('weekend');
                     else $cell->addClass('day');
     
@@ -200,11 +208,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
         echo '<br/>';
 
 
-
         $criteria = $staffCoverageGateway->newQueryCriteria()
             ->sortBy('date')
             ->filterBy('date:upcoming')
-            // ->filterBy('requested', 'N')
             ->fromPOST('staffCoverageOther');
 
         $coverage = $staffCoverageGateway->queryCoverageByPersonCovering($criteria, $gibbonPersonID);
@@ -227,8 +233,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
             'status:accepted'  => __('Status').': '.__('Accepted'),
             'status:declined'  => __('Status').': '.__('Declined'),
             'status:cancelled' => __('Status').': '.__('Cancelled'),
-            // 'requested:Y'          => __('Requested').': '.__('Yes'),
-            // 'requested:N'          => __('Requested').': '.__('No'),
         ]);
 
         $table->addColumn('status', __('Status'))->width('15%');

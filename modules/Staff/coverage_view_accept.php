@@ -86,8 +86,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
 
     if (!empty($coverage['notesRequested'])) {
         $row = $form->addRow();
-            $row->addLabel('notesRequestedLabel', __('Notes'));
-            $row->addTextArea('notesRequested')->setRows(2)->setValue($coverage['notesRequested'])->readonly();
+            $row->addLabel('notesRequestedLabel', __('Comment'));
+            $row->addTextArea('notesRequested')->setRows(3)->setValue($coverage['notesRequested'])->readonly();
     }
 
     // DATA TABLE
@@ -138,7 +138,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
 
     if ($datesAvailableToRequest > 0) {
         $row = $form->addRow();
-            $row->addLabel('notesCoverage', __('Comment'));
+            $row->addLabel('notesCoverage', __('Reply'));
             $row->addTextArea('notesCoverage')->setRows(3);
 
         $row = $form->addRow();

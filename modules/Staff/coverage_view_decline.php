@@ -80,9 +80,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_declin
 
     if (!empty($coverage['notesRequested'])) {
         $row = $form->addRow();
-            $row->addLabel('notesRequestedLabel', __('Notes'));
+            $row->addLabel('notesRequestedLabel', __('Comment'));
             $row->addTextArea('notesRequested')->setRows(2)->setValue($coverage['notesRequested'])->readonly();
     }
+
+    $row = $form->addRow();
+        $row->addLabel('markAsUnavailable', __('Not Available'))->description(__('Checking this will mark you as unavailable for any further requests on these dates.'));
+        $row->addCheckbox('markAsUnavailable')->checked(true);
 
     // // DATA TABLE
     // $absenceDates = $container->get(StaffAbsenceDateGateway::class)->selectDatesByCoverage($gibbonStaffCoverageID);
@@ -123,7 +127,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_declin
 
 
     $row = $form->addRow();
-        $row->addLabel('notesCoverage', __('Comment'));
+        $row->addLabel('notesCoverage', __('Reply'));
         $row->addTextArea('notesCoverage')->setRows(3);
 
     $row = $form->addRow();

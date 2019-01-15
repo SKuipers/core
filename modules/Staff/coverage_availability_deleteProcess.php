@@ -21,8 +21,8 @@ use Gibbon\Domain\Staff\StaffCoverageGateway;
 
 require_once '../../gibbon.php';
 
-$gibbonPersonIDCoverage = $_GET['gibbonPersonIDCoverage'] ?? '';
-$gibbonStaffCoverageExceptionID = $_GET['gibbonStaffCoverageExceptionID'] ?? '';
+$gibbonPersonIDCoverage = $_REQUEST['gibbonPersonIDCoverage'] ?? '';
+$gibbonStaffCoverageExceptionID = $_REQUEST['gibbonStaffCoverageExceptionID'] ?? '';
 
 $URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/coverage_availability.php&gibbonPersonIDCoverage='.$gibbonPersonIDCoverage;
 
@@ -43,10 +43,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
         exit;
     }
 
-    $deleted = $staffCoverageGateway->deleteCoverageException($gibbonStaffCoverageExceptionID);
+    $exceptionList = is_array($gibbonStaffCoverageExceptionID)? $gibbonStaffCoverageExceptionID : [$gibbonStaffCoverageExceptionID];
+    $partialFail = false;
 
-    $URL .= !$deleted
-        ? '&return=error2'
+    foreach ($exceptionList as $exceptionID) {
+        $deleted = $staffCoverageGateway->deleteCoverageException($exceptionID);
+        $partialFail &= !$deleted;
+    }
+
+    $URL .= $partialFail
+        ? '&return=warning1'
         : '&return=success0';
 
     header("Location: {$URL}");

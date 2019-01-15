@@ -28,7 +28,8 @@ require_once '../../gibbon.php';
 
 $gibbonStaffAbsenceID = $_POST['gibbonStaffAbsenceID'] ?? '';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/absences_view_details.php&gibbonStaffAbsenceID='.$gibbonStaffAbsenceID;
+$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/coverage_request.php&gibbonStaffAbsenceID='.$gibbonStaffAbsenceID;
+$URLSuccess = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/absences_view_details.php&gibbonStaffAbsenceID='.$gibbonStaffAbsenceID;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php') == false) {
     $URL .= '&return=error0';
@@ -38,6 +39,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     // Proceed!
     $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
     $staffAbsenceDateGateway = $container->get(StaffAbsenceDateGateway::class);
+
+    $requestDates = $_POST['requestDates'] ?? [];
 
     $data = [
         'gibbonStaffAbsenceID'    => $gibbonStaffAbsenceID,
@@ -63,11 +66,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
         header("Location: {$URL}");
         exit;
     }
-
-    // Ensure the person is selected & exists for Individual coverage requests
+    
     if ($data['requestType'] == 'Individual') {
-        $person = $container->get(UserGateway::class)->getByID($data['gibbonPersonIDCoverage']);
+        // Return a custom error message if no dates have been selected
+        if (empty($requestDates)) {
+            $URL .= '&return=error8';
+            header("Location: {$URL}");
+            exit;
+        }
 
+        // Ensure the person is selected & exists for Individual coverage requests
+        $person = $container->get(UserGateway::class)->getByID($data['gibbonPersonIDCoverage']);
         if (empty($person)) {
             $URL .= '&return=error2';
             header("Location: {$URL}");
@@ -87,11 +96,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     $partialFail = false;
 
     $absenceDates = $staffAbsenceDateGateway->selectDatesByAbsence($data['gibbonStaffAbsenceID']);
-    $requestDates = $_POST['requestDates'] ?? [];
 
     // Link each absence date to the coverage request
     foreach ($absenceDates as $date) {
-        if (in_array($date['date'], $requestDates)) {
+        if ($data['requestType'] == 'Broadcast' || in_array($date['date'], $requestDates)) {
             $updated = $staffAbsenceDateGateway->update($date['gibbonStaffAbsenceDateID'], [
                 'gibbonStaffCoverageID' => $gibbonStaffCoverageID,
             ]);
@@ -103,6 +111,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
         ? "&return=warning1"
         : "&return=success0";
 
-    header("Location: {$URL}");
+    header("Location: {$URLSuccess}");
     exit;
 }

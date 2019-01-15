@@ -19,7 +19,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Form;
 use Gibbon\Tables\DataTable;
-use Gibbon\Forms\Prefab\BulkActionForm;
 use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\SubstituteGateway;
 
@@ -47,11 +46,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/subs_manage.php') ==
         ->sortBy(['surname', 'preferredName'])
         ->fromPOST();
 
-    echo '<h2>';
-    echo __('Search & Filter');
-    echo '</h2>';
-
     $form = Form::create('searchForm', $_SESSION[$guid]['absoluteURL'].'/index.php', 'get');
+    $form->setTitle(__('Search & Filter'));
 
     $form->setClass('noIntBorder fullWidth');
 
@@ -68,31 +64,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/subs_manage.php') ==
 
     echo $form->getOutput();
 
-    echo '<h2>';
-    echo __('View');
-    echo '</h2>';
-
-    $staff = $subGateway->queryAllSubstitutes($criteria);
-
-    // FORM
-    $form = BulkActionForm::create('bulkAction', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/subs_manageProcessBulk.php?search='.$search);
-    $form->addHiddenValue('search', $search);
-
-    $bulkActions = array(
-        'Left' => __('Mark as Left'),
-    );
-
-    $col = $form->createBulkActionColumn($bulkActions);
-        $col->addDate('dateEnd')
-            ->isRequired()
-            ->placeholder(__('Date End'))
-            ->setClass('shortWidth dateEnd');
-        $col->addSubmit(__('Go'));
-
-    $form->toggleVisibilityByClass('dateEnd')->onSelect('action')->when('Left');
+    $subs = $subGateway->queryAllSubstitutes($criteria);
 
     // DATA TABLE
-    $table = $form->addRow()->addDataTable('subManage', $criteria)->withData($staff);
+    $table = DataTable::createPaginated('subsManage', $criteria);
+    $table->setTitle(__('View'));
 
     $table->addHeaderAction('add', __('Add'))
         ->setURL('/modules/Staff/subs_manage_add.php')
@@ -112,8 +88,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/subs_manage.php') ==
         'status:left'     => __('Status').': '.__('Left'),
         'status:expected' => __('Status').': '.__('Expected'),
     ]);
-
-    $table->addMetaData('bulkActions', $col);
 
     // COLUMNS
     $table->addColumn('image_240', __('Photo'))
@@ -144,7 +118,5 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/subs_manage.php') ==
                     ->setURL('/modules/Staff/subs_manage_delete.php');
         });
 
-    $table->addCheckboxColumn('gibbonSubstituteID');
-
-    echo $form->getOutput();
+    echo $table->render($subs);
 }

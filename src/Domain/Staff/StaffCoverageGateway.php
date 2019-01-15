@@ -140,7 +140,21 @@ class StaffCoverageGateway extends QueryableGateway
         return $this->runQuery($query, $criteria);
     }
 
-    public function selectUnavailableDatesByPerson($gibbonPersonID, $gibbonStaffCoverageIDExclude)
+    public function queryCoverageExceptionsByPerson(QueryCriteria $criteria, $gibbonPersonIDCoverage)
+    {
+        $query = $this
+            ->newQuery()
+            ->from('gibbonStaffCoverageException')
+            ->cols([
+                'date as groupBy', 'gibbonStaffCoverageException.*',
+            ])
+            ->where('gibbonStaffCoverageException.gibbonPersonIDCoverage = :gibbonPersonIDCoverage')
+            ->bindValue('gibbonPersonIDCoverage', $gibbonPersonIDCoverage);
+
+        return $this->runQuery($query, $criteria);
+    }
+
+    public function selectUnavailableDatesByPerson($gibbonPersonID, $gibbonStaffCoverageIDExclude = null)
     {
         $data = ['gibbonPersonID' => $gibbonPersonID, 'gibbonStaffCoverageIDExclude' => $gibbonStaffCoverageIDExclude];
         $sql = "(
@@ -161,17 +175,6 @@ class StaffCoverageGateway extends QueryableGateway
                 JOIN gibbonStaffAbsenceDate ON (gibbonStaffAbsenceDate.gibbonStaffAbsenceID=gibbonStaffAbsence.gibbonStaffAbsenceID)
                 WHERE gibbonStaffAbsence.gibbonPersonID=:gibbonPersonID 
             )";
-
-        return $this->db()->select($sql, $data);
-    }
-
-    public function selectCoverageExceptionsByPerson($gibbonPersonIDCoverage)
-    {
-        $data = ['gibbonPersonIDCoverage' => $gibbonPersonIDCoverage];
-        $sql = "SELECT date as groupBy, gibbonStaffCoverageException.* 
-                FROM gibbonStaffCoverageException 
-                WHERE gibbonPersonIDCoverage=:gibbonPersonIDCoverage 
-                ORDER BY DATE";
 
         return $this->db()->select($sql, $data);
     }

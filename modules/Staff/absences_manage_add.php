@@ -98,8 +98,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
             ->isRequired();
 
     $row = $form->addRow();
-        $row->addLabel('comment', __('Comment'));
-        $row->addTextArea('comment')->setRows(2);
+        $row->addLabel('comment', __('Comment'))->description(__('This message is only shared with users who manage staff absences.'));
+        $row->addTextArea('comment')->setRows(3);
 
     $form->addRow()->addHeading(__('Date & Time'));
 
@@ -137,7 +137,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
         $form->toggleVisibilityByClass('coverageOptions')->onSelect('coverage')->whenNot('N');
             
         $row = $form->addRow()->addClass('coverageOptions');
-            $row->addAlert(__("You'll be able to send a coverage request on the next step."), 'success');
+            $row->addAlert(__("You'll have the option to send a coverage request after submitting this form."), 'success');
     } else {
         $form->addHiddenValue('coverage', 'N');
     }

@@ -40,6 +40,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_declin
     $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
     $staffAbsenceDateGateway = $container->get(StaffAbsenceDateGateway::class);
 
+    $markAsUnavailable = $_POST['markAsUnavailable'] ?? false;
+
     $data = [
         'timestampCoverage'      => date('Y-m-d H:i:s'),
         'notesCoverage'          => $_POST['notesCoverage'],
@@ -88,6 +90,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_declin
             'gibbonStaffCoverageID' => null,
         ]);
         $partialFail &= !$updated;
+
+        if ($markAsUnavailable) {
+            $staffCoverageGateway->insertCoverageException([
+                'gibbonPersonIDCoverage' => $coverage['gibbonPersonIDCoverage'],
+                'date'                   => $date['date'],
+            ]);
+        }
     }
 
     $URLSuccess .= $partialFail

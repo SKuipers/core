@@ -19,6 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
+use Gibbon\Forms\Prefab\BulkActionForm;
 use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
@@ -47,11 +48,29 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
         return;
     }
 
+
+    // BULK ACTIONS
+    $form = BulkActionForm::create('bulkAction', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/coverage_availability_deleteProcess.php');
+    $form->setTitle(__('Dates'));
+    $form->addHiddenValue('gibbonPersonIDCoverage', $gibbonPersonIDCoverage);
+
     // DATA TABLE
-    $dates = $staffCoverageGateway->selectCoverageExceptionsByPerson($gibbonPersonIDCoverage);
+    $criteria = $staffCoverageGateway->newQueryCriteria()
+        ->sortBy('date')
+        ->fromPOST();
+
+    $dates = $staffCoverageGateway->queryCoverageExceptionsByPerson($criteria, $gibbonPersonIDCoverage);
     
-    $table = DataTable::create('staffAvailabilityExceptions');
-    $table->setTitle(__('Dates'));
+    $bulkActions = array(
+        'Delete' => __('Delete'),
+    );
+
+    $col = $form->createBulkActionColumn($bulkActions);
+    $col->addSubmit(__('Go'));
+
+    $table = $form->addRow()->addDataTable('staffAvailabilityExceptions', $criteria)->withData($dates);
+
+    $table->addMetaData('bulkActions', $col);
 
     $table->addColumn('date', __('Date'))
         ->format(Format::using('dateReadable', 'date'));
@@ -72,8 +91,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
                     ->addConfirmation(__('Are you sure you wish to delete this record?'));
         });
 
-    echo $table->render($dates->toDataSet());
+    $table->addCheckboxColumn('gibbonStaffCoverageExceptionID');
 
+    // echo $table->render($dates->toDataSet());
+
+    echo $form->getOutput();
+
+    
 
 
     $form = Form::create('staffAvailability', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/coverage_availability_addProcess.php');

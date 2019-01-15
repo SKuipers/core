@@ -30,6 +30,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_detail
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
+    if (!isset($_GET['height'])) {
+        $page->breadcrumbs
+            ->add(__('View Absences'), 'absences_view_byPerson.php')
+            ->add(__('View Details'));
+    }
+
     $highestAction = getHighestGroupedAction($guid, $_GET['q'], $connection2);
     if (empty($highestAction)) {
         $page->addError(__('You do not have access to this action.'));
@@ -53,10 +59,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_detail
         return;
     }
 
-    if ($highestAction == 'View Absences by Person_my' && $values['gibbonPersonID'] != $_SESSION[$guid]['gibbonPersonID']) {
+    if ($highestAction == 'View Absences_my' && $values['gibbonPersonID'] != $_SESSION[$guid]['gibbonPersonID']) {
         $page->addError(__('You do not have access to this action.'));
         return;
     }
+
+    $canManage = isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php') || $values['gibbonPersonID'] == $_SESSION[$guid]['gibbonPersonID'];
 
     $form = Form::create('staffAbsence', '');
 
@@ -81,9 +89,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_detail
             $row->addTextField('reason')->readonly();
     }
 
-    $row = $form->addRow();
-        $row->addLabel('commentLabel', __('Comment'));
-        $row->addTextArea('comment')->setRows(2)->readonly();
+    if ($canManage) {
+        $row = $form->addRow();
+            $row->addLabel('commentLabel', __('Comment'));
+            $row->addTextArea('comment')->setRows(2)->readonly();
+    }
 
     $creator = $container->get(UserGateway::class)->getByID($values['gibbonPersonIDCreator']);
 
@@ -121,8 +131,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_detail
                     ? Format::name($absence['titleCoverage'], $absence['preferredNameCoverage'], $absence['surnameCoverage'], 'Staff', false, true)
                     : '<div class="badge success">'.__('Pending').'</div>';
         });
-
-    $canManage = isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php') || $values['gibbonPersonID'] == $_SESSION[$guid]['gibbonPersonID'];
 
     if ($canManage && isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php')) {
         $table->addActionColumn()

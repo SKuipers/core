@@ -35,7 +35,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, [
-            'success1' => __('Your request was completed successfully.').' '.__('You may now continue by submitting a coverage request for this absence.')
+            'success1' => __('Your request was completed successfully.').' '.__('You may now continue by submitting a coverage request for this absence.'),
+            'error8' => __('Your request failed because no dates have been selected. Please check your input and submit your request again.'),
         ]);
     }
 
@@ -92,7 +93,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
         $row->addContent('<div class="datesTable"></div>');
 
     $row = $form->addRow();
-        $row->addLabel('notesRequested', __('Comment'))->description(__('This message is shared with the substitute, and is also visible to users who manage staff coverage.'));
+        $row->addLabel('notesRequested', __('Comment'))->description(__('This message is shared with substitutes, and is also visible to users who manage staff coverage.'));
         $row->addTextArea('notesRequested')->setRows(3);
 
     // if ($datesAvailableToRequest > 0) {
@@ -103,7 +104,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
 
     echo $form->getOutput();
 }
-
 ?>
 
 <script>
