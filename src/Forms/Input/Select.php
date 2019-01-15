@@ -176,8 +176,15 @@ class Select extends Input
         $output = '';
 
         if ($this->getReadonly()) {
-            $keys = is_array($this->selected)? $this->selected : [$this->selected];
-            $this->options = array_intersect_key($this->options, array_flip($keys));
+            $options = [];
+            $selected = is_array($this->selected)? $this->selected : [$this->selected];
+
+            array_walk_recursive($this->options, function ($item, $key) use (&$selected, &$options) {
+                if (in_array($key, $selected)) {
+                    $options[$key] = $item;
+                }
+            });
+            $this->options = $options;
             $this->setRequired(false)->placeholder(null);
         }
 
