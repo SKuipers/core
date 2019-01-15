@@ -70,7 +70,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
 
     $row = $form->addRow();
         $row->addLabel('gibbonPersonIDCoverage', __('Substitute'));
-        $row->addSelectStaff('gibbonPersonIDCoverage')->placeholder()->selected($gibbonPersonIDCoverage);
+        $row->addSelectSubstitute('gibbonPersonIDCoverage')->placeholder()->selected($gibbonPersonIDCoverage);
 
     $row = $form->addRow();
         $row->addLabel('notesRequested', __('Comment'));

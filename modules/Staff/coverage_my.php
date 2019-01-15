@@ -40,7 +40,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
 
         $criteria = $staffCoverageGateway->newQueryCriteria()
             ->filterBy('date:upcoming')
-            ->sortBy('date', 'DESC')
+            ->sortBy('date')
             ->fromPOST('staffCoverageSelf');
 
         $coverage = $staffCoverageGateway->queryCoverageByPersonAbsent($criteria, $gibbonPersonID);
@@ -202,7 +202,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
 
 
         $criteria = $staffCoverageGateway->newQueryCriteria()
-            ->sortBy('date', 'DESC')
+            ->sortBy('date')
             ->filterBy('date:upcoming')
             // ->filterBy('requested', 'N')
             ->fromPOST('staffCoverageOther');

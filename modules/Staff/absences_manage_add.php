@@ -144,7 +144,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
             
         $row = $form->addRow()->addClass('coverageOptions');
             $row->addLabel('gibbonPersonIDCoverage', __('Substitute'));
-            $row->addSelectStaff('gibbonPersonIDCoverage')->placeholder()->isRequired();
+            $row->addSelectSubstitute('gibbonPersonIDCoverage')->placeholder()->isRequired();
     
         $notification = __("SMS and email");
         $row = $form->addRow()->addClass('coverageOptions');

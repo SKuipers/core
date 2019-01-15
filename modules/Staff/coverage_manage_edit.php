@@ -92,7 +92,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_edit
 
     $row = $form->addRow();
         $row->addLabel('gibbonPersonIDLabel', __('Person'));
-        $row->addSelectStaff('gibbonPersonIDCoverage')
+        $row->addSelectSubstitute('gibbonPersonIDCoverage')
             ->placeholder()
             ->isRequired()
             ->selected($coverage['gibbonPersonIDCoverage'] ?? '')
