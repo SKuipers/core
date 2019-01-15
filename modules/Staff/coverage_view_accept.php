@@ -92,9 +92,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
 
     // DATA TABLE
     $absenceDates = $container->get(StaffAbsenceDateGateway::class)->selectDatesByCoverage($gibbonStaffCoverageID);
-    
+
+    $gibbonPersonID = !empty($coverage['gibbonPersonIDCoverage']) ? $coverage['gibbonPersonIDCoverage'] : $_SESSION[$guid]['gibbonPersonID'];
+    $unavailable = $staffCoverageGateway->selectUnavailableDatesByPerson($gibbonPersonID, $gibbonStaffCoverageID)->fetchKeyPair();
+
     $table = DataTable::create('staffCoverageDates');
     $table->setTitle(__('Dates'));
+    $table->getRenderer()->setClass('bulkActionForm datesTable');
 
     $table->addColumn('date', __('Date'))
         ->format(Format::using('dateReadable', 'date'));
@@ -117,20 +121,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
         });
 
     $datesAvailableToRequest = 0;
-    $table->addColumn('coverageDates', __('Coverage'))
-        ->width('8%')
-        ->format(function ($absence) use ($form, &$datesAvailableToRequest) {
+    $table->addCheckboxColumn('coverageDates', 'date')
+        ->width('15%')
+        ->checked(true)
+        ->format(function ($absence) use (&$datesAvailableToRequest, &$unavailable) {
+            // Has this date already been requested?
             if (empty($absence['gibbonStaffCoverageID'])) return __('N/A');
 
-            $datesAvailableToRequest++;
+            // Is this date unavailable: absent, already booked, or has an availability exception
+            if (isset($unavailable[$absence['date']])) return Format::small(__($unavailable[$absence['date']]));
 
-            return $form
-                ->getFactory()
-                ->createCheckbox('coverageDates[]')
-                ->setID('coverageDates-'.$absence['date'])
-                ->setValue($absence['date'])
-                ->checked($absence['date'])
-                ->getOutput();
+            $datesAvailableToRequest++;
         });
 
     $row = $form->addRow()->addContent($table->render($absenceDates->toDataSet()));

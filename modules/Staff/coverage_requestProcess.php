@@ -44,6 +44,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
         'gibbonPersonIDCoverage'  => $_POST['gibbonPersonIDCoverage'] ?? null,
         'gibbonPersonIDRequested' => $_SESSION[$guid]['gibbonPersonID'],
         'notesRequested'          => $_POST['notesRequested'],
+        'requestType'             => $_POST['requestType'],
         'status'                  => 'Requested',
     ];
 
@@ -56,7 +57,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
 
     // Validate the database relationships exist
     $absence = $container->get(StaffAbsenceGateway::class)->getByID($data['gibbonStaffAbsenceID']);
-    // $person = $container->get(UserGateway::class)->getByID($data['gibbonPersonIDCoverage']);
 
     if (empty($absence)) {
         $URL .= '&return=error2';
@@ -64,8 +64,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
         exit;
     }
 
-    if (empty($data['gibbonPersonIDCoverage'])) {
-        $data['gibbonPersonIDCoverage'] = null;
+    // Ensure the person is selected & exists for Individual coverage requests
+    if ($data['requestType'] == 'Individual') {
+        $person = $container->get(UserGateway::class)->getByID($data['gibbonPersonIDCoverage']);
+
+        if (empty($person)) {
+            $URL .= '&return=error2';
+            header("Location: {$URL}");
+            exit;
+        }
     }
 
     // Create the coverage request

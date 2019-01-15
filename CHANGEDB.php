@@ -836,6 +836,7 @@ CREATE TABLE `gibbonStaffCoverage` (
     `gibbonStaffCoverageID` INT(14) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
     `gibbonStaffAbsenceID` INT(14) UNSIGNED ZEROFILL NOT NULL,
     `status` ENUM('Requested','Accepted','Declined','Cancelled') DEFAULT 'Requested',
+    `requestType` ENUM('Individual','Broadcast','Assigned') DEFAULT 'Broadcast',
     `gibbonPersonIDRequested` int(10) UNSIGNED ZEROFILL NOT NULL,
     `timestampRequested` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `notesRequested` VARCHAR(255) NULL,

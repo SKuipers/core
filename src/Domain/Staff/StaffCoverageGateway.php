@@ -140,20 +140,22 @@ class StaffCoverageGateway extends QueryableGateway
         return $this->runQuery($query, $criteria);
     }
 
-    public function selectUnavailableDatesByPerson($gibbonPersonID)
+    public function selectUnavailableDatesByPerson($gibbonPersonID, $gibbonStaffCoverageIDExclude)
     {
-        $data = ['gibbonPersonID' => $gibbonPersonID];
-        $sql = "(SELECT date as groupBy, 'Not Available' as status 
+        $data = ['gibbonPersonID' => $gibbonPersonID, 'gibbonStaffCoverageIDExclude' => $gibbonStaffCoverageIDExclude];
+        $sql = "(
+                SELECT date as groupBy, 'Not Available' as status
                 FROM gibbonStaffCoverageException 
                 WHERE gibbonStaffCoverageException.gibbonPersonIDCoverage=:gibbonPersonID 
-                ORDER BY DATE)
-            UNION ALL (
-                SELECT date as groupBy, 'Exception' as status
+                ORDER BY DATE
+            ) UNION ALL (
+                SELECT date as groupBy, 'Already Booked' as status
                 FROM gibbonStaffCoverage
                 JOIN gibbonStaffAbsenceDate ON (gibbonStaffAbsenceDate.gibbonStaffCoverageID=gibbonStaffCoverage.gibbonStaffCoverageID)
                 WHERE gibbonStaffCoverage.gibbonPersonIDCoverage=:gibbonPersonID 
-            )
-            UNION ALL (
+                AND (gibbonStaffCoverage.status='Accepted' OR gibbonStaffCoverage.status='Requested')
+                AND gibbonStaffCoverage.gibbonStaffCoverageID <> :gibbonStaffCoverageIDExclude
+            ) UNION ALL (
                 SELECT date as groupBy, 'Absent' as status
                 FROM gibbonStaffAbsence
                 JOIN gibbonStaffAbsenceDate ON (gibbonStaffAbsenceDate.gibbonStaffAbsenceID=gibbonStaffAbsence.gibbonStaffAbsenceID)

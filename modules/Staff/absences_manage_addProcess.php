@@ -137,8 +137,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
 
     if ($coverage != 'N') {
         $gibbonStaffAbsenceID = str_pad($gibbonStaffAbsenceID, 14, '0', STR_PAD_LEFT);
-        $gibbonPersonIDCoverage = $_POST['gibbonPersonIDCoverage'] ?? '';
-        $URL = $_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Staff/coverage_request.php&coverage=$coverage&gibbonStaffAbsenceID=$gibbonStaffAbsenceID&gibbonPersonIDCoverage=$gibbonPersonIDCoverage";
+        $URL = $_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Staff/coverage_request.php&coverage=$coverage&gibbonStaffAbsenceID=$gibbonStaffAbsenceID";
 
         $URL .= '&return=success1';
         header("Location: {$URL}");

@@ -130,28 +130,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
     if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php')) {
         $form->addRow()->addHeading(__('Coverage'));
 
-        $coverageOptions = [
-            'N'         => __('No'),
-            'request'   => __('Specific substitute'),
-            'broadcast' => __('Any available substitute'),
-        ];
         $row = $form->addRow();
             $row->addLabel('coverage', __('Substitute Required?'));
-            $row->addSelect('coverage')->isRequired()->fromArray($coverageOptions)->selected('N');
+            $row->addYesNo('coverage')->isRequired()->selected('N');
     
-        $form->toggleVisibilityByClass('coverageOptions')->onSelect('coverage')->when('request');
-        $form->toggleVisibilityByClass('broadcastOptions')->onSelect('coverage')->when('broadcast');
+        $form->toggleVisibilityByClass('coverageOptions')->onSelect('coverage')->whenNot('N');
             
         $row = $form->addRow()->addClass('coverageOptions');
-            $row->addLabel('gibbonPersonIDCoverage', __('Substitute'));
-            $row->addSelectSubstitute('gibbonPersonIDCoverage')->placeholder()->isRequired();
-    
-        $notification = __("SMS and email");
-        $row = $form->addRow()->addClass('coverageOptions');
-            $row->addAlert(__("This option sends your request by {notification} to the selected substitute.", ['notification' => $notification]).' '.__("You'll receive a notification when they accept or decline your request. If your request is declined you'll have to option to send a new request."), 'message');
-    
-        $row = $form->addRow()->addClass('broadcastOptions');
-            $row->addAlert(__("This option sends a request by {notification} out to <b>ALL</b> available subs.", ['notification' => $notification]).' '.__("You'll receive a notification once your request is accepted."), 'message');
+            $row->addAlert(__("You'll be able to send a coverage request on the next step."), 'success');
     } else {
         $form->addHiddenValue('coverage', 'N');
     }

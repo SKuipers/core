@@ -83,6 +83,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
     color: #f1f1f1;
 }
 
+.datesTable td {
+    height: 26px;
+}
+
 .calendarTable .day {
     background: #fbfbfb !important;
 }

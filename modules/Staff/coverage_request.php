@@ -43,8 +43,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     $gibbonPersonIDCoverage = $_GET['gibbonPersonIDCoverage'] ?? '';
 
     $staffAbsenceGateway = $container->get(StaffAbsenceGateway::class);
-    $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
-    $staffAbsenceDateGateway = $container->get(StaffAbsenceDateGateway::class);
     $staffAbsenceTypeGateway = $container->get(StaffAbsenceTypeGateway::class);
 
     if (empty($gibbonStaffAbsenceID)) {
@@ -68,61 +66,58 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
 
     $form->addRow()->addHeading(__('Coverage Request'));
 
+    $requestTypes = [
+        'Broadcast'  => __('Any available substitute'),
+        'Individual' => __('Specific substitute'),
+    ];
     $row = $form->addRow();
+        $row->addLabel('requestType', __('Substitute Required?'));
+        $row->addSelect('requestType')->isRequired()->fromArray($requestTypes)->selected('Broadcast');
+
+    $form->toggleVisibilityByClass('coverageOptions')->onSelect('requestType')->when('Individual');
+    $form->toggleVisibilityByClass('broadcastOptions')->onSelect('requestType')->when('Broadcast');
+        
+    $notification = __("SMS and email");
+    $row = $form->addRow()->addClass('coverageOptions');
+        $row->addAlert(__("This option sends your request by {notification} to the selected substitute.", ['notification' => $notification]).' '.__("You'll receive a notification when they accept or decline your request. If your request is declined you'll have to option to send a new request."), 'message');
+
+    $row = $form->addRow()->addClass('broadcastOptions');
+        $row->addAlert(__("This option sends a request by {notification} out to <b>ALL</b> available subs.", ['notification' => $notification]).' '.__("You'll receive a notification once your request is accepted."), 'message');
+
+    $row = $form->addRow()->addClass('coverageOptions');
         $row->addLabel('gibbonPersonIDCoverage', __('Substitute'));
-        $row->addSelectSubstitute('gibbonPersonIDCoverage')->placeholder()->selected($gibbonPersonIDCoverage);
+        $row->addSelectSubstitute('gibbonPersonIDCoverage')->placeholder()->selected($gibbonPersonIDCoverage)->isRequired();
+
+    $row = $form->addRow()->addClass('coverageOptions');
+        $row->addContent('<div class="datesTable"></div>');
 
     $row = $form->addRow();
-        $row->addLabel('notesRequested', __('Comment'));
+        $row->addLabel('notesRequested', __('Comment'))->description(__('This message is shared with the substitute, and is also visible to users who manage staff coverage.'));
         $row->addTextArea('notesRequested')->setRows(3);
 
-    // DATA TABLE
-    $absenceDates = $staffAbsenceDateGateway->selectDatesByAbsence($gibbonStaffAbsenceID);
-    $unavailable = $staffCoverageGateway->selectUnavailableDatesByPerson($gibbonPersonIDCoverage)->fetchKeyPair();
-
-    $table = DataTable::create('staffAbsenceDates');
-    $table->setTitle(__('Dates'));
-
-    $table->addColumn('date', __('Date'))
-        ->format(Format::using('dateReadable', 'date'));
-
-    $table->addColumn('timeStart', __('Time'))
-        ->format(function ($absence) {
-            if ($absence['allDay'] == 'N') {
-                return Format::small(Format::timeRange($absence['timeStart'], $absence['timeEnd']));
-            } else {
-                return Format::small(__('All Day'));
-            }
-        });
-
-    $datesAvailableToRequest = 0;
-    $table->addColumn('requestDates', __('Request'))
-        ->width('12%')
-        ->format(function ($absence) use ($form, &$datesAvailableToRequest, &$unavailable) {
-            // Has this date already been requested?
-            if (!empty($absence['gibbonStaffCoverageID'])) return __('Requested');
-
-            // Is this date unavailable: absent, already booked, or has an availability exception
-            if (isset($unavailable[$absence['date']])) return Format::small(__('Not Available'));
-
-            $datesAvailableToRequest++;
-
-            return $form
-                ->getFactory()
-                ->createCheckbox('requestDates[]')
-                ->setID('requestDates-'.$absence['date'])
-                ->setValue($absence['date'])
-                ->checked($absence['date'])
-                ->getOutput();
-        });
-
-    $row = $form->addRow()->addContent($table->render($absenceDates->toDataSet()));
-
-    if ($datesAvailableToRequest > 0) {
+    // if ($datesAvailableToRequest > 0) {
         $row = $form->addRow();
             $row->addFooter();
             $row->addSubmit();
-    }
+    // }
 
     echo $form->getOutput();
 }
+
+?>
+
+<script>
+$(document).ready(function() {
+    $('#gibbonPersonIDCoverage').on('input', function() {
+        $('.datesTable').load('./modules/Staff/coverage_requestAjax.php', {
+            'gibbonStaffAbsenceID': '<?php echo $gibbonStaffAbsenceID; ?>',
+            'gibbonPersonIDCoverage': $(this).val(),
+        }, function() {
+            // Pre-highlight selected rows
+            $('.bulkActionForm').find('.bulkCheckbox :checkbox').each(function () {
+                $(this).closest('tr').toggleClass('selected', $(this).prop('checked'));
+            });
+        });
+    });
+}) ;
+</script>
