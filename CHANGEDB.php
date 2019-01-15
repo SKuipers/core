@@ -851,6 +851,19 @@ CREATE TABLE `gibbonStaffCoverageException` (
     UNIQUE KEY `personAndDate` (`gibbonPersonIDCoverage`, `date`),
     PRIMARY KEY (`gibbonStaffCoverageExceptionID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;end
+CREATE TABLE `gibbonSubstitute` (
+    `gibbonSubstituteID` INT(10) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
+    `gibbonPersonID` int(10) UNSIGNED ZEROFILL NOT NULL,
+    `active` ENUM('Y','N') DEFAULT 'Y',
+    `type` VARCHAR(30) NULL,
+    `details` VARCHAR(255) NULL,
+    `priority` INT(2) NOT NULL DEFAULT '0',
+    `contactCall` ENUM('Y','N') DEFAULT 'Y',
+    `contactSMS` ENUM('Y','N') DEFAULT 'Y',
+    `contactEmail` ENUM('Y','N') DEFAULT 'Y',
+    UNIQUE KEY `gibbonPersonID` (`gibbonPersonID`),
+    PRIMARY KEY (`gibbonSubstituteID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;end
 INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES ((SELECT gibbonModuleID FROM gibbonModule WHERE name='Staff'), 'New Absence_mine', 0, 'Absences', 'Allows a user to submit their own staff absences.', 'absences_manage_add.php', 'absences_manage_add.php', 'Y', 'Y', 'N', 'N', 'Y', 'Y', 'N', 'N', 'Y');end
 INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('002', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Staff' AND gibbonAction.name='New Absence_mine'));end
 INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('006', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Staff' AND gibbonAction.name='New Absence_mine'));end
@@ -880,4 +893,7 @@ INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('001',
 INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('006', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Staff' AND gibbonAction.name='Open Requests'));end
 INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES ((SELECT gibbonModuleID FROM gibbonModule WHERE name='Staff'), 'Manage Staff Coverage', 0, 'Coverage', 'Allows administrators to manage coverage requests.', 'coverage_manage.php,coverage_manage_edit.php,coverage_manage_delete.php', 'coverage_manage.php', 'Y', 'N', 'N', 'N', 'N', 'Y', 'N', 'N', 'Y');end
 INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('001', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Staff' AND gibbonAction.name='Manage Staff Coverage'));end
+INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES ((SELECT gibbonModuleID FROM gibbonModule WHERE name='Staff'), 'Manage Substitutes', 0, 'Staff Management', 'Edit information for users who can provide staff coverage.', 'subs_manage.php,subs_manage_add.php,subs_manage_edit.php,subs_manage_delete.php', 'subs_manage.php', 'Y', 'N', 'N', 'N', 'N', 'Y', 'N', 'N', 'Y');end
+INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('001', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Staff' AND gibbonAction.name='Manage Substitutes'));end
+
 ";
