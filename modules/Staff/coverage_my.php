@@ -177,7 +177,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
                     $url = $_SESSION[$guid]['absoluteURL'].'/fullscreen.php?q=/modules/Staff/coverage_view_details.php&gibbonStaffCoverageID='.$day['coverage']['gibbonStaffCoverageID'].'&width=800&height=550';
 
                     $params['title'] = $day['date']->format('l').'<br/>'.$day['date']->format('M j, Y');
-                    $params['class'] = '';
+                    $params['class'] = $coverage['allDay'] == 'N' ? 'half-day' : '';
                     if ($day['count'] > 0) {
                         $params['class'] = 'thickbox';
                         $params['title'] .= '<br/>'.Format::name($coverage['titleAbsence'], $coverage['preferredNameAbsence'], $coverage['surnameAbsence'], 'Staff', false, true);
