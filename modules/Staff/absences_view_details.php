@@ -30,11 +30,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_detail
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
-    if (!isset($_GET['height'])) {
-        $page->breadcrumbs
-            ->add(__('View Absences'), 'absences_view_byPerson.php')
-            ->add(__('View Details'));
-    }
+
+    $page->breadcrumbs
+        ->add(__('View Absences'), 'absences_view_byPerson.php')
+        ->add(__('View Details'));
 
     $highestAction = getHighestGroupedAction($guid, $_GET['q'], $connection2);
     if (empty($highestAction)) {
