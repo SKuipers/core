@@ -34,6 +34,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/staffSettings
     }
 
     $staffAbsenceTypeGateway = $container->get(StaffAbsenceTypeGateway::class);
+    $smsGateway = getSettingByScope($connection2, 'Messenger', 'smsGateway');
 
     // QUERY
     $criteria = $staffAbsenceTypeGateway->newQueryCriteria()
@@ -66,4 +67,47 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/staffSettings
         });
 
     echo $table->render($absenceTypes);
+
+
+    $form = Form::create('staffSettings', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/staffSettingsProcess.php');
+    $form->setTitle(__('Settings'));
+
+    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+
+    // $form->addRow()->addHeading(__('Student Notes'));
+
+    // $row = $form->addRow();
+    //     $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
+    //     $row->addYesNo($setting['name'])->selected($setting['value'])->isRequired();
+
+    $thresholds = array_map(function ($count) {
+        return __n('{count} Day', '{count} Days', $count);
+    }, array_combine(range(1, 14), range(1, 14)));
+
+    $setting = getSettingByScope($connection2, 'Staff', 'urgencyThreshold', true);
+    $row = $form->addRow();
+        $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
+        $row->addSelect($setting['name'])->fromArray($thresholds)->isRequired()->selected($setting['value']);
+
+    $form->addRow()->addHeading(__('Notifications'));
+
+    $smsOptions = !empty($smsGateway) ? ['mail-sms' => __('Email and SMS')] : [];
+    $notifyOptions = [
+        'mail'     => __('Email'),
+        'none'      => __('None'),
+    ];
+
+    $row = $form->addRow();
+        $row->addLabel('absenceNotifications', __('Urgent Notifications'))->description(__('Which contact methods should be used to notify users.'));
+        $row->addSelect('absenceNotifications')->fromArray($smsOptions)->fromArray($notifyOptions)->selected('email')->isRequired();
+
+    $row = $form->addRow();
+        $row->addLabel('coverageNotifications', __('Non-urgent Notifications'))->description(__('Which contact methods should be used to notify users.'));
+        $row->addSelect('coverageNotifications')->fromArray($smsOptions)->fromArray($notifyOptions)->selected('email-sms')->isRequired();
+
+    $row = $form->addRow();
+        $row->addFooter();
+        $row->addSubmit();
+
+    echo $form->getOutput();
 }

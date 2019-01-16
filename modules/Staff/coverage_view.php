@@ -34,6 +34,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view.php') 
         returnProcess($guid, $_GET['return'], null, null);
     }
 
+    $urgencyThreshold = getSettingByScope($connection2, 'Staff', 'urgencyThreshold');
+
     $gibbonPersonID = $_SESSION[$guid]['gibbonPersonID'];
     $gibbonSchoolYearID = $_SESSION[$guid]['gibbonSchoolYearID'];
     
@@ -76,11 +78,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view.php') 
 
     $table->addColumn('status', __('Status'))
         ->width('15%')
-        ->format(function ($coverage) {
+        ->format(function ($coverage) use ($urgencyThreshold) {
             $relativeSeconds = strtotime($coverage['dateStart']) - time();
-            if ($relativeSeconds <= (86400 * 3)) { // Less than three days
+            if ($relativeSeconds <= (86400 * $urgencyThreshold)) {
                 return '<div class="error badge">'.__('Urgent').'</div>';
-            } elseif ($relativeSeconds <= (86400 * 12)) { // Less than twelve days
+            } elseif ($relativeSeconds <= (86400 * ($urgencyThreshold * 3))) {
                 return '<div class="badge warning">'.__('Upcoming').'</div>';
             } else {
                 return __('Upcoming');
