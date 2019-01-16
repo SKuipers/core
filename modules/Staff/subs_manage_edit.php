@@ -19,7 +19,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
+use Gibbon\Domain\User\UserGateway;
 use Gibbon\Domain\Staff\SubstituteGateway;
+use Gibbon\Services\Format;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/subs_manage_edit.php') == false) {
     //Acess denied
@@ -45,16 +47,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/subs_manage_edit.php
     }
 
     $gibbonSubstituteID = $_GET['gibbonSubstituteID'] ?? '';
+    $smsGateway = getSettingByScope($connection2, 'Messenger', 'smsGateway');
 
     if (empty($gibbonSubstituteID)) {
         $page->addError(__('You have not specified one or more required parameters.'));
         return;
     }
 
-    $subGateway = $container->get(SubstituteGateway::class);
-    $values = $subGateway->getByID($gibbonSubstituteID);
+    $values = $container->get(SubstituteGateway::class)->getByID($gibbonSubstituteID);
 
     if (empty($values)) {
+        $page->addError(__('The specified record cannot be found.'));
+        return;
+    }
+
+    $person = $container->get(UserGateway::class)->getByID($values['gibbonPersonID']);
+
+    if (empty($person)) {
         $page->addError(__('The specified record cannot be found.'));
         return;
     }
@@ -91,6 +100,29 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/subs_manage_edit.php
 
     $form->addRow()->addHeading(__('Contact Information'));
 
+    if ($values['contactCall'] == 'Y' || $values['contactSMS'] == 'Y') {
+        $row = $form->addRow();
+            $row->addLabel('phone1Label', __('Phone').' 1');
+            $phone = $row->addTextField('phone1')
+                ->readonly()
+                ->setValue(Format::phone($person['phone1'], $person['phone1CountryCode'], $person['phone1Type']));
+
+        if ($values['contactSMS'] == 'Y' && !empty($person['phone1']) && !empty($smsGateway)) {
+            $button = $form->getFactory()
+            ->createButton(__('Test SMS'))
+            ->addClass('testSMS alignRight')
+            ->setTabIndex(-1);
+
+            $phone->append($button->getOutput());
+        }
+    }
+
+    if ($values['contactEmail'] == 'Y') {
+        $row = $form->addRow();
+            $row->addLabel('emailLabel', __('Email'));
+            $row->addTextField('email')->readonly()->setValue($person['email']);
+    }
+
     $row = $form->addRow()->addClass('contact');
         $row->addLabel('contactCall', __('Call?'));
         $row->addYesNo('contactCall')->isRequired();
@@ -111,3 +143,24 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/subs_manage_edit.php
 
     echo $form->getOutput();
 }
+?>
+
+<script>
+$(document).ready(function() {
+    $('.testSMS').on('click', function() {
+        if (confirm("<?php echo __('Test SMS').'?'; ?>")) {
+            $.ajax({
+                url: './modules/Staff/subs_manage_edit_smsAjax.php',
+                data: {
+                    from: "<?php echo $_SESSION[$guid]['preferredName'].' '.$_SESSION[$guid]['surname']; ?>",    
+                    phoneNumber: "<?php echo $person['phone1CountryCode'].$person['phone1']; ?>"
+                },
+                type: 'POST',
+                success: function(data) {
+                    alert(data);
+                }
+            });
+        }
+    });
+}) ;
+</script>

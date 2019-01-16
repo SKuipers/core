@@ -29,6 +29,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/subs_manage_add.php'
     //Proceed!
     $search = $_GET['search'] ?? '';
 
+    $smsGateway = getSettingByScope($connection2, 'Messenger', 'smsGateway');
+
     $page->breadcrumbs
         ->add(__('Manage Subs'), 'subs_manage.php', ['search' => $search])
         ->add(__('Add Sub'));
@@ -82,9 +84,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/subs_manage_add.php'
         $row->addLabel('contactCall', __('Call?'));
         $row->addYesNo('contactCall')->isRequired();
 
-    $row = $form->addRow()->addClass('contact');
-        $row->addLabel('contactSMS', __('SMS?'));
-        $row->addYesNo('contactSMS')->isRequired();
+    if (!empty($smsGateway)) {
+        $row = $form->addRow()->addClass('contact');
+            $row->addLabel('contactSMS', __('SMS?'));
+            $row->addYesNo('contactSMS')->isRequired();
+    }
 
     $row = $form->addRow()->addClass('contact');
         $row->addLabel('contactEmail', __('Email?'));
