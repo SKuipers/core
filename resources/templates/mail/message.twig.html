@@ -1,0 +1,16 @@
+{#<!--
+Gibbon, Flexible & Open School System
+Copyright (C) 2010, Ross Parker
+
+This is a Gibbon template file, written in HTML and Twig syntax.
+For info about editing, see: https://twig.symfony.com/doc/2.x/
+-->#}
+{% extends "mail/email.twig.html" %}
+
+{% block greeting %}
+    <h2>{{ greeting }}</h2>
+{% endblock %}
+
+{% block footer %}
+    {{ __('Email sent via %1$s at %2$s.')|format(systemName, organisationName) }}
+{% endblock %}

@@ -23,6 +23,8 @@ use Gibbon\Domain\User\UserGateway;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
+use Gibbon\Module\Staff\MessageSender;
+use Gibbon\Module\Staff\CoverageAcceptedMessage;
 
 require_once '../../gibbon.php';
 
@@ -65,6 +67,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
         exit;
     }
 
+    $absence = $container->get(StaffAbsenceGateway::class)->getByID($coverage['gibbonStaffAbsenceID']);
+    $absentPerson = $container->get(UserGateway::class)->getByID($absence['gibbonPersonID']);
+    $coveragePerson = $container->get(UserGateway::class)->getByID($data['gibbonPersonIDCoverage']);
+
+    if (empty($absence) || empty($absentPerson) || empty($coveragePerson)) {
+        $URL .= '&return=error2';
+        header("Location: {$URL}");
+        exit;
+    }
+
     // Prevent two people accepting at the same time
     if ($coverage['status'] != 'Requested') {
         $URL .= '&return=warning3';
@@ -84,7 +96,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
     $partialFail = false;
 
     $absenceDates = $staffAbsenceDateGateway->selectDatesByCoverage($gibbonStaffCoverageID);
-    
 
     // Unlink any absence dates from the coverage request if they were not selected
     foreach ($absenceDates as $date) {
@@ -95,6 +106,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
             $partialFail &= !$updated;
         }
     }
+
+    // Notify
+
+    $coverage = $staffCoverageGateway->getCoverageDetailsByID($gibbonStaffCoverageID);
+
+    $message = new CoverageAcceptedMessage($coverage);
+    $recipients = [$absentPerson];
+
+    $sender = $container->get(MessageSender::class)->setView($container->get('twig'), $container->get('session'));
+    $sender->send($recipients, $message);
+
 
     $URLSuccess .= $partialFail
         ? "&return=warning1"
