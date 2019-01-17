@@ -132,7 +132,7 @@ class NotificationSender
                     'title'  => __('Notification').' - '.$notification['moduleName'],
                     'body'   => $notification['text'],
                     'button' => [
-                        'url'  => 'notificationsActionProcess.php?action='.$notification['actionLink'].'&gibbonPersonID='.$notification['gibbonPersonID'].'&gibbonNotificationID='.$gibbonNotificationID,
+                        'url'  => 'notificationsActionProcess.php?gibbonNotificationID='.$gibbonNotificationID,
                         'text' => __('View Details'),
                     ],
                 ]);
