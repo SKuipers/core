@@ -114,13 +114,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
     $message = new CoverageAcceptedMessage($coverage);
     $recipients = [$absentPerson];
 
-    $sender = $container->get(MessageSender::class)->setView($container->get('twig'), $container->get('session'));
-    $sender->send($recipients, $message);
-
+    $sender = $container->get(MessageSender::class);
+    $sent = $sender->send($recipients, $message);
 
     $URLSuccess .= $partialFail
-        ? "&return=warning1"
-        : "&return=success0";
+        ? "&return=warning1&sent=".$sent
+        : "&return=success0&sent=".$sent;
 
     header("Location: {$URLSuccess}");
     exit;

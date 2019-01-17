@@ -34,25 +34,11 @@ class MessageSender
 {
     protected $mail;
     protected $sms;
-    protected $view;
-    protected $data;
 
     public function __construct(MailerContract $mail, SMSContract $sms)
     {
         $this->mail = $mail;
         $this->sms = $sms;
-    }
-
-    public function setView($templateEngine, SessionContract $session)
-    {
-        $this->view = new View($templateEngine);
-        $this->data = [
-            'systemName'       => $session->get('systemName'),
-            'organisationName' => $session->get('organisationName'),
-            'organisationEmail' => $session->get('organisationEmail'),
-        ];
-        
-        return $this;
     }
 
     public function send(array $recipients, Message $message)
@@ -61,14 +47,13 @@ class MessageSender
         $result = false;
 
         if (in_array('mail', $via) && !empty($this->mail)) {
-            $body = $this->view->fetchFromTemplate('mail/message.twig.html', array_merge($this->data, [
+            $this->mail->renderBody('mail/message.twig.html', [
                 'greeting' => $message->toSubject(),
                 'body'     => $message->toMail(),
                 'button'   => $message->toLink(),
-            ]));
-
-            $this->mail->Subject = $message->toSubject();
-            $this->mail->Body = $body;
+            ]);
+            
+            $this->mail->Subject = $this->data['organisationNameShort'].' - '.$message->toSubject();
             $this->mail->SetFrom($this->data['organisationEmail'], $this->data['organisationName']);
             $this->mail->clearAllRecipients();
 
