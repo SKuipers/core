@@ -103,7 +103,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
     $form = Form::create('staffAvailability', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/coverage_availability_addProcess.php');
 
     $form->setFactory(DatabaseFormFactory::create($pdo));
-    $form->setClass('smallIntBorder fullWidth');
     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
     $form->addHiddenValue('gibbonPersonIDCoverage', $gibbonPersonIDCoverage);
 

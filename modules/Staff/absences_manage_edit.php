@@ -59,7 +59,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_edit
     $form = Form::create('staffAbsenceEdit', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/absences_manage_editProcess.php');
 
     $form->setFactory(DatabaseFormFactory::create($pdo));
-    $form->setClass('smallIntBorder fullWidth');
     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
     $form->addHiddenValue('gibbonStaffAbsenceID', $gibbonStaffAbsenceID);
 
@@ -175,7 +174,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_edit
     $form = Form::create('staffAbsenceAdd', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/absences_manage_edit_addProcess.php');
 
     $form->setFactory(DatabaseFormFactory::create($pdo));
-    $form->setClass('smallIntBorder fullWidth');
     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
     $form->addHiddenValue('gibbonStaffAbsenceID', $gibbonStaffAbsenceID);
 

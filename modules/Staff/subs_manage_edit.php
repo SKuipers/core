@@ -71,7 +71,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/subs_manage_edit.php
     $form = Form::create('subsManage', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/subs_manage_editProcess.php?search=$search");
 
     $form->setFactory(DatabaseFormFactory::create($pdo));
-    $form->setClass('smallIntBorder fullWidth');
 
     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
     $form->addHiddenValue('gibbonSubstituteID', $gibbonSubstituteID);

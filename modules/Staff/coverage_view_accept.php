@@ -66,7 +66,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
     $form = Form::create('staffCoverage', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/coverage_view_acceptProcess.php');
 
     $form->setFactory(DatabaseFormFactory::create($pdo));
-    $form->setClass('smallIntBorder fullWidth');
     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
     $form->addHiddenValue('gibbonStaffCoverageID', $gibbonStaffCoverageID);
 

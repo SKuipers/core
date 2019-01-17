@@ -47,7 +47,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
     $form = Form::create('staffAbsence', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/absences_manage_addProcess.php');
 
     $form->setFactory(DatabaseFormFactory::create($pdo));
-    $form->setClass('smallIntBorder fullWidth');
     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
 
     $form->addRow()->addHeading(__('Basic Information'));

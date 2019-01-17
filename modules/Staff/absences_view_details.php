@@ -68,7 +68,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_detail
     $form = Form::create('staffAbsence', '');
 
     $form->setFactory(DatabaseFormFactory::create($pdo));
-    $form->setClass('smallIntBorder fullWidth');
     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
     $form->addHiddenValue('gibbonStaffAbsenceID', $gibbonStaffAbsenceID);
 
