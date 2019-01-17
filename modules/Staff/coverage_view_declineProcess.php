@@ -19,10 +19,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Services\Format;
 use Gibbon\Comms\NotificationEvent;
-use Gibbon\Domain\User\UserGateway;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
+use Gibbon\Module\Staff\MessageSender;
+use Gibbon\Module\Staff\Messages\CoverageDeclined;
 
 require_once '../../gibbon.php';
 
@@ -64,6 +65,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_declin
         exit;
     }
 
+    $absence = $container->get(StaffAbsenceGateway::class)->getByID($coverage['gibbonStaffAbsenceID']);
+
+    if (empty($absence)) {
+        $URL .= '&return=error2';
+        header("Location: {$URL}");
+        exit;
+    }
+
     // Prevent two people declining at the same time (?)
     if ($coverage['status'] != 'Requested' || empty($coverage['gibbonPersonIDCoverage'])) {
         $URL .= '&return=error1';
@@ -82,6 +91,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_declin
 
     $partialFail = false;
 
+    $coverage = $staffCoverageGateway->getCoverageDetailsByID($gibbonStaffCoverageID);
     $absenceDates = $staffAbsenceDateGateway->selectDatesByCoverage($gibbonStaffCoverageID);
 
     // Unlink any absence dates from the coverage request so they can be re-requested
@@ -98,6 +108,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_declin
             ]);
         }
     }
+
+    // Send messages (Mail, SMS) to relevant users
+    $recipients = [$absence['gibbonPersonID']];
+    $message = new CoverageDeclined($coverage);
+
+    $sent = $container
+        ->get(MessageSender::class)
+        ->send($recipients, $message);
+
 
     $URLSuccess .= $partialFail
         ? "&return=warning1"

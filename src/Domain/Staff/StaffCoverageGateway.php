@@ -182,8 +182,9 @@ class StaffCoverageGateway extends QueryableGateway
     public function getCoverageDetailsByID($gibbonStaffCoverageID)
     {
         $data = ['gibbonStaffCoverageID' => $gibbonStaffCoverageID];
-        $sql = "SELECT gibbonStaffCoverage.gibbonStaffCoverageID, gibbonStaffCoverage.status, gibbonStaffAbsenceType.name as type, reason, 
+        $sql = "SELECT gibbonStaffCoverage.gibbonStaffCoverageID, gibbonStaffCoverage.status, gibbonStaffAbsence.gibbonStaffAbsenceID, gibbonStaffAbsenceType.name as type, reason, 
                 date, COUNT(*) as days, MIN(date) as dateStart, MAX(date) as dateEnd, allDay, timeStart, timeEnd, timestampRequested, timestampCoverage,  
+                gibbonStaffCoverage.notesCoverage, gibbonStaffCoverage.notesRequested,
                 gibbonStaffAbsence.gibbonPersonID, absence.title AS titleAbsence, absence.preferredName AS preferredNameAbsence, absence.surname AS surnameAbsence, 
                 gibbonStaffCoverage.gibbonPersonIDCoverage, coverage.title as titleCoverage, coverage.preferredName as preferredNameCoverage, coverage.surname as surnameCoverage
             FROM gibbonStaffCoverage

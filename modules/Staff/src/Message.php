@@ -25,15 +25,49 @@ namespace Gibbon\Module\Staff;
  * @version v18
  * @since   v18
  */
-interface Message
+abstract class Message
 {
-    public function via();
+    abstract public function title() : string;
+    abstract public function text() : string;
+    abstract public function module() : string;
+    abstract public function action() : string;
+    abstract public function link() : string;
 
-    public function toSubject();
+    public function via() : array
+    {
+        return ['mail'];
+    }
 
-    public function toSMS();
+    public function details() : array
+    {
+        return [];
+    }
 
-    public function toMail();
+    public function toSMS() : string
+    {
+        return $this->text();
+    }
 
-    public function toLink();
+    public function toMail() : array
+    {
+        return [
+            'subject' => $this->title(),
+            'title'   => $this->title(),
+            'body'    => $this->text(),
+            'details' => $this->details(),
+            'button'  => [
+                'url'  => $this->link(),
+                'text' => $this->action(),
+            ],
+        ];
+    }
+
+    public function toNotification() : array
+    {
+        return [
+            'text'       => $this->text(),
+            'moduleName' => $this->module(),
+            'actionLink' => $this->link(),
+        ];
+    }
 }

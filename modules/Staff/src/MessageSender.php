@@ -21,8 +21,7 @@ namespace Gibbon\Module\Staff;
 
 use Gibbon\Contracts\Comms\Mailer as MailerContract;
 use Gibbon\Contracts\Comms\SMS as SMSContract;
-use Gibbon\Contracts\Services\Session as SessionContract;
-use Gibbon\View\View;
+use Gibbon\Domain\User\UserGateway;
 
 /**
  * MessageSender
@@ -32,11 +31,13 @@ use Gibbon\View\View;
  */
 class MessageSender
 {
+    protected $userGateway;
     protected $mail;
     protected $sms;
 
-    public function __construct(MailerContract $mail, SMSContract $sms)
+    public function __construct(UserGateway $userGateway, MailerContract $mail, SMSContract $sms)
     {
+        $this->userGateway = $userGateway;
         $this->mail = $mail;
         $this->sms = $sms;
     }
@@ -46,15 +47,16 @@ class MessageSender
         $via = $message->via();
         $result = false;
 
+        // Get the user data per gibbonPersonID
+        $userGateway = &$this->userGateway;
+        $recipients = array_map(function ($gibbonPersonID) use (&$userGateway) {
+            return $userGateway->getByID($gibbonPersonID);
+        }, $recipients);
+
+        // Send Mail
         if (in_array('mail', $via) && !empty($this->mail)) {
-            $this->mail->renderBody('mail/message.twig.html', [
-                'greeting' => $message->toSubject(),
-                'body'     => $message->toMail(),
-                'button'   => $message->toLink(),
-            ]);
-            
-            $this->mail->Subject = $this->data['organisationNameShort'].' - '.$message->toSubject();
-            $this->mail->SetFrom($this->data['organisationEmail'], $this->data['organisationName']);
+            $this->mail->setDefaultSender($message->toMail()['subject']);
+            $this->mail->renderBody('mail/message.twig.html', $message->toMail());
             $this->mail->clearAllRecipients();
 
             foreach ($recipients as $person) {
@@ -66,14 +68,20 @@ class MessageSender
             $result = $this->mail->Send();
         }
 
+        // Send SMS
         if (in_array('sms', $via) && !empty($this->sms)) {
-            $phoneNumbers = array_filter(array_map(function ($person) {
+            $phoneNumbers = array_map(function ($person) {
                 return ($person['phone1CountryCode'] ?? '').($person['phone1'] ?? '');
-            }, $recipients));
+            }, $recipients);
 
             $result = $this->sms
                 ->content($message->toSMS())
                 ->send($phoneNumbers);
+        }
+
+        // Send Notification
+        if (in_array('notification', $via)) {
+            // Do stuff...
         }
 
         return !empty($result);
