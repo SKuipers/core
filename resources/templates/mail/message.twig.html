@@ -11,16 +11,14 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
     {{ body|raw }}
 
-    {% if details %}
+    {% if details|length > 0 %}
         <hr style="border:none;border-bottom:1px solid #ececec;margin:1.5rem 0;width:100%;">
 
         <ul>
             {% for label, value in details %}
-                {% if value %}
-                <li>
-                    <b>{{ label }}</b>: {{ value }}
-                </li>
-                {% endif %}
+            <li>
+                <b>{{ label }}</b>: {{ value }}
+            </li>
             {% endfor %}
         </ul>
 

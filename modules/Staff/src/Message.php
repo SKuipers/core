@@ -54,7 +54,7 @@ abstract class Message
             'subject' => $this->title(),
             'title'   => $this->title(),
             'body'    => $this->text(),
-            'details' => $this->details(),
+            'details' => array_filter($this->details()),
             'button'  => [
                 'url'  => $this->link(),
                 'text' => $this->action(),

@@ -23,6 +23,9 @@ use Gibbon\Domain\User\UserGateway;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
+use Gibbon\Module\Staff\MessageSender;
+use Gibbon\Module\Staff\Messages\IndividualRequest;
+use Gibbon\Module\Staff\Messages\BroadcastRequest;
 
 require_once '../../gibbon.php';
 
@@ -76,8 +79,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
         }
 
         // Ensure the person is selected & exists for Individual coverage requests
-        $person = $container->get(UserGateway::class)->getByID($data['gibbonPersonIDCoverage']);
-        if (empty($person)) {
+        $personCoverage = $container->get(UserGateway::class)->getByID($data['gibbonPersonIDCoverage']);
+        if (empty($personCoverage)) {
             $URL .= '&return=error2';
             header("Location: {$URL}");
             exit;
@@ -106,6 +109,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
             $partialFail &= !$updated;
         }
     }
+
+    // Send messages (Mail, SMS) to relevant users
+    if ($data['requestType'] == 'Individual') {
+        $coverage = $staffCoverageGateway->getCoverageDetailsByID($gibbonStaffCoverageID);
+        
+        $recipients = [$personCoverage['gibbonPersonID']];
+        $message = new IndividualRequest($coverage);
+
+        $sent = $container
+            ->get(MessageSender::class)
+            ->send($recipients, $message);
+    }
+
 
     $URL .= $partialFail
         ? "&return=warning1"

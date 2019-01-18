@@ -75,7 +75,7 @@ class MessageSender
             }, $recipients);
 
             $result = $this->sms
-                ->content($message->toSMS())
+                ->content($message->toSMS()."\n".'[ http://gibbon.tis.edu.mo ]')
                 ->send($phoneNumbers);
         }
 
