@@ -19,26 +19,26 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Services\Format;
 use Gibbon\Domain\User\UserGateway;
-use Gibbon\Domain\Staff\StaffCoverageGateway;
+use Gibbon\Domain\Staff\SubstituteGateway;
 
 require_once '../../gibbon.php';
 
-$gibbonPersonIDCoverage = $_POST['gibbonPersonIDCoverage'] ?? '';
+$gibbonPersonID = $_POST['gibbonPersonID'] ?? '';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/coverage_availability.php&gibbonPersonIDCoverage='.$gibbonPersonIDCoverage;
+$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/coverage_availability.php&gibbonPersonID='.$gibbonPersonID;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availability.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
-} elseif (empty($gibbonPersonIDCoverage) || empty($_POST['dateStart'])) {
+} elseif (empty($gibbonPersonID) || empty($_POST['dateStart'])) {
     $URL .= '&return=error1';
     header("Location: {$URL}");
     exit;
 } else {
     // Proceed!
-    $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
+    $substituteGateway = $container->get(SubstituteGateway::class);
     
-    $person = $container->get(UserGateway::class)->getByID($gibbonPersonIDCoverage);
+    $person = $container->get(UserGateway::class)->getByID($gibbonPersonID);
 
     if (empty($person)) {
         $URL .= '&return=error2';
@@ -58,15 +58,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
     // Create separate exception dates within the time span
     foreach ($dateRange as $date) {
         $data = [
-            'gibbonPersonIDCoverage' => $gibbonPersonIDCoverage,
+            'gibbonPersonID' => $gibbonPersonID,
             'date'                   => $date->format('Y-m-d'),
+            'allDay'                 => $_POST['allDay'] ?? '',
+            'timeStart'              => $_POST['timeStart'] ?? '',
+            'timeEnd'                => $_POST['timeEnd'] ?? '',
         ];
 
         if (!isSchoolOpen($guid, $data['date'], $connection2)) {
             continue;
         }
 
-        $inserted = $staffCoverageGateway->insertCoverageException($data);
+        $inserted = $substituteGateway->insertUnavailability($data);
         $partialFail &= !$inserted;
     }
 

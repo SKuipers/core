@@ -22,7 +22,7 @@ use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Forms\Prefab\BulkActionForm;
 use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
-use Gibbon\Domain\Staff\StaffCoverageGateway;
+use Gibbon\Domain\Staff\SubstituteGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availability.php') == false) {
     // Access denied
@@ -39,27 +39,26 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
         ]);
     }
 
-    $gibbonPersonIDCoverage = $_GET['gibbonPersonIDCoverage'] ?? $_SESSION[$guid]['gibbonPersonID'];
+    $gibbonPersonID = $_GET['gibbonPersonID'] ?? $_SESSION[$guid]['gibbonPersonID'];
 
-    $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
+    $substituteGateway = $container->get(SubstituteGateway::class);
 
-    if (empty($gibbonPersonIDCoverage)) {
+    if (empty($gibbonPersonID)) {
         $page->addError(__('You have not specified one or more required parameters.'));
         return;
     }
 
-
     // BULK ACTIONS
     $form = BulkActionForm::create('bulkAction', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/coverage_availability_deleteProcess.php');
     $form->setTitle(__('Dates'));
-    $form->addHiddenValue('gibbonPersonIDCoverage', $gibbonPersonIDCoverage);
+    $form->addHiddenValue('gibbonPersonID', $gibbonPersonID);
 
     // DATA TABLE
-    $criteria = $staffCoverageGateway->newQueryCriteria()
+    $criteria = $substituteGateway->newQueryCriteria()
         ->sortBy('date')
         ->fromPOST();
 
-    $dates = $staffCoverageGateway->queryCoverageExceptionsByPerson($criteria, $gibbonPersonIDCoverage);
+    $dates = $substituteGateway->queryUnavailableDatesBySub($criteria, $gibbonPersonID);
     
     $bulkActions = array(
         'Delete' => __('Delete'),
@@ -75,14 +74,22 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
     $table->addColumn('date', __('Date'))
         ->format(Format::using('dateReadable', 'date'));
 
+    $table->addColumn('timeStart', __('Time'))->format(function ($date) {
+        if ($date['allDay'] == 'N') {
+            return Format::small(Format::timeRange($date['timeStart'], $date['timeEnd']));
+        } else {
+            return Format::small(__('All Day'));
+        }
+    });
+
     $table->addColumn('status', __('Availability'))
         ->format(function ($date) {
             return Format::small(__('Not Available'));
         });
 
     $table->addActionColumn()
-        ->addParam('gibbonPersonIDCoverage', $gibbonPersonIDCoverage)
-        ->addParam('gibbonStaffCoverageExceptionID')
+        ->addParam('gibbonPersonID', $gibbonPersonID)
+        ->addParam('gibbonSubstituteUnavailableID')
         ->format(function ($date, $actions) {
             $actions->addAction('deleteInstant', __('Delete'))
                     ->setIcon('garbage')
@@ -91,30 +98,41 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
                     ->addConfirmation(__('Are you sure you wish to delete this record?'));
         });
 
-    $table->addCheckboxColumn('gibbonStaffCoverageExceptionID');
-
-    // echo $table->render($dates->toDataSet());
+    $table->addCheckboxColumn('gibbonSubstituteUnavailableID');
 
     echo $form->getOutput();
 
     
-
-
     $form = Form::create('staffAvailability', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/coverage_availability_addProcess.php');
 
     $form->setFactory(DatabaseFormFactory::create($pdo));
     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
-    $form->addHiddenValue('gibbonPersonIDCoverage', $gibbonPersonIDCoverage);
+    $form->addHiddenValue('gibbonPersonID', $gibbonPersonID);
 
-    $form->addRow()->addHeading(__('Add'));
+    $form->addRow()->addHeading(__('Unavailable'));
 
     $row = $form->addRow();
+    $row->addLabel('allDay', __('All Day'));
+    $row->addYesNoRadio('allDay')->checked('Y');
+
+    $form->toggleVisibilityByClass('timeOptions')->onRadio('allDay')->when('N');
+
+    $date = $_GET['date'] ?? '';
+    $row = $form->addRow();
         $row->addLabel('dateStart', __('Start Date'));
-        $row->addDate('dateStart')->to('dateEnd')->isRequired();
+        $row->addDate('dateStart')->to('dateEnd')->isRequired()->setValue($date);
 
     $row = $form->addRow();
         $row->addLabel('dateEnd', __('End Date'));
-        $row->addDate('dateEnd')->from('dateStart');
+        $row->addDate('dateEnd')->from('dateStart')->setValue($date);
+
+    $row = $form->addRow()->addClass('timeOptions');
+        $row->addLabel('timeStart', __('Start Time'));
+        $row->addTime('timeStart')->isRequired();
+
+    $row = $form->addRow()->addClass('timeOptions');
+        $row->addLabel('timeEnd', __('End Time'));
+        $row->addTime('timeEnd')->chainedTo('timeStart')->isRequired();
 
     $row = $form->addRow();
         $row->addFooter();

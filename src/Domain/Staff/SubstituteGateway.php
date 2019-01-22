@@ -73,4 +73,92 @@ class SubstituteGateway extends QueryableGateway
 
         return $this->runQuery($query, $criteria);
     }
+
+    public function queryUnavailableDatesBySub(QueryCriteria $criteria, $gibbonPersonIDCoverage)
+    {
+        $query = $this
+            ->newQuery()
+            ->from('gibbonSubstituteUnavailable')
+            ->cols([
+                'date as groupBy', 'gibbonSubstituteUnavailable.*',
+            ])
+            ->where('gibbonSubstituteUnavailable.gibbonPersonID = :gibbonPersonIDCoverage')
+            ->bindValue('gibbonPersonIDCoverage', $gibbonPersonIDCoverage);
+
+        return $this->runQuery($query, $criteria);
+    }
+
+    public function selectAvailableSubsByDateRange($dateStart, $dateEnd)
+    {
+        $data = ['dateStart' => $dateStart, 'dateEnd' => $dateEnd];
+        $sql = "SELECT gibbonPerson.gibbonPersonID as groupBy, gibbonSubstitute.*, gibbonPerson.title, gibbonPerson.preferredName, gibbonPerson.surname, gibbonPerson.status, gibbonPerson.image_240
+                FROM gibbonSubstitute
+                JOIN gibbonPerson ON (gibbonPerson.gibbonPersonID=gibbonSubstitute.gibbonPersonID)
+                LEFT JOIN gibbonStaffAbsenceDate ON (gibbonStaffAbsenceDate.date BETWEEN :dateStart AND :dateEnd)
+
+                LEFT JOIN gibbonStaffCoverage ON (gibbonStaffCoverage.gibbonStaffCoverageID=gibbonStaffAbsenceDate.gibbonStaffCoverageID
+                    AND gibbonStaffCoverage.gibbonPersonIDCoverage=gibbonSubstitute.gibbonPersonID)
+
+                LEFT JOIN gibbonStaffAbsence ON (gibbonStaffAbsence.gibbonStaffAbsenceID=gibbonStaffAbsenceDate.gibbonStaffAbsenceID
+                    AND gibbonStaffAbsence.gibbonPersonID=gibbonSubstitute.gibbonPersonID)
+
+                LEFT JOIN gibbonSubstituteUnavailable ON (gibbonSubstituteUnavailable.date BETWEEN :dateStart AND :dateEnd
+                    AND gibbonSubstituteUnavailable.gibbonPersonID=gibbonSubstitute.gibbonPersonID)
+
+                WHERE gibbonSubstitute.active='Y'
+                AND gibbonPerson.status='Full'
+                AND gibbonStaffCoverage.gibbonStaffCoverageID IS NULL
+                AND gibbonStaffAbsence.gibbonStaffAbsenceID IS NULL
+                AND gibbonSubstituteUnavailable.gibbonSubstituteUnavailableID IS NULL
+                GROUP BY gibbonSubstitute.gibbonSubstituteID
+                ORDER BY gibbonSubstitute.priority DESC, surname, preferredName";
+
+        return $this->db()->select($sql, $data);
+    }
+
+    public function selectUnavailableDatesBySub($gibbonPersonID, $gibbonStaffCoverageIDExclude = null)
+    {
+        $data = ['gibbonPersonID' => $gibbonPersonID, 'gibbonStaffCoverageIDExclude' => $gibbonStaffCoverageIDExclude];
+        $sql = "(
+                SELECT date as groupBy, 'Not Available' as status
+                FROM gibbonSubstituteUnavailable 
+                WHERE gibbonSubstituteUnavailable.gibbonPersonID=:gibbonPersonID 
+                ORDER BY DATE
+            ) UNION ALL (
+                SELECT date as groupBy, 'Already Booked' as status
+                FROM gibbonStaffCoverage
+                JOIN gibbonStaffAbsenceDate ON (gibbonStaffAbsenceDate.gibbonStaffCoverageID=gibbonStaffCoverage.gibbonStaffCoverageID)
+                WHERE gibbonStaffCoverage.gibbonPersonIDCoverage=:gibbonPersonID 
+                AND (gibbonStaffCoverage.status='Accepted' OR gibbonStaffCoverage.status='Requested')
+                AND gibbonStaffCoverage.gibbonStaffCoverageID <> :gibbonStaffCoverageIDExclude
+            ) UNION ALL (
+                SELECT date as groupBy, 'Absent' as status
+                FROM gibbonStaffAbsence
+                JOIN gibbonStaffAbsenceDate ON (gibbonStaffAbsenceDate.gibbonStaffAbsenceID=gibbonStaffAbsence.gibbonStaffAbsenceID)
+                WHERE gibbonStaffAbsence.gibbonPersonID=:gibbonPersonID 
+            )";
+
+        return $this->db()->select($sql, $data);
+    }
+
+    public function insertUnavailability($data)
+    {
+        $query = $this
+            ->newInsert()
+            ->into('gibbonSubstituteUnavailable')
+            ->cols($data);
+
+        return $this->runInsert($query);
+    }
+
+    public function deleteUnavailability($gibbonSubstituteUnavailableID)
+    {
+        $query = $this
+            ->newDelete()
+            ->from('gibbonSubstituteUnavailable')
+            ->where('gibbonSubstituteUnavailableID=:gibbonSubstituteUnavailableID')
+            ->bindValue('gibbonSubstituteUnavailableID', $gibbonSubstituteUnavailableID);
+
+        return $this->runDelete($query);
+    }
 }

@@ -23,6 +23,7 @@ use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Domain\School\SchoolYearGateway;
 use Gibbon\Domain\DataSet;
+use Gibbon\Domain\Staff\SubstituteGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPerson.php') == false) {
     // Access denied
@@ -35,6 +36,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
     
     $schoolYearGateway = $container->get(SchoolYearGateway::class);
     $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
+    $substituteGateway = $container->get(SubstituteGateway::class);
 
     if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php')) {
 
@@ -113,7 +115,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
             return $group;
         }, []);
 
-        $exceptions = $staffCoverageGateway->queryCoverageExceptionsByPerson($criteria, $gibbonPersonID);
+        $exceptions = $substituteGateway->queryUnavailableDatesBySub($criteria, $gibbonPersonID);
         $exceptionsByDate = array_reduce($exceptions->toArray(), function ($group, $item) {
             $group[$item['date']][] = $item;
             return $group;

@@ -277,22 +277,6 @@ class DatabaseFormFactory extends FormFactory
         return $this->createSelectPerson($name)->fromArray($staff);
     }
 
-    public function createSelectSubstitute($name)
-    {
-        $sql = "SELECT gibbonPerson.gibbonPersonID, title, surname, preferredName
-                FROM gibbonPerson JOIN gibbonSubstitute ON (gibbonPerson.gibbonPersonID=gibbonSubstitute.gibbonPersonID)
-                WHERE gibbonPerson.status='Full' AND  gibbonSubstitute.active='Y'
-                ORDER BY gibbonSubstitute.priority DESC, surname, preferredName";
-
-        $subs = $this->pdo->select($sql)->fetchGroupedUnique();
-
-        $subs = array_map(function ($person) {
-            return Format::name($person['title'], $person['preferredName'], $person['surname'], 'Staff', true, true);
-        }, $subs);
-
-        return $this->createSelectPerson($name)->fromArray($subs);
-    }
-
     public function createSelectUsers($name, $gibbonSchoolYearID = false, $params = array())
     {
         $params = array_replace(['includeStudents' => false, 'includeStaff' => false], $params);

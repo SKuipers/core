@@ -17,37 +17,37 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Domain\Staff\StaffCoverageGateway;
+use Gibbon\Domain\Staff\SubstituteGateway;
 
 require_once '../../gibbon.php';
 
-$gibbonPersonIDCoverage = $_REQUEST['gibbonPersonIDCoverage'] ?? '';
-$gibbonStaffCoverageExceptionID = $_REQUEST['gibbonStaffCoverageExceptionID'] ?? '';
+$gibbonPersonID = $_REQUEST['gibbonPersonID'] ?? '';
+$gibbonSubstituteUnavailableID = $_REQUEST['gibbonSubstituteUnavailableID'] ?? '';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/coverage_availability.php&gibbonPersonIDCoverage='.$gibbonPersonIDCoverage;
+$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/coverage_availability.php&gibbonPersonID='.$gibbonPersonID;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availability.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
-} elseif (empty($gibbonPersonIDCoverage) || empty($gibbonStaffCoverageExceptionID)) {
+} elseif (empty($gibbonPersonID) || empty($gibbonSubstituteUnavailableID)) {
     $URL .= '&return=error1';
     header("Location: {$URL}");
     exit;
 } else {
     // Proceed!
-    $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
+    $substituteGateway = $container->get(SubstituteGateway::class);
 
-    if ($gibbonPersonIDCoverage != $_SESSION[$guid]['gibbonPersonID']) {
+    if ($gibbonPersonID != $_SESSION[$guid]['gibbonPersonID']) {
         $URL .= '&return=error0';
         header("Location: {$URL}");
         exit;
     }
 
-    $exceptionList = is_array($gibbonStaffCoverageExceptionID)? $gibbonStaffCoverageExceptionID : [$gibbonStaffCoverageExceptionID];
+    $exceptionList = is_array($gibbonSubstituteUnavailableID)? $gibbonSubstituteUnavailableID : [$gibbonSubstituteUnavailableID];
     $partialFail = false;
 
     foreach ($exceptionList as $exceptionID) {
-        $deleted = $staffCoverageGateway->deleteCoverageException($exceptionID);
+        $deleted = $substituteGateway->deleteUnavailability($exceptionID);
         $partialFail &= !$deleted;
     }
 

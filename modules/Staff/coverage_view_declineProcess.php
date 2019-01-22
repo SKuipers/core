@@ -102,7 +102,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_declin
         $partialFail &= !$updated;
 
         if ($markAsUnavailable) {
-            $staffCoverageGateway->insertCoverageException([
+            $staffCoverageGateway->insertUnavailability([
                 'gibbonPersonIDCoverage' => $coverage['gibbonPersonIDCoverage'],
                 'date'                   => $date['date'],
             ]);

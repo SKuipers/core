@@ -846,13 +846,6 @@ CREATE TABLE `gibbonStaffCoverage` (
     `notesCoverage` VARCHAR(255) NULL,
     PRIMARY KEY (`gibbonStaffCoverageID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;end
-CREATE TABLE `gibbonStaffCoverageException` (
-    `gibbonStaffCoverageExceptionID` INT(14) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
-    `gibbonPersonIDCoverage` INT(14) UNSIGNED ZEROFILL NOT NULL,
-    `date` DATE NULL,
-    UNIQUE KEY `personAndDate` (`gibbonPersonIDCoverage`, `date`),
-    PRIMARY KEY (`gibbonStaffCoverageExceptionID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;end
 CREATE TABLE `gibbonSubstitute` (
     `gibbonSubstituteID` INT(10) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
     `gibbonPersonID` int(10) UNSIGNED ZEROFILL NOT NULL,
@@ -865,6 +858,16 @@ CREATE TABLE `gibbonSubstitute` (
     `contactEmail` ENUM('Y','N') DEFAULT 'Y',
     UNIQUE KEY `gibbonPersonID` (`gibbonPersonID`),
     PRIMARY KEY (`gibbonSubstituteID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;end
+CREATE TABLE `gibbonSubstituteUnavailable` (
+    `gibbonSubstituteUnavailableID` INT(14) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
+    `gibbonPersonID` INT(14) UNSIGNED ZEROFILL NOT NULL,
+    `date` DATE NULL,
+    `allDay` ENUM('N','Y') DEFAULT 'Y',
+    `timeStart` time NULL DEFAULT NULL,
+    `timeEnd` time NULL DEFAULT NULL,
+    UNIQUE KEY `personAndDate` (`gibbonPersonID`, `date`),
+    PRIMARY KEY (`gibbonSubstituteUnavailableID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;end
 INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES ((SELECT gibbonModuleID FROM gibbonModule WHERE name='Staff'), 'New Absence_mine', 0, 'Absences', 'Allows a user to submit their own staff absences.', 'absences_manage_add.php', 'absences_manage_add.php', 'Y', 'Y', 'N', 'N', 'Y', 'Y', 'N', 'N', 'Y');end
 INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('002', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Staff' AND gibbonAction.name='New Absence_mine'));end

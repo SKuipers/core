@@ -20,7 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
-use Gibbon\Domain\Staff\StaffCoverageGateway;
+use Gibbon\Domain\Staff\SubstituteGateway;
 
 require_once '../../gibbon.php';
 
@@ -33,12 +33,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     die();
 } else {
     // Proceed!
-    $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
+    $substituteGateway = $container->get(SubstituteGateway::class);
     $staffAbsenceDateGateway = $container->get(StaffAbsenceDateGateway::class);
 
     // DATA TABLE
     $absenceDates = $staffAbsenceDateGateway->selectDatesByAbsence($gibbonStaffAbsenceID);
-    $unavailable = $staffCoverageGateway->selectUnavailableDatesByPerson($gibbonPersonIDCoverage)->fetchKeyPair();
+    $unavailable = $substituteGateway->selectUnavailableDatesBySub($gibbonPersonIDCoverage)->fetchKeyPair();
 
     if (empty($absenceDates)) {
         die();

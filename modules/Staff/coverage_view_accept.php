@@ -25,6 +25,7 @@ use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
+use Gibbon\Domain\Staff\SubstituteGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept.php') == false) {
     // Access denied
@@ -93,7 +94,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
     $absenceDates = $container->get(StaffAbsenceDateGateway::class)->selectDatesByCoverage($gibbonStaffCoverageID);
 
     $gibbonPersonID = !empty($coverage['gibbonPersonIDCoverage']) ? $coverage['gibbonPersonIDCoverage'] : $_SESSION[$guid]['gibbonPersonID'];
-    $unavailable = $staffCoverageGateway->selectUnavailableDatesByPerson($gibbonPersonID, $gibbonStaffCoverageID)->fetchKeyPair();
+    $unavailable = $container->get(SubstituteGateway::class)->selectUnavailableDatesBySub($gibbonPersonID, $gibbonStaffCoverageID)->fetchKeyPair();
 
     $table = DataTable::create('staffCoverageDates');
     $table->setTitle(__('Dates'));
