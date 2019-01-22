@@ -24,12 +24,12 @@ use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage.php') == false) {
-    //Acess denied
+    // Access denied
     echo "<div class='error'>";
     echo __('You do not have access to this action.');
     echo '</div>';
 } else {
-    //Proceed!
+    // Proceed!
     $page->breadcrumbs->add(__('Manage Staff Coverage'));
 
     if (isset($_GET['return'])) {
@@ -39,6 +39,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage.php'
     $gibbonSchoolYearID = $_SESSION[$guid]['gibbonSchoolYearID'];
     $search = $_GET['search'] ?? '';
 
+    $urgencyThreshold = getSettingByScope($connection2, 'Staff', 'urgencyThreshold');
     $StaffCoverageGateway = $container->get(StaffCoverageGateway::class);
 
     
@@ -51,14 +52,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage.php'
     $row = $form->addRow();
         $row->addLabel('search', __('Search'));
         $row->addTextField('search')->setValue($search);
-
-    // $row = $form->addRow();
-    //     $row->addLabel('dateStart', __('Start Date'));
-    //     $row->addDate('dateStart')->setValue($dateStart);
-
-    // $row = $form->addRow();
-    //     $row->addLabel('dateEnd', __('End Date'));
-    //     $row->addDate('dateEnd')->setValue($dateEnd);
 
     $row = $form->addRow();
         $row->addFooter();
@@ -75,31 +68,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage.php'
     $criteria->filterBy('date', !$criteria->hasFilter() && !$criteria->hasSearchText() ? 'upcoming' : '')
         ->fromPOST();
 
-    $absences = $StaffCoverageGateway->queryCoverageBySchoolYear($criteria, $gibbonSchoolYearID, true);
-
-    // Join a set of coverage data per absence
-    // $absenceIDs = $absences->getColumn('gibbonStaffAbsenceID');
-    // $coverageData = $staffAbsenceDateGateway->selectDatesByAbsence($absenceIDs)->fetchGrouped();
-    // $absences->joinColumn('gibbonStaffAbsenceID', 'coverageList', $coverageData);
+    $coverage = $StaffCoverageGateway->queryCoverageBySchoolYear($criteria, $gibbonSchoolYearID, true);
 
     // DATA TABLE
-    $table = DataTable::createPaginated('staffAbsences', $criteria);
+    $table = DataTable::createPaginated('staffCoverage', $criteria);
     $table->setTitle(__('View'));
 
-    // if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_summary.php')) {
-    //     $table->addHeaderAction('view', __('View'))
-    //         ->setIcon('planner')
-    //         ->setURL('/modules/Staff/report_absences_summary.php')
-    //         ->displayLabel()
-    //         ->append('&nbsp;|&nbsp;');
-    // }
-
-    // $table->addHeaderAction('add', __('New Absence'))
-    //     ->setURL('/modules/Staff/absences_manage_add.php')
-    //     ->addParam('gibbonPersonID', '')
-    //     ->addParam('date', $dateStart)
-    //     ->displayLabel();
-    
     $table->modifyRows(function ($coverage, $row) {
         if ($coverage['status'] == 'Accepted') $row->addClass('current');
         if ($coverage['status'] == 'Declined') $row->addClass('error');
@@ -118,40 +92,24 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage.php'
     ]);
 
     // COLUMNS
-    // $table->addColumn('fullName', __('Name'))
-    //     ->sortable(['surname', 'preferredName'])
-    //     ->format(function ($absence) use ($guid) {
-    //         $text = Format::name($absence['title'], $absence['preferredName'], $absence['surname'], 'Staff', false, true);
-    //         $url = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/absences_view_byPerson.php&gibbonPersonID='.$absence['gibbonPersonID'];
-
-    //         return Format::link($url, $text);
-    //     });
     $table->addColumn('requested', __('Name'))
         ->sortable(['surnameAbsence', 'preferredNameAbsence'])
         ->format(function ($coverage) {
             return Format::name($coverage['titleAbsence'], $coverage['preferredNameAbsence'], $coverage['surnameAbsence'], 'Staff', false, true).'<br/>'.
-                Format::small($coverage['jobTitleAbsence']);
+                Format::small($coverage['type'].' '.$coverage['reason']);
         });
 
     $table->addColumn('date', __('Date'))
         ->width('18%')
-        ->format(function ($absence) {
-            $output = Format::dateRangeReadable($absence['dateStart'], $absence['dateEnd']);
-            if ($absence['days'] > 1) {
-                $output .= '<br/>'.Format::small(__n('{count} Day', '{count} Days', $absence['days']));
-            } elseif ($absence['allDay'] == 'N') {
-                $output .= '<br/>'.Format::small(Format::timeRange($absence['timeStart'], $absence['timeEnd']));
+        ->format(function ($coverage) {
+            $output = Format::dateRangeReadable($coverage['dateStart'], $coverage['dateEnd']);
+            if ($coverage['days'] > 1) {
+                $output .= '<br/>'.Format::small(__n('{count} Day', '{count} Days', $coverage['days']));
+            } elseif ($coverage['allDay'] == 'N') {
+                $output .= '<br/>'.Format::small(Format::timeRange($coverage['timeStart'], $coverage['timeEnd']));
             }
-            
             return $output;
         });
-
-    $table->addColumn('type', __('Type'))
-        ->description(__('Reason'))
-        ->format(function ($absence) {
-            return $absence['type'] .'<br/>'.Format::small($absence['reason']);
-        });
-
 
     $table->addColumn('coverage', __('Substitute'))
         ->sortable(['surnameCoverage', 'preferredNameCoverage'])
@@ -161,28 +119,34 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage.php'
                 : '<div class="badge success">'.__('Pending').'</div>';
         });
 
+    $table->addColumn('status', __('Status'))
+        ->width('15%')
+        ->format(function ($coverage) use ($urgencyThreshold) {
+            $relativeSeconds = strtotime($coverage['dateStart']) - time();
+            if ($coverage['status'] != 'Requested') {
+                return $coverage['status'];
+            }
+            if ($relativeSeconds <= 0) {
+                return '<div class="badge dull">'.__('Overdue').'</div>';
+            } elseif ($relativeSeconds <= (86400 * $urgencyThreshold)) {
+                return '<div class="error badge">'.__('Urgent').'</div>';
+            } elseif ($relativeSeconds <= (86400 * ($urgencyThreshold * 3))) {
+                return '<div class="badge warning">'.__('Upcoming').'</div>';
+            } else {
+                return __('Upcoming');
+            }
+        });
 
-    // $table->addColumn('timestampRequested', __('Requested'))
-    //     ->format(function ($absence) {
-    //         if (empty($absence['timestampRequested'])) return;
-    //         return Format::relativeTime($absence['timestampRequested'], 'M j, Y H:i');
-    //     });
-
-    $table->addColumn('status', __('Status'));
+    $table->addColumn('timestampRequested', __('Requested'))
+        ->format(function ($coverage) {
+            if (empty($coverage['timestampRequested'])) return;
+            return Format::relativeTime($coverage['timestampRequested'], 'M j, Y H:i');
+        });
 
     // ACTIONS
     $table->addActionColumn()
         ->addParam('gibbonStaffCoverageID')
         ->format(function ($person, $actions) {
-            // $actions->addAction('accept', __('Accept'))
-            //     ->setIcon('iconTick')
-            //     ->setURL('/modules/Staff/coverage_view_accept.php');
-
-            // $actions->addAction('decline', __('Decline'))
-            //     ->setIcon('iconCross')
-            //     ->setURL('/modules/Staff/coverage_view_decline.php')
-            //     ->append('<br/>');
-
             $actions->addAction('edit', __('Edit'))
                 ->setURL('/modules/Staff/coverage_manage_edit.php');
 
@@ -190,5 +154,5 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage.php'
                 ->setURL('/modules/Staff/coverage_manage_delete.php');
         });
 
-    echo $table->render($absences);
+    echo $table->render($coverage);
 }

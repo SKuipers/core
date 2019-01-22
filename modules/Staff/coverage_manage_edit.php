@@ -90,18 +90,40 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_edit
     $form->addRow()->addHeading(__('Substitute'));
 
     $row = $form->addRow();
-        $row->addLabel('gibbonPersonIDLabel', __('Person'));
-        $row->addSelectUsers('gibbonPersonIDCoverage')
-            ->placeholder()
-            ->isRequired()
-            ->selected($coverage['gibbonPersonIDCoverage'] ?? '')
-            ->setReadonly(true);
+        $row->addLabel('requestTypeLabel', __('Type'));
+        $row->addTextField('requestType')->readonly()->setValue($coverage['requestType']);
 
     $row = $form->addRow();
         $row->addLabel('status', __('Status'));
         $row->addTextField('status')->readonly()->setValue($coverage['status']);
 
-    if (!empty($coverage['timestampCoverage'])) {
+    if ($coverage['requestType'] == 'Individual') {
+        $row = $form->addRow();
+            $row->addLabel('gibbonPersonIDLabel', __('Person'));
+            $row->addSelectUsers('gibbonPersonIDCoverage')
+                ->placeholder()
+                ->isRequired()
+                ->selected($coverage['gibbonPersonIDCoverage'] ?? '')
+                ->setReadonly(true);
+    } else if ($coverage['requestType'] == 'Broadcast') {
+
+        $notified = $coverage['notified'] != 'N' && $coverage['notified'] != 'Failed'
+            ? json_decode($coverage['notified'])
+            : [];
+
+        if ($notified) {
+            $data = ['gibbonPersonIDList' => implode(',', $notified)];
+            $sql = "SELECT username, title, preferredName, surname FROM gibbonPerson WHERE FIND_IN_SET(gibbonPersonID, :gibbonPersonIDList) ";
+            $people = $pdo->select($sql, $data)->fetchAll();
+
+            $row = $form->addRow();
+                $row->addLabel('sentToLabel', __('Recipients'));
+                $row->addTextArea('sentTo')->readonly()->setValue(Format::nameList($people, 'Staff', false, true, ', '));
+        }
+    }
+
+    // Output the coverage status change timestamp, if it has been actioned
+    if ($coverage['status'] != 'Requested' && !empty($coverage['timestampCoverage'])) {
         $row = $form->addRow();
         $row->addLabel('timestampCoverage', __($coverage['status']));
         $row->addTextField('timestampCoverageValue')

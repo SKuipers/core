@@ -87,8 +87,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
             'gibbonStaffAbsenceID' => $gibbonStaffAbsenceID,
             'date'                 => $date->format('Y-m-d'),
             'allDay'               => $_POST['allDay'] ?? '',
-            'timeStart'            => $_POST['timeStart'] ?? '',
-            'timeEnd'              => $_POST['timeEnd'] ?? '',
+            'timeStart'            => $_POST['timeStart'] ?? null,
+            'timeEnd'              => $_POST['timeEnd'] ?? null,
         ];
 
         if (!isSchoolOpen($guid, $dateData['date'], $connection2)) {

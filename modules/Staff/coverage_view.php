@@ -46,6 +46,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view.php') 
     $criteria = $staffCoverageGateway->newQueryCriteria()
         ->sortBy('date', 'ASC')
         ->filterBy('requested', 'Y')
+        ->filterBy('date:upcoming')
         ->pageSize(0)
         ->fromPOST('myCoverage');
 
@@ -54,6 +55,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view.php') 
     $criteria = $staffCoverageGateway->newQueryCriteria()
         ->sortBy('date', 'ASC')
         ->filterBy('requested', 'Y')
+        ->filterBy('date:upcoming')
         ->pageSize(0)
         ->fromPOST('allCoverage');
 
@@ -80,7 +82,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view.php') 
         ->width('15%')
         ->format(function ($coverage) use ($urgencyThreshold) {
             $relativeSeconds = strtotime($coverage['dateStart']) - time();
-            if ($relativeSeconds <= (86400 * $urgencyThreshold)) {
+            if ($relativeSeconds <= 0) {
+                return '<div class="badge dull">'.__('Past').'</div>';
+            } elseif ($relativeSeconds <= (86400 * $urgencyThreshold)) {
                 return '<div class="error badge">'.__('Urgent').'</div>';
             } elseif ($relativeSeconds <= (86400 * ($urgencyThreshold * 3))) {
                 return '<div class="badge warning">'.__('Upcoming').'</div>';

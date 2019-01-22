@@ -21,6 +21,7 @@ namespace Gibbon\Module\Staff;
 
 use Gibbon\Contracts\Comms\Mailer as MailerContract;
 use Gibbon\Contracts\Comms\SMS as SMSContract;
+use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Domain\User\UserGateway;
 
 /**
@@ -32,11 +33,15 @@ use Gibbon\Domain\User\UserGateway;
 class MessageSender
 {
     protected $userGateway;
+    protected $settings;
     protected $mail;
     protected $sms;
 
-    public function __construct(UserGateway $userGateway, MailerContract $mail, SMSContract $sms)
+    public function __construct(SettingGateway $settingGateway, UserGateway $userGateway, MailerContract $mail, SMSContract $sms)
     {
+        $this->settings = [
+            'absoluteURL' => $settingGateway->getSettingByScope('System', 'absoluteURL'),
+        ];
         $this->userGateway = $userGateway;
         $this->mail = $mail;
         $this->sms = $sms;
@@ -75,11 +80,11 @@ class MessageSender
             }, $recipients);
 
             $result = $this->sms
-                ->content($message->toSMS()."\n".'[ http://gibbon.tis.edu.mo ]')
+                ->content($message->toSMS()."\n".'[ '.$this->settings['absoluteURL'].' ]')
                 ->send($phoneNumbers);
         }
 
-        // Send Notification
+        // Send Notification (database)
         if (in_array('notification', $via)) {
             // Do stuff...
         }
