@@ -23,6 +23,7 @@ use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Module\Staff\MessageSender;
 use Gibbon\Module\Staff\Messages\BroadcastRequest;
+use Gibbon\Services\Format;
 
 $_POST['address'] = '/modules/Staff/coverage_requestBroadcastProcess.php';
 

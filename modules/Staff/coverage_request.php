@@ -84,7 +84,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
         $requestTypes['Individual'] = __('Specific substitute');
     } else {
         $row = $form->addRow();
-        $row->addAlert(__("There are no subs currently available for the dates selected. You may still send an open request, as sub availability may change, but you cannot select a specific sub at this time."), 'warning');
+        
     }
 
     $dateStart = $absenceDates[0] ?? '';
@@ -98,22 +98,28 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
         $row->addLabel('dateLabel', __('Absence'));
         $row->addTextField('date')->readonly()->setValue($dateRange.' '.$timeRange);
 
-
     $row = $form->addRow();
         $row->addLabel('requestType', __('Substitute Required?'));
         $row->addSelect('requestType')->isRequired()->fromArray($requestTypes)->selected('Broadcast');
 
-    $form->toggleVisibilityByClass('coverageOptions')->onSelect('requestType')->when('Individual');
+    $form->toggleVisibilityByClass('individualOptions')->onSelect('requestType')->when('Individual');
     $form->toggleVisibilityByClass('broadcastOptions')->onSelect('requestType')->when('Broadcast');
         
     $notification = __("SMS and email");
-    $row = $form->addRow()->addClass('coverageOptions');
-        $row->addAlert(__("This option sends your request by {notification} to the selected substitute.", ['notification' => $notification]).' '.__("You'll receive a notification when they accept or decline your request. If your request is declined you'll have to option to send a new request."), 'message');
-
+    
+    // Broadcast
     $row = $form->addRow()->addClass('broadcastOptions');
-        $row->addAlert(__("This option sends a request by {notification} out to <b>ALL</b> available subs.", ['notification' => $notification]).' '.__("You'll receive a notification once your request is accepted."), 'message');
+    if (!empty($availableSubs)) {
+        $row->addAlert(__("This option sends a request out to all available subs. There are currently {count} subs with availability for this time period. You'll receive a notification once your request is accepted.", ['count' => '<b>'.count($availableSubs).'</b>']), 'message');
+    } else {
+        $row->addAlert(__("There are no subs currently available for this time period. You may still send an request, as sub availability may change, but you cannot select a specific sub at this time."), 'warning');
+    }
 
-    $row = $form->addRow()->addClass('coverageOptions');
+    // Individual
+    $row = $form->addRow()->addClass('individualOptions');
+        $row->addAlert(__("This option sends your request to the selected substitute. You'll receive a notification when they accept or decline. If your request is declined you'll have to option to send a new request."), 'message');
+
+    $row = $form->addRow()->addClass('individualOptions');
         $row->addLabel('gibbonPersonIDCoverage', __('Substitute'))->description(__('Only available subs are listed here.'));
         $row->addSelectPerson('gibbonPersonIDCoverage')
             ->fromArray($availableSubs)
@@ -122,7 +128,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
             ->isRequired();
 
     // Loaded via AJAX
-    $row = $form->addRow()->addClass('coverageOptions');
+    $row = $form->addRow()->addClass('individualOptions');
         $row->addContent('<div class="datesTable"></div>');
 
     $row = $form->addRow();

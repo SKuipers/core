@@ -133,8 +133,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_summ
                 ->format(function ($month) use ($baseURL, $dayCount, $gibbonStaffAbsenceTypeID, $dateFormat) {
                     $day = $month['days'][$dayCount] ?? null;
                     if (empty($day)) return '';
-
-                    $url = $baseURL.'&dateStart='.$day['date']->format($dateFormat).'&gibbonStaffAbsenceTypeID='.$gibbonStaffAbsenceTypeID;
+                    $dateText = $day['date']->format($dateFormat);
+                    $url = $baseURL.'&dateStart='.$dateText.'&dateEnd='.$dateText.'&gibbonStaffAbsenceTypeID='.$gibbonStaffAbsenceTypeID;
                     $title = $day['date']->format('l');
                     $title .= '<br/>'.$day['date']->format('M j, Y');
                     if ($day['count'] > 0) {
