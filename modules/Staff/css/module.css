@@ -128,12 +128,22 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 .bg-grey { background: #aaaaaa !important; }
 
-.half-day::after {
+.half-day-am::after {
+    content: '';
+    display: block;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    top: 1px;
+    background: linear-gradient(to right bottom, rgba(0,0,0,0) 50%, rgba(251, 251, 251,0.7) 50%);
+}
+
+.half-day-pm::after {
     content: '';
     display: block;
     position: absolute;
     height: 100%;
     width: 100%;
     top: -1px;
-    background: linear-gradient(to right bottom, rgba(251, 251, 251,0.6) 50%, rgba(0,0,0,0) 50%);
+    background: linear-gradient(to right bottom, rgba(251, 251, 251,0.7) 50%, rgba(0,0,0,0) 50%);
 }

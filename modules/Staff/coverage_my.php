@@ -145,7 +145,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
                     'count'   => $coverageCount,
                     'weekend' => $date->format('N') >= 6,
                     'coverage' => current($coverageListByDay),
-                    'exception' => isset($exceptionsByDate[$date->format('Y-m-d')])
+                    'exception' => isset($exceptionsByDate[$date->format('Y-m-d')]) 
+                        ? current($exceptionsByDate[$date->format('Y-m-d')]) 
+                        : null,
                 ];
             }
     
@@ -179,12 +181,20 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
                     $url = $_SESSION[$guid]['absoluteURL'].'/fullscreen.php?q=/modules/Staff/coverage_view_details.php&gibbonStaffCoverageID='.$day['coverage']['gibbonStaffCoverageID'].'&width=800&height=550';
 
                     $params['title'] = $day['date']->format('l').'<br/>'.$day['date']->format('M j, Y');
-                    $params['class'] = $coverage['allDay'] == 'N' ? 'half-day' : '';
+                    $params['class'] = '';
+                    if ($day['coverage']['allDay'] == 'N') {
+                        $params['class'] = $day['coverage']['timeStart'] < '12:00:00' ? 'half-day-am' : 'half-day-pm';
+                    }
+                    
                     if ($day['count'] > 0) {
-                        $params['class'] = 'thickbox';
+                        $params['class'] .= ' thickbox';
                         $params['title'] .= '<br/>'.Format::name($coverage['titleAbsence'], $coverage['preferredNameAbsence'], $coverage['surnameAbsence'], 'Staff', false, true);
                         $params['title'] .= '<br/>'.$coverage['status'];
                     } elseif ($day['exception']) {
+                        if ($day['exception']['allDay'] == 'N') {
+                            $params['class'] = $day['exception']['timeStart'] < '12:00:00' ? 'half-day-am' : 'half-day-pm';
+                        }
+
                         $url = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/coverage_availability.php';
                         $params['title'] .= '<br/>'.__('Not Available');
                     }

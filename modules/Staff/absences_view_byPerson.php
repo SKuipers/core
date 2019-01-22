@@ -121,9 +121,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
                 $url = $_SESSION[$guid]['absoluteURL'].'/fullscreen.php?q=/modules/Staff/absences_view_details.php&gibbonStaffAbsenceID='.$day['absence']['gibbonStaffAbsenceID'].'&width=800&height=550';
                 $title = $day['date']->format('l').'<br/>'.$day['date']->format('M j, Y');
                 $title .= '<br/>'.$day['absence']['type'];
-                $class = $day['absence']['allDay'] == 'Y' ? 'thickbox' : 'thickbox half-day';
+                $classes = ['thickbox'];
+                if ($day['absence']['allDay'] == 'N') {
+                    $classes[] = $day['absence']['timeStart'] < '12:00:00' ? 'half-day-am' : 'half-day-pm';
+                }
 
-                return Format::link($url, $day['number'], ['title' => $title, 'class' => $class]);
+                return Format::link($url, $day['number'], ['title' => $title, 'class' => implode(' ', $classes)]);
             })
             ->modifyCells(function ($month, $cell) use ($dayCount) {
                 $day = $month['days'][$dayCount] ?? null;
