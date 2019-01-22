@@ -94,7 +94,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
     $absenceDates = $container->get(StaffAbsenceDateGateway::class)->selectDatesByCoverage($gibbonStaffCoverageID);
 
     $gibbonPersonID = !empty($coverage['gibbonPersonIDCoverage']) ? $coverage['gibbonPersonIDCoverage'] : $_SESSION[$guid]['gibbonPersonID'];
-    $unavailable = $container->get(SubstituteGateway::class)->selectUnavailableDatesBySub($gibbonPersonID, $gibbonStaffCoverageID)->fetchKeyPair();
+    $unavailable = $container->get(SubstituteGateway::class)->selectUnavailableDatesBySub($gibbonPersonID, $gibbonStaffCoverageID)->fetchGroupedUnique();
 
     $table = DataTable::create('staffCoverageDates');
     $table->setTitle(__('Dates'));
@@ -129,7 +129,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
             if (empty($absence['gibbonStaffCoverageID'])) return __('N/A');
 
             // Is this date unavailable: absent, already booked, or has an availability exception
-            if (isset($unavailable[$absence['date']])) return Format::small(__($unavailable[$absence['date']]));
+            if (isset($unavailable[$absence['date']])) {
+                $date = $unavailable[$absence['date']];
+                
+                // Handle full day and partial day unavailability
+                if ($date['allDay'] == 'Y' || ($date['allDay'] == 'N' 
+                    && $date['timeStart'] <= $absence['timeEnd'] 
+                    && $date['timeEnd'] >= $absence['timeStart'])) {
+                    return Format::small(__($unavailable[$absence['date']]['status'] ?? 'Not Available'));
+                }
+            }
 
             $datesAvailableToRequest++;
         });

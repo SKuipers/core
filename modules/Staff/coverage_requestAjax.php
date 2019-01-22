@@ -38,7 +38,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
 
     // DATA TABLE
     $absenceDates = $staffAbsenceDateGateway->selectDatesByAbsence($gibbonStaffAbsenceID);
-    $unavailable = $substituteGateway->selectUnavailableDatesBySub($gibbonPersonIDCoverage)->fetchKeyPair();
+    $unavailable = $substituteGateway->selectUnavailableDatesBySub($gibbonPersonIDCoverage)->fetchGroupedUnique();
 
     if (empty($absenceDates)) {
         die();
@@ -69,7 +69,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
             if (!empty($absence['gibbonStaffCoverageID'])) return __('Requested');
 
             // Is this date unavailable: absent, already booked, or has an availability exception
-            if (isset($unavailable[$absence['date']])) return Format::small(__($unavailable[$absence['date']]));
+            if (isset($unavailable[$absence['date']])) {
+                $date = $unavailable[$absence['date']];
+                
+                // Handle full day and partial day unavailability
+                if ($date['allDay'] == 'Y' || ($date['allDay'] == 'N' 
+                    && $date['timeStart'] <= $absence['timeEnd'] 
+                    && $date['timeEnd'] >= $absence['timeStart'])) {
+                    return Format::small(__($unavailable[$absence['date']]['status'] ?? 'Not Available'));
+                }
+            }
 
             $datesAvailableToRequest++;
         });

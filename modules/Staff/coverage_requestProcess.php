@@ -25,14 +25,14 @@ use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Module\Staff\MessageSender;
 use Gibbon\Module\Staff\Messages\IndividualRequest;
-use Gibbon\Module\Staff\Messages\BroadcastRequest;
+use Gibbon\Data\BackgroundProcess;
 
 require_once '../../gibbon.php';
 
 $gibbonStaffAbsenceID = $_POST['gibbonStaffAbsenceID'] ?? '';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/coverage_request.php&gibbonStaffAbsenceID='.$gibbonStaffAbsenceID;
-$URLSuccess = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/absences_view_details.php&gibbonStaffAbsenceID='.$gibbonStaffAbsenceID;
+$URL = $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Staff/coverage_request.php&gibbonStaffAbsenceID='.$gibbonStaffAbsenceID;
+$URLSuccess = $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Staff/absences_view_details.php&gibbonStaffAbsenceID='.$gibbonStaffAbsenceID;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php') == false) {
     $URL .= '&return=error0';
@@ -48,14 +48,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     $data = [
         'gibbonStaffAbsenceID'    => $gibbonStaffAbsenceID,
         'gibbonPersonIDCoverage'  => $_POST['gibbonPersonIDCoverage'] ?? null,
-        'gibbonPersonIDRequested' => $_SESSION[$guid]['gibbonPersonID'],
+        'gibbonPersonIDRequested' => $gibbon->session->get('gibbonPersonID'),
         'notesRequested'          => $_POST['notesRequested'],
         'requestType'             => $_POST['requestType'],
         'status'                  => 'Requested',
+        'notified'                => 'N',
     ];
 
     // Validate the required values are present
-    if (empty($data['gibbonStaffAbsenceID'])) {
+    if (empty($data['gibbonStaffAbsenceID']) || !($data['requestType'] == 'Individual' || $data['requestType'] == 'Broadcast')) {
         $URL .= '&return=error1';
         header("Location: {$URL}");
         exit;
@@ -120,10 +121,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
         $sent = $container
             ->get(MessageSender::class)
             ->send($recipients, $message);
+
+        $staffCoverageGateway->update($gibbonStaffCoverageID, [
+            'notified' => $sent ? json_encode($recipients) : 'N',
+        ]);
+
+    } else if ($data['requestType'] == 'Broadcast') {
+        $process = new BackgroundProcess($gibbon->session->get('absolutePath').'/uploads/background');
+        $process->startProcess('coverageBroadcast', __DIR__.'/coverage_requestBroadcastProcess.php', array($gibbonStaffCoverageID));
     }
 
-
-    $URL .= $partialFail
+    $URLSuccess .= $partialFail
         ? "&return=warning1"
         : "&return=success0";
 

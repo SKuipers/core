@@ -844,6 +844,7 @@ CREATE TABLE `gibbonStaffCoverage` (
     `gibbonPersonIDCoverage` int(10) UNSIGNED ZEROFILL NULL,
     `timestampCoverage` timestamp NULL,
     `notesCoverage` VARCHAR(255) NULL,
+    `notified` TEXT NULL,
     PRIMARY KEY (`gibbonStaffCoverageID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;end
 CREATE TABLE `gibbonSubstitute` (

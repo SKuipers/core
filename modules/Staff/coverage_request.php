@@ -21,10 +21,9 @@ use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
-use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
+use Gibbon\Domain\Staff\SubstituteGateway;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
-use Gibbon\Domain\Staff\StaffCoverageGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php') == false) {
     // Access denied
@@ -43,8 +42,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     $gibbonStaffAbsenceID = $_GET['gibbonStaffAbsenceID'] ?? '';
     $gibbonPersonIDCoverage = $_GET['gibbonPersonIDCoverage'] ?? '';
 
+    $substituteGateway = $container->get(SubstituteGateway::class);
     $staffAbsenceGateway = $container->get(StaffAbsenceGateway::class);
-    $staffAbsenceTypeGateway = $container->get(StaffAbsenceTypeGateway::class);
+    $staffAbsenceDateGateway = $container->get(StaffAbsenceDateGateway::class);
 
     if (empty($gibbonStaffAbsenceID)) {
         $page->addError(__('You have not specified one or more required parameters.'));
@@ -52,11 +52,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     }
 
     $values = $staffAbsenceGateway->getByID($gibbonStaffAbsenceID);
+    $absenceDates = $staffAbsenceDateGateway->selectDatesByAbsence($gibbonStaffAbsenceID)->fetchAll();
 
-    if (empty($values)) {
+    if (empty($values) || empty($absenceDates)) {
         $page->addError(__('The specified record cannot be found.'));
         return;
     }
+    
+    // Look for available subs
+    $availableSubs = array_reduce($absenceDates, function ($group, $date) use ($substituteGateway) {
+        $availableByDate = $substituteGateway->selectAvailableSubsByDate($date['date'], $date['timeStart'], $date['timeEnd'])->fetchGroupedUnique();
+        return array_merge($group, $availableByDate);
+    }, []);
+
+    // Map names for Select list
+    $availableSubs = array_map(function ($person) {
+        return Format::name($person['title'], $person['preferredName'], $person['surname'], 'Staff', true, true);
+    }, $availableSubs);
 
     $form = Form::create('staffAbsenceEdit', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/coverage_requestProcess.php');
 
@@ -66,10 +78,27 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
 
     $form->addRow()->addHeading(__('Coverage Request'));
 
-    $requestTypes = [
-        'Broadcast'  => __('Any available substitute'),
-        'Individual' => __('Specific substitute'),
-    ];
+    $requestTypes = ['Broadcast'  => __('Any available substitute')];
+
+    if (!empty($availableSubs)) {
+        $requestTypes['Individual'] = __('Specific substitute');
+    } else {
+        $row = $form->addRow();
+        $row->addAlert(__("There are no subs currently available for the dates selected. You may still send an open request, as sub availability may change, but you cannot select a specific sub at this time."), 'warning');
+    }
+
+    $dateStart = $absenceDates[0] ?? '';
+    $dateEnd = $absenceDates[count($absenceDates) -1] ?? '';
+    $dateRange = Format::dateRangeReadable($dateStart['date'], $dateEnd['date']);
+    $timeRange = $dateStart['allDay'] == 'N'
+        ? Format::timeRange($dateStart['timeStart'], $dateEnd['timeEnd'])
+        : '';
+
+    $row = $form->addRow();
+        $row->addLabel('dateLabel', __('Absence'));
+        $row->addTextField('date')->readonly()->setValue($dateRange.' '.$timeRange);
+
+
     $row = $form->addRow();
         $row->addLabel('requestType', __('Substitute Required?'));
         $row->addSelect('requestType')->isRequired()->fromArray($requestTypes)->selected('Broadcast');
@@ -85,9 +114,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
         $row->addAlert(__("This option sends a request by {notification} out to <b>ALL</b> available subs.", ['notification' => $notification]).' '.__("You'll receive a notification once your request is accepted."), 'message');
 
     $row = $form->addRow()->addClass('coverageOptions');
-        $row->addLabel('gibbonPersonIDCoverage', __('Substitute'));
-        $row->addSelectSubstitute('gibbonPersonIDCoverage')->placeholder()->selected($gibbonPersonIDCoverage)->isRequired();
+        $row->addLabel('gibbonPersonIDCoverage', __('Substitute'))->description(__('Only available subs are listed here.'));
+        $row->addSelectPerson('gibbonPersonIDCoverage')
+            ->fromArray($availableSubs)
+            ->placeholder()
+            ->selected($gibbonPersonIDCoverage)
+            ->isRequired();
 
+    // Loaded via AJAX
     $row = $form->addRow()->addClass('coverageOptions');
         $row->addContent('<div class="datesTable"></div>');
 
@@ -95,11 +129,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
         $row->addLabel('notesRequested', __('Comment'))->description(__('This message is shared with substitutes, and is also visible to users who manage staff coverage.'));
         $row->addTextArea('notesRequested')->setRows(3);
 
-    // if ($datesAvailableToRequest > 0) {
-        $row = $form->addRow();
-            $row->addFooter();
-            $row->addSubmit();
-    // }
+    $row = $form->addRow();
+        $row->addFooter();
+        $row->addSubmit();
 
     echo $form->getOutput();
 }
