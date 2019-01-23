@@ -60,9 +60,21 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     }
     
     // Look for available subs
-    $availableSubs = array_reduce($absenceDates, function ($group, $date) use ($substituteGateway) {
-        $availableByDate = $substituteGateway->selectAvailableSubsByDate($date['date'], $date['timeStart'], $date['timeEnd'])->fetchGroupedUnique();
+    $criteria = $substituteGateway->newQueryCriteria()
+        ->sortBy('gibbonSubstitute.priority', 'DESC')
+        ->sortBy(['surname', 'preferredName']);
+
+    $availableSubs = array_reduce($absenceDates, function ($group, $date) use ($substituteGateway, &$criteria) {
+        $availableByDate = $substituteGateway->queryAvailableSubsByDate($criteria, $date['date'], $date['timeStart'], $date['timeEnd'])->toArray();
         return array_merge($group, $availableByDate);
+    }, []);
+
+    // Group by person
+    $availableSubs = array_reduce($availableSubs, function ($group, $item) {
+        $count = $group[$item['gibbonPersonID']]['count'] ?? 0;
+        $group[$item['gibbonPersonID']] = $item;
+        $group[$item['gibbonPersonID']]['count'] = $count++;
+        return $group;
     }, []);
 
     // Map names for Select list
