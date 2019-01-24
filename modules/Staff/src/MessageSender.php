@@ -36,6 +36,7 @@ class MessageSender
     protected $settings;
     protected $mail;
     protected $sms;
+    protected $via;
 
     public function __construct(SettingGateway $settingGateway, UserGateway $userGateway, MailerContract $mail, SMSContract $sms)
     {
@@ -56,7 +57,7 @@ class MessageSender
         $userGateway = &$this->userGateway;
         $recipients = array_map(function ($gibbonPersonID) use (&$userGateway) {
             return $userGateway->getByID($gibbonPersonID);
-        }, $recipients);
+        }, array_filter($recipients));
 
         // Send Mail
         if (in_array('mail', $via) && !empty($this->mail)) {

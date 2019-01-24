@@ -33,7 +33,9 @@ class CoverageDeclined extends Message
 
     public function via() : array
     {
-        return ['mail', 'sms'];
+        return $this->coverage['urgent']
+            ? ['mail', 'sms']
+            : ['mail'];
     }
 
     public function title() : string

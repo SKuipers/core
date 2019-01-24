@@ -22,13 +22,20 @@ namespace Gibbon\Module\Staff\Messages;
 use Gibbon\Module\Staff\Message;
 use Gibbon\Services\Format;
 
-class BroadcastRequest extends Message
+class NewCoverage extends Message
 {
     protected $coverage;
+    protected $details;
 
     public function __construct($coverage)
     {
         $this->coverage = $coverage;
+        $this->details = [
+            'nameAbsent'   => Format::name($coverage['titleAbsence'], $coverage['preferredNameAbsence'], $coverage['surnameAbsence'], 'Staff', false, true),
+            'nameCoverage' => Format::name($coverage['titleCoverage'], $coverage['preferredNameCoverage'], $coverage['surnameCoverage'], 'Staff', false, true),
+            'date'         => Format::dateRangeReadable($coverage['dateStart'], $coverage['dateEnd']),
+            'type'         => trim($coverage['type'].' '.$coverage['reason']),
+        ];
     }
 
     public function via() : array
@@ -40,21 +47,23 @@ class BroadcastRequest extends Message
 
     public function title() : string
     {
-        return __('Coverage Request');
+        return __('Staff Coverage');
     }
 
     public function text() : string
     {
-        return __("{name} is looking for coverage on {date}. This request is open for the first available sub to accept.", [
-            'date' => Format::dateRangeReadable($this->coverage['dateStart'], $this->coverage['dateEnd']),
-            'name' => Format::name($this->coverage['titleAbsence'], $this->coverage['preferredNameAbsence'], $this->coverage['surnameAbsence'], 'Staff', false, true),
-        ]);
+        return __("{nameAbsent} arranged for {nameCoverage} to cover their {type} absence on {date}.", $this->details);
     }
 
     public function details() : array
     {
         return [
-            __('Comment') => $this->coverage['notesRequested'],
+            __('Staff')      => $this->details['nameAbsent'],
+            __('Type')       => $this->details['type'],
+            __('Date')       => $this->details['date'],
+            __('Comment')    => $this->coverage['notesRequested'],
+            __('Substitute') => $this->details['nameCoverage'],
+            __('Reply')      => $this->coverage['notesCoverage'],
         ];
     }
 
@@ -65,11 +74,11 @@ class BroadcastRequest extends Message
 
     public function action() : string
     {
-        return __('View Coverage Requests');
+        return __('View Details');
     }
 
     public function link() : string
     {
-        return 'index.php?q=/modules/Staff/coverage_view.php';
+        return 'index.php?q=/modules/Staff/coverage_view_details.php&gibbonStaffCoverageID='.$this->coverage['gibbonStaffCoverageID'];
     }
 }

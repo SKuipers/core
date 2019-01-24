@@ -22,7 +22,7 @@ namespace Gibbon\Module\Staff\Messages;
 use Gibbon\Module\Staff\Message;
 use Gibbon\Services\Format;
 
-class BroadcastRequest extends Message
+class CoverageCancelled extends Message
 {
     protected $coverage;
 
@@ -40,12 +40,12 @@ class BroadcastRequest extends Message
 
     public function title() : string
     {
-        return __('Coverage Request');
+        return __('Coverage Cancelled');
     }
 
     public function text() : string
     {
-        return __("{name} is looking for coverage on {date}. This request is open for the first available sub to accept.", [
+        return __("{name}'s coverage request for {date} has been cancelled.", [
             'date' => Format::dateRangeReadable($this->coverage['dateStart'], $this->coverage['dateEnd']),
             'name' => Format::name($this->coverage['titleAbsence'], $this->coverage['preferredNameAbsence'], $this->coverage['surnameAbsence'], 'Staff', false, true),
         ]);
@@ -54,7 +54,7 @@ class BroadcastRequest extends Message
     public function details() : array
     {
         return [
-            __('Comment') => $this->coverage['notesRequested'],
+            __('Reply') => $this->coverage['notesCoverage'],
         ];
     }
 
@@ -65,11 +65,11 @@ class BroadcastRequest extends Message
 
     public function action() : string
     {
-        return __('View Coverage Requests');
+        return __('View Details');
     }
 
     public function link() : string
     {
-        return 'index.php?q=/modules/Staff/coverage_view.php';
+        return 'index.php?q=/modules/Staff/coverage_view_details.php&gibbonStaffCoverageID='.$this->coverage['gibbonStaffCoverageID'];
     }
 }
