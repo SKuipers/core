@@ -22,9 +22,8 @@ use Gibbon\Comms\NotificationEvent;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
-use Gibbon\Module\Staff\MessageSender;
-use Gibbon\Module\Staff\Messages\CoverageAccepted;
-use Gibbon\Module\Staff\Messages\CoveragePartial;
+use Gibbon\Data\BackgroundProcess;
+
 
 require_once '../../gibbon.php';
 
@@ -93,7 +92,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
 
     $partialFail = false;
 
-    $coverage = $staffCoverageGateway->getCoverageDetailsByID($gibbonStaffCoverageID);
     $absenceDates = $staffAbsenceDateGateway->selectDatesByCoverage($gibbonStaffCoverageID);
     $uncoveredDates = [];
 
@@ -108,21 +106,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
         }
     }
 
-    // Send messages (Mail, SMS) to relevant users
-    $recipients = [$absence['gibbonPersonID']];
-    $message = !empty($uncoveredDates)
-        ? new CoveragePartial($coverage, $coverageDates, $uncoveredDates)
-        : new CoverageAccepted($coverage);
-
-    $sent = $container
-        ->get(MessageSender::class)
-        ->send($recipients, $message);
-
+    $process = new BackgroundProcess($gibbon->session->get('absolutePath').'/uploads/background');
+    $process->startProcess('staffNotification', __DIR__.'/notification_backgroundProcess.php', ['CoverageAccepted', $gibbonStaffCoverageID, implode('::', $uncoveredDates)]);
 
     $URLSuccess .= $partialFail
         ? "&return=warning1"
         : "&return=success0";
 
-    header("Location: {$URLSuccess}&sent=$sent");
+    header("Location: {$URLSuccess}");
     exit;
 }
