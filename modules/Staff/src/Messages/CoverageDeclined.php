@@ -47,7 +47,6 @@ class CoverageDeclined extends Message
             'date' => Format::dateRangeReadable($this->coverage['dateStart'], $this->coverage['dateEnd']),
             'name' => Format::name($this->coverage['titleCoverage'], $this->coverage['preferredNameCoverage'], $this->coverage['surnameCoverage'], 'Staff', false, true),
             'type' => $this->coverage['type'],
-            'url'  => $this->link(),
         ]);
     }
 

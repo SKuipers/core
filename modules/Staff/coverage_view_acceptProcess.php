@@ -24,6 +24,7 @@ use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Module\Staff\MessageSender;
 use Gibbon\Module\Staff\Messages\CoverageAccepted;
+use Gibbon\Module\Staff\Messages\CoveragePartial;
 
 require_once '../../gibbon.php';
 
@@ -94,10 +95,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
 
     $coverage = $staffCoverageGateway->getCoverageDetailsByID($gibbonStaffCoverageID);
     $absenceDates = $staffAbsenceDateGateway->selectDatesByCoverage($gibbonStaffCoverageID);
+    $uncoveredDates = [];
 
     // Unlink any absence dates from the coverage request if they were not selected
     foreach ($absenceDates as $date) {
         if (!in_array($date['date'], $coverageDates)) {
+            $uncoveredDates[] = $date['date'];
             $updated = $staffAbsenceDateGateway->update($date['gibbonStaffAbsenceDateID'], [
                 'gibbonStaffCoverageID' => null,
             ]);
@@ -107,7 +110,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
 
     // Send messages (Mail, SMS) to relevant users
     $recipients = [$absence['gibbonPersonID']];
-    $message = new CoverageAccepted($coverage);
+    $message = !empty($uncoveredDates)
+        ? new CoveragePartial($coverage, $coverageDates, $uncoveredDates)
+        : new CoverageAccepted($coverage);
 
     $sent = $container
         ->get(MessageSender::class)

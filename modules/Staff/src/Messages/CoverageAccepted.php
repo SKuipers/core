@@ -43,10 +43,10 @@ class CoverageAccepted extends Message
 
     public function text() : string
     {
-        return __("Success! {name} has accepted your coverage request for {date}.", [
+        return __("Success! {name} has accepted your {type} coverage request for {date}.", [
             'date' => Format::dateRangeReadable($this->coverage['dateStart'], $this->coverage['dateEnd']),
             'name' => Format::name($this->coverage['titleCoverage'], $this->coverage['preferredNameCoverage'], $this->coverage['surnameCoverage'], 'Staff', false, true),
-            'url'  => $this->link(),
+            'type'  => $this->coverage['type'],
         ]);
     }
 

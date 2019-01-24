@@ -139,7 +139,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
                     || ($time['allDay'] == 'N' && $absence['allDay'] == 'N'
                         && $time['timeStart'] <= $absence['timeEnd']
                         && $time['timeEnd'] >= $absence['timeStart'])) {
-                        return Format::small(__($unavailable[$absence['date']]['status'] ?? 'Not Available'));
+                        return Format::small(__($time['status'] ?? 'Not Available'));
                     }
                 }
             }

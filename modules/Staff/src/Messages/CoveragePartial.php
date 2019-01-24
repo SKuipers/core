@@ -22,13 +22,18 @@ namespace Gibbon\Module\Staff\Messages;
 use Gibbon\Module\Staff\Message;
 use Gibbon\Services\Format;
 
-class IndividualRequest extends Message
+class CoveragePartial extends Message
 {
     protected $coverage;
+    protected $uncoveredDates;
 
-    public function __construct($coverage)
+    public function __construct($coverage, $uncoveredDates)
     {
         $this->coverage = $coverage;
+
+        $this->uncoveredDates = array_map(function ($date) {
+            return Format::dateReadable($date, '%b %e');
+        }, $uncoveredDates);
     }
 
     public function via() : array
@@ -38,21 +43,22 @@ class IndividualRequest extends Message
 
     public function title() : string
     {
-        return __('Coverage Request');
+        return __('Coverage Partially Accepted');
     }
 
     public function text() : string
     {
-        return __("{name} sent you a coverage request for {date}. Are you available? Please login to accept or decline.", [
+        return __("{name} has partially accepted your coverage request for {date}. They are unavailable to cover {otherDates}.", [
             'date' => Format::dateRangeReadable($this->coverage['dateStart'], $this->coverage['dateEnd']),
-            'name' => Format::name($this->coverage['titleAbsence'], $this->coverage['preferredNameAbsence'], $this->coverage['surnameAbsence'], 'Staff', false, true),
+            'name' => Format::name($this->coverage['titleCoverage'], $this->coverage['preferredNameCoverage'], $this->coverage['surnameCoverage'], 'Staff', false, true),
+            'otherDates' => implode(', ', $this->uncoveredDates),
         ]);
     }
 
     public function details() : array
     {
         return [
-            __('Comment') => $this->coverage['notesRequested'],
+            __('Reply') => $this->coverage['notesCoverage'],
         ];
     }
 
@@ -63,11 +69,11 @@ class IndividualRequest extends Message
 
     public function action() : string
     {
-        return __('View Coverage Requests');
+        return __('New Coverage Request');
     }
 
     public function link() : string
     {
-        return 'index.php?q=/modules/Staff/coverage_view.php';
+        return 'index.php?q=/modules/Staff/coverage_request.php&gibbonStaffAbsenceID='.$this->coverage['gibbonStaffAbsenceID'];
     }
 }
