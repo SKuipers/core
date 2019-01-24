@@ -29,6 +29,22 @@ trait TableQueryAware
         return $this->select($primaryKeyValue)->fetch();
     }
 
+    public function getBy($keyName, $keyValue)
+    {
+        if (empty($keyName) || empty($keyValue)) {
+            throw new \InvalidArgumentException("Gateway getBy method for {$this->getTableName()} must provide a primary key value.");
+        }
+
+        $query = $this
+            ->newSelect()
+            ->cols(['*'])
+            ->from($this->getTableName())
+            ->where($keyName.' = :keyName')
+            ->bindValue('keyName', $keyValue);
+
+        return $this->runSelect($query);
+    }
+
     public function select($primaryKeyValue)
     {
         if (empty($primaryKeyValue)) {
