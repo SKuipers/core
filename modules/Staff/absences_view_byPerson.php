@@ -234,14 +234,21 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
 
     // ACTIONS
     $canManage = isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php');
+    $canRequest = isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php');
 
     $table->addActionColumn()
         ->addParam('gibbonStaffAbsenceID')
         ->addParam('search', $criteria->getSearchText(true))
-        ->format(function ($absence, $actions) use ($canManage) {
+        ->format(function ($absence, $actions) use ($canManage, $canRequest) {
             $actions->addAction('view', __('View Details'))
                 ->isModal(800, 550)
                 ->setURL('/modules/Staff/absences_view_details.php');
+
+            if ($canRequest && empty($absence['coverage']) && $absence['dateEnd'] >= date('Y-m-d')) {
+                $actions->addAction('coverage', __('Request Coverage'))
+                    ->setIcon('attendance')
+                    ->setURL('/modules/Staff/coverage_request.php');
+            }
 
             if ($canManage) {
                 $actions->addAction('edit', __('Edit'))

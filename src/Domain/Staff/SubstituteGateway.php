@@ -94,7 +94,7 @@ class SubstituteGateway extends QueryableGateway
             ->newQuery()
             ->from('gibbonSubstitute')
             ->cols([
-                'gibbonPerson.gibbonPersonID as groupBy', 'gibbonSubstitute.*', 'gibbonPerson.title', 'gibbonPerson.preferredName', 'gibbonPerson.surname', 'gibbonPerson.status', 'gibbonPerson.image_240', 'timetable.ID'
+                'gibbonPerson.gibbonPersonID as groupBy', 'gibbonSubstitute.*', 'gibbonPerson.title', 'gibbonPerson.preferredName', 'gibbonPerson.surname', 'gibbonPerson.status', 'gibbonPerson.image_240', 'gibbonPerson.email', 'gibbonPerson.phone1', 'gibbonPerson.phone1Type', 'gibbonPerson.phone1CountryCode'
             ])
             ->innerJoin('gibbonPerson', 'gibbonPerson.gibbonPersonID=gibbonSubstitute.gibbonPersonID');
 

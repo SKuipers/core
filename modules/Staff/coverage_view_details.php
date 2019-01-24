@@ -24,7 +24,7 @@ use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Domain\School\SchoolYearGateway;
 use Gibbon\Domain\DataSet;
 
-if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view.php') == false) {
+if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_details.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {

@@ -68,6 +68,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_detail
     }
 
     $canManage = isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php') || $values['gibbonPersonID'] == $_SESSION[$guid]['gibbonPersonID'];
+    $canRequest = isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php');
 
     $form = Form::create('staffAbsence', '');
 
@@ -134,11 +135,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_detail
                     : '<div class="badge success">'.__('Pending').'</div>';
         });
 
-    if ($canManage && isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php')) {
+    if ($canManage && $canRequest) {
         $table->addActionColumn()
             ->addParam('gibbonStaffAbsenceID')
             ->format(function ($absence, $actions) {
                 if (!empty($absence['gibbonStaffCoverageID'])) return;
+                if ($absence['date'] < date('Y-m-d')) return;
 
                 $actions->addAction('coverage', __('Request Coverage'))
                     ->setIcon('attendance')

@@ -87,44 +87,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_declin
         $row->addLabel('markAsUnavailable', __('Not Available'))->description(__('Checking this will mark you as unavailable for any further requests on these dates.'));
         $row->addCheckbox('markAsUnavailable')->checked(true);
 
-    // // DATA TABLE
-    // $absenceDates = $container->get(StaffAbsenceDateGateway::class)->selectDatesByCoverage($gibbonStaffCoverageID);
-    
-    // $table = DataTable::create('staffCoverageDates');
-    // $table->setTitle(__('Dates'));
-
-    // $table->addColumn('date', __('Date'))
-    //     ->format(Format::using('dateReadable', 'date'));
-
-    // $table->addColumn('timeStart', __('Time'))
-    //     ->format(function ($absence) {
-    //         if ($absence['allDay'] == 'N') {
-    //             return Format::small(Format::timeRange($absence['timeStart'], $absence['timeEnd']));
-    //         } else {
-    //             return Format::small(__('All Day'));
-    //         }
-    //     });
-
-    // $datesAvailableToRequest = 0;
-    // $table->addColumn('coverageDates', __('Coverage'))
-    //     ->width('8%')
-    //     ->format(function ($absence) use ($form, &$datesAvailableToRequest) {
-    //         if (empty($absence['gibbonStaffCoverageID'])) return __('N/A');
-
-    //         $datesAvailableToRequest++;
-
-    //         return $form
-    //             ->getFactory()
-    //             ->createCheckbox('coverageDates[]')
-    //             ->setID('coverageDates-'.$absence['date'])
-    //             ->setValue($absence['date'])
-    //             ->checked($absence['date'])
-    //             ->getOutput();
-    //     });
-
-    // $row = $form->addRow()->addContent($table->render($absenceDates->toDataSet()));
-
-
     $row = $form->addRow();
         $row->addLabel('notesCoverage', __('Reply'));
         $row->addTextArea('notesCoverage')->setRows(3);

@@ -63,10 +63,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_subs_availabi
 
     $options = [
         'Y' => __('All Day'),
-        'N' => __('Time Span'),
+        'N' => __('Time'),
     ];
     $row = $form->addRow();
-        $row->addLabel('allDay', __('Time'));
+        $row->addLabel('allDay', __('Availability'));
         $row->addSelect('allDay')->fromArray($options)->selected($allDay);
     
     $form->toggleVisibilityByClass('timeOptions')->onSelect('allDay')->when('N');
@@ -101,7 +101,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_subs_availabi
         ->format(Format::using('userPhoto', 'image_240'));
 
     $table->addColumn('fullName', __('Name'))
-        ->width('35%')
+        ->description(__('Priority'))
         ->sortable(['surname', 'preferredName'])
         ->format(function ($person) {
             return Format::name($person['title'], $person['preferredName'], $person['surname'], 'Staff', true, true).'<br/>'.
@@ -109,6 +109,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_subs_availabi
         });
 
     $table->addColumn('details', __('Details'));
+
+    $table->addColumn('contact', __('Contact'))
+        ->notSortable()
+        ->format(function ($person) {
+            $output = '';
+            if ($person['contactEmail'] == 'Y' && !empty($person['email'])) {
+                $output .= $person['email'].'<br/>';
+            }
+            if ($person['contactCall'] == 'Y' && !empty($person['phone1'])) {
+                $output .= Format::phone($person['phone1'], $person['phone1CountryCode'], $person['phone1Type']).'<br/>';
+            }
+            return $output;
+        });
 
     echo $table->render($subs);
 }

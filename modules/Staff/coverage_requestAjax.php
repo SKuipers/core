@@ -37,15 +37,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     $staffAbsenceDateGateway = $container->get(StaffAbsenceDateGateway::class);
 
     // DATA TABLE
+    $substitute = $substituteGateway->getBy('gibbonPersonID', $gibbonPersonIDCoverage)->fetch();
     $absenceDates = $staffAbsenceDateGateway->selectDatesByAbsence($gibbonStaffAbsenceID);
     $unavailable = $substituteGateway->selectUnavailableDatesBySub($gibbonPersonIDCoverage)->fetchGrouped();
 
-    if (empty($absenceDates)) {
+    if (empty($absenceDates) || empty($substitute)) {
         die();
     }
 
     $table = DataTable::create('staffAbsenceDates');
-    $table->setTitle(__('Dates'));
+    $table->setTitle(__('Availability'));
+    $table->setDescription($substitute['details']);
     $table->getRenderer()->setClass('bulkActionForm');
 
     $table->addColumn('dateLabel', __('Date'))

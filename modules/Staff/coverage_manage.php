@@ -61,12 +61,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage.php'
 
 
     // QUERY
-    $criteria = $StaffCoverageGateway->newQueryCriteria()
-        ->searchBy($StaffCoverageGateway->getSearchableColumns(), $search)
-        ->sortBy('date', 'ASC');
+    $criteria = $StaffCoverageGateway
+        ->newQueryCriteria()
+        ->searchBy($StaffCoverageGateway->getSearchableColumns(), $search);
 
-    $criteria->filterBy('date', !$criteria->hasFilter() && !$criteria->hasSearchText() ? 'upcoming' : '')
-        ->fromPOST();
+    if (!$criteria->hasFilter() && !$criteria->hasSearchText()) {
+        $criteria->filterBy('date', 'upcoming')
+                 ->sortBy('status', 'ASC');
+    }
+    
+    $criteria->sortBy('date', 'ASC')
+             ->fromPOST();
 
     $coverage = $StaffCoverageGateway->queryCoverageBySchoolYear($criteria, $gibbonSchoolYearID, true);
 

@@ -161,7 +161,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_edit
                         ->setURL('/modules/Staff/absences_manage_edit_deleteProcess.php')
                         ->addConfirmation(__('Are you sure you wish to delete this record?'));
 
-                if ($canRequestCoverage && empty($absence['coverage'])) {
+                if ($canRequestCoverage && empty($absence['coverage']) && $absence['date'] >= date('Y-m-d')) {
                     $actions->addAction('coverage', __('Request Coverage'))
                         ->setIcon('attendance')
                         ->setURL('/modules/Staff/coverage_request.php');

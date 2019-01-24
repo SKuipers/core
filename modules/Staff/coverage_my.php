@@ -98,6 +98,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
                 $actions->addAction('view', __('View Details'))
                     ->isModal(800, 550)
                     ->setURL('/modules/Staff/coverage_view_details.php');
+                    
+                if ($coverage['status'] == 'Requested') {
+                    $actions->addAction('cancel', __('Cancel'))
+                        ->setIcon('iconCross')
+                        ->setURL('/modules/Staff/coverage_view_cancel.php');
+                }
             });
 
         echo $table->render($coverage);
