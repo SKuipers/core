@@ -122,9 +122,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     // Broadcast
     $row = $form->addRow()->addClass('broadcastOptions');
     if (!empty($availableSubs)) {
-        $row->addAlert(__("This option sends a request out to all available subs. There are currently {count} subs with availability for this time period. You'll receive a notification once your request is accepted.", ['count' => '<b>'.count($availableSubs).'</b>']), 'message');
+        $row->addAlert(__("This option sends a request out to all available substitutes. There are currently {count} substitutes with availability for this time period. You'll receive a notification once your request is accepted.", ['count' => '<b>'.count($availableSubs).'</b>']), 'message');
     } else {
-        $row->addAlert(__("There are no subs currently available for this time period. You may still send an request, as sub availability may change, but you cannot select a specific sub at this time."), 'warning');
+        $row->addAlert(__("There are no substitutes currently available for this time period. You may still send an request, as sub availability may change, but you cannot select a specific sub at this time."), 'warning');
     }
 
     // Individual
@@ -132,7 +132,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
         $row->addAlert(__("This option sends your request to the selected substitute. You'll receive a notification when they accept or decline. If your request is declined you'll have to option to send a new request."), 'message');
 
     $row = $form->addRow()->addClass('individualOptions');
-        $row->addLabel('gibbonPersonIDCoverage', __('Substitute'))->description(__('Only available subs are listed here.'));
+        $row->addLabel('gibbonPersonIDCoverage', __('Substitute'))->description(__('Only available substitutes are listed here.'));
         $row->addSelectPerson('gibbonPersonIDCoverage')
             ->fromArray($availableSubs)
             ->placeholder()

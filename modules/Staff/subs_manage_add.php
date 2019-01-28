@@ -19,6 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
+use Gibbon\Domain\System\SettingGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/subs_manage_add.php') == false) {
     //Acess denied
@@ -32,8 +33,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/subs_manage_add.php'
     $smsGateway = getSettingByScope($connection2, 'Messenger', 'smsGateway');
 
     $page->breadcrumbs
-        ->add(__('Manage Subs'), 'subs_manage.php', ['search' => $search])
-        ->add(__('Add Sub'));
+        ->add(__('Manage Substitutes'), 'subs_manage.php', ['search' => $search])
+        ->add(__('Add Substitute'));
 
     $editLink = '';
     if (isset($_GET['editID'])) {
@@ -65,33 +66,36 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/subs_manage_add.php'
         $row->addLabel('active', __('Active'));
         $row->addYesNo('active')->isRequired();
 
-    $row = $form->addRow();
-        $row->addLabel('type', __('Type'));
-        $row->addTextField('type')->maxlength(30);
+    $types = $container->get(SettingGateway::class)->getSettingByScope('Staff', 'substituteTypes');
+    $types = array_filter(array_map('trim', explode(',', $types)));
 
     $row = $form->addRow();
-        $row->addLabel('details', __('Details'))->description(__('Additional information such as year group preference, language preference, etc.'));
-        $row->addTextField('details')->maxlength(255);
+        $row->addLabel('type', __('Type'));
+        $row->addSelect('type')->fromArray($types);
 
     $row = $form->addRow();
         $row->addLabel('priority', __('Priority'))->description(__('Higher priority substitutes appear first when booking coverage.'));
         $row->addSelect('priority')->fromArray(range(-9, 9))->isRequired()->selected(0);
 
-    $form->addRow()->addHeading(__('Contact Information'));
+    $row = $form->addRow();
+        $row->addLabel('details', __('Details'))->description(__('Additional information such as year group preference, language preference, etc.'));
+        $row->addTextArea('details')->setRows(2)->maxlength(255);
 
-    $row = $form->addRow()->addClass('contact');
-        $row->addLabel('contactCall', __('Call?'));
-        $row->addYesNo('contactCall')->isRequired();
+    // $form->addRow()->addHeading(__('Contact Information'));
 
-    if (!empty($smsGateway)) {
-        $row = $form->addRow()->addClass('contact');
-            $row->addLabel('contactSMS', __('SMS?'));
-            $row->addYesNo('contactSMS')->isRequired();
-    }
+    // $row = $form->addRow()->addClass('contact');
+    //     $row->addLabel('contactCall', __('Contact By Phone'));
+    //     $row->addYesNo('contactCall')->isRequired();
 
-    $row = $form->addRow()->addClass('contact');
-        $row->addLabel('contactEmail', __('Email?'));
-        $row->addYesNo('contactEmail')->isRequired();
+    // if (!empty($smsGateway)) {
+    //     $row = $form->addRow()->addClass('contact');
+    //         $row->addLabel('contactSMS', __('Contact By SMS'));
+    //         $row->addYesNo('contactSMS')->isRequired();
+    // }
+
+    // $row = $form->addRow()->addClass('contact');
+    //     $row->addLabel('contactEmail', __('Contact By Email'));
+    //     $row->addYesNo('contactEmail')->isRequired();
 
     $row = $form->addRow();
         $row->addFooter();

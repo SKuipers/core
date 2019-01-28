@@ -22,6 +22,7 @@ use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Domain\User\UserGateway;
 use Gibbon\Domain\Staff\SubstituteGateway;
 use Gibbon\Services\Format;
+use Gibbon\Domain\System\SettingGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/subs_manage_edit.php') == false) {
     //Acess denied
@@ -33,8 +34,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/subs_manage_edit.php
     $search = $_GET['search'] ?? '';
 
     $page->breadcrumbs
-        ->add(__('Manage Subs'), 'subs_manage.php', ['search' => $search])
-        ->add(__('Edit Sub'));
+        ->add(__('Manage Substitutes'), 'subs_manage.php', ['search' => $search])
+        ->add(__('Edit Substitute'));
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, null);
@@ -85,17 +86,20 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/subs_manage_edit.php
         $row->addLabel('active', __('Active'));
         $row->addYesNo('active')->isRequired();
 
-    $row = $form->addRow();
-        $row->addLabel('type', __('Type'));
-        $row->addTextField('type')->maxlength(30);
+    $types = $container->get(SettingGateway::class)->getSettingByScope('Staff', 'substituteTypes');
+    $types = array_filter(array_map('trim', explode(',', $types)));
 
     $row = $form->addRow();
-        $row->addLabel('details', __('Details'))->description(__('Additional information such as year group preference, language preference, etc.'));
-        $row->addTextField('details')->maxlength(255);
+        $row->addLabel('type', __('Type'));
+        $row->addSelect('type')->fromArray($types);
 
     $row = $form->addRow();
         $row->addLabel('priority', __('Priority'))->description(__('Higher priority substitutes appear first when booking coverage.'));
         $row->addSelect('priority')->fromArray(range(-9, 9))->isRequired()->selected(0);
+        
+    $row = $form->addRow();
+        $row->addLabel('details', __('Details'))->description(__('Additional information such as year group preference, language preference, etc.'));
+        $row->addTextArea('details')->setRows(2)->maxlength(255);
 
     $form->addRow()->addHeading(__('Contact Information'));
 
@@ -122,17 +126,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/subs_manage_edit.php
             $row->addTextField('email')->readonly()->setValue($person['email']);
     }
 
-    $row = $form->addRow()->addClass('contact');
-        $row->addLabel('contactCall', __('Call?'));
-        $row->addYesNo('contactCall')->isRequired();
+    // $row = $form->addRow()->addClass('contact');
+    //     $row->addLabel('contactCall', __('Contact By Phone'));
+    //     $row->addYesNo('contactCall')->isRequired();
 
-    $row = $form->addRow()->addClass('contact');
-        $row->addLabel('contactSMS', __('SMS?'));
-        $row->addYesNo('contactSMS')->isRequired();
+    // $row = $form->addRow()->addClass('contact');
+    //     $row->addLabel('contactSMS', __('Contact By SMS'));
+    //     $row->addYesNo('contactSMS')->isRequired();
 
-    $row = $form->addRow()->addClass('contact');
-        $row->addLabel('contactEmail', __('Email?'));
-        $row->addYesNo('contactEmail')->isRequired();
+    // $row = $form->addRow()->addClass('contact');
+    //     $row->addLabel('contactEmail', __('Contact By Email'));
+    //     $row->addYesNo('contactEmail')->isRequired();
 
     $row = $form->addRow();
         $row->addFooter();

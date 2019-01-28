@@ -42,9 +42,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/subs_manage_edit.php
         'type'           => $_POST['type'] ?? '',
         'details'        => $_POST['details'] ?? '',
         'priority'       => $_POST['priority'] ?? '',
-        'contactCall'    => $_POST['contactCall'] ?? '',
-        'contactSMS'     => $_POST['contactSMS'] ?? '',
-        'contactEmail'   => $_POST['contactEmail'] ?? '',
+        'contactCall'    => $_POST['contactCall'] ?? 'Y',
+        'contactSMS'     => $_POST['contactSMS'] ?? 'Y',
+        'contactEmail'   => $_POST['contactEmail'] ?? 'Y',
     ];
 
     // Validate the required values are present

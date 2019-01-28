@@ -29,7 +29,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/subs_manage.php') ==
     echo '</div>';
 } else {
     //Proceed!
-    $page->breadcrumbs->add(__('Manage Subs'));
+    $page->breadcrumbs->add(__('Manage Substitutes'));
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, null);
