@@ -803,6 +803,14 @@ DELETE FROM gibbonAction WHERE name='Import Users' AND gibbonModuleID=(SELECT gi
 INSERT IGNORE INTO `gibbonLanguage` (`name`) VALUES ('Sinhala');end
 INSERT INTO `gibboni18n` (`code`, `name`, `active`, `systemDefault`, `dateFormat`, `dateFormatRegEx`, `dateFormatPHP`,`rtl`) VALUES ('tr_TR','Türkçe - Türkiye', 'N', 'N', 'dd.mm.yyyy', '/^(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\\\d\\\d$/i', 'd.m.Y', 'N');end
 UPDATE gibboni18n SET active='Y' WHERE code='tr_TR';end
+";
+
+//v18.0.00
+++$count;
+$sql[$count][0] = '18.0.00';
+$sql[$count][1] = "
+DELETE FROM gibbonAction WHERE gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Planner') AND name='Staff Likes';end
+DROP TABLE gibbonLike;end
 INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES ((SELECT gibbonModuleID FROM gibbonModule WHERE name='School Admin'), 'Manage Staff Settings', 0, 'People', 'Manage settings for the Staff module', 'staffSettings.php,staffSettings_manage_add.php,staffSettings_manage_edit.php,staffSettings_manage_delete.php', 'staffSettings.php', 'Y', 'N', 'N', 'N', 'N', 'Y', 'N', 'N', 'N');end
 INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('001', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='School Admin' AND gibbonAction.name='Manage Staff Settings'));end
 CREATE TABLE `gibbonStaffAbsence` (
