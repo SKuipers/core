@@ -51,7 +51,7 @@ class MessageSender
     public function send(array $recipients, Message $message)
     {
         $via = $message->via();
-        $result = false;
+        $result = [];
 
         // Get the user data per gibbonPersonID
         $userGateway = &$this->userGateway;
@@ -71,7 +71,7 @@ class MessageSender
                 }
             }
 
-            $result = $this->mail->Send();
+            $result[] = $this->mail->Send();
         }
 
         // Send SMS
@@ -80,7 +80,7 @@ class MessageSender
                 return ($person['phone1CountryCode'] ?? '').($person['phone1'] ?? '');
             }, $recipients);
 
-            $result = $this->sms
+            $result[] = $this->sms
                 ->content($message->toSMS()."\n".'[ '.$this->settings['absoluteURL'].' ]')
                 ->send($phoneNumbers);
         }

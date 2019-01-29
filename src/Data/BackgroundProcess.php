@@ -47,9 +47,9 @@ class BackgroundProcess
             throw new \InvalidArgumentException('File not found: '.$phpFile);
         }
 
-        if ($this->isProcessRunning($processName)) {
-            $this->stopProcess($processName);
-        }
+        // if ($this->isProcessRunning($processName)) {
+        //     $this->stopProcess($processName);
+        // }
 
         try {
             $argsEsc = array_map(function($arg) { return escapeshellarg($arg); }, $args);

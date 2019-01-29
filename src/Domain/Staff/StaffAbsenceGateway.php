@@ -132,6 +132,55 @@ class StaffAbsenceGateway extends QueryableGateway
         return $this->runQuery($query, $criteria);
     }
 
+    public function getAbsenceDetailsByID($gibbonStaffAbsenceID)
+    {
+        $data = ['gibbonStaffAbsenceID' => $gibbonStaffAbsenceID];
+        $sql = "SELECT gibbonStaffAbsence.gibbonStaffAbsenceID, gibbonStaffAbsence.gibbonStaffAbsenceID, gibbonStaffAbsenceType.name as type, reason, 
+                date, COUNT(*) as days, MIN(date) as dateStart, MAX(date) as dateEnd, allDay, timeStart, timeEnd, 0 as urgent,
+                gibbonPersonIDCreator, timestampCreator, timestampRequested, timestampCoverage, gibbonStaffAbsence.notificationList, gibbonStaffAbsence.comment,
+                gibbonStaffCoverage.status as coverage, gibbonStaffCoverage.notesCoverage, gibbonStaffCoverage.notesRequested, 
+                gibbonStaffAbsence.gibbonPersonID, absence.title AS titleAbsence, absence.preferredName AS preferredNameAbsence, absence.surname AS surnameAbsence, 
+                gibbonStaffCoverage.gibbonPersonIDCoverage, coverage.title as titleCoverage, coverage.preferredName as preferredNameCoverage, coverage.surname as surnameCoverage
+            FROM gibbonStaffAbsence 
+            JOIN gibbonStaffAbsenceType ON (gibbonStaffAbsence.gibbonStaffAbsenceTypeID=gibbonStaffAbsenceType.gibbonStaffAbsenceTypeID)
+            LEFT JOIN gibbonStaffAbsenceDate ON (gibbonStaffAbsenceDate.gibbonStaffAbsenceID=gibbonStaffAbsence.gibbonStaffAbsenceID)
+            LEFT JOIN gibbonStaffCoverage ON (gibbonStaffCoverage.gibbonStaffAbsenceID=gibbonStaffAbsence.gibbonStaffAbsenceID)
+            LEFT JOIN gibbonPerson AS absence ON (gibbonStaffAbsence.gibbonPersonID=absence.gibbonPersonID)
+            LEFT JOIN gibbonPerson AS coverage ON (gibbonStaffCoverage.gibbonPersonIDCoverage=coverage.gibbonPersonID)
+            WHERE gibbonStaffAbsence.gibbonStaffAbsenceID=:gibbonStaffAbsenceID
+            GROUP BY gibbonStaffAbsence.gibbonStaffAbsenceID
+            ";
+
+        return $this->db()->selectOne($sql, $data);
+    }
+
+    public function getMostRecentAbsenceByPerson($gibbonPersonID)
+    {
+        $data = ['gibbonPersonID' => $gibbonPersonID];
+        $sql = "SELECT * FROM 
+                gibbonStaffAbsence 
+                WHERE gibbonStaffAbsence.gibbonPersonID=:gibbonPersonID
+                ORDER BY timestampCreator DESC
+                LIMIT 1";
+
+        return $this->db()->selectOne($sql, $data);
+    }
+
+    public function selectNotificationDetailsByPerson($gibbonPersonID)
+    {
+        $gibbonPersonIDList = is_array($gibbonPersonID)? $gibbonPersonID : [$gibbonPersonID];
+
+        $data = ['gibbonPersonIDList' => implode(',', $gibbonPersonIDList)];
+        $sql = "SELECT gibbonPerson.gibbonPersonID as groupBy, gibbonPerson.gibbonPersonID, surname, preferredName, gibbonPerson.status, image_240, username, email, phone1, phone1CountryCode, phone1Type, gibbonRole.category as roleCategory, gibbonStaff.jobTitle, gibbonStaff.type
+                FROM gibbonPerson 
+                JOIN gibbonRole ON (gibbonRole.gibbonRoleID=gibbonPerson.gibbonRoleIDPrimary)
+                LEFT JOIN gibbonStaff ON (gibbonStaff.gibbonPersonID=gibbonPerson.gibbonPersonID)
+                WHERE FIND_IN_SET(gibbonPerson.gibbonPersonID, :gibbonPersonIDList) 
+                ORDER BY surname, preferredName";
+
+        return $this->db()->select($sql, $data);
+    }
+
     protected function getSharedFilterRules()
     {
         return [

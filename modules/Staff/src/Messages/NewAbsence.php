@@ -22,39 +22,47 @@ namespace Gibbon\Module\Staff\Messages;
 use Gibbon\Module\Staff\Message;
 use Gibbon\Services\Format;
 
-class BroadcastRequest extends Message
+class NewAbsence extends Message
 {
-    protected $coverage;
+    protected $absence;
+    protected $details;
 
-    public function __construct($coverage)
+    public function __construct($absence)
     {
-        $this->coverage = $coverage;
+        $this->absence = $absence;
+        $this->details = [
+            'name' => Format::name($absence['titleAbsence'], $absence['preferredNameAbsence'], $absence['surnameAbsence'], 'Staff', false, true),
+            'date' => Format::dateRangeReadable($absence['dateStart'], $absence['dateEnd']),
+            'type' => trim($absence['type'].' '.$absence['reason']),
+        ];
     }
 
     public function via() : array
     {
-        return $this->coverage['urgent']
+        return $this->absence['urgent']
             ? ['mail', 'sms']
             : ['mail'];
     }
 
     public function title() : string
     {
-        return __('Coverage Request');
+        return __('Staff Absence');
     }
 
     public function text() : string
     {
-        return __("{name} needs coverage for {date}. This request is open for the first available sub to accept.", [
-            'date' => Format::dateRangeReadable($this->coverage['dateStart'], $this->coverage['dateEnd']),
-            'name' => Format::name($this->coverage['titleAbsence'], $this->coverage['preferredNameAbsence'], $this->coverage['surnameAbsence'], 'Staff', false, true),
-        ]);
+        return __("{name} will be absent on {date} for {type}", $this->details);
+
+        // Add details if they're also seeking coverage, and from whom.
     }
 
     public function details() : array
     {
         return [
-            __('Comment') => $this->coverage['notesRequested'],
+            __('Staff')      => $this->details['name'],
+            __('Type')       => $this->details['type'],
+            __('Date')       => $this->details['date'],
+            __('Comment')    => $this->absence['comment'],
         ];
     }
 
@@ -65,11 +73,11 @@ class BroadcastRequest extends Message
 
     public function action() : string
     {
-        return __('View Coverage Requests');
+        return __('View Details');
     }
 
     public function link() : string
     {
-        return 'index.php?q=/modules/Staff/coverage_view.php';
+        return 'index.php?q=/modules/Staff/absences_view_details.php&gibbonStaffAbsenceID='.$this->absence['gibbonStaffAbsenceID'];
     }
 }

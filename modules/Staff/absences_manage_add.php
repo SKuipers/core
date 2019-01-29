@@ -19,7 +19,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
+use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
+use Gibbon\Services\Format;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.php') == false) {
     // Access denied
@@ -42,6 +44,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
         returnProcess($guid, $_GET['return'], $editLink, null);
     }
 
+    $absoluteURL = $gibbon->session->get('absoluteURL');
+    $staffAbsenceGateway = $container->get(StaffAbsenceGateway::class);
     $staffAbsenceTypeGateway = $container->get(StaffAbsenceTypeGateway::class);
 
     $form = Form::create('staffAbsence', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/absences_manage_addProcess.php');
@@ -57,7 +61,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
             $row->addLabel('gibbonPersonID', __('Person'));
             $row->addSelectStaff('gibbonPersonID')->placeholder()->isRequired()->selected($gibbonPersonID);
     } elseif ($highestAction == 'New Absence_mine') {
-        $form->addHiddenValue('gibbonPersonID', $_SESSION[$guid]['gibbonPersonID']);
+        $gibbonPersonID = $_SESSION[$guid]['gibbonPersonID'];
+        $form->addHiddenValue('gibbonPersonID', $gibbonPersonID);
     }
 
     $types = $staffAbsenceTypeGateway->selectAllTypes()->fetchAll();
@@ -125,6 +130,33 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
             ->chainedTo('timeStart', false)
             ->addClass('timeOptions')
             ->isRequired();
+
+    $form->addRow()->addHeading(__('Notifications'));
+
+    // Get the users last notified by this staff member
+    $recentAbsence = $staffAbsenceGateway->getMostRecentAbsenceByPerson($gibbonPersonID);
+    $notificationList = !empty($recentAbsence['notificationList'])? json_decode($recentAbsence['notificationList']) : [];
+
+    // Format user details into token-friendly list
+    $notified = $staffAbsenceGateway->selectNotificationDetailsByPerson($notificationList)->fetchGroupedUnique();
+    $notified = array_map(function ($token) use ($absoluteURL) {
+        return [
+            'id'       => $token['gibbonPersonID'],
+            'name'     => Format::name('', $token['preferredName'], $token['surname'], 'Staff', false, true),
+            'jobTitle' => !empty($token['jobTitle']) ? $token['jobTitle'] : $token['type'],
+            'image'    => $absoluteURL.'/'.$token['image_240'],
+        ];
+    }, $notified);
+
+    $row = $form->addRow();
+        $row->addLabel('notificationList', __('Notify'))->description(__('Your notification choices are saved and pre-filled for future absences.'));
+        $row->addFinder('notificationList')
+            ->fromAjax($gibbon->session->get('absoluteURL').'/modules/Staff/staff_searchAjax.php')
+            ->selected($notified)
+            ->setParameter('resultsLimit', 10)
+            ->resultsFormatter('function(item){ return "<li class=\'finderListItem\'><div class=\'finderPhoto\' style=\'background-image: url(" + item.image + ");\'></div><div class=\'finderName\'>" + item.name + "<br/><span class=\'finderDetail\'>" + item.jobTitle + "</span></div></li>"; }')
+            ->tokenFormatter('function(item){ return "<li class=\'finderToken\'>" + item.name + "</li>"; }');
+    
 
     if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php')) {
         $form->addRow()->addHeading(__('Coverage'));

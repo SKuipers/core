@@ -18,15 +18,18 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Services\Format;
-use Gibbon\Comms\NotificationEvent;
 use Gibbon\Domain\User\UserGateway;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
+use Gibbon\Data\BackgroundProcess;
 
 require_once '../../gibbon.php';
 
+$gibbonPersonID = $_POST['gibbonPersonID'] ?? '';
+
 $URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/absences_manage_add.php';
+$URLSuccess = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/absences_view_byPerson.php&gibbonPersonID='.$gibbonPersonID;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.php') == false) {
     $URL .= '&return=error0';
@@ -39,6 +42,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
 
     $dateStart = $_POST['dateStart'] ?? '';
     $dateEnd = $_POST['dateEnd'] ?? '';
+    $notificationList = !empty($_POST['notificationList'])? explode(',', $_POST['notificationList']) : [];
 
     $data = [
         'gibbonPersonID'           => $_POST['gibbonPersonID'] ?? '',
@@ -46,6 +50,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
         'reason'                   => $_POST['reason'] ?? '',
         'comment'                  => $_POST['comment'] ?? '',
         'gibbonPersonIDCreator'    => $_SESSION[$guid]['gibbonPersonID'],
+        'notificationSent'         => 'N',
+        'notificationList'         => json_encode($notificationList),
     ];
 
     // Validate the required values are present
@@ -109,27 +115,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
         exit;
     }
 
-    // Raise a new notification event
-    $event = new NotificationEvent('Staff', 'New Staff Absence');
-    
-    $notificationText = __('A new staff absence has been recorded for {name}: {type} on {date}', [
-        'name' => Format::nameList([$person], 'Staff', false, true),
-        'type' => $data['reason'] ? "{$type['name']} ({$data['reason']})" : $type['name'],
-        'date' => Format::dateRangeReadable($start->format('Y-m-d'), $end->format('Y-m-d')),
-    ]);
-    if (!empty($data['comment'])) {
-        $notificationText .= '<br/><br/>'.__('Comment').': '.$data['comment'].'<br/>';
-    }
-
-    $event->setNotificationText($notificationText);
-    $event->setActionLink('/index.php?q=/modules/Staff/absences_view_byPerson.php&gibbonPersonID='.$data['gibbonPersonID']);
-
-    // Notify the target staff member, if they're not the one who created the absence
-    if ($data['gibbonPersonID'] != $_SESSION[$guid]['gibbonPersonID']) {
-        $event->addRecipient($data['gibbonPersonID']);
-    }
-
-    $event->sendNotificationsAsBcc($pdo, $gibbon->session);
+    // Start a background process for notifications
+    $process = new BackgroundProcess($gibbon->session->get('absolutePath').'/uploads/background');
+    $process->startProcess('staffNotification', __DIR__.'/notification_backgroundProcess.php', ['NewAbsence', $gibbonStaffAbsenceID]);
 
 
     // Redirect to coverage request
@@ -144,10 +132,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
         exit;
     }
 
-    $URL .= $partialFail
+    $URLSuccess .= $partialFail
         ? "&return=warning1"
         : "&return=success0";
 
-    header("Location: {$URL}");
+    header("Location: {$URLSuccess}");
     exit;
 }

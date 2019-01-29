@@ -128,7 +128,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
         ]);
     } else if ($data['requestType'] == 'Broadcast') {
         $process = new BackgroundProcess($gibbon->session->get('absolutePath').'/uploads/background');
-        $process->startProcess('coverageBroadcast', __DIR__.'/coverage_requestBroadcastProcess.php', array($gibbonStaffCoverageID));
+        $process->startProcess('staffNotification', __DIR__.'/notification_backgroundProcess.php', ['CoverageBroadcast', $gibbonStaffCoverageID]);
     }
 
     $URLSuccess .= $partialFail

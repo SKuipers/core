@@ -18,12 +18,19 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Services\Format;
+use Gibbon\Comms\NotificationEvent;
 use Gibbon\Data\BackgroundProcess;
+use Gibbon\Domain\Staff\SubstituteGateway;
+use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
+use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
+use Gibbon\Domain\User\UserGateway;
 use Gibbon\Module\Staff\MessageSender;
-use Gibbon\Module\Staff\Messages\CoveragePartial;
+use Gibbon\Module\Staff\Messages\BroadcastRequest;
 use Gibbon\Module\Staff\Messages\CoverageAccepted;
+use Gibbon\Module\Staff\Messages\CoveragePartial;
 use Gibbon\Module\Staff\Messages\NewCoverage;
+use Gibbon\Module\Staff\Messages\NewAbsence;
 
 $_POST['address'] = '/modules/Staff/notification_backgroundProcess.php';
 
@@ -50,9 +57,13 @@ $processor = new BackgroundProcess($gibbon->session->get('absolutePath').'/uploa
 
 $messageSender = $container->get(MessageSender::class);
 $urgencyThreshold = getSettingByScope($connection2, 'Staff', 'urgencyThreshold') * 86400;
-$staffCoverageGateway = $container->get(StaffCoverageGateway::class);
 
-$sent = 0;
+$substituteGateway = $container->get(SubstituteGateway::class);
+$staffCoverageGateway = $container->get(StaffCoverageGateway::class);
+$staffAbsenceGateway = $container->get(StaffAbsenceGateway::class);
+$staffAbsenceDateGateway = $container->get(StaffAbsenceDateGateway::class);
+
+$sendCount = 0;
 
 switch ($action) {
     case 'CoverageAccepted':
@@ -70,21 +81,79 @@ switch ($action) {
                 : new CoverageAccepted($coverage);
 
             if ($messageSender->send($recipients, $message)) {
-                $sent += count($recipients);
+                $sendCount += count($recipients);
             }
 
-            // Send a coverage arranged message to Admin
-            $recipients = ['001'];
+            // Send a coverage arranged message to the selected staff for this absence
+            $recipients = !empty($coverage['notificationList']) ? json_decode($coverage['notificationList']) : [];
             $message = new NewCoverage($coverage);
 
             if ($messageSender->send($recipients, $message)) {
-                $sent += count($recipients);
+                $sendCount += count($recipients);
             }
         }
         break;
+
+    case 'NewAbsence':
+        $gibbonStaffAbsenceID = $argv[2] ?? '';
+
+        if ($absence = $staffAbsenceGateway->getAbsenceDetailsByID($gibbonStaffAbsenceID)) {
+
+            // Target the absence message to the selected staff
+            $recipients = !empty($absence['notificationList']) ? json_decode($absence['notificationList']) : [];
+            $message = new NewAbsence($absence);
+
+            if ($absence['gibbonPersonID'] != $absence['gibbonPersonIDCreator']) {
+                $recipients[] = $absence['gibbonPersonID'];
+            }
+
+            // Send messages
+            if ($messageSender->send($recipients, $message)) {
+                $sendCount += count($recipients);
+
+                $staffAbsenceGateway->update($gibbonStaffAbsenceID, [
+                    'notificationSent' => 'Y'
+                ]);
+            }
+        }
+
+        break;
+
+    case 'CoverageBroadcast':
+        $gibbonStaffCoverageID = $argv[2] ?? '';
+
+        if ($coverage = $staffCoverageGateway->getCoverageDetailsByID($gibbonStaffCoverageID)) {
+            $relativeSeconds = strtotime($coverage['dateStart']) - time();
+            $coverage['urgent'] = $relativeSeconds <= $urgencyThreshold;
+
+            $absenceDates = $staffAbsenceDateGateway->selectDatesByAbsence($coverage['gibbonStaffAbsenceID'])->fetchAll();
+
+            // Get available subs
+            $availableSubs = [];
+            foreach ($absenceDates as $date) {
+                $criteria = $substituteGateway->newQueryCriteria();
+                $availableByDate = $substituteGateway->queryAvailableSubsByDate($criteria, $date['date'])->toArray();
+                $availableSubs = array_merge($availableSubs, $availableByDate);
+            }
+
+            // Send messages
+            $recipients = array_column($availableSubs, 'gibbonPersonID');
+            $message = new BroadcastRequest($coverage);
+
+            if ($messageSender->send($recipients, $message)) {
+                $sendCount += count($recipients);
+
+                $staffCoverageGateway->update($gibbonStaffCoverageID, [
+                    'notificationSent' => 'Y',
+                    'notificationList' => json_encode($recipients),
+                ]);
+            }
+        }
+
+        break;
 }
 
-echo __('Sent').': '.$sent;
+echo __('Sent').': '.$sendCount;
 
 // End the process and output the result to terminal (output file)
 $processor->stopProcess('staffNotification');
