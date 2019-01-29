@@ -52,7 +52,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
         'notesRequested'          => $_POST['notesRequested'],
         'requestType'             => $_POST['requestType'],
         'status'                  => 'Requested',
-        'notified'                => 'N',
+        'notificationSent'        => 'N',
     ];
 
     // Validate the required values are present
@@ -123,9 +123,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
             ->send($recipients, $message);
 
         $staffCoverageGateway->update($gibbonStaffCoverageID, [
-            'notified' => $sent ? json_encode($recipients) : 'N',
+            'notificationSent' => $sent ? 'Y' : 'N',
+            'notificationList' => $sent ? json_encode($recipients) : '',
         ]);
-
     } else if ($data['requestType'] == 'Broadcast') {
         $process = new BackgroundProcess($gibbon->session->get('absolutePath').'/uploads/background');
         $process->startProcess('coverageBroadcast', __DIR__.'/coverage_requestBroadcastProcess.php', array($gibbonStaffCoverageID));

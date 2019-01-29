@@ -813,6 +813,8 @@ CREATE TABLE `gibbonStaffAbsence` (
     `comment` VARCHAR(255) NULL,
     `gibbonPersonIDCreator` int(10) UNSIGNED ZEROFILL NOT NULL,
     `timestampCreator` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `notificationSent` ENUM('N','Y') DEFAULT 'N',
+    `notificationList` TEXT NULL,
     PRIMARY KEY (`gibbonStaffAbsenceID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;end
 CREATE TABLE `gibbonStaffAbsenceDate` (
@@ -845,7 +847,8 @@ CREATE TABLE `gibbonStaffCoverage` (
     `gibbonPersonIDCoverage` int(10) UNSIGNED ZEROFILL NULL,
     `timestampCoverage` timestamp NULL,
     `notesCoverage` VARCHAR(255) NULL,
-    `notified` TEXT NULL,
+    `notificationSent` ENUM('N','Y') DEFAULT 'N',
+    `notificationList` TEXT NULL,
     PRIMARY KEY (`gibbonStaffCoverageID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;end
 CREATE TABLE `gibbonSubstitute` (

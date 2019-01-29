@@ -107,8 +107,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_edit
                 ->setReadonly(true);
     } else if ($coverage['requestType'] == 'Broadcast') {
 
-        $notified = $coverage['notified'] != 'N' && $coverage['notified'] != 'Failed'
-            ? json_decode($coverage['notified'])
+        $notified = $coverage['notificationSent'] == 'Y'
+            ? json_decode($coverage['notificationList'])
             : [];
 
         if ($notified) {

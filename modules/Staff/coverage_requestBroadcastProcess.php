@@ -80,7 +80,8 @@ $sent = $container
 
 
 $staffCoverageGateway->update($gibbonStaffCoverageID, [
-    'notified' => $sent ? json_encode($recipients) : 'N',
+    'notificationSent' => $sent ? 'Y' : 'N',
+    'notificationList' => $sent ? json_encode($recipients) : '',
 ]);
 
 echo __('Sent').': '.($sent ? count($recipients) : 0);
