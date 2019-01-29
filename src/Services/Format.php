@@ -218,7 +218,7 @@ class Format
                 $time = __n('{count} day', '{count} days', $days);
                 break;
             default:
-                return self::tooltip($date->format(static::$settings['dateTimeFormatPHP'], $dateString));
+                return self::tooltip($date->format(static::$settings['dateTimeFormatPHP']));
         }
 
         $time = ($timeDifference >= 0)

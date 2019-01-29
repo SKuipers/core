@@ -58,7 +58,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_summ
         $form->setClass('noIntBorder fullWidth');
 
         $form->addHiddenValue('address', $_SESSION[$guid]['address']);
-        $form->addHiddenValue('sidebar', 'false');
         $form->addHiddenValue('q', '/modules/Staff/report_absences_summary.php');
 
         $types = $staffAbsenceTypeGateway->selectAllTypes()->fetchAll();
