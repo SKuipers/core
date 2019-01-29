@@ -53,6 +53,10 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/staffSettings
         $row->addTextArea('reasons')->setRows(8);
 
     $row = $form->addRow();
+        $row->addLabel('active', __('Active'));
+        $row->addYesNo('active')->isRequired();
+
+    $row = $form->addRow();
         $row->addLabel('sequenceNumber', __('Sequence Number'));
         $row->addNumber('sequenceNumber')->maxLength(3);
 

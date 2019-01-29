@@ -33,7 +33,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/staffSettings
     $settingGateway = $container->get(SettingGateway::class);
 
     $settingsToUpdate = [
-        'Staff' => ['urgencyThreshold'],
+        'Staff' => ['substituteTypes', 'urgentNotifications', 'urgencyThreshold', ],
     ];
 
     foreach ($settingsToUpdate as $scope => $settings) {
