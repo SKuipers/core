@@ -57,6 +57,7 @@ $processor = new BackgroundProcess($gibbon->session->get('absolutePath').'/uploa
 
 $messageSender = $container->get(MessageSender::class);
 $urgencyThreshold = getSettingByScope($connection2, 'Staff', 'urgencyThreshold') * 86400;
+$organisationHR = getSettingByScope($connection2, 'System', 'organisationHR');
 
 $substituteGateway = $container->get(SubstituteGateway::class);
 $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
@@ -86,6 +87,8 @@ switch ($action) {
 
             // Send a coverage arranged message to the selected staff for this absence
             $recipients = !empty($coverage['notificationList']) ? json_decode($coverage['notificationList']) : [];
+            $recipients[] = $organisationHR;
+
             $message = new NewCoverage($coverage);
 
             if ($messageSender->send($recipients, $message)) {
@@ -99,9 +102,11 @@ switch ($action) {
 
         if ($absence = $staffAbsenceGateway->getAbsenceDetailsByID($gibbonStaffAbsenceID)) {
 
+            $message = new NewAbsence($absence);
+
             // Target the absence message to the selected staff
             $recipients = !empty($absence['notificationList']) ? json_decode($absence['notificationList']) : [];
-            $message = new NewAbsence($absence);
+            $recipients[] = $organisationHR;
 
             if ($absence['gibbonPersonID'] != $absence['gibbonPersonIDCreator']) {
                 $recipients[] = $absence['gibbonPersonID'];

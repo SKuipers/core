@@ -18,10 +18,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
+use Gibbon\Services\Format;
 use Gibbon\Forms\DatabaseFormFactory;
+use Gibbon\Domain\User\UserGateway;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
-use Gibbon\Services\Format;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.php') == false) {
     // Access denied
@@ -132,6 +133,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
             ->isRequired();
 
     $form->addRow()->addHeading(__('Notifications'));
+
+    // HR Administrator
+    $organisationHR = getSettingByScope($connection2, 'System', 'organisationHR');
+    $personHR = $container->get(UserGateway::class)->getByID($organisationHR);
+
+    if ($personHR) {
+        $row = $form->addRow();
+            $row->addLabel('organisationHRLabel', __('Default Notification'))->description(__('These users will be automatically notified.'));
+            $row->addTextField('organisationHR')->readonly()->setValue(Format::nameList([$personHR], 'Staff'));
+    }
 
     // Get the users last notified by this staff member
     $recentAbsence = $staffAbsenceGateway->getMostRecentAbsenceByPerson($gibbonPersonID);

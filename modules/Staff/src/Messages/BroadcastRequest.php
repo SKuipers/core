@@ -45,7 +45,7 @@ class BroadcastRequest extends Message
 
     public function text() : string
     {
-        return __("{name} needs coverage for {date}. This request is open for the first available sub to accept.", [
+        return __("{name} is looking for coverage for {date}. This request is open for the first available sub to accept.", [
             'date' => Format::dateRangeReadable($this->coverage['dateStart'], $this->coverage['dateEnd']),
             'name' => Format::name($this->coverage['titleAbsence'], $this->coverage['preferredNameAbsence'], $this->coverage['surnameAbsence'], 'Staff', false, true),
         ]);
