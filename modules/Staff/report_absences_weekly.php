@@ -185,17 +185,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_week
                 return $absence['type'] .'<br/>'.Format::small($absence['reason']);
             });
 
-        if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php')) {
+        if (isActionAccessible($guid, $connection2, '/modules/Staff/report_subs_availability.php')) {
             $table->addColumn('coverage', __('Coverage'))
                 ->width('30%')
                 ->format(function ($absence) {
-                    if (empty($absence['coverage'])) {
-                        return '';
-                    } elseif ($absence['coverage'] != 'Accepted') {
+                    if ($absence['coverage'] == 'Accepted') {
+                        return Format::name($absence['titleCoverage'], $absence['preferredNameCoverage'], $absence['surnameCoverage'], 'Staff', false, true);
+                    } elseif ($absence['coverage'] == 'Requested') {
                         return '<div class="badge success">'.__('Pending').'</div>';
                     }
-
-                    return Format::name($absence['titleCoverage'], $absence['preferredNameCoverage'], $absence['surnameCoverage'], 'Staff', false, true);
+                    return '';
                 });
         }
 

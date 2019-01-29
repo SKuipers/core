@@ -168,9 +168,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
             }
 
             $names = array_unique(array_map(function ($person) {
-                return $person['coverage'] == 'Accepted'
-                    ? Format::name($person['titleCoverage'], $person['preferredNameCoverage'], $person['surnameCoverage'], 'Staff', false, true)
-                    : '<div class="badge success">'.__('Pending').'</div>';
+                if ($person['coverage'] == 'Accepted') {
+                    return Format::name($person['titleCoverage'], $person['preferredNameCoverage'], $person['surnameCoverage'], 'Staff', false, true);
+                } elseif ($person['coverage'] == 'Requested') {
+                    return '<div class="badge success">'.__('Pending').'</div>';
+                }
+                return '';
             }, $absence['coverageList'] ?? []));
 
             return implode('<br/>', $names);
