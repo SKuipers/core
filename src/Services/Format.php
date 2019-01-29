@@ -117,7 +117,7 @@ class Format
      */
     public static function dateReadable($dateString, $format = '%b %e, %G')
     {
-        return ucfirst(strftime($format, strtotime($dateString)));
+        return ucfirst(strftime('%b %e, %G', strtotime($dateString)));
     }
 
     /**
@@ -126,9 +126,9 @@ class Format
      * @param string $dateString
      * @return string
      */
-    public static function dateTimeReadable($dateString, $format = '%b %e, %G %H:%M')
+    public static function dateTimeReadable($dateString)
     {
-        return ucfirst(strftime($format, strtotime($dateString)));
+        return ucfirst(strftime('%b %e, %G %H:%M', strtotime($dateString)));
     }
 
     /**
