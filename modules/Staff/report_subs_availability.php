@@ -30,7 +30,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_subs_availabi
     echo '</div>';
 } else {
     // Proceed!
-    $page->breadcrumbs->add(__('Sub Availability'));
+    $page->breadcrumbs->add(__('Substitute Availability'));
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, null);
@@ -47,6 +47,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_subs_availabi
     $criteria = $subGateway->newQueryCriteria()
         ->sortBy('gibbonSubstitute.priority', 'DESC')
         ->sortBy(['surname', 'preferredName'])
+        ->filterBy('allUsers', 'true')
         ->fromPOST();
 
     $form = Form::create('searchForm', $_SESSION[$guid]['absoluteURL'].'/index.php', 'get');
@@ -87,12 +88,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_subs_availabi
 
     $subs = $subGateway->queryAvailableSubsByDate($criteria, $date, $timeStart, $timeEnd);
 
-
     
-
     // DATA TABLE
     $table = DataTable::createPaginated('subsManage', $criteria);
-    $table->setTitle(__('Sub Availability'));
+    $table->setTitle(__('Substitute Availability'));
+
+    $table->modifyRows(function ($values, $row) {
+        if ($values['available'] == false) $row->addClass('error');
+        return $row;
+    });
 
     // COLUMNS
     $table->addColumn('image_240', __('Photo'))
@@ -114,11 +118,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_subs_availabi
         ->notSortable()
         ->format(function ($person) {
             $output = '';
-            if ($person['contactEmail'] == 'Y' && !empty($person['email'])) {
-                $output .= $person['email'].'<br/>';
-            }
-            if ($person['contactCall'] == 'Y' && !empty($person['phone1'])) {
-                $output .= Format::phone($person['phone1'], $person['phone1CountryCode'], $person['phone1Type']).'<br/>';
+
+            if ($person['available']) {
+                if ($person['contactEmail'] == 'Y' && !empty($person['email'])) {
+                    $output .= $person['email'].'<br/>';
+                }
+                if ($person['contactCall'] == 'Y' && !empty($person['phone1'])) {
+                    $output .= Format::phone($person['phone1'], $person['phone1CountryCode'], $person['phone1Type']).'<br/>';
+                }
+            } else {
+                if (!empty($person['absence'])) $output .= __('Absent').' - '.$person['absence'].'<br/>';
+                if (!empty($person['coverage'])) $output .= __('Covering').' - '.$person['coverage'].'<br/>';
+                if (!empty($person['timetable'])) $output .= __('Teaching').' - '.$person['timetable'].'<br/>';
+                if (!empty($person['unavailable'])) $output .= __('Not Available').'<br/>';
             }
             return $output;
         });
