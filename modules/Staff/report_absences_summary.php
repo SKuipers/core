@@ -35,6 +35,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_summ
     $dateFormat = $_SESSION[$guid]['i18n']['dateFormatPHP'];
     $gibbonSchoolYearID = $_SESSION[$guid]['gibbonSchoolYearID'];
     $gibbonStaffAbsenceTypeID = $_GET['gibbonStaffAbsenceTypeID'] ?? '';
+    $month = $_GET['month'] ?? '';
 
     $schoolYearGateway = $container->get(SchoolYearGateway::class);
     $staffAbsenceGateway = $container->get(StaffAbsenceGateway::class);
@@ -48,7 +49,31 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_summ
 
     $schoolYear = $schoolYearGateway->getSchoolYearByID($gibbonSchoolYearID);
 
-    $absences = $staffAbsenceGateway->queryAbsencesBySchoolYear($criteria, $gibbonSchoolYearID, false);
+
+    // Setup the date range for this school year
+    $dateStart = new DateTime(substr($schoolYear['firstDay'], 0, 7).'-01');
+    $dateEnd = new DateTime($schoolYear['lastDay']);
+
+    $months = [];
+    $dateRange = new DatePeriod($dateStart, new DateInterval('P1M'), $dateEnd);
+
+    // Translated array of months in the current school year
+    foreach ($dateRange as $monthDate) {
+        $months[$monthDate->format('Y-m-d')] =  ucfirst(strftime('%B %G', $monthDate->format('U')));
+    }
+
+    // Setup the date range used for this report
+    if (!empty($month)) {
+        $monthDate = new DateTimeImmutable($month);
+        $dateStart = $monthDate->modify('first day of this month');
+        $dateEnd = $monthDate->modify('last day of this month');
+
+        $dateRange = new DatePeriod($dateStart, new DateInterval('P1M'), $dateEnd);
+        $absences = $staffAbsenceGateway->queryAbsencesByDateRange($criteria, $dateStart->format('Y-m-d'), $dateEnd->format('Y-m-d'), false);
+    } else {
+        $absences = $staffAbsenceGateway->queryAbsencesBySchoolYear($criteria, $gibbonSchoolYearID, false);
+    }
+
 
     if (empty($viewMode)) {
         $page->breadcrumbs->add(__('Staff Absence Summary'));
@@ -71,29 +96,30 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_summ
                 ->selected($gibbonStaffAbsenceTypeID);
 
         $row = $form->addRow();
+            $row->addLabel('month', __('Month'));
+            $row->addSelect('month')->fromArray(['' => __('All')])->fromArray($months)->selected($month);
+
+        $row = $form->addRow();
         $row->addFooter();
         $row->addSearchSubmit($gibbon->session);
 
         echo $form->getOutput();
+
     
         // CALENDAR DATA
         $absencesByDate = array_reduce($absences->toArray(), function ($group, $item) {
             $group[$item['date']][] = $item;
             return $group;
         }, []);
-        
-        $dateStart = new DateTime(substr($schoolYear['firstDay'], 0, 7).'-01');
-        $dateEnd = new DateTime($schoolYear['lastDay']);
 
-        $dateRange = new DatePeriod($dateStart, new DateInterval('P1M'), $dateEnd);
         $calendar = [];
         $totalAbsence = 0;
         $maxAbsence = 0;
 
-        foreach ($dateRange as $month) {
+        foreach ($dateRange as $monthDate) {
             $days = [];
-            for ($dayCount = 1; $dayCount <= $month->format('t'); $dayCount++) {
-                $date = new DateTime($month->format('Y-m').'-'.$dayCount);
+            for ($dayCount = 1; $dayCount <= $monthDate->format('t'); $dayCount++) {
+                $date = new DateTime($monthDate->format('Y-m').'-'.$dayCount);
                 $absenceCount = count($absencesByDate[$date->format('Y-m-d')] ?? []);
 
                 $days[$dayCount] = [
@@ -107,7 +133,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_summ
             }
 
             $calendar[] = [
-                'name'  => $month->format('M'),
+                'name'  => $monthDate->format('M'),
                 'days'  => $days,
             ];
         }
@@ -115,7 +141,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_summ
         // CALENDAR TABLE
         $table = DataTable::createPaginated('staffAbsenceCalendar', $criteria);
         $table->setTitle(__('Staff Absence Summary'));
-        $table->setDescription(Format::dateRangeReadable($dateStart->format('Y-m-d'), $dateEnd->format('Y-m-d')).'<br/><br/>'.__n('{count} Absence', '{count} Absences', $totalAbsence));
+        $table->setDescription(__n('{count} Absence', '{count} Absences', $totalAbsence));
         $table->getRenderer()->setClass('calendarTable calendarTableSmall');
 
         $table->addMetaData('hidePagination', true);
@@ -165,7 +191,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_summ
     }
 
     // DATA TABLE
-
     $staffGateway = $container->get(StaffGateway::class);
     $criteria = $staffGateway->newQueryCriteria()
         ->sortBy(['surname', 'preferredName'])
@@ -201,6 +226,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_summ
     // DATA TABLE
     $table = ReportTable::createPaginated('staffAbsences', $criteria)->setViewMode($viewMode, $gibbon->session);
     $table->setTitle(__('Report'));
+    $table->setDescription(Format::dateRangeReadable($dateStart->format('Y-m-d'), $dateEnd->format('Y-m-d')));
 
     if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view.php', 'View Staff Profile_full')) {
         $table->addMetaData('filterOptions', [
