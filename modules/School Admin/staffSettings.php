@@ -22,6 +22,7 @@ use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
 use Gibbon\Domain\System\SettingGateway;
+use Gibbon\Domain\User\UserGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/staffSettings.php') == false) {
     // Access denied
@@ -37,6 +38,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/staffSettings
     $settingGateway = $container->get(SettingGateway::class);
     $staffAbsenceTypeGateway = $container->get(StaffAbsenceTypeGateway::class);
     $smsGateway = $settingGateway->getSettingByScope('Messenger', 'smsGateway');
+    $absoluteURL = $gibbon->session->get('absoluteURL');
 
     // QUERY
     $criteria = $staffAbsenceTypeGateway->newQueryCriteria()
@@ -61,6 +63,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/staffSettings
     $table->addColumn('nameShort', __('Short Name'));
     $table->addColumn('name', __('Name'));
     $table->addColumn('reasons', __('Reasons'));
+    $table->addColumn('requiresApproval', __('Requires Approval'))->format(Format::using('yesNo', 'requiresApproval'));
     $table->addColumn('active', __('Active'))->format(Format::using('yesNo', 'active'));
 
     // ACTIONS
@@ -82,7 +85,31 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/staffSettings
 
     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
 
-    $form->addRow()->addHeading(__('Coverage'));
+    $form->addRow()->addHeading(__('Staff Absence'));
+
+    $setting = $settingGateway->getSettingByScope('Staff', 'absenceApprovers', true);
+
+    $approverList = !empty($setting['value'])? explode(',', $setting['value']) : [];
+    $approvers = $container->get(UserGateway::class)->selectNotificationDetailsByPerson($approverList)->fetchGroupedUnique();
+    $approvers = array_map(function ($token) use ($absoluteURL) {
+        return [
+            'id'       => $token['gibbonPersonID'],
+            'name'     => Format::name('', $token['preferredName'], $token['surname'], 'Staff', false, true),
+            'jobTitle' => !empty($token['jobTitle']) ? $token['jobTitle'] : $token['type'],
+            'image'    => $absoluteURL.'/'.$token['image_240'],
+        ];
+    }, $approvers);
+
+    $row = $form->addRow();
+        $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
+        $row->addFinder($setting['name'])
+            ->fromAjax($gibbon->session->get('absoluteURL').'/modules/Staff/staff_searchAjax.php')
+            ->selected($approvers)
+            ->setParameter('resultsLimit', 10)
+            ->resultsFormatter('function(item){ return "<li class=\'finderListItem\'><div class=\'finderPhoto\' style=\'background-image: url(" + item.image + ");\'></div><div class=\'finderName\'>" + item.name + "<br/><span class=\'finderDetail\'>" + item.jobTitle + "</span></div></li>"; }')
+            ->tokenFormatter('function(item){ return "<li class=\'finderToken\'>" + item.name + "</li>"; }');
+
+    $form->addRow()->addHeading(__('Staff Coverage'));
 
     $setting = $settingGateway->getSettingByScope('Staff', 'substituteTypes', true);
     $row = $form->addRow();

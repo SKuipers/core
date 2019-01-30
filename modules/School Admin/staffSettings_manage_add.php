@@ -49,12 +49,16 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/staffSettings
         $row->addTextField('nameShort')->isRequired()->maxLength(10);
 
     $row = $form->addRow();
-        $row->addLabel('reasons', __('Reasons'))->description(__('Comma-separated list of reasons which are available when submitting this type of absence.'));
-        $row->addTextArea('reasons')->setRows(8);
-
-    $row = $form->addRow();
         $row->addLabel('active', __('Active'));
         $row->addYesNo('active')->isRequired();
+
+    $row = $form->addRow();
+        $row->addLabel('requiresApproval', __('Requires Approval'))->description(__('If enabled, absences of this type must be submitted for approval before they are accepted.'));
+        $row->addYesNo('requiresApproval')->isRequired();
+
+    $row = $form->addRow();
+        $row->addLabel('reasons', __('Reasons'))->description(__('An optional, comma-separated list of reasons which are available when submitting this type of absence.'));
+        $row->addTextArea('reasons')->setRows(8);
 
     $row = $form->addRow();
         $row->addLabel('sequenceNumber', __('Sequence Number'));

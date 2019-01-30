@@ -29,11 +29,12 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/staffSettings
 } else {
     // Proceed!
     $data = [
-        'name'           => $_POST['name'] ?? '',
-        'nameShort'      => $_POST['nameShort'] ?? '',
-        'active'         => $_POST['active'] ?? '',
-        'reasons'        => $_POST['reasons'] ?? '',
-        'sequenceNumber' => $_POST['sequenceNumber'] ?? '',
+        'name'             => $_POST['name'] ?? '',
+        'nameShort'        => $_POST['nameShort'] ?? '',
+        'active'           => $_POST['active'] ?? '',
+        'reasons'          => $_POST['reasons'] ?? '',
+        'sequenceNumber'   => $_POST['sequenceNumber'] ?? '',
+        'requiresApproval' => $_POST['requiresApproval'] ?? '',
     ];
 
     if (empty($data['name']) || empty($data['nameShort'])) {

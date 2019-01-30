@@ -50,7 +50,7 @@ class StaffAbsenceTypeGateway extends QueryableGateway
             ->newQuery()
             ->from($this->getTableName())
             ->cols([
-                'gibbonStaffAbsenceTypeID', 'name', 'nameShort', 'reasons', 'active'
+                'gibbonStaffAbsenceTypeID', 'name', 'nameShort', 'reasons', 'active', 'requiresApproval', 
             ]);
 
         return $this->runQuery($query, $criteria);

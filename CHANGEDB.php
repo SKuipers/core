@@ -820,6 +820,9 @@ CREATE TABLE `gibbonStaffAbsence` (
     `gibbonPersonID` int(10) UNSIGNED ZEROFILL NOT NULL,
     `reason` VARCHAR(60) NULL,
     `comment` VARCHAR(255) NULL,
+    `status` ENUM('Pending Approval','Approved','Declined') DEFAULT 'Approved',
+    `gibbonPersonIDApproval` int(10) UNSIGNED ZEROFILL NULL,
+    `timestampApproval` timestamp NULL,
     `gibbonPersonIDCreator` int(10) UNSIGNED ZEROFILL NOT NULL,
     `timestampCreator` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `notificationSent` ENUM('N','Y') DEFAULT 'N',
@@ -841,6 +844,7 @@ CREATE TABLE `gibbonStaffAbsenceType` (
     `name` VARCHAR(60) NULL,
     `nameShort` VARCHAR(10) NULL,
     `active` ENUM('N','Y') DEFAULT 'Y',
+    `requiresApproval` ENUM('N','Y') DEFAULT 'N',
     `reasons` TEXT NULL,
     `sequenceNumber` INT(3) NOT NULL,
     PRIMARY KEY (`gibbonStaffAbsenceTypeID`)
@@ -911,5 +915,6 @@ INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('001',
 INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Staff', 'substituteTypes', 'Substitute Types', 'A comma-separated list.', 'Internal Substitute,External Substitute');end
 INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Staff', 'urgencyThreshold', 'Urgency Threshold', 'Notifications in this time-span are sent immediately, day or night.', '3');end
 INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Staff', 'urgentNotifications', 'Urgent Notifications', 'Which contact methods should be used to notify users.', 'Email');end
+INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Staff', 'absenceApprovers', 'Absence Approvers', 'Users who can approve staff absences.', '');end
 
 ";
