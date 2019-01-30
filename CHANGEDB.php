@@ -816,6 +816,7 @@ INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('001',
 CREATE TABLE `gibbonStaffAbsence` (
     `gibbonStaffAbsenceID` INT(14) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
     `gibbonStaffAbsenceTypeID` INT(6) UNSIGNED ZEROFILL NOT NULL,
+    `gibbonSchoolYearID` INT(3) UNSIGNED ZEROFILL NOT NULL,
     `gibbonPersonID` int(10) UNSIGNED ZEROFILL NOT NULL,
     `reason` VARCHAR(60) NULL,
     `comment` VARCHAR(255) NULL,

@@ -45,6 +45,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
     $notificationList = !empty($_POST['notificationList'])? explode(',', $_POST['notificationList']) : [];
 
     $data = [
+        'gibbonSchoolYearID'       => $gibbon->session->get('gibbonSchoolYearID'),
         'gibbonPersonID'           => $_POST['gibbonPersonID'] ?? '',
         'gibbonStaffAbsenceTypeID' => $_POST['gibbonStaffAbsenceTypeID'] ?? '',
         'reason'                   => $_POST['reason'] ?? '',
