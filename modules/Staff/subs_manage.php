@@ -109,10 +109,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/subs_manage.php') ==
     // ACTIONS
     $table->addActionColumn()
         ->addParam('gibbonSubstituteID')
+        ->addParam('gibbonPersonID')
         ->addParam('search', $criteria->getSearchText(true))
         ->format(function ($person, $actions) {
             $actions->addAction('edit', __('Edit'))
                     ->setURL('/modules/Staff/subs_manage_edit.php');
+
+            $actions->addAction('availability', __('Edit Availability'))
+                    ->setIcon('planner')
+                    ->setURL('/modules/Staff/coverage_availability.php');
 
             $actions->addAction('delete', __('Delete'))
                     ->setURL('/modules/Staff/subs_manage_delete.php');

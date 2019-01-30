@@ -39,9 +39,24 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
         ]);
     }
 
-    $gibbonPersonID = $_GET['gibbonPersonID'] ?? $_SESSION[$guid]['gibbonPersonID'];
-
     $substituteGateway = $container->get(SubstituteGateway::class);
+
+    if (isActionAccessible($guid, $connection2, '/modules/Staff/subs_manage.php')) {
+        $gibbonPersonID = $_GET['gibbonPersonID'] ?? $_SESSION[$guid]['gibbonPersonID'];
+
+        // Display the details for who's availability we're editing
+        $form = Form::create('userInfo', '#');
+        $form->setFactory(DatabaseFormFactory::create($pdo));
+
+        $row = $form->addRow();
+            $row->addLabel('personLabel', __('Person'));
+            $row->addSelectUsers('person')->readonly()->selected($gibbonPersonID);
+
+        echo $form->getOutput();
+
+    } else {
+        $gibbonPersonID = $_SESSION[$guid]['gibbonPersonID'];
+    }
 
     if (empty($gibbonPersonID)) {
         $page->addError(__('You have not specified one or more required parameters.'));
