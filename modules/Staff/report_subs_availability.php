@@ -40,6 +40,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_subs_availabi
     $allDay = $_GET['allDay'] ?? null;
     $timeStart = $_GET['timeStart'] ?? null;
     $timeEnd = $_GET['timeEnd'] ?? null;
+    $allStaff = $_GET['allStaff'] ?? false;
 
     $subGateway = $container->get(SubstituteGateway::class);
 
@@ -47,7 +48,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_subs_availabi
     $criteria = $subGateway->newQueryCriteria()
         ->sortBy('gibbonSubstitute.priority', 'DESC')
         ->sortBy(['surname', 'preferredName'])
-        ->filterBy('allUsers', 'true')
+        ->filterBy('showUnavailable', 'true')
+        ->filterBy('allStaff', $allStaff)
         ->fromPOST();
 
     $form = Form::create('searchForm', $_SESSION[$guid]['absoluteURL'].'/index.php', 'get');
@@ -79,6 +81,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_subs_availabi
     $row = $form->addRow()->addClass('timeOptions');
         $row->addLabel('timeEnd', __('End Time'));
         $row->addTime('timeEnd')->chainedTo('timeStart')->isRequired()->setValue($timeEnd);
+
+    if (isActionAccessible($guid, $connection2, '/modules/Staff/subs_manage.php')) {
+        $row = $form->addRow();
+            $row->addLabel('allStaff', __('All Staff'))->description(__('Include all teaching staff.'));
+            $row->addCheckbox('allStaff')->checked($allStaff);
+    }
 
     $row = $form->addRow();
         $row->addFooter();
