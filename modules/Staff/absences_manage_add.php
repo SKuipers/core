@@ -67,6 +67,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
     }
 
     $types = $staffAbsenceTypeGateway->selectAllTypes()->fetchAll();
+    $typesRequiringApproval = $staffAbsenceTypeGateway->selectTypesRequiringApproval()->fetchAll(\PDO::FETCH_COLUMN, 0);
+    $approverOptions = explode(',', getSettingByScope($connection2, 'Staff', 'absenceApprovers'));
+
     $typesWithReasons = [];
     $reasonsOptions = [];
     $reasonsChained = [];
@@ -92,6 +95,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
             ->placeholder()
             ->isRequired();
 
+    // $form->toggleVisibilityByClass('typeSelected')->onSelect('gibbonStaffAbsenceTypeID')->whenNot('Please select ...');
     $form->toggleVisibilityByClass('reasonOptions')->onSelect('gibbonStaffAbsenceTypeID')->when($typesWithReasons);
 
     $row = $form->addRow()->addClass('reasonOptions');
@@ -132,6 +136,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
             ->addClass('timeOptions')
             ->isRequired();
 
+    $form->toggleVisibilityByClass('approvalRequired')->onSelect('gibbonStaffAbsenceTypeID')->when($typesRequiringApproval);
+    $form->toggleVisibilityByClass('approvalNotRequired')->onSelect('gibbonStaffAbsenceTypeID')->whenNot(array_merge($typesRequiringApproval, ['Please select...']));
+
+    $form->addRow()->addHeading(__('Requires Approval'))->addClass('approvalRequired');
+
+    $row = $form->addRow()->addClass('approvalRequired');
+        $row->addLabel('gibbonPersonIDApproval', __('Approver'));
+        $row->addSelectUsersFromList('gibbonPersonIDApproval', $approverOptions)
+            ->placeholder()
+            ->isRequired();
+
     $form->addRow()->addHeading(__('Notifications'));
 
     // HR Administrator
@@ -140,7 +155,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
 
     if ($personHR) {
         $row = $form->addRow();
-            $row->addLabel('organisationHRLabel', __('Default Notification'))->description(__('These users will be automatically notified.'));
+            $row->addLabel('organisationHRLabel', __('Automatic Notification'));
             $row->addTextField('organisationHR')->readonly()->setValue(Format::nameList([$personHR], 'Staff'));
     }
 
@@ -160,7 +175,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
     }, $notified);
 
     $row = $form->addRow();
-        $row->addLabel('notificationList', __('Notify'))->description(__('Your notification choices are saved and pre-filled for future absences.'));
+        $row->addLabel('notificationList', __('Notify Additional People'))->description(__('Your notification choices are saved and pre-filled for future absences.'));
         $row->addFinder('notificationList')
             ->fromAjax($gibbon->session->get('absoluteURL').'/modules/Staff/staff_searchAjax.php')
             ->selected($notified)
@@ -168,17 +183,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
             ->resultsFormatter('function(item){ return "<li class=\'finderListItem\'><div class=\'finderPhoto\' style=\'background-image: url(" + item.image + ");\'></div><div class=\'finderName\'>" + item.name + "<br/><span class=\'finderDetail\'>" + item.jobTitle + "</span></div></li>"; }')
             ->tokenFormatter('function(item){ return "<li class=\'finderToken\'>" + item.name + "</li>"; }');
     
+    $row = $form->addRow()->addClass('approvalRequired');
+        $row->addAlert(__("These people will only be notified of your absence if it is approved."), 'message');
 
     if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php')) {
-        $form->addRow()->addHeading(__('Coverage'));
+        $form->addRow()->addHeading(__('Coverage'))->addClass('approvalNotRequired');
 
-        $row = $form->addRow();
+        $row = $form->addRow()->addClass('approvalNotRequired');
             $row->addLabel('coverage', __('Substitute Required?'));
             $row->addYesNo('coverage')->isRequired()->selected('N');
     
         $form->toggleVisibilityByClass('coverageOptions')->onSelect('coverage')->whenNot('N');
             
-        $row = $form->addRow()->addClass('coverageOptions');
+        $row = $form->addRow()->addClass('coverageOptions approvalNotRequired');
             $row->addAlert(__("You'll have the option to send a coverage request after submitting this form."), 'success');
     } else {
         $form->addHiddenValue('coverage', 'N');

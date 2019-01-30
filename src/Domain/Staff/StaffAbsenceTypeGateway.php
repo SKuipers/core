@@ -62,4 +62,11 @@ class StaffAbsenceTypeGateway extends QueryableGateway
 
         return $this->db()->select($sql);
     }
+
+    public function selectTypesRequiringApproval()
+    {
+        $sql = "SELECT * FROM gibbonStaffAbsenceType WHERE requiresApproval = 'Y' ORDER BY sequenceNumber, nameShort";
+
+        return $this->db()->select($sql);
+    }
 }

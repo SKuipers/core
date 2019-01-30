@@ -277,6 +277,24 @@ class DatabaseFormFactory extends FormFactory
         return $this->createSelectPerson($name)->fromArray($staff);
     }
 
+    public function createSelectUsersFromList($name, $people = [])
+    {
+        $data = ['gibbonPersonIDList' => implode(',', $people)];
+        $sql = "SELECT gibbonPerson.gibbonPersonID, title, surname, preferredName
+                FROM gibbonPerson
+                WHERE status='Full' 
+                AND FIND_IN_SET(gibbonPersonID, :gibbonPersonIDList)
+                ORDER BY surname, preferredName";
+
+        $people = $this->pdo->select($sql, $data)->fetchGroupedUnique();
+
+        $people = array_map(function ($person) {
+            return Format::name($person['title'], $person['preferredName'], $person['surname'], 'Staff', true, true);
+        }, $people);
+
+        return $this->createSelectPerson($name)->fromArray($people);
+    }
+
     public function createSelectUsers($name, $gibbonSchoolYearID = false, $params = array())
     {
         $params = array_replace(['includeStudents' => false, 'includeStaff' => false], $params);
