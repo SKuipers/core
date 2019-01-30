@@ -24,6 +24,7 @@ use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
+use Gibbon\Domain\User\UserGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_edit.php') == false) {
     // Access denied
@@ -109,6 +110,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_edit
     $row = $form->addRow();
         $row->addLabel('comment', __('Comment'));
         $row->addTextArea('comment')->setRows(2);
+
+    $notificationList = !empty($values['notificationList'])? json_decode($values['notificationList']) : [];
+    $notified = $container->get(UserGateway::class)->selectNotificationDetailsByPerson($notificationList)->fetchGroupedUnique();
+
+    $row = $form->addRow();
+        $row->addLabel('sentToLabel', __('Notified'));
+        $row->addTextArea('sentTo')->setRows(3)->readonly()->setValue(Format::nameList($notified, 'Staff', false, true, ', '));
 
     $row = $form->addRow();
         $row->addFooter();

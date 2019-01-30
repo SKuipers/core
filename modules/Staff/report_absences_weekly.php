@@ -97,8 +97,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_week
             ]],
         ],
     ];
-
-    
     
     // QUERY
     $criteria = $staffAbsenceGateway->newQueryCriteria()
@@ -111,13 +109,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_week
 
     $listData = [];
     $chartData = array_fill_keys($weekdayNames, 0);
-    // $chartData = array_fill_keys(array_column($absenceTypes, 'name'), array_fill_keys($weekdayNames, 0));
-
-    // foreach ($absencesThisWeek as $absence) {
-    //     $weekday = __(DateTime::createFromFormat('Y-m-d', $absence['date'])->format('D'));
-    //     $chartData[$absence['type']][$weekday] += 1;
-    //     $listData[$absence['date']][] = $absence;
-    // }
 
     foreach ($absencesThisWeek as $absence) {
         $weekday = __(DateTime::createFromFormat('Y-m-d', $absence['date'])->format('D'));
@@ -131,14 +122,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_week
         ->setLabels($weekdayNames)
         ->setLegend(false)
         ->setColors(['hsl(260, 90%, 70%)']);
-        // ->setColors(['hsl(260, 90%, 70%)', 'hsl(260, 90%, 75%)', 'hsl(260, 90%, 80%)', 'hsl(260, 90%, 85%)', 'hsl(260, 90%, 90%)']);
 
     $barGraph->addDataset('absent', __('Absent'))->setData($chartData);
-
-    // foreach ($absenceTypes as $type) {
-    //     $data = array_values($chartData[$type['name']]);
-    //     $barGraph->addDataset($type['name'], __($type['name']))->setData($data);
-    // }
 
     echo '<div style="height: 175px;overflow: visible;">'.$barGraph->render().'</div>';
 
@@ -147,7 +132,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_week
         return;
     }
 
-    
     foreach ($weekdays as $weekday) {
         $date = $weekday['date'];
 
@@ -180,7 +164,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_week
             });
 
         $table->addColumn('type', __('Type'))
-            ->description(__('Reason'))
             ->format(function ($absence) {
                 return $absence['type'] .'<br/>'.Format::small($absence['reason']);
             });

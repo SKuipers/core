@@ -166,21 +166,6 @@ class StaffAbsenceGateway extends QueryableGateway
         return $this->db()->selectOne($sql, $data);
     }
 
-    public function selectNotificationDetailsByPerson($gibbonPersonID)
-    {
-        $gibbonPersonIDList = is_array($gibbonPersonID)? $gibbonPersonID : [$gibbonPersonID];
-
-        $data = ['gibbonPersonIDList' => implode(',', $gibbonPersonIDList)];
-        $sql = "SELECT gibbonPerson.gibbonPersonID as groupBy, gibbonPerson.gibbonPersonID, surname, preferredName, gibbonPerson.status, image_240, username, email, phone1, phone1CountryCode, phone1Type, gibbonRole.category as roleCategory, gibbonStaff.jobTitle, gibbonStaff.type
-                FROM gibbonPerson 
-                JOIN gibbonRole ON (gibbonRole.gibbonRoleID=gibbonPerson.gibbonRoleIDPrimary)
-                LEFT JOIN gibbonStaff ON (gibbonStaff.gibbonPersonID=gibbonPerson.gibbonPersonID)
-                WHERE FIND_IN_SET(gibbonPerson.gibbonPersonID, :gibbonPersonIDList) 
-                ORDER BY surname, preferredName";
-
-        return $this->db()->select($sql, $data);
-    }
-
     protected function getSharedFilterRules()
     {
         return [

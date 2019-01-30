@@ -57,6 +57,7 @@ $processor = new BackgroundProcess($gibbon->session->get('absolutePath').'/uploa
 
 $messageSender = $container->get(MessageSender::class);
 $urgencyThreshold = getSettingByScope($connection2, 'Staff', 'urgencyThreshold') * 86400;
+$urgentNotifications = getSettingByScope($connection2, 'Staff', 'urgentNotifications');
 $organisationHR = getSettingByScope($connection2, 'System', 'organisationHR');
 
 $substituteGateway = $container->get(SubstituteGateway::class);
@@ -101,6 +102,8 @@ switch ($action) {
         $gibbonStaffAbsenceID = $argv[2] ?? '';
 
         if ($absence = $staffAbsenceGateway->getAbsenceDetailsByID($gibbonStaffAbsenceID)) {
+            $relativeSeconds = strtotime($absence['dateStart']) - time();
+            $absence['urgent'] = $relativeSeconds <= $urgencyThreshold;
 
             $message = new NewAbsence($absence);
 
@@ -117,7 +120,7 @@ switch ($action) {
                 $sendCount += count($recipients);
 
                 $staffAbsenceGateway->update($gibbonStaffAbsenceID, [
-                    'notificationSent' => 'Y'
+                    'notificationSent' => 'Y',
                 ]);
             }
         }

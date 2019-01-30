@@ -28,8 +28,8 @@ require_once '../../gibbon.php';
 
 $gibbonPersonID = $_POST['gibbonPersonID'] ?? '';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/absences_manage_add.php';
-$URLSuccess = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/absences_view_byPerson.php&gibbonPersonID='.$gibbonPersonID;
+$URL = $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Staff/absences_manage_add.php';
+$URLSuccess = $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Staff/absences_view_byPerson.php&gibbonPersonID='.$gibbonPersonID;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.php') == false) {
     $URL .= '&return=error0';
@@ -50,7 +50,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
         'gibbonStaffAbsenceTypeID' => $_POST['gibbonStaffAbsenceTypeID'] ?? '',
         'reason'                   => $_POST['reason'] ?? '',
         'comment'                  => $_POST['comment'] ?? '',
-        'gibbonPersonIDCreator'    => $_SESSION[$guid]['gibbonPersonID'],
+        'gibbonPersonIDCreator'    => $gibbon->session->get('gibbonPersonID'),
         'notificationSent'         => 'N',
         'notificationList'         => json_encode($notificationList),
     ];

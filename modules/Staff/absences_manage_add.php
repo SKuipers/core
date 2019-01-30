@@ -149,7 +149,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
     $notificationList = !empty($recentAbsence['notificationList'])? json_decode($recentAbsence['notificationList']) : [];
 
     // Format user details into token-friendly list
-    $notified = $staffAbsenceGateway->selectNotificationDetailsByPerson($notificationList)->fetchGroupedUnique();
+    $notified = $container->get(UserGateway::class)->selectNotificationDetailsByPerson($notificationList)->fetchGroupedUnique();
     $notified = array_map(function ($token) use ($absoluteURL) {
         return [
             'id'       => $token['gibbonPersonID'],

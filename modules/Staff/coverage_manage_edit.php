@@ -25,6 +25,7 @@ use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
+use Gibbon\Domain\User\UserGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_edit.php') == false) {
     // Access denied
@@ -107,18 +108,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_edit
                 ->setReadonly(true);
     } else if ($coverage['requestType'] == 'Broadcast') {
 
-        $notified = $coverage['notificationSent'] == 'Y'
-            ? json_decode($coverage['notificationList'])
-            : [];
+        $notificationList = $coverage['notificationSent'] == 'Y' ? json_decode($coverage['notificationList']) : [];
 
-        if ($notified) {
-            $data = ['gibbonPersonIDList' => implode(',', $notified)];
-            $sql = "SELECT username, title, preferredName, surname FROM gibbonPerson WHERE FIND_IN_SET(gibbonPersonID, :gibbonPersonIDList) ";
-            $people = $pdo->select($sql, $data)->fetchAll();
+        if ($notificationList) {
+            $notified = $container->get(UserGateway::class)->selectNotificationDetailsByPerson($notificationList)->fetchGroupedUnique();
 
             $row = $form->addRow();
-                $row->addLabel('sentToLabel', __('Recipients'));
-                $row->addTextArea('sentTo')->readonly()->setValue(Format::nameList($people, 'Staff', false, true, ', '));
+                $row->addLabel('sentToLabel', __('Notified'));
+                $row->addTextArea('sentTo')->readonly()->setValue(Format::nameList($notified, 'Staff', false, true, ', '));
         }
     }
 
