@@ -823,6 +823,7 @@ CREATE TABLE `gibbonStaffAbsence` (
     `status` ENUM('Pending Approval','Approved','Declined') DEFAULT 'Approved',
     `gibbonPersonIDApproval` int(10) UNSIGNED ZEROFILL NULL,
     `timestampApproval` timestamp NULL,
+    `notesApproval` VARCHAR(255) NULL,
     `gibbonPersonIDCreator` int(10) UNSIGNED ZEROFILL NOT NULL,
     `timestampCreator` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `notificationSent` ENUM('N','Y') DEFAULT 'N',

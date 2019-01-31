@@ -31,6 +31,7 @@ use Gibbon\Module\Staff\Messages\CoverageAccepted;
 use Gibbon\Module\Staff\Messages\CoveragePartial;
 use Gibbon\Module\Staff\Messages\NewCoverage;
 use Gibbon\Module\Staff\Messages\NewAbsence;
+use Gibbon\Module\Staff\Messages\AbsencePendingApproval;
 
 $_POST['address'] = '/modules/Staff/notification_backgroundProcess.php';
 
@@ -65,6 +66,7 @@ $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
 $staffAbsenceGateway = $container->get(StaffAbsenceGateway::class);
 $staffAbsenceDateGateway = $container->get(StaffAbsenceDateGateway::class);
 
+$sent = [];
 $sendCount = 0;
 
 switch ($action) {
@@ -92,7 +94,7 @@ switch ($action) {
 
             $message = new NewCoverage($coverage);
 
-            if ($messageSender->send($recipients, $message)) {
+            if ($sent = $messageSender->send($recipients, $message)) {
                 $sendCount += count($recipients);
             }
         }
@@ -116,12 +118,30 @@ switch ($action) {
             }
 
             // Send messages
-            if ($messageSender->send($recipients, $message)) {
+            if ($sent = $messageSender->send($recipients, $message)) {
                 $sendCount += count($recipients);
 
                 $staffAbsenceGateway->update($gibbonStaffAbsenceID, [
                     'notificationSent' => 'Y',
                 ]);
+            }
+        }
+
+        break;
+
+    case 'AbsencePendingApproval':
+        $gibbonStaffAbsenceID = $argv[2] ?? '';
+
+        if ($absence = $staffAbsenceGateway->getAbsenceDetailsByID($gibbonStaffAbsenceID)) {
+            $relativeSeconds = strtotime($absence['dateStart']) - time();
+            $absence['urgent'] = $relativeSeconds <= $urgencyThreshold;
+
+            $message = new AbsencePendingApproval($absence);
+            $recipients = [$absence['gibbonPersonIDApproval']];
+
+            // Send messages
+            if ($sent = $messageSender->send($recipients, $message)) {
+                $sendCount += count($recipients);
             }
         }
 
@@ -148,7 +168,7 @@ switch ($action) {
             $recipients = array_column($availableSubs, 'gibbonPersonID');
             $message = new BroadcastRequest($coverage);
 
-            if ($messageSender->send($recipients, $message)) {
+            if ($sent = $messageSender->send($recipients, $message)) {
                 $sendCount += count($recipients);
 
                 $staffCoverageGateway->update($gibbonStaffCoverageID, [
@@ -161,7 +181,11 @@ switch ($action) {
         break;
 }
 
-echo __('Sent').': '.$sendCount;
+echo __('Sent').': '.$sendCount."\n";
+echo __('Send Report').": \n";
+echo '<pre>';
+print_r($sent);
+echo '</pre>';
 
 // End the process and output the result to terminal (output file)
 $processor->stopProcess('staffNotification');

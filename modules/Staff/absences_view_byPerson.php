@@ -179,6 +179,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
     $table = DataTable::createPaginated('staffAbsences', $criteria);
     $table->setTitle(__('View'));
 
+    $table->modifyRows(function ($absence, $row) {
+        if ($absence['status'] == 'Pending Approval') $row->addClass('warning');
+        if ($absence['status'] == 'Declined') $row->addClass('dull');
+        return $row;
+    });
+
     $table->addHeaderAction('add', __('New Absence'))
         ->setURL('/modules/Staff/absences_manage_add.php')
         ->addParam('gibbonPersonID', $gibbonPersonID)
@@ -201,7 +207,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
     $table->addColumn('type', __('Type'))
         ->description(__('Reason'))
         ->format(function ($absence) {
-            return $absence['type'] .'<br/>'.Format::small($absence['reason']);
+            $output = $absence['type'];
+            if (!empty($absence['reason'])) {
+                $output .= '<br/>'.Format::small($absence['reason']);
+            }
+            if ($absence['status'] != 'Approved') {
+                $output .= '<br/><span class="small emphasis">'.__($absence['status']).'</span>';
+            }
+            return $output;
         });
 
     
@@ -244,7 +257,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
                 ->isModal(800, 550)
                 ->setURL('/modules/Staff/absences_view_details.php');
 
-            if ($canRequest && empty($absence['coverage']) && $absence['dateEnd'] >= date('Y-m-d')) {
+            if ($canRequest && $absence['status'] == 'Approved' 
+                && empty($absence['coverage']) && $absence['dateEnd'] >= date('Y-m-d')) {
                 $actions->addAction('coverage', __('Request Coverage'))
                     ->setIcon('attendance')
                     ->setURL('/modules/Staff/coverage_request.php');

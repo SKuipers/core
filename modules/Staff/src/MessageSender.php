@@ -71,7 +71,8 @@ class MessageSender
                 }
             }
 
-            $result[] = $this->mail->Send();
+            $sent = $this->mail->Send();
+            $result['mail'] = $sent ? count($recipients) : 0;
         }
 
         // Send SMS
@@ -80,9 +81,11 @@ class MessageSender
                 return ($person['phone1CountryCode'] ?? '').($person['phone1'] ?? '');
             }, $recipients);
 
-            $result[] = $this->sms
+            $sent = $this->sms
                 ->content($message->toSMS()."\n".'[ '.$this->settings['absoluteURL'].' ]')
                 ->send($phoneNumbers);
+
+            $result['sms'] = count($sent);
         }
 
         // Send Notification (database)
@@ -90,6 +93,6 @@ class MessageSender
             // Do stuff...
         }
 
-        return !empty($result);
+        return $result;
     }
 }

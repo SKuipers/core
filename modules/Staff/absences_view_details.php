@@ -82,6 +82,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_detail
 
     $type = $container->get(StaffAbsenceTypeGateway::class)->getByID($values['gibbonStaffAbsenceTypeID']);
 
+    if ($type['requiresApproval'] == 'Y') {
+        $approver = '';
+        if (!empty($values['gibbonPersonIDApproval'])) {
+            $approver = $container->get(UserGateway::class)->getByID($values['gibbonPersonIDApproval']);
+            $approver = Format::small(__('By').' '.Format::nameList([$approver], 'Staff', false, true));
+        }
+
+        $row = $form->addRow();
+            $row->addLabel('status', __('Status'));
+            $row->addContent($values['status'].'<br/>'.$approver)->wrap('<div class="standardWidth floatRight">', '</div>');
+    }
+
     $row = $form->addRow();
         $row->addLabel('typeLabel', __('Type'));
         $row->addTextField('type')->readonly()->setValue($type['name']);
@@ -108,7 +120,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_detail
 
     echo $form->getOutput();
 
-    $absenceDates = $staffAbsenceDateGateway->selectDatesByAbsence($gibbonStaffAbsenceID);
+    $absenceDates = $staffAbsenceDateGateway->selectDatesByAbsence($values['gibbonStaffAbsenceID']);
 
     $table = DataTable::create('staffAbsenceDates');
     $table->setTitle(__('Dates'));
@@ -135,7 +147,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_detail
                     : '<div class="badge success">'.__('Pending').'</div>';
         });
 
-    if ($canManage && $canRequest) {
+    if ($canManage && $canRequest && $values['status'] == 'Approved') {
         $table->addActionColumn()
             ->addParam('gibbonStaffAbsenceID')
             ->format(function ($absence, $actions) {

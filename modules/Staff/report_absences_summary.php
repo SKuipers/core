@@ -69,10 +69,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_summ
         $dateEnd = $monthDate->modify('last day of this month');
 
         $dateRange = new DatePeriod($dateStart, new DateInterval('P1M'), $dateEnd);
-        $absences = $staffAbsenceGateway->queryAbsencesByDateRange($criteria, $dateStart->format('Y-m-d'), $dateEnd->format('Y-m-d'), false);
     } else {
-        $absences = $staffAbsenceGateway->queryAbsencesBySchoolYear($criteria, $gibbonSchoolYearID, false);
+        $dateStart = new DateTime($schoolYear['firstDay']);
     }
+
+    $absences = $staffAbsenceGateway->queryApprovedAbsencesByDateRange($criteria, $dateStart->format('Y-m-d'), $dateEnd->format('Y-m-d'), false);
 
 
     if (empty($viewMode)) {

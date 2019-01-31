@@ -104,7 +104,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_week
         ->sortBy('sequenceNumber')
         ->fromPOST();
 
-    $absencesThisWeek = $staffAbsenceGateway->queryAbsencesByDateRange($criteria, $dateStart->format('Y-m-d'), $dateEnd->format('Y-m-d'), false)->toArray();
+    $absencesThisWeek = $staffAbsenceGateway->queryApprovedAbsencesByDateRange($criteria, $dateStart->format('Y-m-d'), $dateEnd->format('Y-m-d'), false)->toArray();
     $absenceTypes = $staffAbsenceTypeGateway->selectAllTypes()->fetchAll();
 
     $listData = [];

@@ -58,6 +58,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
         $page->addError(__('The specified record cannot be found.'));
         return;
     }
+
+    if ($values['status'] != 'Approved') {
+        $page->addError(__('Coverage may only be requested for an absence after it has been approved.'));
+        return;
+    }
     
     // Look for available subs
     $criteria = $substituteGateway->newQueryCriteria()

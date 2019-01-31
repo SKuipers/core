@@ -107,7 +107,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
             ->isRequired();
 
     $row = $form->addRow();
-        $row->addLabel('comment', __('Comment'))->description(__('This message is only shared with users who manage staff absences.'));
+        $row->addLabel('comment', __('Confidential Comment'))->description(__('This message is only shared with the people you choose to notify and users who manage staff absences.'));
         $row->addTextArea('comment')->setRows(3);
 
     $form->addRow()->addHeading(__('Date & Time'));

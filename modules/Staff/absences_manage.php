@@ -105,6 +105,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
     $table = DataTable::createPaginated('staffAbsences', $criteria);
     $table->setTitle(__('View'));
 
+    $table->modifyRows(function ($absence, $row) {
+        if ($absence['status'] == 'Pending Approval') $row->addClass('warning');
+        if ($absence['status'] == 'Declined') $row->addClass('dull');
+        return $row;
+    });
+
     if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_summary.php')) {
         $table->addHeaderAction('view', __('View'))
             ->setIcon('planner')
@@ -123,10 +129,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
         'date:upcoming'    => __('Upcoming'),
         'date:today'       => __('Today'),
         'date:past'        => __('Past'),
-        'status:requested' => __('Coverage').': '.__('Requested'),
-        'status:accepted'  => __('Coverage').': '.__('Accepted'),
-        'status:declined'  => __('Coverage').': '.__('Declined'),
-        'status:cancelled' => __('Coverage').': '.__('Cancelled'),
+        
+        'status:pending approval' => __('Status').': '.__('Pending Approval'),
+        'status:approved'         => __('Status').': '.__('Approved'),
+
+        'coverage:requested' => __('Coverage').': '.__('Requested'),
+        'coverage:accepted'  => __('Coverage').': '.__('Accepted'),
+        'coverage:declined'  => __('Coverage').': '.__('Declined'),
+        'coverage:cancelled' => __('Coverage').': '.__('Cancelled'),
     ]);
 
     // COLUMNS
@@ -155,7 +165,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
     $table->addColumn('type', __('Type'))
         ->description(__('Reason'))
         ->format(function ($absence) {
-            return $absence['type'] .'<br/>'.Format::small($absence['reason']);
+            $output = $absence['type'];
+            if (!empty($absence['reason'])) {
+                $output .= '<br/>'.Format::small($absence['reason']);
+            }
+            if ($absence['status'] != 'Approved') {
+                $output .= '<br/><span class="small emphasis">'.__($absence['status']).'</span>';
+            }
+            return $output;
         });
 
 

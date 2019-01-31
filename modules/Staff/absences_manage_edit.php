@@ -65,13 +65,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_edit
 
     $form->addRow()->addHeading(__('Basic Information'));
 
-
     $row = $form->addRow();
         $row->addLabel('gibbonPersonID', __('Person'));
         $row->addSelectStaff('gibbonPersonID')->placeholder()->isRequired()->readonly();
 
-
+    $type = $staffAbsenceTypeGateway->getByID($values['gibbonStaffAbsenceTypeID']);
     $types = $staffAbsenceTypeGateway->selectAllTypes()->fetchAll();
+
     $typesWithReasons = [];
     $reasonsOptions = [];
     $reasonsChained = [];
@@ -89,6 +89,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_edit
         }
         return $group;
     }, []);
+
+    if ($type['requiresApproval'] == 'Y') {
+        $approver = '';
+        if (!empty($values['gibbonPersonIDApproval'])) {
+            $approver = $container->get(UserGateway::class)->getByID($values['gibbonPersonIDApproval']);
+            $approver = Format::small(__('By').' '.Format::nameList([$approver], 'Staff'));
+        }
+
+        $row = $form->addRow();
+            $row->addLabel('status', __('Status'));
+            $row->addContent($values['status'].'<br/>'.$approver)->wrap('<div class="standardWidth floatRight">', '</div>');
+    }
 
     $row = $form->addRow();
         $row->addLabel('gibbonStaffAbsenceTypeID', __('Type'));
@@ -156,26 +168,29 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_edit
         });
 
     // ACTIONS
-    if ($absenceDates->rowCount() > 1) {
-        $canRequestCoverage = isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php');
+    $canDelete = $absenceDates->rowCount() > 1;
+    $canRequestCoverage = isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php')
+        && $values['status'] == 'Approved';
 
-        $table->addActionColumn()
-            ->addParam('gibbonStaffAbsenceID', $gibbonStaffAbsenceID)
-            ->addParam('gibbonStaffAbsenceDateID')
-            ->format(function ($absence, $actions) use ($canRequestCoverage) {
+    $table->addActionColumn()
+        ->addParam('gibbonStaffAbsenceID', $gibbonStaffAbsenceID)
+        ->addParam('gibbonStaffAbsenceDateID')
+        ->format(function ($absence, $actions) use ($canRequestCoverage, $canDelete) {
+            if ($canDelete) {
                 $actions->addAction('deleteInstant', __('Delete'))
-                        ->setIcon('garbage')
-                        ->isDirect()
-                        ->setURL('/modules/Staff/absences_manage_edit_deleteProcess.php')
-                        ->addConfirmation(__('Are you sure you wish to delete this record?'));
+                    ->setIcon('garbage')
+                    ->isDirect()
+                    ->setURL('/modules/Staff/absences_manage_edit_deleteProcess.php')
+                    ->addConfirmation(__('Are you sure you wish to delete this record?'));
+            }
 
-                if ($canRequestCoverage && empty($absence['coverage']) && $absence['date'] >= date('Y-m-d')) {
-                    $actions->addAction('coverage', __('Request Coverage'))
-                        ->setIcon('attendance')
-                        ->setURL('/modules/Staff/coverage_request.php');
-                }
-            });
-    }
+            if ($canRequestCoverage && empty($absence['coverage']) && $absence['date'] >= date('Y-m-d')) {
+                $actions->addAction('coverage', __('Request Coverage'))
+                    ->setIcon('attendance')
+                    ->setURL('/modules/Staff/coverage_request.php');
+            }
+        });
+    
 
     echo $table->render($absenceDates->toDataSet());
 

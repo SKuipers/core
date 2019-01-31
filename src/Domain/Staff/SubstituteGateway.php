@@ -132,7 +132,8 @@ class SubstituteGateway extends QueryableGateway
                 "SELECT gibbonStaffAbsenceDateID as ID, gibbonStaffAbsenceType.name as status, gibbonStaffAbsence.gibbonPersonID, gibbonStaffAbsenceDate.date, allDay, timeStart, timeEnd
                     FROM gibbonStaffAbsence 
                     JOIN gibbonStaffAbsenceDate ON (gibbonStaffAbsenceDate.gibbonStaffAbsenceID=gibbonStaffAbsence.gibbonStaffAbsenceID)
-                    JOIN gibbonStaffAbsenceType ON (gibbonStaffAbsenceType.gibbonStaffAbsenceTypeID=gibbonStaffAbsence.gibbonStaffAbsenceTypeID)",
+                    JOIN gibbonStaffAbsenceType ON (gibbonStaffAbsenceType.gibbonStaffAbsenceTypeID=gibbonStaffAbsence.gibbonStaffAbsenceTypeID)
+                    WHERE gibbonStaffAbsence.status != 'Declined'",
                 'absence',
                 "absence.gibbonPersonID=gibbonPerson.gibbonPersonID AND absence.date = :date 
                     AND (absence.allDay='Y' OR (absence.allDay='N' AND absence.timeStart <= :timeEnd AND absence.timeEnd >= :timeStart))"
@@ -180,6 +181,7 @@ class SubstituteGateway extends QueryableGateway
                     FROM gibbonStaffAbsence 
                     JOIN gibbonStaffAbsenceDate ON (gibbonStaffAbsenceDate.gibbonStaffAbsenceID=gibbonStaffAbsence.gibbonStaffAbsenceID)
                     JOIN gibbonStaffAbsenceType ON (gibbonStaffAbsenceType.gibbonStaffAbsenceTypeID=gibbonStaffAbsence.gibbonStaffAbsenceTypeID)
+                    WHERE gibbonStaffAbsence.status != 'Declined'
                     ",
                 'absence',
                 'absence.gibbonPersonID=gibbonPerson.gibbonPersonID AND absence.date = :date'
@@ -249,6 +251,7 @@ class SubstituteGateway extends QueryableGateway
                 FROM gibbonStaffAbsence
                 JOIN gibbonStaffAbsenceDate ON (gibbonStaffAbsenceDate.gibbonStaffAbsenceID=gibbonStaffAbsence.gibbonStaffAbsenceID)
                 WHERE gibbonStaffAbsence.gibbonPersonID=:gibbonPersonID 
+                AND WHERE gibbonStaffAbsence.status != 'Declined'
             ) UNION ALL (
                 SELECT date as groupBy, 'Teaching' as status, 'N', timeStart, timeEnd
                 FROM gibbonCourseClassPerson 

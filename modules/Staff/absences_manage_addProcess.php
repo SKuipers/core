@@ -26,10 +26,8 @@ use Gibbon\Data\BackgroundProcess;
 
 require_once '../../gibbon.php';
 
-$gibbonPersonID = $_POST['gibbonPersonID'] ?? '';
-
 $URL = $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Staff/absences_manage_add.php';
-$URLSuccess = $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Staff/absences_view_byPerson.php&gibbonPersonID='.$gibbonPersonID;
+$URLSuccess = $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Staff/absences_view_details.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.php') == false) {
     $URL .= '&return=error0';
@@ -50,6 +48,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
         'gibbonStaffAbsenceTypeID' => $_POST['gibbonStaffAbsenceTypeID'] ?? '',
         'reason'                   => $_POST['reason'] ?? '',
         'comment'                  => $_POST['comment'] ?? '',
+        'status'                   => 'Approved',
         'gibbonPersonIDCreator'    => $gibbon->session->get('gibbonPersonID'),
         'notificationSent'         => 'N',
         'notificationList'         => json_encode($notificationList),
@@ -70,6 +69,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
         $URL .= '&return=error2';
         header("Location: {$URL}");
         exit;
+    }
+
+    // Is approval required? Record the name of the approver & update the status.
+    if ($type['requiresApproval'] == 'Y') {
+        $data['gibbonPersonIDApproval'] = $_POST['gibbonPersonIDApproval'] ?? '';
+        $data['status'] = 'Pending Approval';
+
+        if (empty($data['gibbonPersonIDApproval'])) {
+            $URL .= '&return=error1';
+            header("Location: {$URL}");
+            exit;
+        }
     }
 
     // Create the absence
@@ -117,8 +128,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
     }
 
     // Start a background process for notifications
+    $processType = $type['requiresApproval'] == 'Y' ? 'AbsencePendingApproval' : 'NewAbsence';
     $process = new BackgroundProcess($gibbon->session->get('absolutePath').'/uploads/background');
-    $process->startProcess('staffNotification', __DIR__.'/notification_backgroundProcess.php', ['NewAbsence', $gibbonStaffAbsenceID]);
+    $process->startProcess('staffNotification', __DIR__.'/notification_backgroundProcess.php', [$processType, $gibbonStaffAbsenceID]);
 
 
     // Redirect to coverage request
@@ -133,6 +145,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
         exit;
     }
 
+    $URLSuccess .= "&gibbonStaffAbsenceID=$gibbonStaffAbsenceID";
     $URLSuccess .= $partialFail
         ? "&return=warning1"
         : "&return=success0";
