@@ -85,7 +85,7 @@ class MessageSender
                 ->content($message->toSMS()."\n".'[ '.$this->settings['absoluteURL'].' ]')
                 ->send($phoneNumbers);
 
-            $result['sms'] = count($sent);
+            $result['sms'] = is_array($sent) ? count($sent) : $sent;
         }
 
         // Send Notification (database)

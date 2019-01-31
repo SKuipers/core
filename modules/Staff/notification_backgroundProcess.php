@@ -32,6 +32,7 @@ use Gibbon\Module\Staff\Messages\CoveragePartial;
 use Gibbon\Module\Staff\Messages\NewCoverage;
 use Gibbon\Module\Staff\Messages\NewAbsence;
 use Gibbon\Module\Staff\Messages\AbsencePendingApproval;
+use Gibbon\Module\Staff\Messages\AbsenceApproval;
 
 $_POST['address'] = '/modules/Staff/notification_backgroundProcess.php';
 
@@ -147,6 +148,24 @@ switch ($action) {
 
         break;
 
+    case 'AbsenceApproval':
+        $gibbonStaffAbsenceID = $argv[2] ?? '';
+
+        if ($absence = $staffAbsenceGateway->getAbsenceDetailsByID($gibbonStaffAbsenceID)) {
+            $relativeSeconds = strtotime($absence['dateStart']) - time();
+            $absence['urgent'] = $relativeSeconds <= $urgencyThreshold;
+
+            $message = new AbsenceApproval($absence);
+            $recipients = [$absence['gibbonPersonID']];
+
+            // Send messages
+            if ($sent = $messageSender->send($recipients, $message)) {
+                $sendCount += count($recipients);
+            }
+        }
+
+        break;
+
     case 'CoverageBroadcast':
         $gibbonStaffCoverageID = $argv[2] ?? '';
 
@@ -183,9 +202,7 @@ switch ($action) {
 
 echo __('Sent').': '.$sendCount."\n";
 echo __('Send Report').": \n";
-echo '<pre>';
 print_r($sent);
-echo '</pre>';
 
 // End the process and output the result to terminal (output file)
-$processor->stopProcess('staffNotification');
+// $processor->stopProcess('staffNotification');

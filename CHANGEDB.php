@@ -819,11 +819,11 @@ CREATE TABLE `gibbonStaffAbsence` (
     `gibbonSchoolYearID` INT(3) UNSIGNED ZEROFILL NOT NULL,
     `gibbonPersonID` int(10) UNSIGNED ZEROFILL NOT NULL,
     `reason` VARCHAR(60) NULL,
-    `comment` VARCHAR(255) NULL,
+    `comment` TEXT NULL,
     `status` ENUM('Pending Approval','Approved','Declined') DEFAULT 'Approved',
     `gibbonPersonIDApproval` int(10) UNSIGNED ZEROFILL NULL,
     `timestampApproval` timestamp NULL,
-    `notesApproval` VARCHAR(255) NULL,
+    `notesApproval` TEXT NULL,
     `gibbonPersonIDCreator` int(10) UNSIGNED ZEROFILL NOT NULL,
     `timestampCreator` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `notificationSent` ENUM('N','Y') DEFAULT 'N',
@@ -857,10 +857,10 @@ CREATE TABLE `gibbonStaffCoverage` (
     `requestType` ENUM('Individual','Broadcast','Assigned') DEFAULT 'Broadcast',
     `gibbonPersonIDRequested` int(10) UNSIGNED ZEROFILL NOT NULL,
     `timestampRequested` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `notesRequested` VARCHAR(255) NULL,
+    `notesRequested` TEXT NULL,
     `gibbonPersonIDCoverage` int(10) UNSIGNED ZEROFILL NULL,
     `timestampCoverage` timestamp NULL,
-    `notesCoverage` VARCHAR(255) NULL,
+    `notesCoverage` TEXT NULL,
     `notificationSent` ENUM('N','Y') DEFAULT 'N',
     `notificationList` TEXT NULL,
     PRIMARY KEY (`gibbonStaffCoverageID`)
@@ -913,6 +913,8 @@ INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, 
 INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('001', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Staff' AND gibbonAction.name='Manage Substitutes'));end
 INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES ((SELECT gibbonModuleID FROM gibbonModule WHERE name='Staff'), 'Substitute Availability', 0, 'Coverage', 'Allows users to view the availability of subs by date.', 'report_subs_availability.php', 'report_subs_availability.php', 'Y', 'Y', 'N', 'N', 'N', 'Y', 'N', 'N', 'Y');end
 INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('001', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Staff' AND gibbonAction.name='Substitute Availability'));end
+INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES ((SELECT gibbonModuleID FROM gibbonModule WHERE name='Staff'), 'Approve Staff Absences', 0, 'Absences', 'Allows users to approve or decline staff absences.', 'absences_approval.php,absences_approval_action.php', 'absences_approval.php', 'Y', 'N', 'N', 'N', 'N', 'Y', 'N', 'N', 'Y');end
+INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('001', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Staff' AND gibbonAction.name='Approve Staff Absences'));end
 INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Staff', 'substituteTypes', 'Substitute Types', 'A comma-separated list.', 'Internal Substitute,External Substitute');end
 INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Staff', 'urgencyThreshold', 'Urgency Threshold', 'Notifications in this time-span are sent immediately, day or night.', '3');end
 INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Staff', 'urgentNotifications', 'Urgent Notifications', 'Which contact methods should be used to notify users.', 'Email');end

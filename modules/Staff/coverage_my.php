@@ -90,7 +90,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
                 return $output;
             });
 
-        $table->addColumn('notesCoverage', __('Comment'));
+        $table->addColumn('notesCoverage', __('Comment'))
+            ->format(function ($coverage) {
+                return Format::truncate($coverage['notesCoverage'], 60);
+            });
 
         $table->addActionColumn()
             ->addParam('gibbonStaffCoverageID')
@@ -274,7 +277,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
                 return $output;
             });
 
-        $table->addColumn('notesRequested', __('Comment'));
+        $table->addColumn('notesRequested', __('Comment'))
+            ->format(function ($coverage) {
+                return Format::truncate($coverage['notesRequested'], 60);
+            });
 
         $table->addActionColumn()
             ->addParam('gibbonStaffCoverageID')

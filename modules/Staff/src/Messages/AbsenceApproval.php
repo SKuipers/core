@@ -22,7 +22,7 @@ namespace Gibbon\Module\Staff\Messages;
 use Gibbon\Module\Staff\Message;
 use Gibbon\Services\Format;
 
-class AbsencePendingApproval extends Message
+class AbsenceApproval extends Message
 {
     protected $absence;
     protected $details;
@@ -31,16 +31,17 @@ class AbsencePendingApproval extends Message
     {
         $this->absence = $absence;
         $this->details = [
-            'name' => Format::name($absence['titleAbsence'], $absence['preferredNameAbsence'], $absence['surnameAbsence'], 'Staff', false, true),
-            'date' => Format::dateRangeReadable($absence['dateStart'], $absence['dateEnd']),
-            'type' => trim($absence['type'].' '.$absence['reason']),
+            'name'     => Format::name($absence['titleApproval'], $absence['preferredNameApproval'], $absence['surnameApproval'], 'Staff', false, true),
+            'date'     => Format::dateRangeReadable($absence['dateStart'], $absence['dateEnd']),
+            'type'     => trim($absence['type'].' '.$absence['reason']),
+            'actioned' => strtolower($absence['status']),
         ];
     }
 
     public function via() : array
     {
         return $this->absence['urgent']
-            ? ['mail']
+            ? ['mail', 'sms']
             : ['mail'];
     }
 
@@ -51,16 +52,14 @@ class AbsencePendingApproval extends Message
 
     public function text() : string
     {
-        return __("{name} is requesting leave on {date} for {type}. You may choose to approve or decline this request.", $this->details);
+        return __("{name} has {actioned} your {type} absence for {date}.", $this->details);
     }
 
     public function details() : array
     {
         return [
-            __('Staff')   => $this->details['name'],
-            __('Type')    => $this->details['type'],
-            __('Date')    => $this->details['date'],
-            __('Confidential Comment') => $this->absence['comment'],
+            __('Date')  => Format::dateTimeReadable($this->absence['timestampApproval']),
+            __('Reply') => $this->absence['notesApproval'],
         ];
     }
 
@@ -76,6 +75,6 @@ class AbsencePendingApproval extends Message
 
     public function link() : string
     {
-        return 'index.php?q=/modules/Staff/absences_approval.php&gibbonStaffAbsenceID='.$this->absence['gibbonStaffAbsenceID'];
+        return 'index.php?q=/modules/Staff/absences_view_details.php&gibbonStaffAbsenceID='.$this->absence['gibbonStaffAbsenceID'];
     }
 }

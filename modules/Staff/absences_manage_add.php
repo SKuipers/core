@@ -107,7 +107,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
             ->isRequired();
 
     $row = $form->addRow();
-        $row->addLabel('comment', __('Confidential Comment'))->description(__('This message is only shared with the people you choose to notify and users who manage staff absences.'));
+        $row->addLabel('comment', __('Confidential Comment'))->description(__('This message is only shared with the people notified of this absence and users who manage staff absences.'));
         $row->addTextArea('comment')->setRows(3);
 
     $form->addRow()->addHeading(__('Date & Time'));
@@ -184,7 +184,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
             ->tokenFormatter('function(item){ return "<li class=\'finderToken\'>" + item.name + "</li>"; }');
     
     $row = $form->addRow()->addClass('approvalRequired');
-        $row->addAlert(__("These people will only be notified of your absence if it is approved."), 'message');
+        $row->addAlert(__("These people will only be notified if this absence is approved."), 'message');
 
     if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php')) {
         $form->addRow()->addHeading(__('Coverage'))->addClass('approvalNotRequired');

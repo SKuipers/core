@@ -17,14 +17,8 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Forms\Form;
-use Gibbon\Forms\DatabaseFormFactory;
-use Gibbon\Tables\DataTable;
-use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
-use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
-use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
-use Gibbon\Domain\User\UserGateway;
+use Gibbon\Module\Staff\Forms\ViewAbsenceForm;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_details.php') == false) {
     // Access denied
@@ -48,7 +42,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_detail
     $gibbonStaffAbsenceID = $_GET['gibbonStaffAbsenceID'] ?? '';
 
     $staffAbsenceGateway = $container->get(StaffAbsenceGateway::class);
-    $staffAbsenceDateGateway = $container->get(StaffAbsenceDateGateway::class);
 
     if (empty($gibbonStaffAbsenceID)) {
         $page->addError(__('You have not specified one or more required parameters.'));
@@ -67,100 +60,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_detail
         return;
     }
 
-    $canManage = isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php') || $values['gibbonPersonID'] == $_SESSION[$guid]['gibbonPersonID'];
-    $canRequest = isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php');
-
-    $form = Form::create('staffAbsence', '');
-
-    $form->setFactory(DatabaseFormFactory::create($pdo));
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
-    $form->addHiddenValue('gibbonStaffAbsenceID', $gibbonStaffAbsenceID);
-
-    $row = $form->addRow();
-        $row->addLabel('personLabel', __('Person'));
-        $row->addSelectStaff('person')->readonly()->selected($values['gibbonPersonID']);
-
-    $type = $container->get(StaffAbsenceTypeGateway::class)->getByID($values['gibbonStaffAbsenceTypeID']);
-
-    if ($type['requiresApproval'] == 'Y') {
-        $approver = '';
-        if (!empty($values['gibbonPersonIDApproval'])) {
-            $approver = $container->get(UserGateway::class)->getByID($values['gibbonPersonIDApproval']);
-            $approver = Format::small(__('By').' '.Format::nameList([$approver], 'Staff', false, true));
-        }
-
-        $row = $form->addRow();
-            $row->addLabel('status', __('Status'));
-            $row->addContent($values['status'].'<br/>'.$approver)->wrap('<div class="standardWidth floatRight">', '</div>');
-    }
-
-    $row = $form->addRow();
-        $row->addLabel('typeLabel', __('Type'));
-        $row->addTextField('type')->readonly()->setValue($type['name']);
-
-    if (!empty($values['reason'])) {
-        $row = $form->addRow()->addClass('reasonOptions');
-            $row->addLabel('reasonLabel', __('Reason'));
-            $row->addTextField('reason')->readonly();
-    }
-
-    if ($canManage) {
-        $row = $form->addRow();
-            $row->addLabel('commentLabel', __('Comment'));
-            $row->addTextArea('comment')->setRows(2)->readonly();
-    }
-
-    $creator = $container->get(UserGateway::class)->getByID($values['gibbonPersonIDCreator']);
-
-    $row = $form->addRow();
-        $row->addLabel('timestampLabel', __('Created'));
-        $row->addContent(Format::relativeTime($values['timestampCreator']).'<br/>'.Format::small(__('By').' '.Format::nameList([$creator], 'Staff')))->wrap('<div class="standardWidth floatRight">', '</div>');
-
+    $form = ViewAbsenceForm::create($container, $gibbonStaffAbsenceID);
     $form->loadAllValuesFrom($values);
 
     echo $form->getOutput();
-
-    $absenceDates = $staffAbsenceDateGateway->selectDatesByAbsence($values['gibbonStaffAbsenceID']);
-
-    $table = DataTable::create('staffAbsenceDates');
-    $table->setTitle(__('Dates'));
-
-    $table->addColumn('date', __('Date'))
-        ->format(Format::using('dateReadable', 'date'));
-
-    $table->addColumn('timeStart', __('Time'))->format(function ($absence) {
-        if ($absence['allDay'] == 'N') {
-            return Format::small(Format::timeRange($absence['timeStart'], $absence['timeEnd']));
-        } else {
-            return Format::small(__('All Day'));
-        }
-    });
-
-    $table->addColumn('coverage', __('Coverage'))
-        ->format(function ($absence) {
-            if (empty($absence['coverage'])) {
-                return Format::small(__('N/A'));
-            }
-
-            return $absence['coverage'] == 'Accepted'
-                    ? Format::name($absence['titleCoverage'], $absence['preferredNameCoverage'], $absence['surnameCoverage'], 'Staff', false, true)
-                    : '<div class="badge success">'.__('Pending').'</div>';
-        });
-
-    if ($canManage && $canRequest && $values['status'] == 'Approved') {
-        $table->addActionColumn()
-            ->addParam('gibbonStaffAbsenceID')
-            ->format(function ($absence, $actions) {
-                if (!empty($absence['gibbonStaffCoverageID'])) return;
-                if ($absence['date'] < date('Y-m-d')) return;
-
-                $actions->addAction('coverage', __('Request Coverage'))
-                    ->setIcon('attendance')
-                    ->setURL('/modules/Staff/coverage_request.php');
-            });
-    }
-    
-
-    echo $table->render($absenceDates->toDataSet());
-
 }
