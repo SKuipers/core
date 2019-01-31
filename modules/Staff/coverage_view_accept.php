@@ -157,6 +157,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
         $row = $form->addRow();
             $row->addFooter();
             $row->addSubmit();
+    } else {
+        $row = $form->addRow();
+            $row->addAlert(__('Not Available'), 'warning');
     }
 
     echo $form->getOutput();
