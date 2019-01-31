@@ -31,7 +31,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_declin
     $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed!
-    $page->breadcrumbs->add(__('Decline Coverage Request'));
+    $page->breadcrumbs
+        ->add(__('My Coverage'), 'coverage_my.php')
+        ->add(__('Decline Coverage Request'));
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, [

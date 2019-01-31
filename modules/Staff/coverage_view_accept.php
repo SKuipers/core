@@ -32,7 +32,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
     $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed!
-    $page->breadcrumbs->add(__('Accept Coverage Request'));
+    $page->breadcrumbs
+        ->add(__('My Coverage'), 'coverage_my.php')
+        ->add(__('Accept Coverage Request'));
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, [

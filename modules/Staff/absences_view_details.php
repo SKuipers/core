@@ -77,8 +77,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_detail
     $form->addHiddenValue('gibbonStaffAbsenceID', $gibbonStaffAbsenceID);
 
     $row = $form->addRow();
-        $row->addLabel('gibbonPersonIDLabel', __('Person'));
-        $row->addSelectStaff('gibbonPersonID')->placeholder()->isRequired()->readonly();
+        $row->addLabel('personLabel', __('Person'));
+        $row->addSelectStaff('person')->readonly()->selected($values['gibbonPersonID']);
 
     $type = $container->get(StaffAbsenceTypeGateway::class)->getByID($values['gibbonStaffAbsenceTypeID']);
 

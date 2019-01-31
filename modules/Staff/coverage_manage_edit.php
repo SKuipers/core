@@ -32,7 +32,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_edit
     $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed!
-    $page->breadcrumbs->add(__('Edit Coverage'));
+    $page->breadcrumbs
+        ->add(__('Manage Staff Coverage'), 'coverage_manage.php')
+        ->add(__('Edit Coverage'));
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, [

@@ -29,19 +29,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
     $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed!
-    $page->breadcrumbs
-        ->add(__('My Coverage'), 'coverage_my.php')
-        ->add(__('Edit Availability'));
-
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, [
-            'success1' => __('Your request was completed successfully.').' '.__('You may now continue by submitting a coverage request for this absence.')
-        ]);
-    }
-
-    $substituteGateway = $container->get(SubstituteGateway::class);
-
+    
     if (isActionAccessible($guid, $connection2, '/modules/Staff/subs_manage.php')) {
+        $page->breadcrumbs
+            ->add(__('Manage Substitutes'), 'subs_manage.php')
+            ->add(__('Edit Availability'));
+
         $gibbonPersonID = $_GET['gibbonPersonID'] ?? $_SESSION[$guid]['gibbonPersonID'];
 
         // Display the details for who's availability we're editing
@@ -55,12 +48,24 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
         echo $form->getOutput();
 
     } else {
+        $page->breadcrumbs
+            ->add(__('My Coverage'), 'coverage_my.php')
+            ->add(__('Edit Availability'));
+
         $gibbonPersonID = $_SESSION[$guid]['gibbonPersonID'];
     }
 
     if (empty($gibbonPersonID)) {
         $page->addError(__('You have not specified one or more required parameters.'));
         return;
+    }
+
+    $substituteGateway = $container->get(SubstituteGateway::class);
+
+    if (isset($_GET['return'])) {
+        returnProcess($guid, $_GET['return'], null, [
+            'success1' => __('Your request was completed successfully.').' '.__('You may now continue by submitting a coverage request for this absence.')
+        ]);
     }
 
     // BULK ACTIONS
