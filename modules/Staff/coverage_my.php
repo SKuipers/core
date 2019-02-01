@@ -25,7 +25,7 @@ use Gibbon\Domain\School\SchoolYearGateway;
 use Gibbon\Domain\DataSet;
 use Gibbon\Domain\Staff\SubstituteGateway;
 
-if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPerson.php') == false) {
+if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
@@ -37,6 +37,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
     $schoolYearGateway = $container->get(SchoolYearGateway::class);
     $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
     $substituteGateway = $container->get(SubstituteGateway::class);
+    $urgencyThreshold = getSettingByScope($connection2, 'Staff', 'urgencyThreshold');
 
     if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php')) {
 
@@ -67,7 +68,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
             'status:cancelled' => __('Status').': '.__('Cancelled'),
         ]);
 
-        $table->addColumn('status', __('Status'))->width('15%');
+        $table->addColumn('status', __('Status'))
+            ->width('15%')
+            ->format(function ($coverage) use ($urgencyThreshold) {
+                $relativeSeconds = strtotime($coverage['dateStart']) - time();
+                if ($coverage['status'] != 'Requested') {
+                    return $coverage['status'];
+                }
+                if ($relativeSeconds <= 0) {
+                    return '<div class="badge dull">'.__('Overdue').'</div>';
+                } elseif ($relativeSeconds <= (86400 * $urgencyThreshold)) {
+                    return '<div class="error badge">'.__('Urgent').'</div>';
+                } elseif ($relativeSeconds <= (86400 * ($urgencyThreshold * 3))) {
+                    return '<div class="badge warning">'.__('Upcoming').'</div>';
+                } else {
+                    return __('Upcoming');
+                }
+            });
 
         $table->addColumn('requested', __('Substitute'))
             ->width('30%')
@@ -92,7 +109,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
 
         $table->addColumn('notesCoverage', __('Comment'))
             ->format(function ($coverage) {
-                return Format::truncate($coverage['notesCoverage'], 60);
+                return $coverage['status'] == 'Requested'
+                    ? Format::small(__('Pending'))
+                    : Format::truncate($coverage['notesCoverage'], 60);
             });
 
         $table->addActionColumn()
@@ -256,7 +275,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
             'status:cancelled' => __('Status').': '.__('Cancelled'),
         ]);
 
-        $table->addColumn('status', __('Status'))->width('15%');
+        $table->addColumn('status', __('Status'))
+            ->width('15%')
+            ->format(function ($coverage) use ($urgencyThreshold) {
+                $relativeSeconds = strtotime($coverage['dateStart']) - time();
+                if ($coverage['status'] != 'Requested') {
+                    return $coverage['status'];
+                }
+                if ($relativeSeconds <= 0) {
+                    return '<div class="badge dull">'.__('Overdue').'</div>';
+                } elseif ($relativeSeconds <= (86400 * $urgencyThreshold)) {
+                    return '<div class="error badge">'.__('Urgent').'</div>';
+                } elseif ($relativeSeconds <= (86400 * ($urgencyThreshold * 3))) {
+                    return '<div class="badge warning">'.__('Upcoming').'</div>';
+                } else {
+                    return __('Upcoming');
+                }
+            });
 
         $table->addColumn('requested', __('Person'))
             ->width('30%')

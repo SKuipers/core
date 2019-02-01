@@ -24,6 +24,7 @@ use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Module\Staff\MessageSender;
 use Gibbon\Module\Staff\Messages\CoverageDeclined;
+use Gibbon\Domain\Staff\SubstituteGateway;
 
 require_once '../../gibbon.php';
 
@@ -40,6 +41,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_declin
     // Proceed!
     $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
     $staffAbsenceDateGateway = $container->get(StaffAbsenceDateGateway::class);
+    $substituteGateway = $container->get(SubstituteGateway::class);
 
     $markAsUnavailable = $_POST['markAsUnavailable'] ?? false;
 
@@ -102,12 +104,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_declin
         $partialFail &= !$updated;
 
         if ($markAsUnavailable) {
-            $staffCoverageGateway->insertUnavailability([
-                'gibbonPersonIDCoverage' => $coverage['gibbonPersonIDCoverage'],
-                'date'                   => $date['date'],
+            $substituteGateway->insertUnavailability([
+                'gibbonPersonID' => $coverage['gibbonPersonID'],
+                'date'           => $date['date'],
+                'allDay'         => 'Y',
             ]);
         }
     }
+
+    $urgencyThreshold = getSettingByScope($connection2, 'Staff', 'urgencyThreshold') * 86400;
+    $relativeSeconds = strtotime($coverage['dateStart']) - time();
+    $coverage['urgent'] = $relativeSeconds <= $urgencyThreshold;
 
     // Send messages (Mail, SMS) to relevant users
     $recipients = [$absence['gibbonPersonID']];

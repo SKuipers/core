@@ -100,6 +100,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_cancel
         $partialFail &= !$updated;
     }
 
+    $urgencyThreshold = getSettingByScope($connection2, 'Staff', 'urgencyThreshold') * 86400;
+    $relativeSeconds = strtotime($coverage['dateStart']) - time();
+    $coverage['urgent'] = $relativeSeconds <= $urgencyThreshold;
+
     // Send messages (Mail, SMS) to relevant users
     $recipients = [$coverage['gibbonPersonIDCoverage']];
     $message = new CoverageCancelled($coverage);

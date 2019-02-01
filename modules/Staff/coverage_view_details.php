@@ -68,33 +68,43 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_detail
     
     $form->addRow()->addHeading(__('Substitute'));
 
-    $row = $form->addRow();
-        $row->addLabel('requestTypeLabel', __('Type'));
-        $row->addTextField('requestType')->readonly()->setValue($coverage['requestType']);
+    if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage.php')) {
 
-    $row = $form->addRow();
-        $row->addLabel('status', __('Status'));
-        $row->addTextField('status')->readonly()->setValue($coverage['status']);
-
-    if ($coverage['requestType'] == 'Individual') {
         $row = $form->addRow();
+            $row->addLabel('requestTypeLabel', __('Type'));
+            $row->addTextField('requestType')->readonly()->setValue($coverage['requestType']);
+
+        $row = $form->addRow();
+            $row->addLabel('statusLabel', __('Status'));
+            $row->addTextField('status')->readonly()->setValue($coverage['status']);
+
+        if ($coverage['requestType'] == 'Individual') {
+            $row = $form->addRow();
             $row->addLabel('gibbonPersonIDLabel', __('Person'));
             $row->addSelectUsers('gibbonPersonIDCoverage')
                 ->placeholder()
                 ->isRequired()
                 ->selected($coverage['gibbonPersonIDCoverage'] ?? '')
                 ->setReadonly(true);
-    } else if ($coverage['requestType'] == 'Broadcast') {
+        } elseif ($coverage['requestType'] == 'Broadcast') {
+            $notificationList = $coverage['notificationSent'] == 'Y' ? json_decode($coverage['notificationListCoverage']) : [];
 
-        $notificationList = $coverage['notificationSent'] == 'Y' ? json_decode($coverage['notificationList']) : [];
-
-        if ($notificationList) {
-            $notified = $container->get(UserGateway::class)->selectNotificationDetailsByPerson($notificationList)->fetchGroupedUnique();
-
-            $row = $form->addRow();
+            if ($notificationList) {
+                $notified = $container->get(UserGateway::class)->selectNotificationDetailsByPerson($notificationList)->fetchGroupedUnique();
+                $row = $form->addRow();
                 $row->addLabel('notifiedLabel', __('Notified'));
                 $row->addTextArea('notified')->readonly()->setValue(Format::nameList($notified, 'Staff', false, true, ', '));
+            }
         }
+    } elseif ($coverage['status'] == 'Accepted' && !empty($coverage['gibbonPersonIDCoverage'])) {
+
+        $row = $form->addRow();
+        $row->addLabel('gibbonPersonIDLabel', __('Person'));
+        $row->addSelectUsers('gibbonPersonIDCoverage')
+            ->placeholder()
+            ->isRequired()
+            ->selected($coverage['gibbonPersonIDCoverage'] ?? '')
+            ->setReadonly(true);
     }
 
     // Output the coverage status change timestamp, if it has been actioned

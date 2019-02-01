@@ -112,25 +112,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     }
 
     // Send messages (Mail, SMS) to relevant users
-    if ($data['requestType'] == 'Individual') {
-        $coverage = $staffCoverageGateway->getCoverageDetailsByID($gibbonStaffCoverageID);
-        
-        $recipients = [$personCoverage['gibbonPersonID']];
-        $message = new IndividualRequest($coverage);
+    $processType = 'Coverage'.$data['requestType'];
+    $process = new BackgroundProcess($gibbon->session->get('absolutePath').'/uploads/background');
+    $process->startProcess('staffNotification', __DIR__.'/notification_backgroundProcess.php', [$processType, $gibbonStaffCoverageID]);
 
-        $sent = $container
-            ->get(MessageSender::class)
-            ->send($recipients, $message);
-
-        $staffCoverageGateway->update($gibbonStaffCoverageID, [
-            'notificationSent' => $sent ? 'Y' : 'N',
-            'notificationList' => $sent ? json_encode($recipients) : '',
-        ]);
-    } else if ($data['requestType'] == 'Broadcast') {
-        $process = new BackgroundProcess($gibbon->session->get('absolutePath').'/uploads/background');
-        $process->startProcess('staffNotification', __DIR__.'/notification_backgroundProcess.php', ['CoverageBroadcast', $gibbonStaffCoverageID]);
-    }
-
+    
     $URLSuccess .= $partialFail
         ? "&return=warning1"
         : "&return=success0";
