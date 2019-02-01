@@ -2553,6 +2553,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                             echo __('Your request failed because you do not have access to this action.');
                             echo '</div>';
                         } else {
+                            //Edit link
+                            if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/in_edit.php') == true) {
+                                echo "<div class='linkTop'>";
+                                echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Individual Needs/in_edit.php&gibbonPersonID=$gibbonPersonID'>".__('Edit')."<img style='margin: 0 0 -4px 5px' title='".__('Edit')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/config.png'/></a> ";
+                                echo '</div>';
+                            }
+
                             //Module includes
                             include './modules/Individual Needs/moduleFunctions.php';
 

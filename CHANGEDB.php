@@ -808,4 +808,140 @@ UPDATE gibboni18n SET active='Y' WHERE code='tr_TR';end
 //v18.0.00
 ++$count;
 $sql[$count][0] = '18.0.00';
-$sql[$count][1] = "";
+$sql[$count][1] = "
+DELETE FROM gibbonAction WHERE gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Planner') AND name='Staff Likes';end
+DROP TABLE gibbonLike;end
+UPDATE gibboni18n SET active='Y' WHERE code='ur_IN';end
+UPDATE gibboni18n SET code='ur_PK', name='پاکستان - اُردُو', active='Y' WHERE code='ur_IN';end
+ALTER TABLE `gibbonActivityAttendance` CHANGE `gibbonPersonIDTaker` `gibbonPersonIDTaker` INT(10) UNSIGNED ZEROFILL NOT NULL;end
+ALTER TABLE `gibbonactivityattendance` CHANGE `gibbonPersonIDTaker` `gibbonPersonIDTaker` INT(10) UNSIGNED ZEROFILL NOT NULL;end
+ALTER TABLE `gibbonApplicationForm` CHANGE `surname` `surname` VARCHAR(60) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '', CHANGE `firstName` `firstName` VARCHAR(60) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '', CHANGE `preferredName` `preferredName` VARCHAR(60) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '';end
+ALTER TABLE `gibbonApplicationForm` CHANGE `parent1gender` `parent1gender` ENUM('M','F','Other','Unspecified') CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT 'Unspecified', CHANGE `parent2gender` `parent2gender` ENUM('M','F','Other','Unspecified') CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT 'Unspecified';end
+ALTER TABLE `gibbonApplicationForm` CHANGE `parent1surname` `parent1surname` VARCHAR(60) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '', CHANGE `parent1firstName` `parent1firstName` VARCHAR(60) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '', CHANGE `parent1preferredName` `parent1preferredName` VARCHAR(60) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '', CHANGE `parent2surname` `parent2surname` VARCHAR(60) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '', CHANGE `parent2firstName` `parent2firstName` VARCHAR(60) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '', CHANGE `parent2preferredName` `parent2preferredName` VARCHAR(60) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '';end
+ALTER TABLE `gibbonCountry` ADD PRIMARY KEY(`printable_name`);end
+ALTER TABLE `gibbonFinanceBudgetCycleAllocation` CHANGE `gibbonFinanceBudgetID` `gibbonFinanceBudgetID` INT(4) UNSIGNED ZEROFILL NOT NULL;end
+ALTER TABLE `gibbonFirstAid` CHANGE `gibbonCourseClassID` `gibbonCourseClassID` INT(8) UNSIGNED ZEROFILL NULL DEFAULT NULL;end
+ALTER TABLE `gibbonMarkbookTarget` CHANGE `gibbonScaleGradeID` `gibbonScaleGradeID` INT(7) UNSIGNED ZEROFILL NULL DEFAULT NULL;end
+ALTER TABLE `gibbonMessengerCannedResponse` CHANGE `gibbonPersonIDCreator` `gibbonPersonIDCreator` INT(10) UNSIGNED ZEROFILL NOT NULL;end
+ALTER TABLE `gibbonOutcome` CHANGE `gibbonPersonIDCreator` `gibbonPersonIDCreator` INT(10) UNSIGNED ZEROFILL NOT NULL;end
+ALTER TABLE `gibbonPersonMedicalSymptoms` CHANGE `gibbonPersonID` `gibbonPersonID` INT(10) UNSIGNED ZEROFILL NOT NULL, CHANGE `gibbonPersonIDTaker` `gibbonPersonIDTaker` INT(10) UNSIGNED ZEROFILL NOT NULL;end
+ALTER TABLE `gibbonPersonUpdate` CHANGE `emergency1Name` `emergency1Name` VARCHAR(90) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL, CHANGE `emergency2Name` `emergency2Name` VARCHAR(90) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL, CHANGE `surname` `surname` VARCHAR(60) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '', CHANGE `firstName` `firstName` VARCHAR(60) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '', CHANGE `preferredName` `preferredName` VARCHAR(60) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '', CHANGE `nameInCharacters` `nameInCharacters` VARCHAR(60) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL, CHANGE `profession` `profession` VARCHAR(90) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL, CHANGE `employer` `employer` VARCHAR(90) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL, CHANGE `jobTitle` `jobTitle` VARCHAR(90) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL;end
+ALTER TABLE `gibbonPlannerEntryStudentHomework` CHANGE `gibbonPersonID` `gibbonPersonID` INT(10) UNSIGNED ZEROFILL NOT NULL;end
+ALTER TABLE `gibbonRubric` CHANGE `gibbonPersonIDCreator` `gibbonPersonIDCreator` INT(10) UNSIGNED ZEROFILL NOT NULL;end
+ALTER TABLE `gibbonRubricEntry` CHANGE `gibbonRubricID` `gibbonRubricID` INT(8) UNSIGNED ZEROFILL NOT NULL;end
+ALTER TABLE `gibbonStaffApplicationForm` CHANGE `surname` `surname` VARCHAR(60) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL, CHANGE `firstName` `firstName` VARCHAR(60) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL, CHANGE `preferredName` `preferredName` VARCHAR(60) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL, CHANGE `nameInCharacters` `nameInCharacters` VARCHAR(60) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL;end
+ALTER TABLE `gibbonTTDayRowClass` CHANGE `gibbonSpaceID` `gibbonSpaceID` INT(10) UNSIGNED ZEROFILL NULL DEFAULT NULL;end
+ALTER TABLE `gibbonTTSpaceChange` CHANGE `gibbonSpaceID` `gibbonSpaceID` INT(10) UNSIGNED ZEROFILL NULL DEFAULT NULL;end
+ALTER TABLE `gibbonTTSpaceChange` CHANGE `gibbonPersonID` `gibbonPersonID` INT(10) UNSIGNED ZEROFILL NOT NULL;end
+ALTER TABLE `gibbonTTSpaceBooking` CHANGE `foreignKey` `foreignKey` INT(10) UNSIGNED ZEROFILL NOT NULL;end
+INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES ((SELECT gibbonModuleID FROM gibbonModule WHERE name='School Admin'), 'Manage Staff Settings', 0, 'People', 'Manage settings for the Staff module', 'staffSettings.php,staffSettings_manage_add.php,staffSettings_manage_edit.php,staffSettings_manage_delete.php', 'staffSettings.php', 'Y', 'N', 'N', 'N', 'N', 'Y', 'N', 'N', 'N');end
+INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('001', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='School Admin' AND gibbonAction.name='Manage Staff Settings'));end
+CREATE TABLE `gibbonStaffAbsence` (
+    `gibbonStaffAbsenceID` INT(14) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
+    `gibbonStaffAbsenceTypeID` INT(6) UNSIGNED ZEROFILL NOT NULL,
+    `gibbonSchoolYearID` INT(3) UNSIGNED ZEROFILL NOT NULL,
+    `gibbonPersonID` int(10) UNSIGNED ZEROFILL NOT NULL,
+    `reason` VARCHAR(60) NULL,
+    `comment` TEXT NULL,
+    `status` ENUM('Pending Approval','Approved','Declined') DEFAULT 'Approved',
+    `gibbonPersonIDApproval` int(10) UNSIGNED ZEROFILL NULL,
+    `timestampApproval` timestamp NULL,
+    `notesApproval` TEXT NULL,
+    `gibbonPersonIDCreator` int(10) UNSIGNED ZEROFILL NOT NULL,
+    `timestampCreator` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `notificationSent` ENUM('N','Y') DEFAULT 'N',
+    `notificationList` TEXT NULL,
+    PRIMARY KEY (`gibbonStaffAbsenceID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;end
+CREATE TABLE `gibbonStaffAbsenceDate` (
+    `gibbonStaffAbsenceDateID` INT(14) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
+    `gibbonStaffAbsenceID` INT(14) UNSIGNED ZEROFILL NULL,
+    `gibbonStaffCoverageID` INT(14) UNSIGNED ZEROFILL NULL,
+    `date` DATE NULL,
+    `allDay` ENUM('N','Y') DEFAULT 'Y',
+    `timeStart` time NULL DEFAULT NULL,
+    `timeEnd` time NULL DEFAULT NULL,
+    PRIMARY KEY (`gibbonStaffAbsenceDateID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;end
+CREATE TABLE `gibbonStaffAbsenceType` (
+    `gibbonStaffAbsenceTypeID` INT(6) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(60) NULL,
+    `nameShort` VARCHAR(10) NULL,
+    `active` ENUM('N','Y') DEFAULT 'Y',
+    `requiresApproval` ENUM('N','Y') DEFAULT 'N',
+    `reasons` TEXT NULL,
+    `sequenceNumber` INT(3) NOT NULL,
+    PRIMARY KEY (`gibbonStaffAbsenceTypeID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;end
+INSERT INTO `gibbonStaffAbsenceType` (`gibbonStaffAbsenceTypeID`, `name`, `nameShort`, `active`, `requiresApproval`, `reasons`, `sequenceNumber`) VALUES (000001, 'Sick Leave', 'S', 'Y', 'N', '', 1), (000002, 'Personal Leave', 'P', 'Y', 'N', '', 2), (000003, 'Non-paid Leave', 'NP', 'Y', 'N', '', 3), (000004, 'School Related', 'D', 'Y', 'N', 'PD,Sports Trip,Offsite Event,Other', 4);end
+CREATE TABLE `gibbonStaffCoverage` (
+    `gibbonStaffCoverageID` INT(14) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
+    `gibbonStaffAbsenceID` INT(14) UNSIGNED ZEROFILL NOT NULL,
+    `status` ENUM('Requested','Accepted','Declined','Cancelled') DEFAULT 'Requested',
+    `requestType` ENUM('Individual','Broadcast','Assigned') DEFAULT 'Broadcast',
+    `gibbonPersonIDRequested` int(10) UNSIGNED ZEROFILL NOT NULL,
+    `timestampRequested` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `notesRequested` TEXT NULL,
+    `gibbonPersonIDCoverage` int(10) UNSIGNED ZEROFILL NULL,
+    `timestampCoverage` timestamp NULL,
+    `notesCoverage` TEXT NULL,
+    `notificationSent` ENUM('N','Y') DEFAULT 'N',
+    `notificationList` TEXT NULL,
+    PRIMARY KEY (`gibbonStaffCoverageID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;end
+CREATE TABLE `gibbonSubstitute` (
+    `gibbonSubstituteID` INT(10) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
+    `gibbonPersonID` int(10) UNSIGNED ZEROFILL NOT NULL,
+    `active` ENUM('Y','N') DEFAULT 'Y',
+    `type` VARCHAR(30) NULL,
+    `details` VARCHAR(255) NULL,
+    `priority` INT(2) NOT NULL DEFAULT '0',
+    `contactCall` ENUM('Y','N') DEFAULT 'Y',
+    `contactSMS` ENUM('Y','N') DEFAULT 'Y',
+    `contactEmail` ENUM('Y','N') DEFAULT 'Y',
+    UNIQUE KEY `gibbonPersonID` (`gibbonPersonID`),
+    PRIMARY KEY (`gibbonSubstituteID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;end
+CREATE TABLE `gibbonSubstituteUnavailable` (
+    `gibbonSubstituteUnavailableID` INT(14) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
+    `gibbonPersonID` INT(14) UNSIGNED ZEROFILL NOT NULL,
+    `date` DATE NULL,
+    `allDay` ENUM('N','Y') DEFAULT 'Y',
+    `timeStart` time NULL DEFAULT NULL,
+    `timeEnd` time NULL DEFAULT NULL,
+    UNIQUE KEY `personAndDate` (`gibbonPersonID`, `date`),
+    PRIMARY KEY (`gibbonSubstituteUnavailableID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;end
+INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES ((SELECT gibbonModuleID FROM gibbonModule WHERE name='Staff'), 'New Absence_mine', 0, 'Absences', 'Allows a user to submit their own staff absences.', 'absences_manage_add.php', 'absences_manage_add.php', 'Y', 'Y', 'N', 'N', 'Y', 'Y', 'N', 'N', 'Y');end
+INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES ((SELECT gibbonModuleID FROM gibbonModule WHERE name='Staff'), 'New Absence_any', 2, 'Absences', 'Submit staff absences for any user.', 'absences_manage_add.php', 'absences_manage_add.php', 'Y', 'N', 'N', 'N', 'N', 'Y', 'N', 'N', 'N');end
+INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('001', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Staff' AND gibbonAction.name='New Absence_any'));end
+INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES ((SELECT gibbonModuleID FROM gibbonModule WHERE name='Staff'), 'View Absences_mine', 0, 'Absences', 'Provides an overview of staff absences for the selected user.', 'absences_view_byPerson.php,absences_view_details.php', 'absences_view_byPerson.php', 'Y', 'Y', 'N', 'N', 'Y', 'Y', 'N', 'N', 'Y');end
+INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES ((SELECT gibbonModuleID FROM gibbonModule WHERE name='Staff'), 'View Absences_any', 2, 'Absences', 'Provides an overview of staff absences for the selected user.', 'absences_view_byPerson.php,absences_view_details.php', 'absences_view_byPerson.php', 'Y', 'N', 'N', 'N', 'N', 'Y', 'N', 'N', 'Y');end
+INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('001', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Staff' AND gibbonAction.name='View Absences_any'));end
+INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES ((SELECT gibbonModuleID FROM gibbonModule WHERE name='Staff'), 'Staff Absence Summary', 0, 'Reports', 'Provides an overview of staff absences for the school year.', 'report_absences_summary.php', 'report_absences_summary.php', 'Y', 'N', 'N', 'N', 'N', 'Y', 'N', 'N', 'Y');end
+INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('001', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Staff' AND gibbonAction.name='Staff Absence Summary'));end
+INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES ((SELECT gibbonModuleID FROM gibbonModule WHERE name='Staff'), 'Manage Staff Absences', 0, 'Absences', 'Allows administrators to edit and delete staff absences.', 'absences_manage.php,absences_manage_edit.php,absences_manage_delete.php', 'absences_manage.php', 'Y', 'N', 'N', 'N', 'N', 'Y', 'N', 'N', 'N');end
+INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('001', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Staff' AND gibbonAction.name='Manage Staff Absences'));end
+INSERT INTO `gibbonNotificationEvent` (`event`, `moduleName`, `actionName`, `type`, `scopes`, `active`) VALUES ('New Staff Absence', 'Staff', 'View Absences_any', 'Core', 'All', 'Y');end
+INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES ((SELECT gibbonModuleID FROM gibbonModule WHERE name='Staff'), 'Weekly Absences', 0, 'Absences', 'A week-by-week overview of staff absences.', 'report_absences_weekly.php', 'report_absences_weekly.php', 'Y', 'Y', 'N', 'N', 'N', 'Y', 'N', 'N', 'Y');end
+INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('001', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Staff' AND gibbonAction.name='Weekly Absences'));end
+INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES ((SELECT gibbonModuleID FROM gibbonModule WHERE name='Staff'), 'My Coverage', 0, 'Coverage', 'Provides an overview of coverage for staff absences.', 'coverage_my.php,coverage_view_details.php,coverage_availability.php,coverage_view_cancel.php', 'coverage_my.php', 'Y', 'Y', 'N', 'N', 'Y', 'Y', 'N', 'N', 'Y');end
+INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('001', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Staff' AND gibbonAction.name='My Coverage'));end
+INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `menuShow`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES ((SELECT gibbonModuleID FROM gibbonModule WHERE name='Staff'), 'Request Coverage', 0, 'Coverage', 'Allows a staff member to request coverage for their absences.', 'coverage_request.php', 'coverage_request.php', 'N', 'Y', 'Y', 'N', 'N', 'Y', 'Y', 'N', 'N', 'Y');end
+INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('001', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Staff' AND gibbonAction.name='Request Coverage'));end
+INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES ((SELECT gibbonModuleID FROM gibbonModule WHERE name='Staff'), 'Open Requests', 0, 'Coverage', 'Users can view and accept any available coverage requests.', 'coverage_view.php,coverage_view_accept.php,coverage_view_decline.php', 'coverage_view.php', 'Y', 'N', 'N', 'N', 'Y', 'Y', 'N', 'N', 'Y');end
+INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('001', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Staff' AND gibbonAction.name='Open Requests'));end
+INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES ((SELECT gibbonModuleID FROM gibbonModule WHERE name='Staff'), 'Manage Staff Coverage', 0, 'Coverage', 'Allows administrators to manage coverage requests.', 'coverage_manage.php,coverage_manage_edit.php,coverage_manage_delete.php,coverage_view_details.php', 'coverage_manage.php', 'Y', 'N', 'N', 'N', 'N', 'Y', 'N', 'N', 'Y');end
+INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('001', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Staff' AND gibbonAction.name='Manage Staff Coverage'));end
+INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES ((SELECT gibbonModuleID FROM gibbonModule WHERE name='Staff'), 'Manage Substitutes', 0, 'Staff Management', 'Edit information for users who can provide staff coverage.', 'subs_manage.php,subs_manage_add.php,subs_manage_edit.php,subs_manage_delete.php,coverage_availability.php', 'subs_manage.php', 'Y', 'N', 'N', 'N', 'N', 'Y', 'N', 'N', 'Y');end
+INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('001', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Staff' AND gibbonAction.name='Manage Substitutes'));end
+INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES ((SELECT gibbonModuleID FROM gibbonModule WHERE name='Staff'), 'Substitute Availability', 0, 'Coverage', 'Allows users to view the availability of subs by date.', 'report_subs_availability.php', 'report_subs_availability.php', 'Y', 'Y', 'N', 'N', 'N', 'Y', 'N', 'N', 'Y');end
+INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('001', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Staff' AND gibbonAction.name='Substitute Availability'));end
+INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES ((SELECT gibbonModuleID FROM gibbonModule WHERE name='Staff'), 'Approve Staff Absences', 0, 'Absences', 'Allows users to approve or decline staff absences.', 'absences_approval.php,absences_approval_action.php', 'absences_approval.php', 'Y', 'N', 'N', 'N', 'N', 'Y', 'N', 'N', 'Y');end
+INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('001', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Staff' AND gibbonAction.name='Approve Staff Absences'));end
+INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Staff', 'substituteTypes', 'Substitute Types', 'A comma-separated list.', 'Internal Substitute,External Substitute');end
+INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Staff', 'urgencyThreshold', 'Urgency Threshold', 'Notifications in this time-span are sent immediately, day or night.', '3');end
+INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Staff', 'urgentNotifications', 'Urgent Notifications', 'Which contact methods should be used to notify users.', 'Email');end
+INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Staff', 'absenceApprovers', 'Absence Approvers', 'Users who can approve staff absences.', '');end
+
+";

@@ -68,6 +68,12 @@ class Mailer extends \PHPMailer implements MailerInterface
         $this->AltBody = emailBodyConvert($this->Body);
     }
 
+    public function setDefaultSender($subject)
+    {
+        $this->Subject = $this->session->get('organisationNameShort').' - '.$subject;
+        $this->SetFrom($this->session->get('organisationEmail'), $this->session->get('organisationName'));
+    }
+
     protected function setupSMTP()
     {
         $host = $this->session->get('mailerSMTPHost');

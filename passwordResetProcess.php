@@ -120,11 +120,11 @@ else {
                 $mail->SetFrom($_SESSION[$guid]['organisationAdministratorEmail'], $_SESSION[$guid]['organisationName']);
             }
 
-            $mail->Subject=$subject ;
+            $mail->Subject = $subject;
             $mail->renderBody('mail/email.twig.html', [
-                'greeting'   => __('Password Reset'),
-                'body'       => nl2br(trim($body, "\n")),
-                'button'     => [
+                'title'  => __('Password Reset'),
+                'body'   => nl2br(trim($body, "\n")),
+                'button' => [
                     'url'  => "/index.php?q=/passwordReset.php&input=$input&step=2&gibbonPersonResetID=$gibbonPersonResetID&key=$key",
                     'text' => __('Click Here'),
                 ],

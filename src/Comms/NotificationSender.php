@@ -129,10 +129,10 @@ class NotificationSender
             if (!empty($emailPreference) && $emailPreference['receiveNotificationEmails'] == 'Y') {
                 // Format the email content
                 $mail->renderBody('mail/notification.twig.html', [
-                    'greeting' => __('Notification').' - '.$notification['moduleName'],
-                    'body'     => $notification['text'],
-                    'button'   => [
-                        'url'  => 'notificationsActionProcess.php?action='.$notification['actionLink'].'&gibbonPersonID='.$notification['gibbonPersonID'].'&gibbonNotificationID='.$gibbonNotificationID,
+                    'title'  => __('Notification').' - '.$notification['moduleName'],
+                    'body'   => $notification['text'],
+                    'button' => [
+                        'url'  => 'notificationsActionProcess.php?gibbonNotificationID='.$gibbonNotificationID,
                         'text' => __('View Details'),
                     ],
                 ]);

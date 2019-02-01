@@ -24,65 +24,114 @@ namespace Gibbon\Domain\Traits;
  */
 trait TableQueryAware
 {
-    protected function selectRow($tableName, $primaryKey, $primaryKeyValue)
+    public function getByID($primaryKeyValue)
     {
-        if (empty($primaryKeyValue)) {
-            throw new \InvalidArgumentException("Gateway select method for {$tableName} must provide a primary key value.");
+        return $this->select($primaryKeyValue)->fetch();
+    }
+
+    public function getBy($keyName, $keyValue)
+    {
+        if (empty($keyName) || empty($keyValue)) {
+            throw new \InvalidArgumentException("Gateway getBy method for {$this->getTableName()} must provide a primary key value.");
         }
 
         $query = $this
             ->newSelect()
             ->cols(['*'])
-            ->from($tableName)
-            ->where($primaryKey.' = :primaryKey')
+            ->from($this->getTableName())
+            ->where($keyName.' = :keyName')
+            ->bindValue('keyName', $keyValue);
+
+        return $this->runSelect($query);
+    }
+
+    public function select($primaryKeyValue)
+    {
+        if (empty($primaryKeyValue)) {
+            throw new \InvalidArgumentException("Gateway select method for {$this->getTableName()} must provide a primary key value.");
+        }
+
+        $query = $this
+            ->newSelect()
+            ->cols(['*'])
+            ->from($this->getTableName())
+            ->where($this->getPrimaryKey().' = :primaryKey')
             ->bindValue('primaryKey', $primaryKeyValue);
 
         return $this->runSelect($query);
     }
     
-    protected function insertRow($tableName, $primaryKey, $data)
+    public function insert($data)
     {
-        unset($data[$primaryKey]);
+        unset($data[$this->getPrimaryKey()]);
 
         $query = $this
             ->newInsert()
-            ->into($tableName)
+            ->into($this->getTableName())
             ->cols($data);
 
         return $this->runInsert($query);
     }
 
-    protected function updateRow($tableName, $primaryKey, $data)
+    public function update($primaryKeyValue, $data)
     {
-        if (empty($data[$primaryKey])) {
-            throw new \InvalidArgumentException("Gateway update method for {$tableName} must provide a primary key value.");
+        if (empty($primaryKeyValue)) {
+            throw new \InvalidArgumentException("Gateway update method for {$this->getTableName()} must provide a primary key value.");
         }
         
-        $primaryKeyValue = $data[$primaryKey];
-        unset($data[$primaryKey]);
+        unset($data[$this->getPrimaryKey()]);
 
         $query = $this
             ->newUpdate()
-            ->table($tableName)
+            ->table($this->getTableName())
             ->cols($data)
-            ->where($primaryKey.' = :primaryKey')
+            ->where($this->getPrimaryKey().' = :primaryKey')
             ->bindValue('primaryKey', $primaryKeyValue);
 
         return $this->runUpdate($query);
     }
 
-    protected function deleteRow($tableName, $primaryKey, $primaryKeyValue)
+    public function delete($primaryKeyValue)
     {
         if (empty($primaryKeyValue)) {
-            throw new \InvalidArgumentException("Gateway delete method for {$tableName} must provide a primary key value.");
+            throw new \InvalidArgumentException("Gateway delete method for {$this->getTableName()} must provide a primary key value.");
         }
 
         $query = $this
             ->newDelete()
-            ->from($tableName)
-            ->where($primaryKey.' = :primaryKey')
+            ->from($this->getTableName())
+            ->where($this->getPrimaryKey().' = :primaryKey')
             ->bindValue('primaryKey', $primaryKeyValue);
 
         return $this->runDelete($query);
+    }
+
+    public function unique(array $data, array $uniqueKeys, $primaryKeyValue = null) : bool
+    {
+        $query = $this
+            ->newSelect()
+            ->cols([$this->getPrimaryKey()])
+            ->from($this->getTableName());
+
+        $query->where(function ($query) use ($uniqueKeys, $data) {
+            foreach ($uniqueKeys as $i => $key) {
+                if (empty($data[$key])) return false;
+
+                $query->where("{$key} = :key{$i}")
+                    ->bindValue("key{$i}", $data[$key]);
+            }
+        });
+
+        if (!empty($primaryKeyValue)) {
+            $query->where($this->getPrimaryKey().' <> :primaryKey')
+                  ->bindValue('primaryKey', $primaryKeyValue);
+        }
+            
+        return $this->runSelect($query)->rowCount() == 0;
+    }
+
+    public function exists($primaryKeyValue)
+    {
+        return $this->select($primaryKeyValue)->rowCount() >= 1;
     }
 }

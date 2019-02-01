@@ -16,3 +16,135 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
+
+.calendarTable {
+    border-collapse: collapse !important;
+    background: transparent !important;
+    border-right: 1px solid transparent;
+    border-bottom: 1px solid transparent;
+    width: 99%;
+}
+
+.calendarTable thead {
+    display: none;
+}
+
+.calendarTable td {
+    color: #999999;
+    padding: 0px !important;
+    border: 1px solid #dfdfdf !important;
+    text-align: center;
+    height: 40px;
+    width: 30px;
+    font-size: 90%;
+    overflow: hidden;
+}
+
+
+.calendarTable td:first-child {
+    border-top: 1px solid transparent !important;
+    border-bottom: 1px solid transparent !important;
+    border-left: 1px solid transparent !important;
+    background: transparent !important;
+    font-weight: bold;
+    padding-right: 4px !important;
+}
+
+.calendarTable a {
+    padding: 5px 0px;
+    color: inherit;
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+    vertical-align: middle;
+    text-decoration: none;
+}
+
+.bg-purple0 {
+    background: #eee3f8 !important;
+    color: hsl(268, 29%, 55%);
+}
+
+.bg-purple1 {
+    background: #e2ccf6 !important;
+    color: hsl(268, 29%, 55%);
+}
+
+.bg-purple2 {
+    background: #d2b8ec !important;
+    color: hsl(268, 29%, 55%);
+}
+
+.bg-purple3 {
+    background: #9d7cc6 !important;
+    color: #f1f1f1;
+}
+
+.bg-purple4 {
+    background: #7c5aa4 !important;
+    color: #f1f1f1;
+}
+
+.datesTable td {
+    height: 26px;
+}
+
+.calendarTable .day {
+    background: #fbfbfb !important;
+}
+
+.calendarTable .weekend {
+    background: #f1f1f1 !important;
+}
+
+.calendarTable .today {
+    border: 2px solid #777777 !important;
+}
+
+.calendarTableSmall td {
+    height: 22px;
+    /* width: 22px; */
+    overflow: hidden;
+}
+
+.calendarTableSmall a {
+    font-size: 0;
+    padding: 0px;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.bg-color0 {    background: rgba(153, 102, 255, 1.0) !important; }
+.bg-color1 {    background: rgba(255, 99, 132, 1.0) !important; }
+.bg-color2 {    background: rgba(255, 206, 86, 1.0) !important; }
+.bg-color3 {    background: rgba(54, 162, 235, 1.0) !important; }
+.bg-color4 {    background: rgba(133, 233, 194, 1.0) !important; }
+.bg-color5 {    background: rgba(255, 159, 64, 1.0) !important; }
+.bg-color6 {    background: rgba(237, 85, 88, 1.0) !important; }
+.bg-color7 {    background: rgba(75, 192, 192, 1.0) !important; }
+.bg-color8 {    background: rgba(161, 89, 173, 1.0) !important; }
+.bg-color9 {    background: rgba(29, 109, 163, 1.0) !important; }
+
+.bg-grey { background: #aaaaaa !important; }
+
+.half-day-am::after {
+    content: '';
+    display: block;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    top: 1px;
+    background: linear-gradient(to right bottom, rgba(0,0,0,0) 50%, rgba(251, 251, 251,0.7) 50%);
+}
+
+.half-day-pm::after {
+    content: '';
+    display: block;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    top: -1px;
+    background: linear-gradient(to right bottom, rgba(251, 251, 251,0.7) 50%, rgba(0,0,0,0) 50%);
+}
