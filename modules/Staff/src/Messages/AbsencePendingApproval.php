@@ -44,17 +44,17 @@ class AbsencePendingApproval extends Message
             : ['mail'];
     }
 
-    public function title() : string
+    public function getTitle() : string
     {
         return __('Staff Absence').' '.$this->absence['status'];
     }
 
-    public function text() : string
+    public function getText() : string
     {
         return __("{name} is requesting leave on {date} for {type}. You may choose to approve or decline this request.", $this->details);
     }
 
-    public function details() : array
+    public function getDetails() : array
     {
         return [
             __('Staff')   => $this->details['name'],
@@ -64,17 +64,17 @@ class AbsencePendingApproval extends Message
         ];
     }
 
-    public function module() : string
+    public function getModule() : string
     {
         return __('Staff');
     }
 
-    public function action() : string
+    public function getAction() : string
     {
         return __('View Details');
     }
 
-    public function link() : string
+    public function getLink() : string
     {
         return 'index.php?q=/modules/Staff/absences_approval.php&gibbonStaffAbsenceID='.$this->absence['gibbonStaffAbsenceID'];
     }

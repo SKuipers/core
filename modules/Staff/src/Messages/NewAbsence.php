@@ -44,19 +44,19 @@ class NewAbsence extends Message
             : ['mail'];
     }
 
-    public function title() : string
+    public function getTitle() : string
     {
         return __('Staff Absence');
     }
 
-    public function text() : string
+    public function getText() : string
     {
         return __("{name} will be absent on {date} for {type}.", $this->details);
 
         // Add details if they're also seeking coverage, and from whom.
     }
 
-    public function details() : array
+    public function getDetails() : array
     {
         return [
             __('Staff')      => $this->details['name'],
@@ -66,17 +66,17 @@ class NewAbsence extends Message
         ];
     }
 
-    public function module() : string
+    public function getModule() : string
     {
         return __('Staff');
     }
 
-    public function action() : string
+    public function getAction() : string
     {
         return __('View Details');
     }
 
-    public function link() : string
+    public function getLink() : string
     {
         return 'index.php?q=/modules/Staff/absences_view_details.php&gibbonStaffAbsenceID='.$this->absence['gibbonStaffAbsenceID'];
     }

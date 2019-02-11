@@ -45,17 +45,17 @@ class AbsenceApproval extends Message
             : ['mail'];
     }
 
-    public function title() : string
+    public function getTitle() : string
     {
         return __('Staff Absence').' '.$this->absence['status'];
     }
 
-    public function text() : string
+    public function getText() : string
     {
         return __("{name} has {actioned} your {type} absence for {date}.", $this->details);
     }
 
-    public function details() : array
+    public function getDetails() : array
     {
         return [
             __('Date')  => Format::dateTimeReadable($this->absence['timestampApproval']),
@@ -63,17 +63,17 @@ class AbsenceApproval extends Message
         ];
     }
 
-    public function module() : string
+    public function getModule() : string
     {
         return __('Staff');
     }
 
-    public function action() : string
+    public function getAction() : string
     {
         return __('View Details');
     }
 
-    public function link() : string
+    public function getLink() : string
     {
         return 'index.php?q=/modules/Staff/absences_view_details.php&gibbonStaffAbsenceID='.$this->absence['gibbonStaffAbsenceID'];
     }

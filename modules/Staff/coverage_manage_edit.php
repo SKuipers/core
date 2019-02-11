@@ -110,7 +110,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_edit
                 ->setReadonly(true);
     } else if ($coverage['requestType'] == 'Broadcast') {
 
-        $notificationList = $coverage['notificationSent'] == 'Y' ? json_decode($coverage['notificationList']) : [];
+        $notificationList = $coverage['notificationSent'] == 'Y' ? json_decode($coverage['notificationListAbsence']) : [];
 
         if ($notificationList) {
             $notified = $container->get(UserGateway::class)->selectNotificationDetailsByPerson($notificationList)->fetchGroupedUnique();

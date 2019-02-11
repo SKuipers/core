@@ -68,8 +68,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_declin
     }
 
     $absence = $container->get(StaffAbsenceGateway::class)->getByID($coverage['gibbonStaffAbsenceID']);
+    $substitute = $substituteGateway->getSubstituteByPerson($coverage['gibbonPersonIDCoverage']);
 
-    if (empty($absence)) {
+    if (empty($absence) || empty($substitute)) {
         $URL .= '&return=error2';
         header("Location: {$URL}");
         exit;

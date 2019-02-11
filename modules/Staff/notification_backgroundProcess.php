@@ -207,17 +207,17 @@ switch ($action) {
                 ? new CoveragePartial($coverage, $uncoveredDates)
                 : new CoverageAccepted($coverage);
 
-            if ($messageSender->send($recipients, $message)) {
+            if ($sent = $messageSender->send($recipients, $message)) {
                 $sendCount += count($recipients);
             }
 
             // Send a coverage arranged message to the selected staff for this absence
-            $recipients = !empty($coverage['notificationList']) ? json_decode($coverage['notificationList']) : [];
+            $recipients = !empty($coverage['notificationListAbsence']) ? json_decode($coverage['notificationListAbsence']) : [];
             $recipients[] = $organisationHR;
 
             $message = new NewCoverage($coverage);
 
-            if ($sent = $messageSender->send($recipients, $message)) {
+            if ($sent2 = $messageSender->send($recipients, $message)) {
                 $sendCount += count($recipients);
             }
         }
@@ -228,6 +228,7 @@ echo __('Urgent').': '.($relativeSeconds <= $urgencyThreshold ? 'yes' : 'no')."\
 echo __('Sent').': '.$sendCount."\n";
 echo __('Send Report').": \n";
 print_r($sent);
+print_r($sent2);
 
 // End the process and output the result to terminal (output file)
 // $processor->stopProcess('staffNotification');

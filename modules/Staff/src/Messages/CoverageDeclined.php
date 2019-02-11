@@ -38,12 +38,12 @@ class CoverageDeclined extends Message
             : ['mail'];
     }
 
-    public function title() : string
+    public function getTitle() : string
     {
         return __('Coverage Unavailable');
     }
 
-    public function text() : string
+    public function getText() : string
     {
         return __("Unfortunately {name} isn't available to cover your {type} absence on {date}.", [
             'date' => Format::dateRangeReadable($this->coverage['dateStart'], $this->coverage['dateEnd']),
@@ -52,24 +52,24 @@ class CoverageDeclined extends Message
         ]);
     }
 
-    public function details() : array
+    public function getDetails() : array
     {
         return [
             __('Reply') => $this->coverage['notesCoverage'],
         ];
     }
 
-    public function module() : string
+    public function getModule() : string
     {
         return __('Staff');
     }
 
-    public function action() : string
+    public function getAction() : string
     {
         return __('New Coverage Request');
     }
 
-    public function link() : string
+    public function getLink() : string
     {
         return 'index.php?q=/modules/Staff/coverage_request.php&gibbonStaffAbsenceID='.$this->coverage['gibbonStaffAbsenceID'];
     }
