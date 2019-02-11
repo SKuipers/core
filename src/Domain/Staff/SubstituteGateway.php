@@ -266,6 +266,14 @@ class SubstituteGateway extends QueryableGateway
         return $this->db()->select($sql, $data);
     }
 
+    public function getSubstituteByPerson($gibbonPersonID)
+    {
+        $data = ['gibbonPersonID' => $gibbonPersonID];
+        $sql = "SELECT * FROM gibbonSubstitute WHERE gibbonPersonID=:gibbonPersonID";
+
+        return $this->db()->selectOne($sql, $data);
+    }
+
     public function insertUnavailability($data)
     {
         $query = $this

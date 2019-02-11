@@ -23,6 +23,7 @@ use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Domain\School\SchoolYearGateway;
 use Gibbon\Domain\DataSet;
+use Gibbon\Domain\Staff\SubstituteGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view.php') == false) {
     // Access denied
@@ -111,19 +112,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view.php') 
             return $output;
         });
 
-    $table->addActionColumn()
-        ->addParam('gibbonStaffCoverageID')
-        ->format(function ($coverage, $actions) use ($gibbonPersonID) {
-            $actions->addAction('accept', __('Accept'))
-                ->setIcon('iconTick')
-                ->setURL('/modules/Staff/coverage_view_accept.php');
+    // Only display the Accept / Decline options for people who are substitutes
+    $substitute = $container->get(SubstituteGateway::class)->getSubstituteByPerson($gibbonPersonID);
+    if (!empty($substitute)) {
+        $table->addActionColumn()
+            ->addParam('gibbonStaffCoverageID')
+            ->format(function ($coverage, $actions) use ($gibbonPersonID) {
+                $actions->addAction('accept', __('Accept'))
+                    ->setIcon('iconTick')
+                    ->setURL('/modules/Staff/coverage_view_accept.php');
 
-            if ($gibbonPersonID == $coverage['gibbonPersonIDCoverage']) {
-                $actions->addAction('decline', __('Decline'))
-                    ->setIcon('iconCross')
-                    ->setURL('/modules/Staff/coverage_view_decline.php');
-            }
-        });
+                if ($gibbonPersonID == $coverage['gibbonPersonIDCoverage']) {
+                    $actions->addAction('decline', __('Decline'))
+                        ->setIcon('iconCross')
+                        ->setURL('/modules/Staff/coverage_view_decline.php');
+                }
+            });
+    }
 
     if ($myCoverage->getResultCount() > 0) {
         $myRequestsTable = clone $table;

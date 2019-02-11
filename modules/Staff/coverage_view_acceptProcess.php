@@ -23,6 +23,7 @@ use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Data\BackgroundProcess;
+use Gibbon\Domain\Staff\SubstituteGateway;
 
 
 require_once '../../gibbon.php';
@@ -59,8 +60,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
 
     // Validate the database relationships exist
     $coverage = $staffCoverageGateway->getByID($gibbonStaffCoverageID);
+    $substitute = $container->get(SubstituteGateway::class)->getSubstituteByPerson($data['gibbonPersonIDCoverage']);
 
-    if (empty($coverage)) {
+    if (empty($coverage) || empty($substitute)) {
         $URL .= '&return=error2';
         header("Location: {$URL}");
         exit;
