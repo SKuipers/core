@@ -34,16 +34,16 @@ class IndividualRequest extends Message
     public function via() : array
     {
         return $this->coverage['urgent']
-            ? ['mail', 'sms']
-            : ['mail'];
+            ? ['mail', 'sms', 'database']
+            : ['mail', 'database'];
     }
 
-    public function title() : string
+    public function getTitle() : string
     {
         return __('Coverage Request');
     }
 
-    public function text() : string
+    public function getText() : string
     {
         return __("{name} sent you a coverage request for {date}. Are you available? Please login to accept or decline.", [
             'date' => Format::dateRangeReadable($this->coverage['dateStart'], $this->coverage['dateEnd']),
@@ -51,24 +51,24 @@ class IndividualRequest extends Message
         ]);
     }
 
-    public function details() : array
+    public function getDetails() : array
     {
         return [
             __('Comment') => $this->coverage['notesRequested'],
         ];
     }
 
-    public function module() : string
+    public function getModule() : string
     {
         return __('Staff');
     }
 
-    public function action() : string
+    public function getAction() : string
     {
         return __('View Coverage Requests');
     }
 
-    public function link() : string
+    public function getLink() : string
     {
         return 'index.php?q=/modules/Staff/coverage_view.php';
     }

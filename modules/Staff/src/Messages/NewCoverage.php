@@ -41,21 +41,21 @@ class NewCoverage extends Message
     public function via() : array
     {
         return $this->coverage['urgent']
-            ? ['mail', 'sms']
+            ? ['mail']
             : ['mail'];
     }
 
-    public function title() : string
+    public function getTitle() : string
     {
         return __('Staff Coverage');
     }
 
-    public function text() : string
+    public function getText() : string
     {
         return __("{nameAbsent} arranged for {nameCoverage} to cover their {type} absence on {date}.", $this->details);
     }
 
-    public function details() : array
+    public function getDetails() : array
     {
         return [
             __('Staff')      => $this->details['nameAbsent'],
@@ -67,17 +67,17 @@ class NewCoverage extends Message
         ];
     }
 
-    public function module() : string
+    public function getModule() : string
     {
-        return __('Staff');
+        return 'Staff';
     }
 
-    public function action() : string
+    public function getAction() : string
     {
         return __('View Details');
     }
 
-    public function link() : string
+    public function getLink() : string
     {
         return 'index.php?q=/modules/Staff/coverage_view_details.php&gibbonStaffCoverageID='.$this->coverage['gibbonStaffCoverageID'];
     }

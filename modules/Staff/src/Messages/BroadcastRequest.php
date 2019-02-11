@@ -38,37 +38,37 @@ class BroadcastRequest extends Message
             : ['mail'];
     }
 
-    public function title() : string
+    public function getTitle() : string
     {
         return __('Coverage Request');
     }
 
-    public function text() : string
+    public function getText() : string
     {
-        return __("{name} is looking for coverage for {date}. This request is open for the first available sub to accept.", [
+        return __("{name} is looking for coverage on {date}. This request is open for the first available sub to accept.", [
             'date' => Format::dateRangeReadable($this->coverage['dateStart'], $this->coverage['dateEnd']),
             'name' => Format::name($this->coverage['titleAbsence'], $this->coverage['preferredNameAbsence'], $this->coverage['surnameAbsence'], 'Staff', false, true),
         ]);
     }
 
-    public function details() : array
+    public function getDetails() : array
     {
         return [
             __('Comment') => $this->coverage['notesRequested'],
         ];
     }
 
-    public function module() : string
+    public function getModule() : string
     {
         return __('Staff');
     }
 
-    public function action() : string
+    public function getAction() : string
     {
         return __('View Coverage Requests');
     }
 
-    public function link() : string
+    public function getLink() : string
     {
         return 'index.php?q=/modules/Staff/coverage_view.php';
     }

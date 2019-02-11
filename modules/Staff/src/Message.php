@@ -27,37 +27,45 @@ namespace Gibbon\Module\Staff;
  */
 abstract class Message
 {
-    abstract public function title() : string;
-    abstract public function text() : string;
-    abstract public function module() : string;
-    abstract public function action() : string;
-    abstract public function link() : string;
+    abstract public function getTitle() : string;
+    abstract public function getText() : string;
+    abstract public function getModule() : string;
+
+    public function getAction() : array
+    {
+        return '';
+    }
+
+    public function getLink() : array
+    {
+        return '';
+    }
+
+    public function getDetails() : array
+    {
+        return [];
+    }
 
     public function via() : array
     {
         return ['mail'];
     }
 
-    public function details() : array
-    {
-        return [];
-    }
-
     public function toSMS() : string
     {
-        return $this->text();
+        return $this->getText();
     }
 
     public function toMail() : array
     {
         return [
-            'subject' => $this->title(),
-            'title'   => $this->title(),
-            'body'    => $this->text(),
-            'details' => array_filter($this->details()),
+            'subject' => $this->getTitle(),
+            'title'   => $this->getTitle(),
+            'body'    => $this->getText(),
+            'details' => array_filter($this->getDetails()),
             'button'  => [
-                'url'  => $this->link(),
-                'text' => $this->action(),
+                'url'  => $this->getLink(),
+                'text' => $this->getAction(),
             ],
         ];
     }
@@ -65,9 +73,9 @@ abstract class Message
     public function toDatabase() : array
     {
         return [
-            'text'       => $this->text(),
-            'moduleName' => $this->module(),
-            'actionLink' => '/'.$this->link(),
+            'text'       => $this->getText(),
+            'moduleName' => $this->getModule(),
+            'actionLink' => '/'.$this->getLink(),
         ];
     }
 }

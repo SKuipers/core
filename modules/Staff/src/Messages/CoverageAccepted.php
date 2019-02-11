@@ -38,12 +38,12 @@ class CoverageAccepted extends Message
             : ['mail'];
     }
 
-    public function title() : string
+    public function getTitle() : string
     {
         return __('Coverage').' '.__($this->coverage['status']);
     }
 
-    public function text() : string
+    public function getText() : string
     {
         return __("Success! {name} has accepted your {type} coverage request for {date}.", [
             'date' => Format::dateRangeReadable($this->coverage['dateStart'], $this->coverage['dateEnd']),
@@ -52,24 +52,24 @@ class CoverageAccepted extends Message
         ]);
     }
 
-    public function details() : array
+    public function getDetails() : array
     {
         return [
             __('Reply') => $this->coverage['notesCoverage'],
         ];
     }
 
-    public function module() : string
+    public function getModule() : string
     {
         return __('Staff');
     }
 
-    public function action() : string
+    public function getAction() : string
     {
         return __('View Details');
     }
 
-    public function link() : string
+    public function getLink() : string
     {
         return 'index.php?q=/modules/Staff/coverage_view_details.php&gibbonStaffCoverageID='.$this->coverage['gibbonStaffCoverageID'];
     }
