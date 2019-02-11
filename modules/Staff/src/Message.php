@@ -62,12 +62,12 @@ abstract class Message
         ];
     }
 
-    public function toNotification() : array
+    public function toDatabase() : array
     {
         return [
             'text'       => $this->text(),
             'moduleName' => $this->module(),
-            'actionLink' => $this->link(),
+            'actionLink' => '/'.$this->link(),
         ];
     }
 }
