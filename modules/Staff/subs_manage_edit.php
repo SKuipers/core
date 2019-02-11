@@ -23,6 +23,7 @@ use Gibbon\Domain\User\UserGateway;
 use Gibbon\Domain\Staff\SubstituteGateway;
 use Gibbon\Services\Format;
 use Gibbon\Domain\System\SettingGateway;
+use Gibbon\Tables\Action;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/subs_manage_edit.php') == false) {
     //Acess denied
@@ -39,12 +40,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/subs_manage_edit.php
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, null);
-    }
-
-    if ($search != '') {
-        echo "<div class='linkTop'>";
-        echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Staff/subs_manage.php&search=$search'>".__('Back to Search Results').'</a>';
-        echo '</div>';
     }
 
     $gibbonSubstituteID = $_GET['gibbonSubstituteID'] ?? '';
@@ -68,6 +63,20 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/subs_manage_edit.php
         $page->addError(__('The specified record cannot be found.'));
         return;
     }
+
+    echo "<div class='linkTop'>";
+    if ($search != '') {
+        echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Staff/subs_manage.php&search=$search'>".__('Back to Search Results').'</a>';
+    }
+
+    if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edit.php')) {
+        echo (new Action('edit', __('Edit User')))
+            ->setURL('/modules/User Admin/user_manage_edit.php')
+            ->addParam('gibbonPersonID', $values['gibbonPersonID'])
+            ->displayLabel()
+            ->getOutput();
+    }
+    echo '</div>';
 
     $form = Form::create('subsManage', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/subs_manage_editProcess.php?search=$search");
 
