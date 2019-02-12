@@ -58,12 +58,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_detail
         $row->addLabel('timestamp', __('Requested'));
         $row->addTextField('timestampValue')
             ->readonly()
-            ->setValue(Format::relativeTime($coverage['timestampRequested'], false))
-            ->setTitle($coverage['timestampRequested']);
+            ->setValue(Format::relativeTime($coverage['timestampStatus'], false))
+            ->setTitle($coverage['timestampStatus']);
 
     $row = $form->addRow();
-        $row->addLabel('notesRequestedLabel', __('Comment'));
-        $row->addTextArea('notesRequested')->setRows(3)->setValue($coverage['notesRequested'])->readonly();
+        $row->addLabel('notesStatusLabel', __('Comment'));
+        $row->addTextArea('notesStatus')->setRows(3)->setValue($coverage['notesStatus'])->readonly();
     
     
     $form->addRow()->addHeading(__('Substitute'));

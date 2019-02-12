@@ -312,9 +312,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php') ==
                 return $output;
             });
 
-        $table->addColumn('notesRequested', __('Comment'))
+        $table->addColumn('notesStatus', __('Comment'))
             ->format(function ($coverage) {
-                return Format::truncate($coverage['notesRequested'], 60);
+                return Format::truncate($coverage['notesStatus'], 60);
             });
 
         $table->addActionColumn()

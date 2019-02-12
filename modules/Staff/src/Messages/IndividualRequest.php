@@ -54,7 +54,7 @@ class IndividualRequest extends Message
     public function getDetails() : array
     {
         return [
-            __('Comment') => $this->coverage['notesRequested'],
+            __('Comment') => $this->coverage['notesStatus'],
         ];
     }
 

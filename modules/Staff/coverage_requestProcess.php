@@ -46,13 +46,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     $requestDates = $_POST['requestDates'] ?? [];
 
     $data = [
-        'gibbonStaffAbsenceID'    => $gibbonStaffAbsenceID,
-        'gibbonPersonIDCoverage'  => $_POST['gibbonPersonIDCoverage'] ?? null,
-        'gibbonPersonIDRequested' => $gibbon->session->get('gibbonPersonID'),
-        'notesRequested'          => $_POST['notesRequested'],
-        'requestType'             => $_POST['requestType'],
-        'status'                  => 'Requested',
-        'notificationSent'        => 'N',
+        'gibbonStaffAbsenceID'   => $gibbonStaffAbsenceID,
+        'gibbonPersonIDCoverage' => $_POST['gibbonPersonIDCoverage'] ?? null,
+        'gibbonPersonIDStatus'   => $gibbon->session->get('gibbonPersonID'),
+        'notesStatus'            => $_POST['notesStatus'],
+        'requestType'            => $_POST['requestType'],
+        'status'                 => 'Requested',
+        'notificationSent'       => 'N',
     ];
 
     // Validate the required values are present

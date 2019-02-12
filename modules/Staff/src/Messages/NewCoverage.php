@@ -61,7 +61,7 @@ class NewCoverage extends Message
             __('Staff')      => $this->details['nameAbsent'],
             __('Type')       => $this->details['type'],
             __('Date')       => $this->details['date'],
-            __('Comment')    => $this->coverage['notesRequested'],
+            __('Comment')    => $this->coverage['notesStatus'],
             __('Substitute') => $this->details['nameCoverage'],
             __('Reply')      => $this->coverage['notesCoverage'],
         ];

@@ -149,8 +149,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
         $row->addContent('<div class="datesTable"></div>');
 
     $row = $form->addRow();
-        $row->addLabel('notesRequested', __('Comment'))->description(__('This message is shared with substitutes, and is also visible to users who manage staff coverage.'));
-        $row->addTextArea('notesRequested')->setRows(3);
+        $row->addLabel('notesStatus', __('Comment'))->description(__('This message is shared with substitutes, and is also visible to users who manage staff coverage.'));
+        $row->addTextArea('notesStatus')->setRows(3);
 
     $row = $form->addRow();
         $row->addFooter();

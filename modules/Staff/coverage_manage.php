@@ -142,10 +142,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage.php'
             }
         });
 
-    $table->addColumn('timestampRequested', __('Requested'))
+    $table->addColumn('timestampStatus', __('Requested'))
         ->format(function ($coverage) {
-            if (empty($coverage['timestampRequested'])) return;
-            return Format::relativeTime($coverage['timestampRequested'], 'M j, Y H:i');
+            if (empty($coverage['timestampStatus'])) return;
+            return Format::relativeTime($coverage['timestampStatus'], 'M j, Y H:i');
         });
 
     // ACTIONS
