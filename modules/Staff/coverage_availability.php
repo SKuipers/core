@@ -96,15 +96,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
 
     $table->addColumn('timeStart', __('Time'))->format(function ($date) {
         if ($date['allDay'] == 'N') {
-            return Format::small(Format::timeRange($date['timeStart'], $date['timeEnd']));
+            return Format::timeRange($date['timeStart'], $date['timeEnd']);
         } else {
-            return Format::small(__('All Day'));
+            return __('All Day');
         }
     });
 
-    $table->addColumn('status', __('Availability'))
+    $table->addColumn('reason', __('Availability'))
         ->format(function ($date) {
-            return Format::small(__('Not Available'));
+            return __($date['reason'] ?? 'Not Available');
         });
 
     $table->addActionColumn()
@@ -129,7 +129,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
     $form->addHiddenValue('gibbonPersonID', $gibbonPersonID);
 
-    $form->addRow()->addHeading(__('Not Available'));
+    $form->addRow()->addHeading(__('Add'));
 
     $row = $form->addRow();
     $row->addLabel('allDay', __('All Day'));
@@ -153,6 +153,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
     $row = $form->addRow()->addClass('timeOptions');
         $row->addLabel('timeEnd', __('End Time'));
         $row->addTime('timeEnd')->chainedTo('timeStart')->isRequired();
+
+    $reasons = array_filter(array_map('trim', explode(',', getSettingByScope($connection2, 'Staff', 'unavailabilityReasons'))));
+    $row = $form->addRow();
+        $row->addLabel('reason', __('Reason'));
+        $row->addSelect('reason')
+            ->fromArray($reasons)
+            ->isRequired();
 
     $row = $form->addRow();
         $row->addFooter();

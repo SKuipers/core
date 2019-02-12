@@ -224,7 +224,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php') ==
                         }
 
                         $url = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/coverage_availability.php';
-                        $params['title'] .= '<br/>'.__('Not Available');
+                        $params['title'] .= '<br/>'.__($day['exception']['reason'] ?? 'Not Available');
                     }
     
                     return Format::link($url, $day['number'], $params);

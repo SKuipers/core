@@ -96,7 +96,7 @@ class SubstituteGateway extends QueryableGateway
             ->cols([
                 'gibbonPerson.gibbonPersonID as groupBy', 'gibbonPerson.gibbonPersonID', 'gibbonSubstitute.details', 'gibbonSubstitute.type', 'gibbonSubstitute.contactCall', 'gibbonSubstitute.contactEmail', 'gibbonSubstitute.contactSMS', 'gibbonPerson.title', 'gibbonPerson.preferredName', 'gibbonPerson.surname', 'gibbonPerson.status', 'gibbonPerson.image_240', 'gibbonPerson.email', 'gibbonPerson.phone1', 'gibbonPerson.phone1Type', 'gibbonPerson.phone1CountryCode',
                 '(absence.ID IS NULL AND coverage.ID IS NULL AND timetable.ID IS NULL AND unavailable.gibbonSubstituteUnavailableID IS NULL) as available',
-                'absence.status as absence', 'coverage.status as coverage', 'timetable.status as timetable', 'unavailable.gibbonSubstituteUnavailableID as unavailable',
+                'absence.status as absence', 'coverage.status as coverage', 'timetable.status as timetable', 'unavailable.reason as unavailable',
             ])
             ->leftJoin('gibbonSubstitute', 'gibbonSubstitute.gibbonPersonID=gibbonPerson.gibbonPersonID');
                 

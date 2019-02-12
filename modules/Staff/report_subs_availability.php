@@ -138,7 +138,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_subs_availabi
                 if (!empty($person['absence'])) $output .= __('Absent').' - '.$person['absence'].'<br/>';
                 if (!empty($person['coverage'])) $output .= __('Covering').' - '.$person['coverage'].'<br/>';
                 if (!empty($person['timetable'])) $output .= __('Teaching').' - '.$person['timetable'].'<br/>';
-                if (!empty($person['unavailable'])) $output .= __('Not Available').'<br/>';
+                if (!empty($person['unavailable'])) $output .= __($person['unavailable'] ?? 'Not Available').'<br/>';
             }
             return $output;
         });

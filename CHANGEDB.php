@@ -893,7 +893,7 @@ CREATE TABLE `gibbonSubstitute` (
     `gibbonSubstituteID` INT(10) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
     `gibbonPersonID` int(10) UNSIGNED ZEROFILL NOT NULL,
     `active` ENUM('Y','N') DEFAULT 'Y',
-    `type` VARCHAR(30) NULL,
+    `type` VARCHAR(60) NULL,
     `details` VARCHAR(255) NULL,
     `priority` INT(2) NOT NULL DEFAULT '0',
     `contactCall` ENUM('Y','N') DEFAULT 'Y',
@@ -905,6 +905,7 @@ CREATE TABLE `gibbonSubstitute` (
 CREATE TABLE `gibbonSubstituteUnavailable` (
     `gibbonSubstituteUnavailableID` INT(14) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
     `gibbonPersonID` INT(14) UNSIGNED ZEROFILL NOT NULL,
+    `reason` VARCHAR(60) NULL,
     `date` DATE NULL,
     `allDay` ENUM('N','Y') DEFAULT 'Y',
     `timeStart` time NULL DEFAULT NULL,
@@ -943,5 +944,6 @@ INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`val
 INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Staff', 'urgencyThreshold', 'Urgency Threshold', 'Notifications in this time-span are sent immediately, day or night.', '3');end
 INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Staff', 'urgentNotifications', 'Urgent Notifications', 'Which contact methods should be used to notify users.', 'Email');end
 INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Staff', 'absenceApprovers', 'Absence Approvers', 'Users who can approve staff absences.', '');end
+INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Staff', 'unavailabilityReasons', 'Unavailability Reasons', 'A comma-separated list.', 'Not Available');end
 
 ";

@@ -109,6 +109,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_declin
                 'gibbonPersonID' => $coverage['gibbonPersonID'],
                 'date'           => $date['date'],
                 'allDay'         => 'Y',
+                'reason'         => 'Not Available',
             ]);
         }
     }

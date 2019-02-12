@@ -111,10 +111,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/staffSettings
 
     $form->addRow()->addHeading(__('Staff Coverage'));
 
-    $setting = $settingGateway->getSettingByScope('Staff', 'substituteTypes', true);
-    $row = $form->addRow();
-        $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
-        $row->addTextArea($setting['name'])->setRows(3)->isRequired()->setValue($setting['value']);
+    
 
     $smsOptions = !empty($smsGateway) ? ['mail-sms' => __('Email and SMS')] : [];
     $notifyOptions = [
@@ -136,6 +133,18 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/staffSettings
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addSelect($setting['name'])->fromArray($thresholds)->isRequired()->selected($setting['value']);
         
+    $form->addRow()->addHeading(__('Substitute'));
+
+    $setting = $settingGateway->getSettingByScope('Staff', 'substituteTypes', true);
+    $row = $form->addRow();
+        $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
+        $row->addTextArea($setting['name'])->setRows(3)->isRequired()->setValue($setting['value']);
+
+    $setting = $settingGateway->getSettingByScope('Staff', 'unavailabilityReasons', true);
+    $row = $form->addRow();
+        $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
+        $row->addTextArea($setting['name'])->setRows(3)->isRequired()->setValue($setting['value']);
+
     $row = $form->addRow();
         $row->addFooter();
         $row->addSubmit();
