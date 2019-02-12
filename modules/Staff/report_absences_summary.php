@@ -207,7 +207,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_summ
         $id = $absence['gibbonPersonID'];
         if (empty($absencesByPerson[$id])) $absencesByPerson[$id] = $types;
         
-        $absencesByPerson[$id][$absence['type']] += $absence['allDay'] == 'Y' ? 1 : 0.5;
+        $absencesByPerson[$id][$absence['type']] += $absence['value'];
     }
 
     $allStaff = $staffGateway->queryAllStaff($criteria);

@@ -104,10 +104,24 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
         $dateData = [
             'gibbonStaffAbsenceID' => $gibbonStaffAbsenceID,
             'date'                 => $date->format('Y-m-d'),
-            'allDay'               => $_POST['allDay'] ?? '',
+            'allDay'               => $_POST['allDay'] ?? 'Y',
             'timeStart'            => $_POST['timeStart'] ?? null,
             'timeEnd'              => $_POST['timeEnd'] ?? null,
         ];
+
+        if ($dateData['allDay'] == 'Y') {
+            $dateData['value'] = 1.0;
+        } else {
+            $start = new DateTime($date->format('Y-m-d').' '.$dateData['timeStart']);
+            $end = new DateTime($date->format('Y-m-d').' '.$dateData['timeEnd']);
+
+            $dateDiff = $end->diff($start);
+            $hoursAbsent = abs($dateDiff->h + ($dateDiff->days * 24));
+
+            if ($hoursAbsent <= 2.0) $dateData['value'] = 0.0;
+            elseif ($hoursAbsent <= 6.0) $dateData['value'] = 0.5;
+            else $dateData['value'] = 1.0;
+        }
 
         if (!isSchoolOpen($guid, $dateData['date'], $connection2)) {
             continue;

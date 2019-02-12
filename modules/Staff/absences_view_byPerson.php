@@ -151,7 +151,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
 
     foreach ($absences as $days) {
         foreach ($days as $absence) {
-            $types[$absence['type']] += $absence['allDay'] == 'Y' ? 1 : 0.5;
+            $types[$absence['type']] += $absence['value'];
         }
     }
 
@@ -195,15 +195,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
         ->width('22%')
         ->format(function ($absence) {
             $output = Format::dateRangeReadable($absence['dateStart'], $absence['dateEnd']);
-            if ($absence['allDay'] == 'Y') {
+            if ($absence['allDay'] == 'Y' || $absence['days'] > 1) {
                 $output .= '<br/>'.Format::small(__n('{count} Day', '{count} Days', $absence['days']));
             } else {
                 $output .= '<br/>'.Format::small(Format::timeRange($absence['timeStart'], $absence['timeEnd']));
             }
             
-            return $output;
+            return Format::tooltip($output, $absence['value']);
         });
-        
+    
     $table->addColumn('type', __('Type'))
         ->description(__('Reason'))
         ->format(function ($absence) {

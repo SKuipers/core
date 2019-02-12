@@ -861,6 +861,7 @@ CREATE TABLE `gibbonStaffAbsenceDate` (
     `allDay` ENUM('N','Y') DEFAULT 'Y',
     `timeStart` time NULL DEFAULT NULL,
     `timeEnd` time NULL DEFAULT NULL,
+    `value` DECIMAL(2,1) NOT NULL DEFAULT '1.0',
     PRIMARY KEY (`gibbonStaffAbsenceDateID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;end
 CREATE TABLE `gibbonStaffAbsenceType` (
