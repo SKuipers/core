@@ -136,17 +136,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
             ->addClass('timeOptions')
             ->isRequired();
 
-    $form->toggleVisibilityByClass('approvalRequired')->onSelect('gibbonStaffAbsenceTypeID')->when($typesRequiringApproval);
-    $form->toggleVisibilityByClass('approvalNotRequired')->onSelect('gibbonStaffAbsenceTypeID')->whenNot(array_merge($typesRequiringApproval, ['Please select...']));
+    if (!empty($typesRequiringApproval)) {
+        $form->toggleVisibilityByClass('approvalRequired')->onSelect('gibbonStaffAbsenceTypeID')->when($typesRequiringApproval);
+        $form->toggleVisibilityByClass('approvalNotRequired')->onSelect('gibbonStaffAbsenceTypeID')->whenNot(array_merge($typesRequiringApproval, ['Please select...']));
 
-    $form->addRow()->addHeading(__('Requires Approval'))->addClass('approvalRequired');
+        $form->addRow()->addHeading(__('Requires Approval'))->addClass('approvalRequired');
 
-    $row = $form->addRow()->addClass('approvalRequired');
+        $row = $form->addRow()->addClass('approvalRequired');
         $row->addLabel('gibbonPersonIDApproval', __('Approver'));
         $row->addSelectUsersFromList('gibbonPersonIDApproval', $approverOptions)
             ->placeholder()
             ->isRequired();
-
+    }
     $form->addRow()->addHeading(__('Notifications'));
 
     // HR Administrator
