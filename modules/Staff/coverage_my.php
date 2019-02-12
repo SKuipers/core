@@ -131,8 +131,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php') ==
         echo $table->render($coverage);
     }
 
-    
-    if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept.php')) {
+    $substitute = $substituteGateway->getSubstituteByPerson($gibbonPersonID);
+    if (!empty($substitute) && isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept.php')) {
 
         $criteria = $staffCoverageGateway->newQueryCriteria()
             ->pageSize(0);
