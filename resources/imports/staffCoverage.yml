@@ -1,0 +1,96 @@
+details:
+    type: staffCoverage
+    category: Substitute
+    name: Staff Coverage
+    table: gibbonStaffCoverage
+    modes: { update: true, insert: true, export: true }
+access:
+    module: Staff
+    action: Manage Staff Coverage
+fields:
+    gibbonPersonID:
+        name: "Teacher"
+        desc: "Username"
+        args: { filter: nospaces, required: true, readonly: true }
+        relationship: { table: gibbonPerson, key: gibbonPersonID, field: username  }
+    date: 
+        name: "Date"
+        desc: "Must be unique. Format: YYYY-MM-DD"
+        args: { filter: date, readonly: true }
+    status:
+        name: "Status"
+        desc: ""
+        value: "Accepted"
+        args: { filter: string, hidden: true }
+    requestType:
+        name: "Request Type"
+        desc: ""
+        value: "Individual"
+        args: { filter: string, hidden: true }
+
+    gibbonPersonIDStatus:
+        name: "Created By"
+        desc: "Username"
+        args: { filter: nospaces, required: true }
+        relationship: { table: gibbonPerson, key: gibbonPersonID, field: username  }
+    timestampStatus:
+        name: "Created On"
+        desc: ""
+        args: { filter: timestamp, custom: true }
+    notesStatus:
+        name: "Coverage Request Notes"
+        desc: ""
+        args: { filter: string, custom: true }
+
+    gibbonPersonIDCoverage:
+        name: "Substitute"
+        desc: "Username"
+        args: { filter: nospaces, required: true }
+        relationship: { table: gibbonPerson, key: gibbonPersonID, field: username  }
+    timestampCoverage:
+        name: "Substitute Timestamp"
+        desc: ""
+        args: { filter: timestamp, linked: timestampStatus }
+    notesCoverage:
+        name: "Substitute Notes"
+        desc: ""
+        args: { filter: string, custom: true }
+
+    gibbonStaffAbsenceID:
+        name: "Absence ID"
+        desc: ""
+        args: { filter: string, linked: date }
+        relationship: { table: gibbonStaffAbsenceDate, key: gibbonStaffAbsenceID, join: gibbonStaffAbsence, on: [gibbonStaffAbsenceID, gibbonStaffAbsenceID], field: [ date, gibbonPersonID ]  }
+    gibbonStaffCoverageID:
+        name: "Coverage ID"
+        desc: ""
+        args: { filter: string, linked: gibbonStaffAbsenceID, readonly: [gibbonStaffCoverage] }
+        relationship: { table: gibbonStaffCoverage, key: gibbonStaffCoverageID, field: [gibbonStaffAbsenceID]  }
+
+tables:
+    gibbonStaffCoverage: 
+        primaryKey:
+            gibbonStaffCoverageID
+        uniqueKeys:
+            - [ gibbonStaffAbsenceID ]
+        fields:
+            - gibbonStaffAbsenceID
+            - status
+            - requestType
+            - gibbonPersonIDStatus
+            - timestampStatus
+            - notesStatus
+            - gibbonPersonIDCoverage
+            - timestampCoverage
+            - notesCoverage
+            - gibbonPersonID
+            - date
+    gibbonStaffAbsenceDate: 
+        primaryKey:
+            gibbonStaffAbsenceDateID
+        uniqueKeys:
+            - [ gibbonStaffAbsenceID, date ]
+        fields:
+            - gibbonStaffCoverageID
+            - gibbonStaffAbsenceID
+            - date
