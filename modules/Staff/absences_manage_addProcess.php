@@ -37,6 +37,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
     // Proceed!
     $staffAbsenceGateway = $container->get(StaffAbsenceGateway::class);
     $staffAbsenceDateGateway = $container->get(StaffAbsenceDateGateway::class);
+    $fullDayThreshold =  floatval(getSettingByScope($connection2, 'Staff', 'absenceFullDayThreshold'));
+    $halfDayThreshold = floatval(getSettingByScope($connection2, 'Staff', 'absenceHalfDayThreshold'));
 
     $dateStart = $_POST['dateStart'] ?? '';
     $dateEnd = $_POST['dateEnd'] ?? '';
@@ -115,12 +117,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
             $start = new DateTime($date->format('Y-m-d').' '.$dateData['timeStart']);
             $end = new DateTime($date->format('Y-m-d').' '.$dateData['timeEnd']);
 
-            $dateDiff = $end->diff($start);
-            $hoursAbsent = abs($dateDiff->h + ($dateDiff->days * 24));
-
-            if ($hoursAbsent <= 2.0) $dateData['value'] = 0.0;
-            elseif ($hoursAbsent <= 6.0) $dateData['value'] = 0.5;
-            else $dateData['value'] = 1.0;
+            $timeDiff = $end->getTimestamp() - $start->getTimestamp();
+            $hoursAbsent = abs($timeDiff / 3600);
+            
+            if ($hoursAbsent < $halfDayThreshold) {
+                $dateData['value'] = 0.0;
+            } elseif ($hoursAbsent < $fullDayThreshold) {
+                $dateData['value'] = 0.5;
+            } else {
+                $dateData['value'] = 1.0;
+            }
         }
 
         if (!isSchoolOpen($guid, $dateData['date'], $connection2)) {

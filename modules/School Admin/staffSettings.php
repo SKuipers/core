@@ -109,9 +109,18 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/staffSettings
             ->resultsFormatter('function(item){ return "<li class=\'finderListItem\'><div class=\'finderPhoto\' style=\'background-image: url(" + item.image + ");\'></div><div class=\'finderName\'>" + item.name + "<br/><span class=\'finderDetail\'>" + item.jobTitle + "</span></div></li>"; }')
             ->tokenFormatter('function(item){ return "<li class=\'finderToken\'>" + item.name + "</li>"; }');
 
-    $form->addRow()->addHeading(__('Staff Coverage'));
+    $setting = $settingGateway->getSettingByScope('Staff', 'absenceFullDayThreshold', true);
+    $row = $form->addRow();
+        $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
+        $row->addNumber($setting['name'])->isRequired()->onlyInteger(false)->setValue($setting['value']);
 
-    
+    $setting = $settingGateway->getSettingByScope('Staff', 'absenceHalfDayThreshold', true);
+    $row = $form->addRow();
+        $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
+        $row->addNumber($setting['name'])->isRequired()->onlyInteger(false)->setValue($setting['value']);
+
+                
+    $form->addRow()->addHeading(__('Staff Coverage'));
 
     $smsOptions = !empty($smsGateway) ? ['mail-sms' => __('Email and SMS')] : [];
     $notifyOptions = [
