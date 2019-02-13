@@ -176,6 +176,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_edit
         ->addParam('gibbonStaffAbsenceID', $gibbonStaffAbsenceID)
         ->addParam('gibbonStaffAbsenceDateID')
         ->format(function ($absence, $actions) use ($canRequestCoverage, $canDelete) {
+            $actions->addAction('edit', __('Edit'))
+                ->setURL('/modules/Staff/absences_manage_edit_edit.php');
+
             if ($canDelete) {
                 $actions->addAction('deleteInstant', __('Delete'))
                     ->setIcon('garbage')
