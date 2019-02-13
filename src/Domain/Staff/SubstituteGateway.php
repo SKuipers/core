@@ -94,7 +94,7 @@ class SubstituteGateway extends QueryableGateway
             ->newQuery()
             ->from('gibbonPerson')
             ->cols([
-                'gibbonPerson.gibbonPersonID as groupBy', 'gibbonPerson.gibbonPersonID', 'gibbonSubstitute.details', 'gibbonSubstitute.type', 'gibbonSubstitute.contactCall', 'gibbonSubstitute.contactEmail', 'gibbonSubstitute.contactSMS', 'gibbonPerson.title', 'gibbonPerson.preferredName', 'gibbonPerson.surname', 'gibbonPerson.status', 'gibbonPerson.image_240', 'gibbonPerson.email', 'gibbonPerson.phone1', 'gibbonPerson.phone1Type', 'gibbonPerson.phone1CountryCode',
+                'gibbonPerson.gibbonPersonID as groupBy', 'gibbonPerson.gibbonPersonID', 'gibbonSubstitute.details', 'gibbonSubstitute.type', 'gibbonSubstitute.contactCall', 'gibbonSubstitute.contactEmail', 'gibbonSubstitute.contactSMS', 'gibbonPerson.title', 'gibbonPerson.preferredName', 'gibbonPerson.surname', 'gibbonPerson.status', 'gibbonPerson.image_240', 'gibbonPerson.email', 'gibbonPerson.phone1', 'gibbonPerson.phone1Type', 'gibbonPerson.phone1CountryCode', 'gibbonStaff.gibbonStaffID',
                 '(absence.ID IS NULL AND coverage.ID IS NULL AND timetable.ID IS NULL AND unavailable.gibbonSubstituteUnavailableID IS NULL) as available',
                 'absence.status as absence', 'coverage.status as coverage', 'timetable.status as timetable', 'unavailable.reason as unavailable',
             ])
@@ -103,6 +103,8 @@ class SubstituteGateway extends QueryableGateway
         if ($criteria->hasFilter('allStaff')) {
             $query->innerJoin('gibbonStaff', 'gibbonStaff.gibbonPersonID=gibbonPerson.gibbonPersonID')
                   ->innerJoin('gibbonRole', 'gibbonRole.gibbonRoleID=gibbonPerson.gibbonRoleIDPrimary');
+        } else {
+            $query->leftJoin('gibbonStaff', 'gibbonStaff.gibbonPersonID=gibbonPerson.gibbonPersonID');
         }
 
         if (!empty($timeStart) && !empty($timeEnd)) {
@@ -207,15 +209,15 @@ class SubstituteGateway extends QueryableGateway
               ->where('(gibbonPerson.dateEnd IS NULL OR gibbonPerson.dateEnd>=:date)')
               ->bindValue('date', $date);
 
-        if (!$criteria->hasFilter('allStaff')) {
-            $query->where("gibbonSubstitute.active='Y'");
-        } else {
+        if ($criteria->hasFilter('allStaff')) {
             $query->where("gibbonRole.category='Staff' AND (gibbonStaff.type LIKE '%Teaching%' OR gibbonStaff.type LIKE '%Teacher%')");
             $query->where("(SELECT COUNT(*) FROM gibbonCourseClassPerson 
                 INNER JOIN gibbonCourseClass ON (gibbonCourseClass.gibbonCourseClassID=gibbonCourseClassPerson.gibbonCourseClassID)
                 INNER JOIN gibbonCourse ON (gibbonCourse.gibbonCourseID=gibbonCourseClass.gibbonCourseID)
                 INNER JOIN gibbonSchoolYear ON (gibbonSchoolYear.gibbonSchoolYearID=gibbonCourse.gibbonSchoolYearID)
                 WHERE gibbonCourseClassPerson.gibbonPersonID=gibbonPerson.gibbonPersonID AND gibbonSchoolYear.status='Current') > 0");  
+        } else {
+            $query->where("gibbonSubstitute.active='Y'");
         }
 
         if (!$criteria->hasFilter('showUnavailable')) {

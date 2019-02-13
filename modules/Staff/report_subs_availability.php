@@ -115,9 +115,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_subs_availabi
     $table->addColumn('fullName', __('Name'))
         ->description(__('Priority'))
         ->sortable(['surname', 'preferredName'])
-        ->format(function ($person) {
-            return Format::name($person['title'], $person['preferredName'], $person['surname'], 'Staff', true, true).'<br/>'.
-                   Format::small($person['type']);
+        ->format(function ($person) use ($guid) {
+            $name = Format::name($person['title'], $person['preferredName'], $person['surname'], 'Staff', true, true);
+            $url = !empty($person['gibbonStaffID'])
+                ? $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/staff_view_details.php&gibbonPersonID='.$person['gibbonPersonID']
+                : '';
+
+            return Format::link($url, $name).'<br/>'.Format::small($person['type']);
         });
 
     $table->addColumn('details', __('Details'));
