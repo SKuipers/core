@@ -129,7 +129,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     if (!empty($availableSubs)) {
         $row->addAlert(__("This option sends a request out to all available substitutes. There are currently {count} substitutes with availability for this time period. You'll receive a notification once your request is accepted.", ['count' => '<b>'.count($availableSubs).'</b>']), 'message');
     } else {
-        $row->addAlert(__("There are no substitutes currently available for this time period. You may still send an request, as sub availability may change, but you cannot select a specific sub at this time."), 'warning');
+        $row->addAlert(__("There are no substitutes currently available for this time period. You should still send a request, as sub availability may change, but you cannot select a specific sub at this time. A notification will be sent to admin."), 'warning');
     }
 
     // Individual

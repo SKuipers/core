@@ -18,13 +18,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Services\Format;
-use Gibbon\Comms\NotificationEvent;
 use Gibbon\Domain\User\UserGateway;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
-use Gibbon\Module\Staff\MessageSender;
-use Gibbon\Module\Staff\Messages\IndividualRequest;
 use Gibbon\Data\BackgroundProcess;
 
 require_once '../../gibbon.php';

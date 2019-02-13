@@ -184,7 +184,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
             ->resultsFormatter('function(item){ return "<li class=\'finderListItem\'><div class=\'finderPhoto\' style=\'background-image: url(" + item.image + ");\'></div><div class=\'finderName\'>" + item.name + "<br/><span class=\'finderDetail\'>" + item.jobTitle + "</span></div></li>"; }')
             ->tokenFormatter('function(item){ return "<li class=\'finderToken\'>" + item.name + "</li>"; }');
     
-    $row = $form->addRow()->addClass('approvalRequired');
+    $row = $form->addRow()->addClass('approvalRequired displayNone');
         $row->addAlert(__("These people will only be notified if this absence is approved."), 'message');
 
     if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php')) {

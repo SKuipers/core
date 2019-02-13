@@ -22,47 +22,39 @@ namespace Gibbon\Module\Staff\Messages;
 use Gibbon\Module\Staff\Message;
 use Gibbon\Services\Format;
 
-class NewAbsence extends Message
+class NoCoverageAvailable extends Message
 {
-    protected $absence;
-    protected $details;
+    protected $coverage;
 
-    public function __construct($absence)
+    public function __construct($coverage)
     {
-        $this->absence = $absence;
-        $this->details = [
-            'name' => Format::name($absence['titleAbsence'], $absence['preferredNameAbsence'], $absence['surnameAbsence'], 'Staff', false, true),
-            'date' => Format::dateRangeReadable($absence['dateStart'], $absence['dateEnd']),
-            'type' => trim($absence['type'].' '.$absence['reason']),
-        ];
+        $this->coverage = $coverage;
     }
 
     public function via() : array
     {
-        return $this->absence['urgent']
-            ? ['mail']
+        return $this->coverage['urgent']
+            ? ['mail', 'sms']
             : ['mail'];
     }
 
     public function getTitle() : string
     {
-        return __('Staff Absence');
+        return __('No Coverage Available');
     }
 
     public function getText() : string
     {
-        return __("{name} will be absent on {date} for {type}.", $this->details);
-
-        // Add details if they're also seeking coverage, and from whom.
+        return __("{name} is looking for coverage on {date} but there are currently no substitutes available.", [
+            'date' => Format::dateRangeReadable($this->coverage['dateStart'], $this->coverage['dateEnd']),
+            'name' => Format::name($this->coverage['titleAbsence'], $this->coverage['preferredNameAbsence'], $this->coverage['surnameAbsence'], 'Staff', false, true),
+        ]);
     }
 
     public function getDetails() : array
     {
         return [
-            __('Staff')      => $this->details['name'],
-            __('Type')       => $this->details['type'],
-            __('Date')       => $this->details['date'],
-            __('Confidential Comment')    => $this->absence['comment'],
+            __('Comment') => $this->coverage['notesStatus'],
         ];
     }
 
@@ -73,11 +65,11 @@ class NewAbsence extends Message
 
     public function getAction() : string
     {
-        return __('View Details');
+        return __('View Coverage Requests');
     }
 
     public function getLink() : string
     {
-        return 'index.php?q=/modules/Staff/absences_view_details.php&gibbonStaffAbsenceID='.$this->absence['gibbonStaffAbsenceID'];
+        return 'index.php?q=/modules/Staff/coverage_view.php';
     }
 }

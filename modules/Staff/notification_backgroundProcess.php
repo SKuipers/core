@@ -18,13 +18,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Services\Format;
-use Gibbon\Comms\NotificationEvent;
 use Gibbon\Data\BackgroundProcess;
 use Gibbon\Domain\Staff\SubstituteGateway;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
-use Gibbon\Domain\User\UserGateway;
 use Gibbon\Module\Staff\MessageSender;
 use Gibbon\Module\Staff\Messages\BroadcastRequest;
 use Gibbon\Module\Staff\Messages\CoverageAccepted;
@@ -34,6 +32,7 @@ use Gibbon\Module\Staff\Messages\NewAbsence;
 use Gibbon\Module\Staff\Messages\AbsencePendingApproval;
 use Gibbon\Module\Staff\Messages\AbsenceApproval;
 use Gibbon\Module\Staff\Messages\IndividualRequest;
+use Gibbon\Module\Staff\Messages\NoCoverageAvailable;
 
 $_POST['address'] = '/modules/Staff/notification_backgroundProcess.php';
 
@@ -176,10 +175,16 @@ switch ($action) {
                 $availableByDate = $substituteGateway->queryAvailableSubsByDate($criteria, $date['date'])->toArray();
                 $availableSubs = array_merge($availableSubs, $availableByDate);
             }
-
-            // Send messages
-            $recipients = array_column($availableSubs, 'gibbonPersonID');
-            $message = new BroadcastRequest($coverage);
+            
+            if (count($availableSubs) > 0) {
+                // Send messages to available subs
+                $recipients = array_column($availableSubs, 'gibbonPersonID');
+                $message = new BroadcastRequest($coverage);
+            } else {
+                // Send a message to admin - no coverage
+                $recipients = [$organisationHR];
+                $message = new NoCoverageAvailable($coverage);
+            }
 
             if ($sent = $messageSender->send($recipients, $message)) {
                 $sendCount += count($recipients);
