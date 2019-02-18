@@ -125,7 +125,7 @@ if (!isCommandLineInterface()) {
 
             foreach ($logsByStudent as $gibbonPersonID => $student) {
                 $report .= '<li>';
-                $report .= '<a href="'.$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Attendance/report_studentHistory.php&gibbonPersonID='.$gibbonPersonID.'" target="_blank">';
+                $report .= '<a href="'.$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Students/student_view_details.php&gibbonPersonID='.$gibbonPersonID.'&search=&allStudents=&subpage=Attendance" target="_blank">';
                 $report .= formatName('', $student['preferredName'], $student['surname'], 'Student', true, true);
                 $report .= '</a>';
 
