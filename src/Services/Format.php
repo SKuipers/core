@@ -117,7 +117,7 @@ class Format
      */
     public static function dateReadable($dateString, $format = '%b %e, %G')
     {
-        return ucfirst(strftime($format, strtotime($dateString)));
+        return mb_convert_case(strftime($format, strtotime($dateString)), MB_CASE_TITLE);
     }
 
     /**
@@ -128,7 +128,7 @@ class Format
      */
     public static function dateTimeReadable($dateString, $format = '%b %e, %G %H:%M')
     {
-        return ucfirst(strftime($format, strtotime($dateString)));
+        return mb_convert_case(strftime($format, strtotime($dateString)), MB_CASE_TITLE);
     }
 
     /**
@@ -171,7 +171,7 @@ class Format
             $output = strftime('%b %e, %G', $startTime).' - '.strftime('%b %e, %G', $endTime);
         }
 
-        return ucfirst($output);
+        return mb_convert_case($output, MB_CASE_TITLE);
     }  
 
     /**
@@ -218,7 +218,11 @@ class Format
                 $time = __n('{count} day', '{count} days', $days);
                 break;
             default:
-                return self::tooltip($date->format(static::$settings['dateTimeFormatPHP']));
+                return self::tooltip($date->format(
+                    strlen($dateString) == 10
+                        ? static::$settings['dateFormatPHP']
+                        : static::$settings['dateTimeFormatPHP']
+                ));
         }
 
         $time = ($timeDifference >= 0)
@@ -226,7 +230,7 @@ class Format
             : __('{time} from now', ['time' => $time]);
 
         return $tooltip 
-            ? self::tooltip($time, $dateString)
+            ? self::tooltip($time, static::dateTime($dateString))
             : $time;
     }
 
