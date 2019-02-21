@@ -33,6 +33,8 @@ use Gibbon\Module\Staff\Messages\AbsencePendingApproval;
 use Gibbon\Module\Staff\Messages\AbsenceApproval;
 use Gibbon\Module\Staff\Messages\IndividualRequest;
 use Gibbon\Module\Staff\Messages\NoCoverageAvailable;
+use Gibbon\Module\Staff\Messages\CoverageCancelled;
+use Gibbon\Module\Staff\Messages\CoverageDeclined;
 
 $_POST['address'] = '/modules/Staff/notification_backgroundProcess.php';
 
@@ -207,7 +209,7 @@ switch ($action) {
             $coverage['urgent'] = $relativeSeconds <= $urgencyThreshold;
 
             // Send the coverage accepted message to the absent staff member
-            $recipients = [$coverage['gibbonPersonID']];
+            $recipients = [$coverage['gibbonPersonIDStatus']];
             $message = !empty($uncoveredDates)
                 ? new CoveragePartial($coverage, $uncoveredDates)
                 : new CoverageAccepted($coverage);
@@ -217,23 +219,59 @@ switch ($action) {
             }
 
             // Send a coverage arranged message to the selected staff for this absence
-            $recipients = !empty($coverage['notificationListAbsence']) ? json_decode($coverage['notificationListAbsence']) : [];
-            $recipients[] = $organisationHR;
+            if (!empty($coverage['gibbonStaffAbsenceID'])) {
+                $recipients = !empty($coverage['notificationListAbsence']) ? json_decode($coverage['notificationListAbsence']) : [];
+                $recipients[] = $organisationHR;
 
-            $message = new NewCoverage($coverage);
+                $message = new NewCoverage($coverage);
 
-            if ($sent2 = $messageSender->send($recipients, $message)) {
+                if ($sent2 = $messageSender->send($recipients, $message)) {
+                    $sendCount += count($recipients);
+                }
+            }
+        }
+        break;
+
+    case 'CoverageDeclined':
+        $gibbonStaffCoverageID = $argv[2] ?? '';
+
+        if ($coverage = $staffCoverageGateway->getCoverageDetailsByID($gibbonStaffCoverageID)) {
+            $relativeSeconds = strtotime($coverage['dateStart']) - time();
+            $coverage['urgent'] = $relativeSeconds <= $urgencyThreshold;
+
+            $recipients = [$coverage['gibbonPersonIDStatus']];
+            $message = new CoverageDeclined($coverage);
+
+            if ($sent = $messageSender->send($recipients, $message)) {
                 $sendCount += count($recipients);
             }
         }
+
+        break;
+
+    case 'CoverageCancelled':
+        $gibbonStaffCoverageID = $argv[2] ?? '';
+
+        if ($coverage = $staffCoverageGateway->getCoverageDetailsByID($gibbonStaffCoverageID)) {
+            $relativeSeconds = strtotime($coverage['dateStart']) - time();
+            $coverage['urgent'] = $relativeSeconds <= $urgencyThreshold;
+
+            $recipients = [$coverage['gibbonPersonIDStatus']];
+            $message = new CoverageCancelled($coverage);
+
+            if ($sent = $messageSender->send($recipients, $message)) {
+                $sendCount += count($recipients);
+            }
+        }
+
         break;
 }
 
 echo __('Urgent').': '.($relativeSeconds <= $urgencyThreshold ? 'yes' : 'no')."\n";
 echo __('Sent').': '.$sendCount."\n";
 echo __('Send Report').": \n";
-print_r($sent);
-print_r($sent2);
+print_r($sent ?? []);
+print_r($sent2 ?? []);
 
 // End the process and output the result to terminal (output file)
 // $processor->stopProcess('staffNotification');

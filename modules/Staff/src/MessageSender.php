@@ -84,7 +84,7 @@ class MessageSender
                 if (empty($person['email'])) continue;
 
                 $this->mail->clearAllRecipients();
-                $this->mail->AddAddress($person['email']);
+                $this->mail->AddAddress($person['email'], $person['preferredName'].' '.$person['surname']);
 
                 if ($this->mail->Send()) {
                     $result['mail'] = ($result['mail'] ?? 0) + 1;

@@ -31,7 +31,7 @@ require_once '../../gibbon.php';
 $gibbonStaffCoverageID = $_POST['gibbonStaffCoverageID'] ?? '';
 
 $URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/coverage_view_accept.php&gibbonStaffCoverageID='.$gibbonStaffCoverageID;
-$URLSuccess = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/coverage_view.php';
+$URLSuccess = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/coverage_my.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept.php') == false) {
     $URL .= '&return=error0';
@@ -42,7 +42,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
     $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
     $staffAbsenceDateGateway = $container->get(StaffAbsenceDateGateway::class);
 
-    $coverageDates = $_POST['coverageDates'] ?? [];
+    $requestDates = $_POST['coverageDates'] ?? [];
 
     $data = [
         'gibbonPersonIDCoverage' => $_SESSION[$guid]['gibbonPersonID'],
@@ -52,7 +52,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
     ];
 
     // Validate the required values are present
-    if (empty($gibbonStaffCoverageID) || empty($data['gibbonPersonIDCoverage']) || empty($coverageDates)) {
+    if (empty($gibbonStaffCoverageID) || empty($data['gibbonPersonIDCoverage']) || empty($requestDates)) {
         $URL .= '&return=error1';
         header("Location: {$URL}");
         exit;
@@ -68,12 +68,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
         exit;
     }
 
-    $absence = $container->get(StaffAbsenceGateway::class)->getByID($coverage['gibbonStaffAbsenceID']);
-
-    if (empty($absence)) {
-        $URL .= '&return=error2';
-        header("Location: {$URL}");
-        exit;
+    // If the coverage is for a particular absence, ensure this exists
+    if (!empty($coverage['gibbonStaffAbsenceID'])) {
+        $absence = $container->get(StaffAbsenceGateway::class)->getByID($coverage['gibbonStaffAbsenceID']);
+        if (empty($absence)) {
+            $URL .= '&return=error2';
+            header("Location: {$URL}");
+            exit;
+        }
     }
 
     // Prevent two people accepting at the same time
@@ -94,16 +96,20 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
 
     $partialFail = false;
 
-    $absenceDates = $staffAbsenceDateGateway->selectDatesByCoverage($gibbonStaffCoverageID);
+    $coverageDates = $staffAbsenceDateGateway->selectDatesByCoverage($gibbonStaffCoverageID);
     $uncoveredDates = [];
 
     // Unlink any absence dates from the coverage request if they were not selected
-    foreach ($absenceDates as $date) {
-        if (!in_array($date['date'], $coverageDates)) {
+    foreach ($coverageDates as $date) {
+        if (!in_array($date['date'], $requestDates)) {
             $uncoveredDates[] = $date['date'];
-            $updated = $staffAbsenceDateGateway->update($date['gibbonStaffAbsenceDateID'], [
+            if (!empty($date['gibbonStaffAbsenceID'])) {
+                $updated = $staffAbsenceDateGateway->update($date['gibbonStaffAbsenceDateID'], [
                 'gibbonStaffCoverageID' => null,
-            ]);
+                ]);
+            } else {
+                $updated = $staffAbsenceDateGateway->delete($date['gibbonStaffAbsenceDateID']);
+            }
             $partialFail &= !$updated;
         }
     }

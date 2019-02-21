@@ -47,7 +47,7 @@ class IndividualRequest extends Message
     {
         return __("{name} sent you a coverage request for {date}. Are you available? Please login to accept or decline.", [
             'date' => Format::dateRangeReadable($this->coverage['dateStart'], $this->coverage['dateEnd']),
-            'name' => Format::name($this->coverage['titleAbsence'], $this->coverage['preferredNameAbsence'], $this->coverage['surnameAbsence'], 'Staff', false, true),
+            'name' => Format::name($this->coverage['titleStatus'], $this->coverage['preferredNameStatus'], $this->coverage['surnameStatus'], 'Staff', false, true),
         ]);
     }
 

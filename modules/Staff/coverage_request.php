@@ -164,7 +164,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
 $(document).ready(function() {
     $('#gibbonPersonIDCoverage').on('input', function() {
         $('.datesTable').load('./modules/Staff/coverage_requestAjax.php', {
-            'gibbonStaffAbsenceID': '<?php echo $gibbonStaffAbsenceID; ?>',
+            'gibbonStaffAbsenceID': '<?php echo $gibbonStaffAbsenceID ?? ''; ?>',
             'gibbonPersonIDCoverage': $(this).val(),
         }, function() {
             // Pre-highlight selected rows

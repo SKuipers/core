@@ -53,10 +53,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_edit
     }
 
     $coverage = $staffCoverageGateway->getByID($gibbonStaffCoverageID);
-    $absence = $container->get(StaffAbsenceGateway::class)->getByID($coverage['gibbonStaffAbsenceID'] ?? '');
-    $type = $container->get(StaffAbsenceTypeGateway::class)->getByID($absence['gibbonStaffAbsenceTypeID'] ?? '');
 
-    if (empty($coverage) || empty($absence) || empty($type)) {
+    if (empty($coverage)) {
         $page->addError(__('The specified record cannot be found.'));
         return;
     }
@@ -67,16 +65,25 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_edit
     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
     $form->addHiddenValue('gibbonStaffCoverageID', $gibbonStaffCoverageID);
 
-    $form->addRow()->addHeading(__('Basic Information'));
+    $form->addRow()->addHeading(__('Coverage Request'));
 
-    $row = $form->addRow();
-        $row->addLabel('gibbonPersonIDLabel', __('Person'));
-        $row->addSelectStaff('gibbonPersonID')->placeholder()->isRequired()->selected($absence['gibbonPersonID'])->readonly();
+    if (!empty($coverage['gibbonStaffAbsenceID'])) {
+        $absence = $container->get(StaffAbsenceGateway::class)->getByID($coverage['gibbonStaffAbsenceID']);
+        $type = $container->get(StaffAbsenceTypeGateway::class)->getByID($absence['gibbonStaffAbsenceTypeID'] ?? '');
 
-    $row = $form->addRow();
-        $row->addLabel('typeLabel', __('Type'));
-        $row->addTextField('type')->readonly()->setValue($absence['reason'] ? "{$type['name']} ({$absence['reason']})" : $type['name']);
+        $row = $form->addRow();
+            $row->addLabel('gibbonPersonIDLabel', __('Absent'));
+            $row->addSelectStaff('gibbonPersonID')->placeholder()->isRequired()->selected($absence['gibbonPersonID'])->readonly();
 
+        $row = $form->addRow();
+            $row->addLabel('typeLabel', __('Type'));
+            $row->addTextField('type')->readonly()->setValue($absence['reason'] ? "{$type['name']} ({$absence['reason']})" : $type['name']);
+    } else {
+        $row = $form->addRow();
+            $row->addLabel('gibbonPersonIDLabel', __('Created By'));
+            $row->addSelectStaff('gibbonPersonID')->placeholder()->isRequired()->selected($coverage['gibbonPersonIDStatus'])->readonly();
+    }
+    
     $row = $form->addRow();
         $row->addLabel('timestamp', __('Requested'));
         $row->addTextField('timestampValue')
@@ -92,13 +99,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_edit
     
     $form->addRow()->addHeading(__('Substitute'));
 
-    $row = $form->addRow();
-        $row->addLabel('requestTypeLabel', __('Type'));
-        $row->addTextField('requestType')->readonly()->setValue($coverage['requestType']);
-
-    $row = $form->addRow();
-        $row->addLabel('status', __('Status'));
-        $row->addTextField('status')->readonly()->setValue($coverage['status']);
+    
 
     if ($coverage['requestType'] == 'Individual') {
         $row = $form->addRow();
@@ -109,6 +110,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_edit
                 ->selected($coverage['gibbonPersonIDCoverage'] ?? '')
                 ->setReadonly(true);
     } else if ($coverage['requestType'] == 'Broadcast') {
+
+        $row = $form->addRow();
+            $row->addLabel('requestTypeLabel', __('Type'));
+            $row->addTextField('requestType')->readonly()->setValue($coverage['requestType']);
 
         $notificationList = $coverage['notificationSent'] == 'Y' ? json_decode($coverage['notificationListAbsence']) : [];
 
@@ -138,7 +143,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_edit
     }
 
     // DATA TABLE
-    $absenceDates = $container->get(StaffAbsenceDateGateway::class)->selectDatesByCoverage($gibbonStaffCoverageID);
+    $coverageDates = $container->get(StaffAbsenceDateGateway::class)->selectDatesByCoverage($gibbonStaffCoverageID);
     
     $table = DataTable::create('staffCoverageDates');
     $table->setTitle(__('Dates'));
@@ -147,26 +152,26 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_edit
         ->format(Format::using('dateReadable', 'date'));
 
     $table->addColumn('timeStart', __('Time'))
-        ->format(function ($absence) {
-            if ($absence['allDay'] == 'N') {
-                return Format::small(Format::timeRange($absence['timeStart'], $absence['timeEnd']));
+        ->format(function ($coverage) {
+            if ($coverage['allDay'] == 'N') {
+                return Format::small(Format::timeRange($coverage['timeStart'], $coverage['timeEnd']));
             } else {
                 return Format::small(__('All Day'));
             }
         });
 
     $table->addColumn('coverage', __('Coverage'))
-        ->format(function ($absence) {
-            if (empty($absence['coverage'])) {
+        ->format(function ($coverage) {
+            if (empty($coverage['coverage'])) {
                 return Format::small(__('N/A'));
             }
 
-            return $absence['coverage'] == 'Accepted'
-                    ? Format::name($absence['titleCoverage'], $absence['preferredNameCoverage'], $absence['surnameCoverage'], 'Staff', false, true)
+            return $coverage['coverage'] == 'Accepted'
+                    ? Format::name($coverage['titleCoverage'], $coverage['preferredNameCoverage'], $coverage['surnameCoverage'], 'Staff', false, true)
                     : '<div class="badge success">'.__('Pending').'</div>';
         });
 
-    $row = $form->addRow()->addContent($table->render($absenceDates->toDataSet()));
+    $row = $form->addRow()->addContent($table->render($coverageDates->toDataSet()));
 
     $row = $form->addRow();
         $row->addFooter();

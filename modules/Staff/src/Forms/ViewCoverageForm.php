@@ -49,16 +49,21 @@ class ViewCoverageForm
 
         $form->setFactory(DatabaseFormFactory::create($pdo));
     
-        $form->addRow()->addHeading(__('Staff Absence'));
-    
-        $row = $form->addRow();
-            $row->addLabel('gibbonPersonIDLabel', __('Person'));
-            $row->addSelectStaff('gibbonPersonID')->placeholder()->isRequired()->selected($coverage['gibbonPersonID'])->readonly();
-    
-        $row = $form->addRow();
-            $row->addLabel('typeLabel', __('Type'));
-            $row->addTextField('type')->readonly()->setValue($coverage['reason'] ? "{$coverage['type']} ({$coverage['reason']})" : $coverage['type']);
-    
+        $form->addRow()->addHeading(__('Coverage Request'));
+
+        if (!empty($coverage['gibbonStaffAbsenceID'])) {
+            $row = $form->addRow();
+                $row->addLabel('gibbonPersonIDLabel', __('Absent'));
+                $row->addSelectStaff('gibbonPersonID')->placeholder()->isRequired()->selected($coverage['gibbonPersonID'])->readonly();
+        
+            $row = $form->addRow();
+                $row->addLabel('typeLabel', __('Type'));
+                $row->addTextField('type')->readonly()->setValue($coverage['reason'] ? "{$coverage['type']} ({$coverage['reason']})" : $coverage['type']);
+        } else {
+            $row = $form->addRow();
+                $row->addLabel('gibbonPersonIDLabel', __('Created By'));
+                $row->addSelectStaff('gibbonPersonID')->placeholder()->isRequired()->selected($coverage['gibbonPersonIDStatus'])->readonly();
+        }
         $row = $form->addRow();
             $row->addLabel('timestamp', __('Requested'));
             $row->addTextField('timestampValue')
@@ -69,7 +74,6 @@ class ViewCoverageForm
         $row = $form->addRow();
             $row->addLabel('notesStatusLabel', __('Comment'));
             $row->addTextArea('notesStatus')->setRows(3)->setValue($coverage['notesStatus'])->readonly();
-        
         
         $form->addRow()->addHeading(__('Substitute'));
     

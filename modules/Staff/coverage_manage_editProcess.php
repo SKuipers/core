@@ -47,10 +47,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_edit
         'notesStatus' => $_POST['notesStatus'],
     ];
 
-    // if ($coverage['status'] == 'Requested' && empty($coverage['gibbonPersonIDCoverage'])) {
-
-    // }
-
     // Update the coverage
     $updated = $staffCoverageGateway->update($gibbonStaffCoverageID, $data);
 

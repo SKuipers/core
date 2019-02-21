@@ -79,6 +79,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage.php'
     $table = DataTable::createPaginated('staffCoverage', $criteria);
     $table->setTitle(__('View'));
 
+    $table->addHeaderAction('add', __('Add'))
+        ->setURL('/modules/Staff/coverage_manage_add.php')
+        ->displayLabel();
+
     $table->modifyRows(function ($coverage, $row) {
         if ($coverage['status'] == 'Accepted') $row->addClass('current');
         if ($coverage['status'] == 'Declined') $row->addClass('error');
@@ -100,8 +104,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage.php'
     $table->addColumn('requested', __('Name'))
         ->sortable(['surnameAbsence', 'preferredNameAbsence'])
         ->format(function ($coverage) {
-            return Format::name($coverage['titleAbsence'], $coverage['preferredNameAbsence'], $coverage['surnameAbsence'], 'Staff', false, true).'<br/>'.
-                Format::small($coverage['type'].' '.$coverage['reason']);
+            $fullName = Format::name($coverage['titleAbsence'], $coverage['preferredNameAbsence'], $coverage['surnameAbsence'], 'Staff', false, true);
+            if (empty($fullName)) {
+                $fullName = Format::name($coverage['titleStatus'], $coverage['preferredNameStatus'], $coverage['surnameStatus'], 'Staff', false, true);
+            }
+
+            return $fullName.'<br/>'.Format::small($coverage['type'].' '.$coverage['reason']);
         });
 
     $table->addColumn('date', __('Date'))

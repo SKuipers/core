@@ -96,8 +96,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view.php') 
         ->width('30%')
         ->sortable(['surname', 'preferredName'])
         ->format(function ($coverage) {
-            return Format::name($coverage['titleAbsence'], $coverage['preferredNameAbsence'], $coverage['surnameAbsence'], 'Staff', false, true).'<br/>'.
-                   Format::small($coverage['jobTitleAbsence']);
+            $fullName = Format::name($coverage['titleAbsence'], $coverage['preferredNameAbsence'], $coverage['surnameAbsence'], 'Staff', false, true);
+            if (empty($fullName)) {
+                $fullName = Format::name($coverage['titleStatus'], $coverage['preferredNameStatus'], $coverage['surnameStatus'], 'Staff', false, true);
+            }
+            
+            return $fullName.'<br/>'.Format::small($coverage['jobTitleAbsence']);
         });
 
     $table->addColumn('date', __('Date'))

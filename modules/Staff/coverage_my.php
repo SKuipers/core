@@ -50,7 +50,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php') ==
 
         // DATA TABLE
         $table = DataTable::createPaginated('staffCoverageSelf', $criteria);
-        $table->setTitle(__('Covering Me'));
+        $table->setTitle(__('Covering For Me'));
 
         $table->modifyRows(function ($coverage, $row) {
             if ($coverage['status'] == 'Accepted') $row->addClass('current');
@@ -132,7 +132,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php') ==
     }
 
     $substitute = $substituteGateway->getSubstituteByPerson($gibbonPersonID);
-    if (!empty($substitute) && isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept.php')) {
+    if (!empty($substitute)) {
 
         $criteria = $staffCoverageGateway->newQueryCriteria()
             ->pageSize(0);
@@ -235,7 +235,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php') ==
     
                     if ($day['date']->format('Y-m-d') == date('Y-m-d')) $cell->addClass('today');
                     
-                    if ($day['count'] > 0) $cell->addClass($day['coverage']['status'] == 'Requested' ? 'bg-color2' : 'bg-color0');
+                    switch ($day['coverage']['status']) {
+                        case 'Requested': $cellColor = 'bg-color2'; break;
+                        case 'Accepted':  $cellColor = 'bg-color0'; break;
+                        default:          $cellColor = 'bg-grey';
+                    }
+                    
+                    if ($day['count'] > 0) $cell->addClass($cellColor);
                     elseif ($day['exception']) $cell->addClass('bg-grey');
                     elseif ($day['weekend']) $cell->addClass('weekend');
                     else $cell->addClass('day');
@@ -257,7 +263,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php') ==
 
         // DATA TABLE
         $table = DataTable::createPaginated('staffCoverageOther', $criteria);
-        $table->setTitle(__('Covering Them'));
+        $table->setTitle(__('My Coverage'));
 
         $table->modifyRows(function ($coverage, $row) {
             if ($coverage['status'] == 'Accepted') $row->addClass('current');
@@ -297,7 +303,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php') ==
             ->width('30%')
             ->sortable(['surname', 'preferredName'])
             ->format(function ($coverage) {
-                return Format::name($coverage['titleAbsence'], $coverage['preferredNameAbsence'], $coverage['surnameAbsence'], 'Staff', false, true);
+                $fullName = Format::name($coverage['titleAbsence'], $coverage['preferredNameAbsence'], $coverage['surnameAbsence'], 'Staff', false, true);
+                if (empty($fullName)) {
+                    $fullName = Format::name($coverage['titleStatus'], $coverage['preferredNameStatus'], $coverage['surnameStatus'], 'Staff', false, true);
+                }
+
+                return $fullName;
             });
 
         $table->addColumn('date', __('Date'))
