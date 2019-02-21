@@ -142,13 +142,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_week
         }
 
         if (!isSchoolOpen($guid, $date->format('Y-m-d'), $connection2)) {
-            echo '<h2>'.__($date->format('l')).'</h2>';
+            echo '<h2>'.__(Format::dateReadable($date->format('Y-m-d'), '%A')).'</h2>';
             echo Format::alert(__('School is closed on the specified day.'));
             continue;
         }
 
         $table = DataTable::create('staffAbsences'.$date->format('D'));
-        $table->setTitle(__($date->format('l')));
+        $table->setTitle(__(Format::dateReadable($date->format('Y-m-d'), '%A')));
         $table->setDescription(Format::dateReadable($date->format('Y-m-d')));
 
         // COLUMNS
