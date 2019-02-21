@@ -195,6 +195,7 @@ class Format
      */
     public static function relativeTime($dateString, $tooltip = true)
     {
+        if (empty($dateString)) return '';
         if (strlen($dateString) == 10) $dateString .= ' 00:00:00';
         $date = DateTime::createFromFormat('Y-m-d H:i:s', $dateString);
 
