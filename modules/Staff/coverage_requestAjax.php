@@ -62,11 +62,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
             }
         });
 
-    $datesAvailableToRequest = 0;
     $table->addCheckboxColumn('requestDates', 'date')
         ->width('15%')
         ->checked(true)
-        ->format(function ($absence) use (&$datesAvailableToRequest, &$unavailable) {
+        ->format(function ($absence) use ( &$unavailable) {
             // Has this date already been requested?
             if (!empty($absence['gibbonStaffCoverageID'])) return __('Requested');
 
@@ -86,8 +85,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
                     }
                 }
             }
-
-            $datesAvailableToRequest++;
         });
 
     echo $table->render($absenceDates->toDataSet());

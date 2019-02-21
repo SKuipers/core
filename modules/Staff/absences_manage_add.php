@@ -37,11 +37,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
         return;
     }
 
-    $editLink = '';
-    if (isset($_GET['editID'])) {
-        $editLink = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/absences_manage_edit.php&gibbonStaffAbsenceID='.$_GET['editID'];
-    }
     if (isset($_GET['return'])) {
+        $editLink = isset($_GET['editID'])
+            ? $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/absences_manage_edit.php&gibbonStaffAbsenceID='.$_GET['editID']
+            : '';
         returnProcess($guid, $_GET['return'], $editLink, null);
     }
 
