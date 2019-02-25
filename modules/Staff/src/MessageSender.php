@@ -60,7 +60,7 @@ class MessageSender
         $userGateway = &$this->userGateway;
         $recipients = array_map(function ($gibbonPersonID) use (&$userGateway) {
             return $userGateway->getByID($gibbonPersonID);
-        }, array_filter($recipients));
+        }, array_filter(array_unique($recipients)));
 
         // Send SMS
         if (in_array('sms', $via) && !empty($this->sms)) {

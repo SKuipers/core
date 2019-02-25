@@ -851,6 +851,7 @@ CREATE TABLE `gibbonStaffAbsence` (
     `timestampCreator` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `notificationSent` ENUM('N','Y') DEFAULT 'N',
     `notificationList` TEXT NULL,
+    `gibbonGroupID` INT(8) UNSIGNED ZEROFILL NULL,
     PRIMARY KEY (`gibbonStaffAbsenceID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;end
 CREATE TABLE `gibbonStaffAbsenceDate` (
@@ -947,5 +948,6 @@ INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`val
 INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Staff', 'absenceApprovers', 'Absence Approvers', 'Users who can approve staff absences.', '');end
 INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Staff', 'absenceFullDayThreshold', 'Full Day Absence', 'The minumum number of hours for an absence to count as a full day (1.0)', '6.0');end
 INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Staff', 'absenceHalfDayThreshold', 'Half Day Absence', 'The minumum number of hours for an absence to count as a half day (0.5). Absences less than this count as 0', '2.0');end
+INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Staff', 'absenceNotificationGroups', 'Notification Groups', 'Which messenger groups can staff members send absence notifications to?', '');end
 
 ";

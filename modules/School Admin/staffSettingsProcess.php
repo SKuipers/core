@@ -40,6 +40,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/staffSettings
             'urgencyThreshold',
             'absenceFullDayThreshold',
             'absenceHalfDayThreshold',
+            'absenceNotificationGroups',
         ],
     ];
 

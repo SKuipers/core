@@ -35,6 +35,7 @@ use Gibbon\Module\Staff\Messages\IndividualRequest;
 use Gibbon\Module\Staff\Messages\NoCoverageAvailable;
 use Gibbon\Module\Staff\Messages\CoverageCancelled;
 use Gibbon\Module\Staff\Messages\CoverageDeclined;
+use Gibbon\Domain\Messenger\GroupGateway;
 
 $_POST['address'] = '/modules/Staff/notification_backgroundProcess.php';
 
@@ -85,8 +86,14 @@ switch ($action) {
 
             // Target the absence message to the selected staff
             $recipients = !empty($absence['notificationList']) ? json_decode($absence['notificationList']) : [];
-            $recipients[] = $organisationHR;
 
+            // Add the notification group members, if selected
+            if (!empty($absence['gibbonGroupID'])) {
+                $groupRecipients = $container->get(GroupGateway::class)->selectPersonIDsByGroup($absence['gibbonGroupID'])->fetchAll(PDO::FETCH_COLUMN, 0);
+                $recipients = array_merge($recipients, $groupRecipients);
+            }
+
+            // Add the absent person, if this was created by someone else
             if ($absence['gibbonPersonID'] != $absence['gibbonPersonIDCreator']) {
                 $recipients[] = $absence['gibbonPersonID'];
             }
@@ -221,7 +228,12 @@ switch ($action) {
             // Send a coverage arranged message to the selected staff for this absence
             if (!empty($coverage['gibbonStaffAbsenceID'])) {
                 $recipients = !empty($coverage['notificationListAbsence']) ? json_decode($coverage['notificationListAbsence']) : [];
-                $recipients[] = $organisationHR;
+                
+                // Add the notification group members, if selected
+                if (!empty($coverage['gibbonGroupID'])) {
+                    $groupRecipients = $container->get(GroupGateway::class)->selectPersonIDsByGroup($coverage['gibbonGroupID'])->fetchAll(PDO::FETCH_COLUMN, 0);
+                    $recipients = array_merge($recipients, $groupRecipients);
+                }
 
                 $message = new NewCoverage($coverage);
 

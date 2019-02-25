@@ -54,6 +54,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
         'gibbonPersonIDCreator'    => $gibbon->session->get('gibbonPersonID'),
         'notificationSent'         => 'N',
         'notificationList'         => json_encode($notificationList),
+        'gibbonGroupID'            => $_POST['gibbonGroupID'] ?? null,
     ];
 
     // Validate the required values are present

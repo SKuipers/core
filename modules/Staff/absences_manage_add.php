@@ -23,6 +23,9 @@ use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Domain\User\UserGateway;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
+use Gibbon\Domain\Messenger\GroupGateway;
+use Modules\IDCards\Domain\SettingsGateway;
+use Gibbon\Domain\System\SettingGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.php') == false) {
     // Access denied
@@ -149,21 +152,22 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
     }
     $form->addRow()->addHeading(__('Notifications'));
 
-    // HR Administrator
-    $organisationHR = getSettingByScope($connection2, 'System', 'organisationHR');
-    $personHR = $container->get(UserGateway::class)->getByID($organisationHR);
-
-    if ($personHR) {
-        $row = $form->addRow();
-            $row->addLabel('organisationHRLabel', __('Automatic Notification'));
-            $row->addTextField('organisationHR')->readonly()->setValue(Format::nameList([$personHR], 'Staff'));
-    }
+    // Notification Groups
 
     // Get the users last notified by this staff member
     $recentAbsence = $staffAbsenceGateway->getMostRecentAbsenceByPerson($gibbonPersonID);
-    $notificationList = !empty($recentAbsence['notificationList'])? json_decode($recentAbsence['notificationList']) : [];
+    
+    $notificationSetting = $container->get(SettingGateway::class)->getSettingByScope('Staff', 'absenceNotificationGroups');
+    $notificationGroups = $container->get(GroupGateway::class)->selectGroupsByIDList($notificationSetting)->fetchKeyPair();
+
+    if (!empty($notificationGroups)) {
+        $row = $form->addRow();
+            $row->addLabel('gibbonGroupID', __('Automatically Notify'));
+            $row->addSelect('gibbonGroupID')->fromArray($notificationGroups)->isRequired()->selected($recentAbsence['gibbonGroupID']);
+    }
 
     // Format user details into token-friendly list
+    $notificationList = !empty($recentAbsence['notificationList'])? json_decode($recentAbsence['notificationList']) : [];
     $notified = $container->get(UserGateway::class)->selectNotificationDetailsByPerson($notificationList)->fetchGroupedUnique();
     $notified = array_map(function ($token) use ($absoluteURL) {
         return [

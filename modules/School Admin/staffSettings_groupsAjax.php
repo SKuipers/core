@@ -1,6 +1,4 @@
 <?php
-
-use Gibbon\Services\Format;
 /*
 Gibbon, Flexible & Open School System
 Copyright (C) 2010, Ross Parker
@@ -22,14 +20,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 // Gibbon system-wide include
 require_once '../../gibbon.php';
 
-if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view.php') == false) {
+if (isActionAccessible($guid, $connection2, '/modules/School Admin/staffSettings.php') == false) {
+    // Access denied
     die( __('Your request failed because you do not have access to this action.') );
 } else {
-
     $searchTerm = (isset($_REQUEST['q']))? $_REQUEST['q'] : '';
-
-    // Allow for * as wildcard (as well as %)
-    $searchTerm = str_replace('*', '%', $searchTerm);
 
     // Cancel out early for empty searches
     if (empty($searchTerm)) die('[]');
@@ -38,26 +33,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view.php') == 
 
     // STAFF
     $data = array('search' => '%'.$searchTerm.'%', 'today' => date('Y-m-d') );
-    $sql = "SELECT gibbonPerson.gibbonPersonID, surname, preferredName, username, image_240, gibbonStaff.type, gibbonStaff.jobTitle
-            FROM gibbonPerson
-            JOIN gibbonStaff ON (gibbonStaff.gibbonPersonID=gibbonPerson.gibbonPersonID)
-            WHERE status='Full'
-            AND (dateStart IS NULL OR dateStart<=:today)
-            AND (dateEnd IS NULL  OR dateEnd>=:today)
-            AND (gibbonPerson.surname LIKE :search
-                OR gibbonPerson.preferredName LIKE :search
-                OR gibbonPerson.username LIKE :search)
-            ORDER BY preferredName, surname";
+    $sql = "SELECT gibbonGroupID, name FROM gibbonGroup ORDER BY name";
 
     $resultSet = $pdo->select($sql, $data)->fetchAll();
 
     $absoluteURL = $gibbon->session->get('absoluteURL');
     $list = array_map(function ($token) use ($absoluteURL) {
         return [
-            'id'       => $token['gibbonPersonID'],
-            'name'     => Format::name('', $token['preferredName'], $token['surname'], 'Staff', false, true),
-            'jobTitle' => !empty($token['jobTitle']) ? $token['jobTitle'] : $token['type'],
-            'image'    => $absoluteURL.'/'.$token['image_240'],
+            'id'       => $token['gibbonGroupID'],
+            'name'     => $token['name'],
         ];
     }, $resultSet);
 
