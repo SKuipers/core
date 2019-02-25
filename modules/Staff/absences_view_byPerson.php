@@ -21,11 +21,12 @@ use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
+use Gibbon\Domain\DataSet;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
 use Gibbon\Domain\School\SchoolYearGateway;
-use Gibbon\Domain\DataSet;
+use Gibbon\Module\Staff\Tables\AbsenceFormats;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPerson.php') == false) {
     // Access denied
@@ -193,57 +194,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
     // COLUMNS
     $table->addColumn('date', __('Date'))
         ->width('22%')
-        ->format(function ($absence) {
-            $output = Format::dateRangeReadable($absence['dateStart'], $absence['dateEnd']);
-            if ($absence['allDay'] == 'Y' || $absence['days'] > 1) {
-                $output .= '<br/>'.Format::small(__n('{count} Day', '{count} Days', $absence['days']));
-            } else {
-                $output .= '<br/>'.Format::small(Format::timeRange($absence['timeStart'], $absence['timeEnd']));
-            }
-            
-            return Format::tooltip($output, $absence['value']);
-        });
+        ->format([AbsenceFormats::class, 'dateDetails']);
     
     $table->addColumn('type', __('Type'))
         ->description(__('Reason'))
-        ->format(function ($absence) {
-            $output = $absence['type'];
-            if (!empty($absence['reason'])) {
-                $output .= '<br/>'.Format::small($absence['reason']);
-            }
-            if ($absence['status'] != 'Approved') {
-                $output .= '<br/><span class="small emphasis">'.__($absence['status']).'</span>';
-            }
-            return $output;
-        });
+        ->format([AbsenceFormats::class, 'typeAndReason']);
 
     
     $table->addColumn('coverage', __('Coverage'))
-        ->format(function ($absence) {
-            if (empty($absence['coverage']) || empty($absence['coverageList'])) {
-                return '';
-            } elseif ($absence['coverage'] != 'Accepted') {
-                return '<div class="badge success">'.__('Pending').'</div>';
-            }
-
-            $names = array_unique(array_map(function ($person) {
-                return $person['coverage'] == 'Accepted'
-                    ? Format::name($person['titleCoverage'], $person['preferredNameCoverage'], $person['surnameCoverage'], 'Staff', false, true)
-                    : '<div class="badge success">'.__('Pending').'</div>';
-            }, $absence['coverageList'] ?? []));
-
-            return implode('<br/>', $names);
-        });
+        ->format([AbsenceFormats::class, 'coverageList']);
 
     $table->addColumn('timestampCreator', __('Created'))
         ->width('20%')
-        ->format(function ($absence) {
-            $output = Format::relativeTime($absence['timestampCreator']);
-            if ($absence['gibbonPersonID'] != $absence['gibbonPersonIDCreator']) {
-                $output .= '<br/>'.Format::small(__('By').' '.Format::name('', $absence['preferredNameCreator'], $absence['surnameCreator'], 'Staff', false, true));
-            }
-            return $output;
-        });
+        ->format([AbsenceFormats::class, 'createdOn']);
 
     // ACTIONS
     $canManage = isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php');
@@ -253,16 +216,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
         ->addParam('gibbonStaffAbsenceID')
         ->addParam('search', $criteria->getSearchText(true))
         ->format(function ($absence, $actions) use ($canManage, $canRequest) {
-            $actions->addAction('view', __('View Details'))
-                ->isModal(800, 550)
-                ->setURL('/modules/Staff/absences_view_details.php');
-
             if ($canRequest && $absence['status'] == 'Approved' 
                 && empty($absence['coverage']) && $absence['dateEnd'] >= date('Y-m-d')) {
                 $actions->addAction('coverage', __('Request Coverage'))
                     ->setIcon('attendance')
                     ->setURL('/modules/Staff/coverage_request.php');
             }
+
+            $actions->addAction('view', __('View Details'))
+                ->isModal(800, 550)
+                ->setURL('/modules/Staff/absences_view_details.php');
 
             if ($canManage) {
                 $actions->addAction('edit', __('Edit'))

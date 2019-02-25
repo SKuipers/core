@@ -108,35 +108,42 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
             ->placeholder()
             ->isRequired();
 
-    $row = $form->addRow();
-        $row->addLabel('comment', __('Confidential Comment'))->description(__('This message is only shared with the people notified of this absence and users who manage staff absences.'));
-        $row->addTextArea('comment')->setRows(3);
+    
 
-    $form->addRow()->addHeading(__('Date & Time'));
-
-    $row = $form->addRow();
-        $row->addLabel('allDay', __('All Day'));
-        $row->addYesNoRadio('allDay')->checked('Y');
-
-    $form->toggleVisibilityByClass('timeOptions')->onRadio('allDay')->when('N');
+    
 
     $date = $_GET['date'] ?? '';
     $row = $form->addRow();
         $row->addLabel('dateStart', __('Start Date'));
-        $col = $row->addColumn('dateStart')->addClass('right');
-        $col->addDate('dateStart')->to('dateEnd')->isRequired()->setValue($date);
-        $col->addTime('timeStart')
-            ->addClass('timeOptions')
-            ->isRequired();
+        $row->addDate('dateStart')->to('dateEnd')->isRequired()->setValue($date);
 
     $row = $form->addRow();
         $row->addLabel('dateEnd', __('End Date'));
-        $col = $row->addColumn('dateEnd')->addClass('right');
-        $col->addDate('dateEnd')->from('dateStart')->isRequired()->setValue($date);
-        $col->addTime('timeEnd')
-            ->chainedTo('timeStart', false)
-            ->addClass('timeOptions')
+        $row->addDate('dateEnd')->from('dateStart')->isRequired()->setValue($date);
+
+    $row = $form->addRow();
+        $row->addLabel('allDay', __('When'));
+        $row->addCheckbox('allDay')
+            ->description(__('All Day'))
+            ->inline()
+            ->setClass()
+            ->setValue('Y')
+            ->checked('Y')
+            ->wrap('<div class="standardWidth floatRight">', '</div>');
+
+    $form->toggleVisibilityByClass('timeOptions')->onCheckbox('allDay')->whenNot('Y');
+
+    $row = $form->addRow()->addClass('timeOptions');
+        $row->addLabel('timeStart', __('Time'));
+        $col = $row->addColumn('timeStart')->addClass('right inline');
+        $col->addTime('timeStart')
+            ->setClass('shortWidth')
             ->isRequired();
+        $col->addTime('timeEnd')
+            ->chainedTo('timeStart')
+            ->setClass('shortWidth')
+            ->isRequired();
+
 
     if (!empty($typesRequiringApproval)) {
         $form->toggleVisibilityByClass('approvalRequired')->onSelect('gibbonStaffAbsenceTypeID')->when($typesRequiringApproval);
@@ -151,6 +158,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
             ->isRequired();
     }
     $form->addRow()->addHeading(__('Notifications'));
+
+    $row = $form->addRow()->addClass('approvalRequired displayNone');
+        $row->addAlert(__("The following people will only be notified if this absence is approved."), 'message');
 
     // Notification Groups
 
@@ -186,9 +196,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
             ->setParameter('resultsLimit', 10)
             ->resultsFormatter('function(item){ return "<li class=\'finderListItem\'><div class=\'finderPhoto\' style=\'background-image: url(" + item.image + ");\'></div><div class=\'finderName\'>" + item.name + "<br/><span class=\'finderDetail\'>" + item.jobTitle + "</span></div></li>"; }')
             ->tokenFormatter('function(item){ return "<li class=\'finderToken\'>" + item.name + "</li>"; }');
-    
-    $row = $form->addRow()->addClass('approvalRequired displayNone');
-        $row->addAlert(__("These people will only be notified if this absence is approved."), 'message');
+
+    $row = $form->addRow();
+        $row->addLabel('comment', __('Comment '))->description(__('This message is shared with the people notified of this absence and users who manage staff absences.'));
+        $row->addTextArea('comment')->setRows(3);
 
     if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php')) {
         $form->addRow()->addHeading(__('Coverage'))->addClass('approvalNotRequired');

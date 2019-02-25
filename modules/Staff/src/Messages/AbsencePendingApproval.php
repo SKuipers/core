@@ -60,7 +60,7 @@ class AbsencePendingApproval extends Message
             __('Staff')   => $this->details['name'],
             __('Type')    => $this->details['type'],
             __('Date')    => $this->details['date'],
-            __('Confidential Comment') => $this->absence['comment'],
+            __('Comment ') => $this->absence['comment'],
         ];
     }
 

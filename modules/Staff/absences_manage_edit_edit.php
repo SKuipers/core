@@ -58,27 +58,32 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_edit
     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
     $form->addHiddenValue('gibbonStaffAbsenceID', $gibbonStaffAbsenceID);
     $form->addHiddenValue('gibbonStaffAbsenceDateID', $gibbonStaffAbsenceDateID);
-
-    
-    $row = $form->addRow();
-        $row->addLabel('allDay', __('All Day'));
-        $row->addYesNoRadio('allDay')->checked('Y');
-
+   
     $row = $form->addRow();
         $row->addLabel('dateLabel', __('Date'));
         $row->addTextField('dateLabel')->readonly()->setValue(Format::date($values['date']));
 
-    $form->toggleVisibilityByClass('timeOptions')->onRadio('allDay')->when('N');
+    $row = $form->addRow();
+        $row->addLabel('allDay', __('When'));
+        $row->addCheckbox('allDay')
+            ->description(__('All Day'))
+            ->inline()
+            ->setClass()
+            ->setValue('Y')
+            ->checked($values['allDay'])
+            ->wrap('<div class="standardWidth floatRight">', '</div>');
+
+    $form->toggleVisibilityByClass('timeOptions')->onCheckbox('allDay')->whenNot('Y');
 
     $row = $form->addRow()->addClass('timeOptions');
         $row->addLabel('time', __('Time'));
-        $col = $row->addColumn('time')->addClass('right');
+        $col = $row->addColumn('time')->addClass('right inline');
         $col->addTime('timeStart')
-            ->addClass('timeOptions')
+            ->setClass('shortWidth')
             ->isRequired();
         $col->addTime('timeEnd')
             ->chainedTo('timeStart', false)
-            ->addClass('timeOptions')
+            ->setClass('shortWidth')
             ->isRequired();
 
     $row = $form->addRow();

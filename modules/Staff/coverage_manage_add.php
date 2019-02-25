@@ -67,28 +67,36 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_add.
     $row = $form->addRow();
         $row->addAlert(__("This option lets you add general coverage for a substitute that is not associated with a staff absence. This can be useful if they are covering an activity or event rather than a particular absence."), 'message');
 
-        $row = $form->addRow();
-        $row->addLabel('allDay', __('All Day'));
-        $row->addYesNoRadio('allDay')->checked('Y');
-
-    $form->toggleVisibilityByClass('timeOptions')->onRadio('allDay')->when('N');
-
     $date = $_GET['date'] ?? '';
     $row = $form->addRow();
         $row->addLabel('dateStart', __('Start Date'));
-        $col = $row->addColumn('dateStart')->addClass('right');
-        $col->addDate('dateStart')->to('dateEnd')->isRequired()->setValue($date);
-        $col->addTime('timeStart')
-            ->addClass('timeOptions')
-            ->isRequired();
+        $row->addDate('dateStart')->to('dateEnd')->isRequired()->setValue($date);
 
     $row = $form->addRow();
         $row->addLabel('dateEnd', __('End Date'));
-        $col = $row->addColumn('dateEnd')->addClass('right');
-        $col->addDate('dateEnd')->from('dateStart')->isRequired()->setValue($date);
+        $row->addDate('dateEnd')->from('dateStart')->isRequired()->setValue($date);
+
+    $row = $form->addRow();
+        $row->addLabel('allDay', __('When'));
+        $row->addCheckbox('allDay')
+            ->description(__('All Day'))
+            ->inline()
+            ->setClass()
+            ->setValue('Y')
+            ->checked('Y')
+            ->wrap('<div class="standardWidth floatRight">', '</div>');
+
+    $form->toggleVisibilityByClass('timeOptions')->onCheckbox('allDay')->whenNot('Y');
+
+    $row = $form->addRow()->addClass('timeOptions');
+        $row->addLabel('time', __('Time'));
+        $col = $row->addColumn('time')->addClass('right inline');
+        $col->addTime('timeStart')
+            ->setClass('shortWidth')
+            ->isRequired();
         $col->addTime('timeEnd')
             ->chainedTo('timeStart', false)
-            ->addClass('timeOptions')
+            ->setClass('shortWidth')
             ->isRequired();
 
     $row = $form->addRow();

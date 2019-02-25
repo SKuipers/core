@@ -25,6 +25,7 @@ use Gibbon\Tables\DataTable;
 use Gibbon\Forms\Form;
 use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
 use Gibbon\Domain\DataSet;
+use Gibbon\Module\Staff\Tables\AbsenceFormats;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_weekly.php') == false) {
     // Access denied
@@ -164,21 +165,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_week
             });
 
         $table->addColumn('type', __('Type'))
-            ->format(function ($absence) {
-                return $absence['type'] .'<br/>'.Format::small($absence['reason']);
-            });
+            ->format([AbsenceFormats::class, 'typeAndReason']);
 
         if (isActionAccessible($guid, $connection2, '/modules/Staff/report_subs_availability.php')) {
             $table->addColumn('coverage', __('Coverage'))
                 ->width('30%')
-                ->format(function ($absence) {
-                    if ($absence['coverage'] == 'Accepted') {
-                        return Format::name($absence['titleCoverage'], $absence['preferredNameCoverage'], $absence['surnameCoverage'], 'Staff', false, true);
-                    } elseif ($absence['coverage'] == 'Requested') {
-                        return '<div class="badge success">'.__('Pending').'</div>';
-                    }
-                    return '';
-                });
+                ->format([AbsenceFormats::class, 'coverage']);
         }
 
         echo $table->render(new DataSet($absencesThisDay));

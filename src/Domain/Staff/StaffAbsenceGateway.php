@@ -62,10 +62,10 @@ class StaffAbsenceGateway extends QueryableGateway
             ->bindValue('gibbonSchoolYearID', $gibbonSchoolYearID);
 
         if ($grouped) {
-            $query->cols(['COUNT(*) as days', 'MIN(date) as dateStart', 'MAX(date) as dateEnd'])
+            $query->cols(['COUNT(*) as days', 'MIN(date) as dateStart', 'MAX(date) as dateEnd', 'SUM(value) as value'])
                 ->groupBy(['gibbonStaffAbsence.gibbonStaffAbsenceID']);
         } else {
-            $query->cols(['1 as days', 'date as dateStart', 'date as dateEnd'])
+            $query->cols(['1 as days', 'date as dateStart', 'date as dateEnd', 'gibbonStaffAbsenceDate.value as value'])
                 ->groupBy(['gibbonStaffAbsenceDate.gibbonStaffAbsenceDateID']);
         }
 

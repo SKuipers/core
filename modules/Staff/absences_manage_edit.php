@@ -25,6 +25,7 @@ use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Domain\User\UserGateway;
+use Gibbon\Module\Staff\Tables\AbsenceFormats;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_edit.php') == false) {
     // Access denied
@@ -146,26 +147,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_edit
     $table->setTitle(__('Dates'));
 
     $table->addColumn('date', __('Date'))
-        ->format(Format::using('dateReadable', 'date'));
+          ->format(Format::using('dateReadable', 'date'));
 
-    $table->addColumn('timeStart', __('Time'))->format(function ($absence) {
-        if ($absence['allDay'] == 'N') {
-            return Format::small(Format::timeRange($absence['timeStart'], $absence['timeEnd']));
-        } else {
-            return Format::small(__('All Day'));
-        }
-    });
+    $table->addColumn('timeStart', __('Time'))
+          ->format([AbsenceFormats::class, 'timeDetails']);
 
     $table->addColumn('coverage', __('Coverage'))
-        ->format(function ($absence) {
-            if (empty($absence['coverage'])) {
-                return Format::small(__('N/A'));
-            }
-
-            return $absence['coverage'] == 'Accepted'
-                    ? Format::name($absence['titleCoverage'], $absence['preferredNameCoverage'], $absence['surnameCoverage'], 'Staff', false, true)
-                    : '<div class="badge success">'.__('Pending').'</div>';
-        });
+          ->format([AbsenceFormats::class, 'coverage']);
 
     // ACTIONS
     $canDelete = $absenceDates->rowCount() > 1;

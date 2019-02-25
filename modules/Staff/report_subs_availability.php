@@ -64,23 +64,28 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_subs_availabi
         $row->addLabel('date', __('Date'));
         $row->addDate('date')->setValue(Format::date($date));
 
-    $options = [
+    $allDayOptions = [
         'Y' => __('All Day'),
-        'N' => __('Time'),
+        'N' => __('Time Span'),
     ];
     $row = $form->addRow();
-        $row->addLabel('allDay', __('Availability'));
-        $row->addSelect('allDay')->fromArray($options)->selected($allDay);
+        $row->addLabel('allDay', __('When'));
+        $row->addSelect('allDay')->fromArray($allDayOptions)->selected($allDay);
     
     $form->toggleVisibilityByClass('timeOptions')->onSelect('allDay')->when('N');
 
     $row = $form->addRow()->addClass('timeOptions');
-        $row->addLabel('timeStart', __('Start Time'));
-        $row->addTime('timeStart')->isRequired()->setValue($timeStart);
-
-    $row = $form->addRow()->addClass('timeOptions');
-        $row->addLabel('timeEnd', __('End Time'));
-        $row->addTime('timeEnd')->chainedTo('timeStart')->isRequired()->setValue($timeEnd);
+        $row->addLabel('timeStart', __('Time'));
+        $col = $row->addColumn('timeStart')->addClass('right inline');
+        $col->addTime('timeStart')
+            ->setClass('shortWidth')
+            ->isRequired()
+            ->setValue($timeStart);
+        $col->addTime('timeEnd')
+            ->chainedTo('timeStart')
+            ->setClass('shortWidth')
+            ->isRequired()
+            ->setValue($timeEnd);
 
     if (isActionAccessible($guid, $connection2, '/modules/Staff/subs_manage.php')) {
         $row = $form->addRow();
