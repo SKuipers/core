@@ -22,6 +22,7 @@ use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
+use Gibbon\Module\Staff\Tables\AbsenceFormats;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage.php') == false) {
     // Access denied
@@ -103,51 +104,20 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage.php'
     // COLUMNS
     $table->addColumn('requested', __('Name'))
         ->sortable(['surnameAbsence', 'preferredNameAbsence'])
-        ->format(function ($coverage) {
-            $fullName = Format::name($coverage['titleAbsence'], $coverage['preferredNameAbsence'], $coverage['surnameAbsence'], 'Staff', false, true);
-            if (empty($fullName)) {
-                $fullName = Format::name($coverage['titleStatus'], $coverage['preferredNameStatus'], $coverage['surnameStatus'], 'Staff', false, true);
-            }
-
-            return $fullName.'<br/>'.Format::small($coverage['type'].' '.$coverage['reason']);
-        });
+        ->format([AbsenceFormats::class, 'personDetails']);
 
     $table->addColumn('date', __('Date'))
         ->width('18%')
-        ->format(function ($coverage) {
-            $output = Format::dateRangeReadable($coverage['dateStart'], $coverage['dateEnd']);
-            if ($coverage['days'] > 1) {
-                $output .= '<br/>'.Format::small(__n('{count} Day', '{count} Days', $coverage['days']));
-            } elseif ($coverage['allDay'] == 'N') {
-                $output .= '<br/>'.Format::small(Format::timeRange($coverage['timeStart'], $coverage['timeEnd']));
-            }
-            return $output;
-        });
+        ->format([AbsenceFormats::class, 'dateDetails']);
 
     $table->addColumn('coverage', __('Substitute'))
         ->sortable(['surnameCoverage', 'preferredNameCoverage'])
-        ->format(function ($coverage) {
-            return $coverage['gibbonPersonIDCoverage'] 
-                ? Format::name($coverage['titleCoverage'], $coverage['preferredNameCoverage'], $coverage['surnameCoverage'], 'Staff', false, true)
-                : '<div class="badge success">'.__('Pending').'</div>';
-        });
+        ->format([AbsenceFormats::class, 'substituteDetails']);
 
     $table->addColumn('status', __('Status'))
         ->width('15%')
         ->format(function ($coverage) use ($urgencyThreshold) {
-            $relativeSeconds = strtotime($coverage['dateStart']) - time();
-            if ($coverage['status'] != 'Requested') {
-                return $coverage['status'];
-            }
-            if ($relativeSeconds <= 0) {
-                return '<div class="badge dull">'.__('Overdue').'</div>';
-            } elseif ($relativeSeconds <= (86400 * $urgencyThreshold)) {
-                return '<div class="error badge">'.__('Urgent').'</div>';
-            } elseif ($relativeSeconds <= (86400 * ($urgencyThreshold * 3))) {
-                return '<div class="badge warning">'.__('Upcoming').'</div>';
-            } else {
-                return __('Upcoming');
-            }
+            return AbsenceFormats::coverageStatus($coverage, $urgencyThreshold);
         });
 
     $table->addColumn('timestampStatus', __('Requested'))

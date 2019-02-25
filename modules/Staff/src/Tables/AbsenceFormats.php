@@ -27,6 +27,23 @@ use Gibbon\Services\Format;
  */
 class AbsenceFormats
 {
+    public static function personDetails($absence)
+    {
+        $fullName = Format::name($absence['titleAbsence'], $absence['preferredNameAbsence'], $absence['surnameAbsence'], 'Staff', false, true);
+        if (empty($fullName)) {
+            $fullName = Format::name($absence['titleStatus'], $absence['preferredNameStatus'], $absence['surnameStatus'], 'Staff', false, true);
+        }
+        
+        return $fullName.'<br/>'.Format::small($absence['type'].' '.$absence['reason']);
+    }
+
+    public static function substituteDetails($coverage)
+    {
+        return $coverage['gibbonPersonIDCoverage'] 
+            ? Format::name($coverage['titleCoverage'], $coverage['preferredNameCoverage'], $coverage['surnameCoverage'], 'Staff', false, true)
+            : '<div class="badge success">'.__('Pending').'</div>';
+    }
+
     public static function dateDetails($absence)
     {
         $output = Format::dateRangeReadable($absence['dateStart'], $absence['dateEnd']);
@@ -36,7 +53,7 @@ class AbsenceFormats
             $output .= '<br/>'.Format::small(Format::timeRange($absence['timeStart'], $absence['timeEnd']));
         }
         
-        return Format::tooltip($output, $absence['value']);
+        return Format::tooltip($output, $absence['value'] ?? '');
     }
 
     public static function timeDetails($absence)
@@ -75,9 +92,27 @@ class AbsenceFormats
             return '';
         }
 
-        $names = array_unique(array_map([self, 'coverage'], $absence['coverageList'] ?? []));
+        $names = array_unique(array_map(['self', 'coverage'], $absence['coverageList'] ?? []));
 
         return implode('<br/>', $names);
+    }
+
+    public static function coverageStatus($coverage, $urgencyThreshold)
+    {
+        if ($coverage['status'] != 'Requested') {
+            return $coverage['status'];
+        }
+
+        $relativeSeconds = strtotime($coverage['dateStart']) - time();
+        if ($relativeSeconds <= 0) {
+            return '<div class="badge dull">'.__('Overdue').'</div>';
+        } elseif ($relativeSeconds <= (86400 * $urgencyThreshold)) {
+            return '<div class="error badge">'.__('Urgent').'</div>';
+        } elseif ($relativeSeconds <= (86400 * ($urgencyThreshold * 3))) {
+            return '<div class="badge warning">'.__('Upcoming').'</div>';
+        } else {
+            return __('Upcoming');
+        }
     }
 
     public static function createdOn($absence)

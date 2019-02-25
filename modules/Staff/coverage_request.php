@@ -19,7 +19,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
-use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\SubstituteGateway;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
@@ -99,9 +98,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
 
     if (!empty($availableSubs)) {
         $requestTypes['Individual'] = __('Specific substitute');
-    } else {
-        $row = $form->addRow();
-        
     }
 
     $dateStart = $absenceDates[0] ?? '';
@@ -122,8 +118,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     $form->toggleVisibilityByClass('individualOptions')->onSelect('requestType')->when('Individual');
     $form->toggleVisibilityByClass('broadcastOptions')->onSelect('requestType')->when('Broadcast');
         
-    $notification = __("SMS and email");
-    
     // Broadcast
     $row = $form->addRow()->addClass('broadcastOptions');
     if (!empty($availableSubs)) {

@@ -115,7 +115,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_edit
             $row->addLabel('requestTypeLabel', __('Type'));
             $row->addTextField('requestType')->readonly()->setValue($coverage['requestType']);
 
-        $notificationList = $coverage['notificationSent'] == 'Y' ? json_decode($coverage['notificationListAbsence']) : [];
+        $notificationList = $coverage['notificationSent'] == 'Y' ? json_decode($coverage['notificationListAbsence'] ?? '') : [];
 
         if ($notificationList) {
             $notified = $container->get(UserGateway::class)->selectNotificationDetailsByPerson($notificationList)->fetchGroupedUnique();
