@@ -906,7 +906,7 @@ CREATE TABLE `gibbonSubstitute` (
 CREATE TABLE `gibbonSubstituteUnavailable` (
     `gibbonSubstituteUnavailableID` INT(14) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
     `gibbonPersonID` INT(14) UNSIGNED ZEROFILL NOT NULL,
-    `reason` VARCHAR(60) NULL,
+    `reason` VARCHAR(255) NULL,
     `date` DATE NULL,
     `allDay` ENUM('N','Y') DEFAULT 'Y',
     `timeStart` time NULL DEFAULT NULL,
@@ -945,7 +945,6 @@ INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`val
 INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Staff', 'urgencyThreshold', 'Urgency Threshold', 'Notifications in this time-span are sent immediately, day or night.', '3');end
 INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Staff', 'urgentNotifications', 'Urgent Notifications', 'Which contact methods should be used to notify users.', 'Email');end
 INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Staff', 'absenceApprovers', 'Absence Approvers', 'Users who can approve staff absences.', '');end
-INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Staff', 'unavailabilityReasons', 'Unavailability Reasons', 'A comma-separated list.', 'Not Available');end
 INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Staff', 'absenceFullDayThreshold', 'Full Day Absence', 'The minumum number of hours for an absence to count as a full day (1.0)', '6.0');end
 INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Staff', 'absenceHalfDayThreshold', 'Half Day Absence', 'The minumum number of hours for an absence to count as a half day (0.5). Absences less than this count as 0', '2.0');end
 

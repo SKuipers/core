@@ -102,9 +102,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
         }
     });
 
-    $table->addColumn('reason', __('Availability'))
+    $table->addColumn('reason', __('Reason'))
         ->format(function ($date) {
-            return __($date['reason'] ?? 'Not Available');
+            return !empty($date['reason'])
+                ? __($date['reason'])
+                : Format::small(__('Not Available'));
         });
 
     $table->addActionColumn()
@@ -154,12 +156,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
         $row->addLabel('timeEnd', __('End Time'));
         $row->addTime('timeEnd')->chainedTo('timeStart')->isRequired();
 
-    $reasons = array_filter(array_map('trim', explode(',', getSettingByScope($connection2, 'Staff', 'unavailabilityReasons'))));
     $row = $form->addRow();
-        $row->addLabel('reason', __('Reason'));
-        $row->addSelect('reason')
-            ->fromArray($reasons)
-            ->isRequired();
+        $row->addLabel('reason', __('Reason'))->description(__('Optional'));
+        $row->addTextField('reason')->maxLength(255);
 
     $row = $form->addRow();
         $row->addFooter();
