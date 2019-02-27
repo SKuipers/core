@@ -39,13 +39,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php') ==
     $substituteGateway = $container->get(SubstituteGateway::class);
     $urgencyThreshold = getSettingByScope($connection2, 'Staff', 'urgencyThreshold');
 
-    if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php')) {
-        $criteria = $staffCoverageGateway->newQueryCriteria()
-            ->sortBy('date')
-            ->filterBy('date:upcoming')
-            ->fromPOST('staffCoverageSelf');
+    $criteria = $staffCoverageGateway->newQueryCriteria()
+        ->sortBy('date')
+        ->filterBy('date:upcoming')
+        ->fromPOST('staffCoverageSelf');
 
-        $coverage = $staffCoverageGateway->queryCoverageByPersonAbsent($criteria, $gibbonPersonID);
+    $coverage = $staffCoverageGateway->queryCoverageByPersonAbsent($criteria, $gibbonPersonID);
+
+    if (!empty($coverage)) {
 
         // DATA TABLE
         $table = DataTable::createPaginated('staffCoverageSelf', $criteria);
@@ -73,13 +74,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php') ==
                 return AbsenceFormats::coverageStatus($coverage, $urgencyThreshold);
             });
 
+        $table->addColumn('date', __('Date'))
+            ->format([AbsenceFormats::class, 'dateDetails']);
+
         $table->addColumn('requested', __('Substitute'))
             ->width('30%')
             ->sortable(['surnameCoverage', 'preferredNameCoverage'])
             ->format([AbsenceFormats::class, 'substituteDetails']);
-
-        $table->addColumn('date', __('Date'))
-            ->format([AbsenceFormats::class, 'dateDetails']);
 
         $table->addColumn('notesCoverage', __('Comment'))
             ->format(function ($coverage) {
@@ -261,14 +262,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php') ==
                 return AbsenceFormats::coverageStatus($coverage, $urgencyThreshold);
             });
 
+        $table->addColumn('date', __('Date'))
+            ->format([AbsenceFormats::class, 'dateDetails']);
+
         $table->addColumn('requested', __('Person'))
             ->width('30%')
             ->sortable(['surname', 'preferredName'])
             ->format([AbsenceFormats::class, 'personDetails']);
-
-        $table->addColumn('date', __('Date'))
-            ->format([AbsenceFormats::class, 'dateDetails']);
-
+            
         $table->addColumn('notesStatus', __('Comment'))
             ->format(function ($coverage) {
                 return Format::truncate($coverage['notesStatus'], 60);

@@ -69,7 +69,7 @@ class ViewCoverageForm
             $row->addTextField('timestampValue')
                 ->readonly()
                 ->setValue(Format::relativeTime($coverage['timestampStatus'], false))
-                ->setTitle($coverage['timestampStatus']);
+                ->setTitle(Format::dateTime($coverage['timestampStatus']));
     
         $row = $form->addRow();
             $row->addLabel('notesStatusLabel', __('Comment'));
