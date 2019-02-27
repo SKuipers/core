@@ -44,8 +44,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
 
     $data = [
         'gibbonStaffAbsenceID'   => $gibbonStaffAbsenceID,
-        'gibbonPersonIDCoverage' => $_POST['gibbonPersonIDCoverage'] ?? null,
+        'gibbonSchoolYearID'     => $gibbon->session->get('gibbonSchoolYearID'),
         'gibbonPersonIDStatus'   => $gibbon->session->get('gibbonPersonID'),
+        'gibbonPersonIDCoverage' => $_POST['gibbonPersonIDCoverage'] ?? null,
         'notesStatus'            => $_POST['notesStatus'],
         'requestType'            => $_POST['requestType'],
         'status'                 => 'Requested',

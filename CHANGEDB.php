@@ -879,6 +879,7 @@ INSERT INTO `gibbonStaffAbsenceType` (`gibbonStaffAbsenceTypeID`, `name`, `nameS
 CREATE TABLE `gibbonStaffCoverage` (
     `gibbonStaffCoverageID` INT(14) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
     `gibbonStaffAbsenceID` INT(14) UNSIGNED ZEROFILL NULL,
+    `gibbonSchoolYearID` INT(3) UNSIGNED ZEROFILL NOT NULL,
     `status` ENUM('Requested','Accepted','Declined','Cancelled') DEFAULT 'Requested',
     `requestType` ENUM('Individual','Broadcast','Assigned') DEFAULT 'Broadcast',
     `gibbonPersonIDStatus` int(10) UNSIGNED ZEROFILL NOT NULL,
