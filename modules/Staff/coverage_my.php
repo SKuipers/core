@@ -39,17 +39,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php') ==
     $urgencyThreshold = getSettingByScope($connection2, 'Staff', 'urgencyThreshold');
 
     $criteria = $staffCoverageGateway->newQueryCriteria()
-        ->sortBy('date')
-        ->filterBy('date:upcoming')
-        ->fromPOST('staffCoverageSelf');
+            ->sortBy('date')
+            ->filterBy('date:upcoming')
+            ->fromPOST('staffCoverageSelf');
 
     $coverage = $staffCoverageGateway->queryCoverageByPersonAbsent($criteria, $gibbonPersonID);
-
-    if (!empty($coverage)) {
-
+    
+    if ($coverage->getResultCount() > 0) {
         // DATA TABLE
         $table = DataTable::createPaginated('staffCoverageSelf', $criteria);
-        $table->setTitle(__('Covering For Me'));
+        $table->setTitle(__('My Coverage'));
 
         $table->modifyRows(function ($coverage, $row) {
             if ($coverage['status'] == 'Accepted') $row->addClass('current');
@@ -134,7 +133,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php') ==
 
         // DATA TABLE
         $table = DataTable::createPaginated('staffCoverageOther', $criteria);
-        $table->setTitle(__('My Coverage'));
+        $table->setTitle(__('Coverage Requests'));
 
         $table->modifyRows(function ($coverage, $row) {
             if ($coverage['status'] == 'Accepted') $row->addClass('current');
