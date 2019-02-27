@@ -27,6 +27,7 @@ use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
 use Gibbon\Domain\School\SchoolYearGateway;
 use Gibbon\Module\Staff\Tables\AbsenceFormats;
+use Gibbon\Module\Staff\Tables\AbsenceCalendar;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPerson.php') == false) {
     // Access denied
@@ -77,74 +78,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
     $schoolYear = $schoolYearGateway->getSchoolYearByID($gibbonSchoolYearID);
 
     // CALENDAR VIEW
-    $calendar = [];
-    $dateRange = new DatePeriod(
-        new DateTime(substr($schoolYear['firstDay'], 0, 7).'-01'),
-        new DateInterval('P1M'),
-        new DateTime($schoolYear['lastDay'])
-    );
-
-    foreach ($dateRange as $month) {
-        $days = [];
-        for ($dayCount = 1; $dayCount <= $month->format('t'); $dayCount++) {
-            $date = new DateTime($month->format('Y-m').'-'.$dayCount);
-            $absenceListByDay = $absences[$date->format('Y-m-d')] ?? [];
-            $absenceCount = count($absenceListByDay);
-
-            $days[$dayCount] = [
-                'date'    => $date,
-                'number'  => $dayCount,
-                'count'   => $absenceCount,
-                'weekend' => $date->format('N') >= 6,
-                'absence' => current($absenceListByDay),
-            ];
-        }
-
-        $calendar[] = [
-            'name'  => $month->format('M'),
-            'days'  => $days,
-        ];
-    }
-
-    $table = DataTable::create('staffAbsenceCalendar');
-    $table->setTitle(__('Calendar'));
-    $table->getRenderer()->setClass('calendarTable calendarTableSmall');
-
-    $table->addColumn('name', '')->notSortable();
-
-    for ($dayCount = 1; $dayCount <= 31; $dayCount++) {
-        $table->addColumn($dayCount, '')
-            ->notSortable()
-            ->format(function ($month) use ($guid, $dayCount) {
-                $day = $month['days'][$dayCount] ?? null;
-                if (empty($day) || $day['count'] <= 0) return '';
-
-                $url = $_SESSION[$guid]['absoluteURL'].'/fullscreen.php?q=/modules/Staff/absences_view_details.php&gibbonStaffAbsenceID='.$day['absence']['gibbonStaffAbsenceID'].'&width=800&height=550';
-                $title = $day['date']->format('l').'<br/>'.$day['date']->format('M j, Y');
-                $title .= '<br/>'.$day['absence']['type'];
-                $classes = ['thickbox'];
-                if ($day['absence']['allDay'] == 'N') {
-                    $classes[] = $day['absence']['timeStart'] < '12:00:00' ? 'half-day-am' : 'half-day-pm';
-                }
-
-                return Format::link($url, $day['number'], ['title' => $title, 'class' => implode(' ', $classes)]);
-            })
-            ->modifyCells(function ($month, $cell) use ($dayCount) {
-                $day = $month['days'][$dayCount] ?? null;
-                if (empty($day)) return '';
-
-                if ($day['date']->format('Y-m-d') == date('Y-m-d')) $cell->addClass('today');
-                
-                if ($day['count'] > 0) $cell->addClass('bg-color'.($day['absence']['sequenceNumber'] % 10));
-                elseif ($day['weekend']) $cell->addClass('weekend');
-                else $cell->addClass('day');
-
-                return $cell;
-            });
-    }
-
-    echo $table->render(new DataSet($calendar));
-    echo '<br/>';
+    $table = AbsenceCalendar::create($absences, $schoolYear['firstDay'], $schoolYear['lastDay']);
+    echo $table->getOutput().'<br/>';
 
     // COUNT TYPES
     $absenceTypes = $staffAbsenceTypeGateway->selectAllTypes()->fetchAll();
