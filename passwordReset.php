@@ -54,7 +54,7 @@ if ($step == 1) {
 
     $row = $form->addRow();
         $row->addLabel('email', __('Username/Email'));
-        $row->addTextField('email')->maxLength(255)->isRequired();
+        $row->addTextField('email')->maxLength(255)->required();
 
     $row = $form->addRow();
         $row->addFooter();
@@ -108,14 +108,14 @@ else {
             $row->addPassword('passwordNew')
                 ->addPasswordPolicy($pdo)
                 ->addGeneratePasswordButton($form)
-                ->isRequired()
+                ->required()
                 ->maxLength(30);
 
         $row = $form->addRow();
             $row->addLabel('passwordConfirm', __('Confirm New Password'));
             $row->addPassword('passwordConfirm')
                 ->addConfirmation('passwordNew')
-                ->isRequired()
+                ->required()
                 ->maxLength(30);
 
         $row = $form->addRow();

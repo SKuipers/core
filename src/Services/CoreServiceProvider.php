@@ -107,17 +107,19 @@ class CoreServiceProvider extends AbstractServiceProvider implements BootableSer
         $session = $container->get('session');
         $pdo = $container->get('db');
 
-        $container->share('gibbon_logger', function () use ($container) {
-            $factory = new LoggerFactory($container->get(SettingGateway::class));
-            return $factory->getLogger('gibbon');
-        });
+        // Logging removed until properly setup & tested
+        
+        // $container->share('gibbon_logger', function () use ($container) {
+        //     $factory = new LoggerFactory($container->get(SettingGateway::class));
+        //     return $factory->getLogger('gibbon');
+        // });
 
-        $container->share('mysql_logger', function () use ($container) {
-            $factory = new LoggerFactory($container->get(SettingGateway::class));
-            return $factory->getLogger('mysql');
-        });
+        // $container->share('mysql_logger', function () use ($container) {
+        //     $factory = new LoggerFactory($container->get(SettingGateway::class));
+        //     return $factory->getLogger('mysql');
+        // });
 
-        $pdo->setLogger($container->get('mysql_logger'));
+        // $pdo->setLogger($container->get('mysql_logger'));
 
         $container->share('twig', function () use ($absolutePath, $session) {
             $loader = new \Twig_Loader_Filesystem($absolutePath.'/resources/templates');

@@ -134,7 +134,7 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/module_manage
 
     $table->addColumn('name', __('Name'));
     $table->addColumn('status', __('Status'))->notSortable();
-    $table->addColumn('description', __('Description'));
+    $table->addColumn('description', __('Description'))->translatable();
     $table->addColumn('type', __('Type'));
     $table->addColumn('active', __('Active'))
           ->format(Format::using('yesNo', 'active'));
@@ -187,7 +187,7 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/module_manage
                 if ($row['manifestOK']) {
                     $actions->addAction('install', __('Install'))
                             ->setIcon('page_new')
-                            ->isDirect()
+                            ->directLink()
                             ->setURL('/modules/System Admin/module_manage_installProcess.php');
                 }
             });
