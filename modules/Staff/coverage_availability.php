@@ -20,9 +20,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Forms\Prefab\BulkActionForm;
-use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\SubstituteGateway;
+use Gibbon\Domain\School\SchoolYearGateway;
+use Gibbon\Domain\Staff\StaffCoverageGateway;
+use Gibbon\Module\Staff\Tables\CoverageCalendar;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availability.php') == false) {
     // Access denied
@@ -61,12 +63,24 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
     }
 
     $substituteGateway = $container->get(SubstituteGateway::class);
+    $schoolYearGateway = $container->get(SchoolYearGateway::class);
+    $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, [
             'success1' => __('Your request was completed successfully.').' '.__('You may now continue by submitting a coverage request for this absence.')
         ]);
     }
+
+    $criteria = $staffCoverageGateway->newQueryCriteria()->pageSize(0);
+
+    $coverage = $staffCoverageGateway->queryCoverageByPersonCovering($criteria, $gibbonPersonID);
+    $exceptions = $substituteGateway->queryUnavailableDatesBySub($criteria, $gibbonPersonID);
+    $schoolYear = $schoolYearGateway->getSchoolYearByID($_SESSION[$guid]['gibbonSchoolYearID']);
+
+    // CALENDAR VIEW
+    $calendar = CoverageCalendar::create($coverage->toArray(), $exceptions->toArray(), $schoolYear['firstDay'], $schoolYear['lastDay']);
+    echo $calendar->getOutput().'<br/>';
 
     // BULK ACTIONS
     $form = BulkActionForm::create('bulkAction', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/coverage_availability_deleteProcess.php');

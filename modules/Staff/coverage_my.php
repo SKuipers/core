@@ -19,11 +19,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
-use Gibbon\Domain\DataSet;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Domain\School\SchoolYearGateway;
 use Gibbon\Domain\Staff\SubstituteGateway;
 use Gibbon\Module\Staff\Tables\AbsenceFormats;
+use Gibbon\Module\Staff\Tables\CoverageCalendar;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php') == false) {
     // Access denied
@@ -32,7 +32,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php') ==
     $page->breadcrumbs->add(__('My Coverage'));
 
     $gibbonPersonID = $_SESSION[$guid]['gibbonPersonID'];
-    $gibbonSchoolYearID = $_SESSION[$guid]['gibbonSchoolYearID'];
     
     $schoolYearGateway = $container->get(SchoolYearGateway::class);
     $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
@@ -109,126 +108,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php') ==
     $substitute = $substituteGateway->getSubstituteByPerson($gibbonPersonID);
     if (!empty($substitute)) {
 
-        $criteria = $staffCoverageGateway->newQueryCriteria()
-            ->pageSize(0);
+        $criteria = $staffCoverageGateway->newQueryCriteria()->pageSize(0);
 
         $coverage = $staffCoverageGateway->queryCoverageByPersonCovering($criteria, $gibbonPersonID);
-        $coverageByDate = array_reduce($coverage->toArray(), function ($group, $item) {
-            $group[$item['date']][] = $item;
-            return $group;
-        }, []);
-
         $exceptions = $substituteGateway->queryUnavailableDatesBySub($criteria, $gibbonPersonID);
-        $exceptionsByDate = array_reduce($exceptions->toArray(), function ($group, $item) {
-            $group[$item['date']][] = $item;
-            return $group;
-        }, []);
-        
-    
-        $schoolYear = $schoolYearGateway->getSchoolYearByID($gibbonSchoolYearID);
-    
-        // CALENDAR VIEW
-        $calendar = [];
-        $dateRange = new DatePeriod(
-            new DateTime(substr($schoolYear['firstDay'], 0, 7).'-01'),
-            new DateInterval('P1M'),
-            new DateTime($schoolYear['lastDay'])
-        );
-    
-        foreach ($dateRange as $month) {
-            $days = [];
-            for ($dayCount = 1; $dayCount <= $month->format('t'); $dayCount++) {
-                $date = new DateTime($month->format('Y-m').'-'.$dayCount);
-                $coverageListByDay = $coverageByDate[$date->format('Y-m-d')] ?? [];
-                $coverageCount = count($coverageListByDay);
-    
-                $days[$dayCount] = [
-                    'date'    => $date,
-                    'number'  => $dayCount,
-                    'count'   => $coverageCount,
-                    'weekend' => $date->format('N') >= 6,
-                    'coverage' => current($coverageListByDay),
-                    'exception' => isset($exceptionsByDate[$date->format('Y-m-d')]) 
-                        ? current($exceptionsByDate[$date->format('Y-m-d')]) 
-                        : null,
-                ];
-            }
-    
-            $calendar[] = [
-                'name'  => $month->format('M'),
-                'days'  => $days,
-            ];
-        }
-    
-        $table = DataTable::create('staffAbsenceCalendar')
-            ->setTitle(__('Calendar'));
+        $schoolYear = $schoolYearGateway->getSchoolYearByID($_SESSION[$guid]['gibbonSchoolYearID']);
 
-        $table->getRenderer()->setClass('calendarTable calendarTableSmall');
-    
+        // CALENDAR VIEW
+        $table = CoverageCalendar::create($coverage->toArray(), $exceptions->toArray(), $schoolYear['firstDay'], $schoolYear['lastDay']);
+
         $table->addHeaderAction('availability', __('Edit Availability'))
             ->setURL('/modules/Staff/coverage_availability.php')
             ->setIcon('planner')
             ->displayLabel();
 
-        $table->addColumn('name', '')->notSortable();
-    
-        for ($dayCount = 1; $dayCount <= 31; $dayCount++) {
-            $table->addColumn($dayCount, '')
-                ->notSortable()
-                ->format(function ($month) use ($guid, $dayCount) {
-                    $day = $month['days'][$dayCount] ?? null;
-                    if (empty($day) || ($day['count'] <= 0 && !$day['exception'])) return '';
-    
-                    $coverage = $day['coverage'];
-    
-                    $url = $_SESSION[$guid]['absoluteURL'].'/fullscreen.php?q=/modules/Staff/coverage_view_details.php&gibbonStaffCoverageID='.$day['coverage']['gibbonStaffCoverageID'].'&width=800&height=550';
+        echo $table->getOutput().'<br/>';
 
-                    $params['title'] = $day['date']->format('l').'<br/>'.$day['date']->format('M j, Y');
-                    $params['class'] = '';
-                    if ($day['coverage']['allDay'] == 'N') {
-                        $params['class'] = $day['coverage']['timeStart'] < '12:00:00' ? 'half-day-am' : 'half-day-pm';
-                    }
-                    
-                    if ($day['count'] > 0) {
-                        $params['class'] .= ' thickbox';
-                        $params['title'] .= '<br/>'.Format::name($coverage['titleAbsence'], $coverage['preferredNameAbsence'], $coverage['surnameAbsence'], 'Staff', false, true);
-                        $params['title'] .= '<br/>'.$coverage['status'];
-                    } elseif ($day['exception']) {
-                        if ($day['exception']['allDay'] == 'N') {
-                            $params['class'] = $day['exception']['timeStart'] < '12:00:00' ? 'half-day-am' : 'half-day-pm';
-                        }
-
-                        $url = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/coverage_availability.php';
-                        $params['title'] .= '<br/>'.__($day['exception']['reason'] ?? 'Not Available');
-                    }
-    
-                    return Format::link($url, $day['number'], $params);
-                })
-                ->modifyCells(function ($month, $cell) use ($dayCount) {
-                    $day = $month['days'][$dayCount] ?? null;
-                    if (empty($day)) return '';
-    
-                    if ($day['date']->format('Y-m-d') == date('Y-m-d')) $cell->addClass('today');
-                    
-                    switch ($day['coverage']['status']) {
-                        case 'Requested': $cellColor = 'bg-color2'; break;
-                        case 'Accepted':  $cellColor = 'bg-color0'; break;
-                        default:          $cellColor = 'bg-grey';
-                    }
-                    
-                    if ($day['count'] > 0) $cell->addClass($cellColor);
-                    elseif ($day['exception']) $cell->addClass('bg-grey');
-                    elseif ($day['weekend']) $cell->addClass('weekend');
-                    else $cell->addClass('day');
-    
-                    return $cell;
-                });
-        }
-    
-        echo $table->render(new DataSet($calendar));
-        echo '<br/>';
-
-
+        // QUERY
         $criteria = $staffCoverageGateway->newQueryCriteria()
             ->sortBy('date')
             ->filterBy('date:upcoming')

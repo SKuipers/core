@@ -128,6 +128,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage.php'
 
     // ACTIONS
     $table->addActionColumn()
+        ->addParam('search', $criteria->getSearchText(true))
         ->addParam('gibbonStaffCoverageID')
         ->format(function ($person, $actions) {
             $actions->addAction('edit', __('Edit'))

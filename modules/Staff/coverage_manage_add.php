@@ -19,11 +19,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
-use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\SubstituteGateway;
-use Gibbon\Domain\Staff\StaffAbsenceGateway;
-use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_add.php') == false) {
     // Access denied
@@ -31,7 +28,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_add.
 } else {
     //Proceed!
     $page->breadcrumbs
-        ->add(__('Manage Staff Coverage'))
+        ->add(__('Manage Staff Coverage'), 'coverage_manage.php')
         ->add(__('Add Coverage'));
 
 
