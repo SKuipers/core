@@ -24,6 +24,11 @@ use Gibbon\Domain\System\NotificationGateway;
 
 require getcwd().'/../gibbon.php';
 
+//Increase max execution time, as this stuff gets big
+ini_set('max_execution_time', 7200);
+ini_set('memory_limit','1024M');
+set_time_limit(1200);
+
 getSystemSettings($guid, $connection2);
 
 setCurrentSchoolYear($guid, $connection2);
