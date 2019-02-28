@@ -53,10 +53,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
     }
 
     $coverage = $staffCoverageGateway->getByID($gibbonStaffCoverageID);
-    $absence = $container->get(StaffAbsenceGateway::class)->getByID($coverage['gibbonStaffAbsenceID'] ?? '');
-    $type = $container->get(StaffAbsenceTypeGateway::class)->getByID($absence['gibbonStaffAbsenceTypeID'] ?? '');
-
-    if (empty($coverage) || empty($absence) || empty($type)) {
+    if (empty($coverage)) {
         $page->addError(__('The specified record cannot be found.'));
         return;
     }
@@ -74,26 +71,30 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
 
     $form->addRow()->addHeading(__('Accept Coverage Request'));
 
-    $row = $form->addRow();
-        $row->addLabel('gibbonPersonIDLabel', __('Person'));
-        $row->addSelectStaff('gibbonPersonID')->placeholder()->isRequired()->selected($absence['gibbonPersonID'])->readonly();
+    if (!empty($coverage['gibbonStaffAbsenceID'])) {
+        $absence = $container->get(StaffAbsenceGateway::class)->getByID($coverage['gibbonStaffAbsenceID']);
+        $type = $container->get(StaffAbsenceTypeGateway::class)->getByID($absence['gibbonStaffAbsenceTypeID'] ?? '');
 
-    $row = $form->addRow();
-        $row->addLabel('typeLabel', __('Type'));
-        $row->addTextField('type')->readonly()->setValue($absence['reason'] ? "{$type['name']} ({$absence['reason']})" : $type['name']);
+        $row = $form->addRow();
+            $row->addLabel('gibbonPersonIDLabel', __('Person'));
+            $row->addSelectStaff('gibbonPersonID')->placeholder()->isRequired()->selected($absence['gibbonPersonID'])->readonly();
 
+        $row = $form->addRow();
+            $row->addLabel('typeLabel', __('Type'));
+            $row->addTextField('type')->readonly()->setValue($absence['reason'] ? "{$type['name']} ({$absence['reason']})" : $type['name']);
+    }
     $row = $form->addRow();
         $row->addLabel('timestampLabel', __('Requested'));
-        $row->addTextField('timestamp')->readonly()->setValue(Format::relativeTime($coverage['timestampRequested'], false))->setTitle($coverage['timestampRequested']);
+        $row->addTextField('timestamp')->readonly()->setValue(Format::relativeTime($coverage['timestampStatus'], false))->setTitle($coverage['timestampStatus']);
 
-    if (!empty($coverage['notesRequested'])) {
+    if (!empty($coverage['notesStatus'])) {
         $row = $form->addRow();
-            $row->addLabel('notesRequestedLabel', __('Comment'));
-            $row->addTextArea('notesRequested')->setRows(3)->setValue($coverage['notesRequested'])->readonly();
+            $row->addLabel('notesStatusLabel', __('Comment'));
+            $row->addTextArea('notesStatus')->setRows(3)->setValue($coverage['notesStatus'])->readonly();
     }
 
     // DATA TABLE
-    $absenceDates = $container->get(StaffAbsenceDateGateway::class)->selectDatesByCoverage($gibbonStaffCoverageID);
+    $coverageDates = $container->get(StaffAbsenceDateGateway::class)->selectDatesByCoverage($gibbonStaffCoverageID);
 
     $gibbonPersonID = !empty($coverage['gibbonPersonIDCoverage']) ? $coverage['gibbonPersonIDCoverage'] : $_SESSION[$guid]['gibbonPersonID'];
     $unavailable = $container->get(SubstituteGateway::class)->selectUnavailableDatesBySub($gibbonPersonID, $gibbonStaffCoverageID)->fetchGrouped();
@@ -114,9 +115,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
     //     });
 
     $table->addColumn('timeStart', __('Time'))
-        ->format(function ($absence) {
-            if ($absence['allDay'] == 'N') {
-                return Format::small(Format::timeRange($absence['timeStart'], $absence['timeEnd']));
+        ->format(function ($coverage) {
+            if ($coverage['allDay'] == 'N') {
+                return Format::small(Format::timeRange($coverage['timeStart'], $coverage['timeEnd']));
             } else {
                 return Format::small(__('All Day'));
             }
@@ -126,21 +127,21 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
     $table->addCheckboxColumn('coverageDates', 'date')
         ->width('15%')
         ->checked(true)
-        ->format(function ($absence) use (&$datesAvailableToRequest, &$unavailable) {
+        ->format(function ($coverage) use (&$datesAvailableToRequest, &$unavailable) {
             // Has this date already been requested?
-            if (empty($absence['gibbonStaffCoverageID'])) return __('N/A');
+            if (empty($coverage['gibbonStaffCoverageID'])) return __('N/A');
 
             // Is this date unavailable: absent, already booked, or has an availability exception
-            if (isset($unavailable[$absence['date']])) {
-                $times = $unavailable[$absence['date']];
+            if (isset($unavailable[$coverage['date']])) {
+                $times = $unavailable[$coverage['date']];
 
                 foreach ($times as $time) {
                     // Handle full day and partial day unavailability
                     if ($time['allDay'] == 'Y' 
-                    || ($time['allDay'] == 'N' && $absence['allDay'] == 'Y')
-                    || ($time['allDay'] == 'N' && $absence['allDay'] == 'N'
-                        && $time['timeStart'] <= $absence['timeEnd']
-                        && $time['timeEnd'] >= $absence['timeStart'])) {
+                    || ($time['allDay'] == 'N' && $coverage['allDay'] == 'Y')
+                    || ($time['allDay'] == 'N' && $coverage['allDay'] == 'N'
+                        && $time['timeStart'] <= $coverage['timeEnd']
+                        && $time['timeEnd'] >= $coverage['timeStart'])) {
                         return Format::small(__($time['status'] ?? 'Not Available'));
                     }
                 }
@@ -149,7 +150,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
             $datesAvailableToRequest++;
         });
 
-    $row = $form->addRow()->addContent($table->render($absenceDates->toDataSet()));
+    $row = $form->addRow()->addContent($table->render($coverageDates->toDataSet()));
 
     if ($datesAvailableToRequest > 0) {
         $row = $form->addRow();

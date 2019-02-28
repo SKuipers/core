@@ -40,7 +40,7 @@ class NewAbsence extends Message
     public function via() : array
     {
         return $this->absence['urgent']
-            ? ['mail', 'sms']
+            ? ['mail']
             : ['mail'];
     }
 
@@ -62,7 +62,7 @@ class NewAbsence extends Message
             __('Staff')      => $this->details['name'],
             __('Type')       => $this->details['type'],
             __('Date')       => $this->details['date'],
-            __('Confidential Comment')    => $this->absence['comment'],
+            __('Comment ')    => $this->absence['comment'],
         ];
     }
 

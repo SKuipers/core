@@ -21,11 +21,13 @@ use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
+use Gibbon\Domain\DataSet;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
 use Gibbon\Domain\School\SchoolYearGateway;
-use Gibbon\Domain\DataSet;
+use Gibbon\Module\Staff\Tables\AbsenceFormats;
+use Gibbon\Module\Staff\Tables\AbsenceCalendar;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPerson.php') == false) {
     // Access denied
@@ -76,74 +78,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
     $schoolYear = $schoolYearGateway->getSchoolYearByID($gibbonSchoolYearID);
 
     // CALENDAR VIEW
-    $calendar = [];
-    $dateRange = new DatePeriod(
-        new DateTime(substr($schoolYear['firstDay'], 0, 7).'-01'),
-        new DateInterval('P1M'),
-        new DateTime($schoolYear['lastDay'])
-    );
-
-    foreach ($dateRange as $month) {
-        $days = [];
-        for ($dayCount = 1; $dayCount <= $month->format('t'); $dayCount++) {
-            $date = new DateTime($month->format('Y-m').'-'.$dayCount);
-            $absenceListByDay = $absences[$date->format('Y-m-d')] ?? [];
-            $absenceCount = count($absenceListByDay);
-
-            $days[$dayCount] = [
-                'date'    => $date,
-                'number'  => $dayCount,
-                'count'   => $absenceCount,
-                'weekend' => $date->format('N') >= 6,
-                'absence' => current($absenceListByDay),
-            ];
-        }
-
-        $calendar[] = [
-            'name'  => $month->format('M'),
-            'days'  => $days,
-        ];
-    }
-
-    $table = DataTable::create('staffAbsenceCalendar');
-    $table->setTitle(__('Calendar'));
-    $table->getRenderer()->setClass('calendarTable calendarTableSmall');
-
-    $table->addColumn('name', '')->notSortable();
-
-    for ($dayCount = 1; $dayCount <= 31; $dayCount++) {
-        $table->addColumn($dayCount, '')
-            ->notSortable()
-            ->format(function ($month) use ($guid, $dayCount) {
-                $day = $month['days'][$dayCount] ?? null;
-                if (empty($day) || $day['count'] <= 0) return '';
-
-                $url = $_SESSION[$guid]['absoluteURL'].'/fullscreen.php?q=/modules/Staff/absences_view_details.php&gibbonStaffAbsenceID='.$day['absence']['gibbonStaffAbsenceID'].'&width=800&height=550';
-                $title = $day['date']->format('l').'<br/>'.$day['date']->format('M j, Y');
-                $title .= '<br/>'.$day['absence']['type'];
-                $classes = ['thickbox'];
-                if ($day['absence']['allDay'] == 'N') {
-                    $classes[] = $day['absence']['timeStart'] < '12:00:00' ? 'half-day-am' : 'half-day-pm';
-                }
-
-                return Format::link($url, $day['number'], ['title' => $title, 'class' => implode(' ', $classes)]);
-            })
-            ->modifyCells(function ($month, $cell) use ($dayCount) {
-                $day = $month['days'][$dayCount] ?? null;
-                if (empty($day)) return '';
-
-                if ($day['date']->format('Y-m-d') == date('Y-m-d')) $cell->addClass('today');
-                
-                if ($day['count'] > 0) $cell->addClass('bg-color'.($day['absence']['sequenceNumber'] % 10));
-                elseif ($day['weekend']) $cell->addClass('weekend');
-                else $cell->addClass('day');
-
-                return $cell;
-            });
-    }
-
-    echo $table->render(new DataSet($calendar));
-    echo '<br/>';
+    $table = AbsenceCalendar::create($absences, $schoolYear['firstDay'], $schoolYear['lastDay']);
+    echo $table->getOutput().'<br/>';
 
     // COUNT TYPES
     $absenceTypes = $staffAbsenceTypeGateway->selectAllTypes()->fetchAll();
@@ -151,7 +87,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
 
     foreach ($absences as $days) {
         foreach ($days as $absence) {
-            $types[$absence['type']] += $absence['allDay'] == 'Y' ? 1 : 0.5;
+            $types[$absence['type']] += $absence['value'];
         }
     }
 
@@ -193,57 +129,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
     // COLUMNS
     $table->addColumn('date', __('Date'))
         ->width('22%')
-        ->format(function ($absence) {
-            $output = Format::dateRangeReadable($absence['dateStart'], $absence['dateEnd']);
-            if ($absence['allDay'] == 'Y') {
-                $output .= '<br/>'.Format::small(__n('{count} Day', '{count} Days', $absence['days']));
-            } else {
-                $output .= '<br/>'.Format::small(Format::timeRange($absence['timeStart'], $absence['timeEnd']));
-            }
-            
-            return $output;
-        });
-        
+        ->format([AbsenceFormats::class, 'dateDetails']);
+    
     $table->addColumn('type', __('Type'))
         ->description(__('Reason'))
-        ->format(function ($absence) {
-            $output = $absence['type'];
-            if (!empty($absence['reason'])) {
-                $output .= '<br/>'.Format::small($absence['reason']);
-            }
-            if ($absence['status'] != 'Approved') {
-                $output .= '<br/><span class="small emphasis">'.__($absence['status']).'</span>';
-            }
-            return $output;
-        });
+        ->format([AbsenceFormats::class, 'typeAndReason']);
 
     
     $table->addColumn('coverage', __('Coverage'))
-        ->format(function ($absence) {
-            if (empty($absence['coverage']) || empty($absence['coverageList'])) {
-                return '';
-            } elseif ($absence['coverage'] != 'Accepted') {
-                return '<div class="badge success">'.__('Pending').'</div>';
-            }
-
-            $names = array_unique(array_map(function ($person) {
-                return $person['coverage'] == 'Accepted'
-                    ? Format::name($person['titleCoverage'], $person['preferredNameCoverage'], $person['surnameCoverage'], 'Staff', false, true)
-                    : '<div class="badge success">'.__('Pending').'</div>';
-            }, $absence['coverageList'] ?? []));
-
-            return implode('<br/>', $names);
-        });
+        ->format([AbsenceFormats::class, 'coverageList']);
 
     $table->addColumn('timestampCreator', __('Created'))
         ->width('20%')
-        ->format(function ($absence) {
-            $output = Format::relativeTime($absence['timestampCreator']);
-            if ($absence['gibbonPersonID'] != $absence['gibbonPersonIDCreator']) {
-                $output .= '<br/>'.Format::small(__('By').' '.Format::name('', $absence['preferredNameCreator'], $absence['surnameCreator'], 'Staff', false, true));
-            }
-            return $output;
-        });
+        ->format([AbsenceFormats::class, 'createdOn']);
 
     // ACTIONS
     $canManage = isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php');
@@ -253,16 +151,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
         ->addParam('gibbonStaffAbsenceID')
         ->addParam('search', $criteria->getSearchText(true))
         ->format(function ($absence, $actions) use ($canManage, $canRequest) {
-            $actions->addAction('view', __('View Details'))
-                ->isModal(800, 550)
-                ->setURL('/modules/Staff/absences_view_details.php');
-
             if ($canRequest && $absence['status'] == 'Approved' 
                 && empty($absence['coverage']) && $absence['dateEnd'] >= date('Y-m-d')) {
                 $actions->addAction('coverage', __('Request Coverage'))
                     ->setIcon('attendance')
                     ->setURL('/modules/Staff/coverage_request.php');
             }
+
+            $actions->addAction('view', __('View Details'))
+                ->isModal(800, 550)
+                ->setURL('/modules/Staff/absences_view_details.php');
 
             if ($canManage) {
                 $actions->addAction('edit', __('Edit'))

@@ -31,12 +31,12 @@ abstract class Message
     abstract public function getText() : string;
     abstract public function getModule() : string;
 
-    public function getAction() : array
+    public function getAction() : string
     {
         return '';
     }
 
-    public function getLink() : array
+    public function getLink() : string
     {
         return '';
     }

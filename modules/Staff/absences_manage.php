@@ -18,12 +18,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
-use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
+use Gibbon\Module\Staff\Tables\AbsenceFormats;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php') == false) {
     //Acess denied
@@ -152,60 +152,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
 
     $table->addColumn('date', __('Date'))
         ->width('18%')
-        ->format(function ($absence) {
-            $output = Format::dateRangeReadable($absence['dateStart'], $absence['dateEnd']);
-            if ($absence['days'] > 1) {
-                $output .= '<br/>'.Format::small(__n('{count} Day', '{count} Days', $absence['days']));
-            } elseif ($absence['allDay'] == 'N') {
-                $output .= '<br/>'.Format::small(Format::timeRange($absence['timeStart'], $absence['timeEnd']));
-            }
-            
-            return $output;
-        });
+        ->format([AbsenceFormats::class, 'dateDetails']);
 
     $table->addColumn('type', __('Type'))
         ->description(__('Reason'))
-        ->format(function ($absence) {
-            $output = $absence['type'];
-            if (!empty($absence['reason'])) {
-                $output .= '<br/>'.Format::small($absence['reason']);
-            }
-            if ($absence['status'] != 'Approved') {
-                $output .= '<br/><span class="small emphasis">'.__($absence['status']).'</span>';
-            }
-            return $output;
-        });
+        ->format([AbsenceFormats::class, 'typeAndReason']);
 
 
     $table->addColumn('coverage', __('Coverage'))
-        ->format(function ($absence) {
-            if (empty($absence['coverage']) || empty($absence['coverageList'])) {
-                return '';
-            } elseif ($absence['coverage'] != 'Accepted') {
-                return '<div class="badge success">'.__('Pending').'</div>';
-            }
-
-            $names = array_unique(array_map(function ($person) {
-                if ($person['coverage'] == 'Accepted') {
-                    return Format::name($person['titleCoverage'], $person['preferredNameCoverage'], $person['surnameCoverage'], 'Staff', false, true);
-                } elseif ($person['coverage'] == 'Requested') {
-                    return '<div class="badge success">'.__('Pending').'</div>';
-                }
-                return '';
-            }, $absence['coverageList'] ?? []));
-
-            return implode('<br/>', $names);
-        });
-
+        ->format([AbsenceFormats::class, 'coverageList']);
 
     $table->addColumn('timestampCreator', __('Created'))
-        ->format(function ($absence) {
-            $output = Format::relativeTime($absence['timestampCreator'], 'M j, Y H:i');
-            if ($absence['gibbonPersonID'] != $absence['gibbonPersonIDCreator']) {
-                $output .= '<br/>'.Format::small(__('By').' '.Format::name('', $absence['preferredNameCreator'], $absence['surnameCreator'], 'Staff', false, true));
-            }
-            return $output;
-        });
+        ->format([AbsenceFormats::class, 'createdOn']);
 
     // ACTIONS
     $table->addActionColumn()

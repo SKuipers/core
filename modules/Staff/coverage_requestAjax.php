@@ -21,6 +21,7 @@ use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Domain\Staff\SubstituteGateway;
+use Gibbon\Domain\User\UserGateway;
 
 require_once '../../gibbon.php';
 
@@ -37,17 +38,20 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     $staffAbsenceDateGateway = $container->get(StaffAbsenceDateGateway::class);
 
     // DATA TABLE
-    $substitute = $substituteGateway->getBy('gibbonPersonID', $gibbonPersonIDCoverage)->fetch();
+    $substitute = $substituteGateway->selectBy('gibbonPersonID', $gibbonPersonIDCoverage)->fetch();
+    $person = $container->get(UserGateway::class)->getByID($gibbonPersonIDCoverage);
     $absenceDates = $staffAbsenceDateGateway->selectDatesByAbsence($gibbonStaffAbsenceID);
     $unavailable = $substituteGateway->selectUnavailableDatesBySub($gibbonPersonIDCoverage)->fetchGrouped();
 
-    if (empty($absenceDates) || empty($substitute)) {
+    if (empty($absenceDates) || empty($substitute) || empty($person)) {
         die();
     }
 
+    $fullName = Format::name('', $person['preferredName'], $person['surname'], 'Staff', false, true);
+
     $table = DataTable::create('staffAbsenceDates');
     $table->setTitle(__('Availability'));
-    $table->setDescription($substitute['details']);
+    $table->setDescription('<strong>'.$fullName.'</strong><br/><br/>'.$substitute['details']);
     $table->getRenderer()->setClass('bulkActionForm');
 
     $table->addColumn('dateLabel', __('Date'))
@@ -62,11 +66,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
             }
         });
 
-    $datesAvailableToRequest = 0;
     $table->addCheckboxColumn('requestDates', 'date')
         ->width('15%')
         ->checked(true)
-        ->format(function ($absence) use (&$datesAvailableToRequest, &$unavailable) {
+        ->format(function ($absence) use ( &$unavailable) {
             // Has this date already been requested?
             if (!empty($absence['gibbonStaffCoverageID'])) return __('Requested');
 
@@ -86,8 +89,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
                     }
                 }
             }
-
-            $datesAvailableToRequest++;
         });
 
     echo $table->render($absenceDates->toDataSet());

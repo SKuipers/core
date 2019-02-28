@@ -17,13 +17,10 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Services\Format;
-use Gibbon\Comms\NotificationEvent;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
-use Gibbon\Module\Staff\MessageSender;
-use Gibbon\Module\Staff\Messages\CoverageCancelled;
+use Gibbon\Data\BackgroundProcess;
 
 require_once '../../gibbon.php';
 
@@ -63,12 +60,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_cancel
         exit;
     }
 
-    $absence = $container->get(StaffAbsenceGateway::class)->getByID($coverage['gibbonStaffAbsenceID']);
-
-    if (empty($absence)) {
-        $URL .= '&return=error2';
-        header("Location: {$URL}");
-        exit;
+    // If the coverage is for a particular absence, ensure this exists
+    if (!empty($coverage['gibbonStaffAbsenceID'])) {
+        $absence = $container->get(StaffAbsenceGateway::class)->getByID($coverage['gibbonStaffAbsenceID']);
+        if (empty($absence)) {
+            $URL .= '&return=error2';
+            header("Location: {$URL}");
+            exit;
+        }
     }
 
     // Prevent two people cancelling at the same time (?)
@@ -90,27 +89,29 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_cancel
     $partialFail = false;
 
     $coverage = $staffCoverageGateway->getCoverageDetailsByID($gibbonStaffCoverageID);
-    $absenceDates = $staffAbsenceDateGateway->selectDatesByCoverage($gibbonStaffCoverageID);
+    $coverageDates = $staffAbsenceDateGateway->selectDatesByCoverage($gibbonStaffCoverageID);
 
     // Unlink any absence dates from the coverage request so they can be re-requested
-    foreach ($absenceDates as $date) {
-        $updated = $staffAbsenceDateGateway->update($date['gibbonStaffAbsenceDateID'], [
-            'gibbonStaffCoverageID' => null,
-        ]);
-        $partialFail &= !$updated;
+    foreach ($coverageDates as $date) {
+        if (!empty($date['gibbonStaffAbsenceID'])) {
+            $updated = $staffAbsenceDateGateway->update($date['gibbonStaffAbsenceDateID'], [
+                'gibbonStaffCoverageID' => null,
+            ]);
+            $inserted = $staffAbsenceDateGateway->insert([
+                'gibbonStaffCoverageID' => $gibbonStaffCoverageID,
+                'date'                  => $date['date'],
+                'allDay'                => $date['allDay'],
+                'timeStart'             => $date['timeStart'],
+                'timeEnd'               => $date['timeEnd'],
+                'value'                 => $date['value'],
+            ]);
+            $partialFail &= !$updated || !$inserted;
+        }
     }
 
-    $urgencyThreshold = getSettingByScope($connection2, 'Staff', 'urgencyThreshold') * 86400;
-    $relativeSeconds = strtotime($coverage['dateStart']) - time();
-    $coverage['urgent'] = $relativeSeconds <= $urgencyThreshold;
-
     // Send messages (Mail, SMS) to relevant users
-    $recipients = [$coverage['gibbonPersonIDCoverage']];
-    $message = new CoverageCancelled($coverage);
-
-    $sent = $container
-        ->get(MessageSender::class)
-        ->send($recipients, $message);
+    $process = new BackgroundProcess($gibbon->session->get('absolutePath').'/uploads/background');
+    $process->startProcess('staffNotification', __DIR__.'/notification_backgroundProcess.php', ['CoverageCancelled', $gibbonStaffCoverageID]);
 
     $URLSuccess .= $partialFail
         ? "&return=warning1"

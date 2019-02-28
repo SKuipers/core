@@ -37,12 +37,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
     // Proceed!
     $substituteGateway = $container->get(SubstituteGateway::class);
 
-    if ($gibbonPersonID != $_SESSION[$guid]['gibbonPersonID']) {
-        $URL .= '&return=error0';
-        header("Location: {$URL}");
-        exit;
-    }
-
     $exceptionList = is_array($gibbonSubstituteUnavailableID)? $gibbonSubstituteUnavailableID : [$gibbonSubstituteUnavailableID];
     $partialFail = false;
 

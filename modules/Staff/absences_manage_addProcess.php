@@ -37,6 +37,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
     // Proceed!
     $staffAbsenceGateway = $container->get(StaffAbsenceGateway::class);
     $staffAbsenceDateGateway = $container->get(StaffAbsenceDateGateway::class);
+    $fullDayThreshold =  floatval(getSettingByScope($connection2, 'Staff', 'absenceFullDayThreshold'));
+    $halfDayThreshold = floatval(getSettingByScope($connection2, 'Staff', 'absenceHalfDayThreshold'));
 
     $dateStart = $_POST['dateStart'] ?? '';
     $dateEnd = $_POST['dateEnd'] ?? '';
@@ -52,6 +54,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
         'gibbonPersonIDCreator'    => $gibbon->session->get('gibbonPersonID'),
         'notificationSent'         => 'N',
         'notificationList'         => json_encode($notificationList),
+        'gibbonGroupID'            => $_POST['gibbonGroupID'] ?? null,
     ];
 
     // Validate the required values are present
@@ -104,10 +107,28 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
         $dateData = [
             'gibbonStaffAbsenceID' => $gibbonStaffAbsenceID,
             'date'                 => $date->format('Y-m-d'),
-            'allDay'               => $_POST['allDay'] ?? '',
+            'allDay'               => $_POST['allDay'] ?? 'N',
             'timeStart'            => $_POST['timeStart'] ?? null,
             'timeEnd'              => $_POST['timeEnd'] ?? null,
         ];
+
+        if ($dateData['allDay'] == 'Y') {
+            $dateData['value'] = 1.0;
+        } else {
+            $start = new DateTime($date->format('Y-m-d').' '.$dateData['timeStart']);
+            $end = new DateTime($date->format('Y-m-d').' '.$dateData['timeEnd']);
+
+            $timeDiff = $end->getTimestamp() - $start->getTimestamp();
+            $hoursAbsent = abs($timeDiff / 3600);
+            
+            if ($hoursAbsent < $halfDayThreshold) {
+                $dateData['value'] = 0.0;
+            } elseif ($hoursAbsent < $fullDayThreshold) {
+                $dateData['value'] = 0.5;
+            } else {
+                $dateData['value'] = 1.0;
+            }
+        }
 
         if (!isSchoolOpen($guid, $dateData['date'], $connection2)) {
             continue;

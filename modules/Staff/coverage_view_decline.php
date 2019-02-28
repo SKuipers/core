@@ -51,10 +51,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_declin
     }
 
     $coverage = $staffCoverageGateway->getByID($gibbonStaffCoverageID);
-    $absence = $container->get(StaffAbsenceGateway::class)->getByID($coverage['gibbonStaffAbsenceID'] ?? '');
-    $type = $container->get(StaffAbsenceTypeGateway::class)->getByID($absence['gibbonStaffAbsenceTypeID'] ?? '');
 
-    if (empty($coverage) || empty($absence) || empty($type) || $coverage['status'] != 'Requested') {
+    if (empty($coverage) || $coverage['status'] != 'Requested') {
         $page->addError(__('The specified record cannot be found.'));
         return;
     }
@@ -67,22 +65,26 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_declin
 
     $form->addRow()->addHeading(__('Decline Coverage Request'));
 
-    $row = $form->addRow();
-        $row->addLabel('gibbonPersonIDLabel', __('Person'));
-        $row->addSelectStaff('gibbonPersonID')->placeholder()->isRequired()->selected($absence['gibbonPersonID'])->readonly();
+    if (!empty($coverage['gibbonStaffAbsenceID'])) {
+        $absence = $container->get(StaffAbsenceGateway::class)->getByID($coverage['gibbonStaffAbsenceID']);
+        $type = $container->get(StaffAbsenceTypeGateway::class)->getByID($absence['gibbonStaffAbsenceTypeID'] ?? '');
 
-    $row = $form->addRow();
-        $row->addLabel('typeLabel', __('Type'));
-        $row->addTextField('type')->readonly()->setValue($absence['reason'] ? "{$type['name']} ({$absence['reason']})" : $type['name']);
+        $row = $form->addRow();
+            $row->addLabel('gibbonPersonIDLabel', __('Person'));
+            $row->addSelectStaff('gibbonPersonID')->placeholder()->isRequired()->selected($absence['gibbonPersonID'])->readonly();
 
+        $row = $form->addRow();
+            $row->addLabel('typeLabel', __('Type'));
+            $row->addTextField('type')->readonly()->setValue($absence['reason'] ? "{$type['name']} ({$absence['reason']})" : $type['name']);
+    }
     $row = $form->addRow();
         $row->addLabel('timestampLabel', __('Requested'));
-        $row->addTextField('timestamp')->readonly()->setValue(Format::relativeTime($coverage['timestampRequested'], false))->setTitle($coverage['timestampRequested']);
+        $row->addTextField('timestamp')->readonly()->setValue(Format::relativeTime($coverage['timestampStatus'], false))->setTitle($coverage['timestampStatus']);
 
-    if (!empty($coverage['notesRequested'])) {
+    if (!empty($coverage['notesStatus'])) {
         $row = $form->addRow();
-            $row->addLabel('notesRequestedLabel', __('Comment'));
-            $row->addTextArea('notesRequested')->setRows(2)->setValue($coverage['notesRequested'])->readonly();
+            $row->addLabel('notesStatusLabel', __('Comment'));
+            $row->addTextArea('notesStatus')->setRows(2)->setValue($coverage['notesStatus'])->readonly();
     }
 
     $row = $form->addRow();

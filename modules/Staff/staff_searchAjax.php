@@ -35,7 +35,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view.php') == 
     if (empty($searchTerm)) die('[]');
 
     $resultSet = array();
-    $resultError = '[{"id":"","name":"Database Error"}]';
 
     // STAFF
     $data = array('search' => '%'.$searchTerm.'%', 'today' => date('Y-m-d') );

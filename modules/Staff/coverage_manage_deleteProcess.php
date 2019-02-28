@@ -48,11 +48,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_dele
     $absenceDates = $staffAbsenceDateGateway->selectDatesByCoverage($gibbonStaffCoverageID)->fetchAll();
     $partialFail = false;
 
-    // Unlink any absence dates from the coverage request
+    
     foreach ($absenceDates as $date) {
-        $updated = $staffAbsenceDateGateway->update($date['gibbonStaffAbsenceDateID'], [
-            'gibbonStaffCoverageID' => null,
-        ]);
+        if (!empty($date['gibbonStaffAbsenceID'])) {
+            // Unlink any absence dates from the coverage request
+            $updated = $staffAbsenceDateGateway->update($date['gibbonStaffAbsenceDateID'], [
+                'gibbonStaffCoverageID' => null,
+            ]);
+        } else {
+            // Otherwise remove the date (it's not linked to an absence)
+            $updated = $staffAbsenceDateGateway->delete($date['gibbonStaffAbsenceDateID']);
+        }
+        
         $partialFail &= !$updated;
     }
 

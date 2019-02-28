@@ -60,7 +60,7 @@ class MessageSender
         $userGateway = &$this->userGateway;
         $recipients = array_map(function ($gibbonPersonID) use (&$userGateway) {
             return $userGateway->getByID($gibbonPersonID);
-        }, array_filter($recipients));
+        }, array_filter(array_unique($recipients)));
 
         // Send SMS
         if (in_array('sms', $via) && !empty($this->sms)) {
@@ -84,7 +84,7 @@ class MessageSender
                 if (empty($person['email'])) continue;
 
                 $this->mail->clearAllRecipients();
-                $this->mail->AddAddress($person['email']);
+                $this->mail->AddAddress($person['email'], $person['preferredName'].' '.$person['surname']);
 
                 if ($this->mail->Send()) {
                     $result['mail'] = ($result['mail'] ?? 0) + 1;

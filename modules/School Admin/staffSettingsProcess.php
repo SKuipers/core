@@ -33,7 +33,15 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/staffSettings
     $settingGateway = $container->get(SettingGateway::class);
 
     $settingsToUpdate = [
-        'Staff' => ['absenceApprovers', 'substituteTypes', 'urgentNotifications', 'urgencyThreshold', ],
+        'Staff' => [
+            'absenceApprovers',
+            'substituteTypes',
+            'urgentNotifications',
+            'urgencyThreshold',
+            'absenceFullDayThreshold',
+            'absenceHalfDayThreshold',
+            'absenceNotificationGroups',
+        ],
     ];
 
     foreach ($settingsToUpdate as $scope => $settings) {

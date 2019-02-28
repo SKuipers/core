@@ -64,23 +64,28 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_subs_availabi
         $row->addLabel('date', __('Date'));
         $row->addDate('date')->setValue(Format::date($date));
 
-    $options = [
+    $allDayOptions = [
         'Y' => __('All Day'),
-        'N' => __('Time'),
+        'N' => __('Time Span'),
     ];
     $row = $form->addRow();
-        $row->addLabel('allDay', __('Availability'));
-        $row->addSelect('allDay')->fromArray($options)->selected($allDay);
+        $row->addLabel('allDay', __('When'));
+        $row->addSelect('allDay')->fromArray($allDayOptions)->selected($allDay);
     
     $form->toggleVisibilityByClass('timeOptions')->onSelect('allDay')->when('N');
 
     $row = $form->addRow()->addClass('timeOptions');
-        $row->addLabel('timeStart', __('Start Time'));
-        $row->addTime('timeStart')->isRequired()->setValue($timeStart);
-
-    $row = $form->addRow()->addClass('timeOptions');
-        $row->addLabel('timeEnd', __('End Time'));
-        $row->addTime('timeEnd')->chainedTo('timeStart')->isRequired()->setValue($timeEnd);
+        $row->addLabel('timeStart', __('Time'));
+        $col = $row->addColumn('timeStart')->addClass('right inline');
+        $col->addTime('timeStart')
+            ->setClass('shortWidth')
+            ->isRequired()
+            ->setValue($timeStart);
+        $col->addTime('timeEnd')
+            ->chainedTo('timeStart')
+            ->setClass('shortWidth')
+            ->isRequired()
+            ->setValue($timeEnd);
 
     if (isActionAccessible($guid, $connection2, '/modules/Staff/subs_manage.php')) {
         $row = $form->addRow();
@@ -115,9 +120,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_subs_availabi
     $table->addColumn('fullName', __('Name'))
         ->description(__('Priority'))
         ->sortable(['surname', 'preferredName'])
-        ->format(function ($person) {
-            return Format::name($person['title'], $person['preferredName'], $person['surname'], 'Staff', true, true).'<br/>'.
-                   Format::small($person['type']);
+        ->format(function ($person) use ($guid) {
+            $name = Format::name($person['title'], $person['preferredName'], $person['surname'], 'Staff', true, true);
+            $url = !empty($person['gibbonStaffID'])
+                ? $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/staff_view_details.php&gibbonPersonID='.$person['gibbonPersonID']
+                : '';
+
+            return Format::link($url, $name).'<br/>'.Format::small($person['type']);
         });
 
     $table->addColumn('details', __('Details'));
@@ -138,7 +147,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_subs_availabi
                 if (!empty($person['absence'])) $output .= __('Absent').' - '.$person['absence'].'<br/>';
                 if (!empty($person['coverage'])) $output .= __('Covering').' - '.$person['coverage'].'<br/>';
                 if (!empty($person['timetable'])) $output .= __('Teaching').' - '.$person['timetable'].'<br/>';
-                if (!empty($person['unavailable'])) $output .= __('Not Available').'<br/>';
+                if (!empty($person['unavailable'])) $output .= __($person['unavailable'] ?? 'Not Available').'<br/>';
             }
             return $output;
         });

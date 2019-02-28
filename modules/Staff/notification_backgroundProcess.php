@@ -18,13 +18,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Services\Format;
-use Gibbon\Comms\NotificationEvent;
 use Gibbon\Data\BackgroundProcess;
 use Gibbon\Domain\Staff\SubstituteGateway;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
-use Gibbon\Domain\User\UserGateway;
 use Gibbon\Module\Staff\MessageSender;
 use Gibbon\Module\Staff\Messages\BroadcastRequest;
 use Gibbon\Module\Staff\Messages\CoverageAccepted;
@@ -34,6 +32,10 @@ use Gibbon\Module\Staff\Messages\NewAbsence;
 use Gibbon\Module\Staff\Messages\AbsencePendingApproval;
 use Gibbon\Module\Staff\Messages\AbsenceApproval;
 use Gibbon\Module\Staff\Messages\IndividualRequest;
+use Gibbon\Module\Staff\Messages\NoCoverageAvailable;
+use Gibbon\Module\Staff\Messages\CoverageCancelled;
+use Gibbon\Module\Staff\Messages\CoverageDeclined;
+use Gibbon\Domain\Messenger\GroupGateway;
 
 $_POST['address'] = '/modules/Staff/notification_backgroundProcess.php';
 
@@ -84,8 +86,14 @@ switch ($action) {
 
             // Target the absence message to the selected staff
             $recipients = !empty($absence['notificationList']) ? json_decode($absence['notificationList']) : [];
-            $recipients[] = $organisationHR;
 
+            // Add the notification group members, if selected
+            if (!empty($absence['gibbonGroupID'])) {
+                $groupRecipients = $container->get(GroupGateway::class)->selectPersonIDsByGroup($absence['gibbonGroupID'])->fetchAll(PDO::FETCH_COLUMN, 0);
+                $recipients = array_merge($recipients, $groupRecipients);
+            }
+
+            // Add the absent person, if this was created by someone else
             if ($absence['gibbonPersonID'] != $absence['gibbonPersonIDCreator']) {
                 $recipients[] = $absence['gibbonPersonID'];
             }
@@ -176,10 +184,16 @@ switch ($action) {
                 $availableByDate = $substituteGateway->queryAvailableSubsByDate($criteria, $date['date'])->toArray();
                 $availableSubs = array_merge($availableSubs, $availableByDate);
             }
-
-            // Send messages
-            $recipients = array_column($availableSubs, 'gibbonPersonID');
-            $message = new BroadcastRequest($coverage);
+            
+            if (count($availableSubs) > 0) {
+                // Send messages to available subs
+                $recipients = array_column($availableSubs, 'gibbonPersonID');
+                $message = new BroadcastRequest($coverage);
+            } else {
+                // Send a message to admin - no coverage
+                $recipients = [$organisationHR];
+                $message = new NoCoverageAvailable($coverage);
+            }
 
             if ($sent = $messageSender->send($recipients, $message)) {
                 $sendCount += count($recipients);
@@ -202,7 +216,7 @@ switch ($action) {
             $coverage['urgent'] = $relativeSeconds <= $urgencyThreshold;
 
             // Send the coverage accepted message to the absent staff member
-            $recipients = [$coverage['gibbonPersonID']];
+            $recipients = [$coverage['gibbonPersonIDStatus']];
             $message = !empty($uncoveredDates)
                 ? new CoveragePartial($coverage, $uncoveredDates)
                 : new CoverageAccepted($coverage);
@@ -212,23 +226,64 @@ switch ($action) {
             }
 
             // Send a coverage arranged message to the selected staff for this absence
-            $recipients = !empty($coverage['notificationListAbsence']) ? json_decode($coverage['notificationListAbsence']) : [];
-            $recipients[] = $organisationHR;
+            if (!empty($coverage['gibbonStaffAbsenceID'])) {
+                $recipients = !empty($coverage['notificationListAbsence']) ? json_decode($coverage['notificationListAbsence']) : [];
+                
+                // Add the notification group members, if selected
+                if (!empty($coverage['gibbonGroupID'])) {
+                    $groupRecipients = $container->get(GroupGateway::class)->selectPersonIDsByGroup($coverage['gibbonGroupID'])->fetchAll(PDO::FETCH_COLUMN, 0);
+                    $recipients = array_merge($recipients, $groupRecipients);
+                }
 
-            $message = new NewCoverage($coverage);
+                $message = new NewCoverage($coverage);
 
-            if ($sent2 = $messageSender->send($recipients, $message)) {
+                if ($sent2 = $messageSender->send($recipients, $message)) {
+                    $sendCount += count($recipients);
+                }
+            }
+        }
+        break;
+
+    case 'CoverageDeclined':
+        $gibbonStaffCoverageID = $argv[2] ?? '';
+
+        if ($coverage = $staffCoverageGateway->getCoverageDetailsByID($gibbonStaffCoverageID)) {
+            $relativeSeconds = strtotime($coverage['dateStart']) - time();
+            $coverage['urgent'] = $relativeSeconds <= $urgencyThreshold;
+
+            $recipients = [$coverage['gibbonPersonIDStatus']];
+            $message = new CoverageDeclined($coverage);
+
+            if ($sent = $messageSender->send($recipients, $message)) {
                 $sendCount += count($recipients);
             }
         }
+
+        break;
+
+    case 'CoverageCancelled':
+        $gibbonStaffCoverageID = $argv[2] ?? '';
+
+        if ($coverage = $staffCoverageGateway->getCoverageDetailsByID($gibbonStaffCoverageID)) {
+            $relativeSeconds = strtotime($coverage['dateStart']) - time();
+            $coverage['urgent'] = $relativeSeconds <= $urgencyThreshold;
+
+            $recipients = [$coverage['gibbonPersonIDStatus']];
+            $message = new CoverageCancelled($coverage);
+
+            if ($sent = $messageSender->send($recipients, $message)) {
+                $sendCount += count($recipients);
+            }
+        }
+
         break;
 }
 
 echo __('Urgent').': '.($relativeSeconds <= $urgencyThreshold ? 'yes' : 'no')."\n";
 echo __('Sent').': '.$sendCount."\n";
 echo __('Send Report').": \n";
-print_r($sent);
-print_r($sent2);
+print_r($sent ?? []);
+print_r($sent2 ?? []);
 
 // End the process and output the result to terminal (output file)
 // $processor->stopProcess('staffNotification');

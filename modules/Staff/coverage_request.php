@@ -19,7 +19,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
-use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\SubstituteGateway;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
@@ -99,9 +98,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
 
     if (!empty($availableSubs)) {
         $requestTypes['Individual'] = __('Specific substitute');
-    } else {
-        $row = $form->addRow();
-        
     }
 
     $dateStart = $absenceDates[0] ?? '';
@@ -122,14 +118,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     $form->toggleVisibilityByClass('individualOptions')->onSelect('requestType')->when('Individual');
     $form->toggleVisibilityByClass('broadcastOptions')->onSelect('requestType')->when('Broadcast');
         
-    $notification = __("SMS and email");
-    
     // Broadcast
     $row = $form->addRow()->addClass('broadcastOptions');
     if (!empty($availableSubs)) {
         $row->addAlert(__("This option sends a request out to all available substitutes. There are currently {count} substitutes with availability for this time period. You'll receive a notification once your request is accepted.", ['count' => '<b>'.count($availableSubs).'</b>']), 'message');
     } else {
-        $row->addAlert(__("There are no substitutes currently available for this time period. You may still send an request, as sub availability may change, but you cannot select a specific sub at this time."), 'warning');
+        $row->addAlert(__("There are no substitutes currently available for this time period. You should still send a request, as sub availability may change, but you cannot select a specific sub at this time. A notification will be sent to admin."), 'warning');
     }
 
     // Individual
@@ -149,8 +143,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
         $row->addContent('<div class="datesTable"></div>');
 
     $row = $form->addRow();
-        $row->addLabel('notesRequested', __('Comment'))->description(__('This message is shared with substitutes, and is also visible to users who manage staff coverage.'));
-        $row->addTextArea('notesRequested')->setRows(3);
+        $row->addLabel('notesStatus', __('Comment'))->description(__('This message is shared with substitutes, and is also visible to users who manage staff coverage.'));
+        $row->addTextArea('notesStatus')->setRows(3);
 
     $row = $form->addRow();
         $row->addFooter();
@@ -164,7 +158,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
 $(document).ready(function() {
     $('#gibbonPersonIDCoverage').on('input', function() {
         $('.datesTable').load('./modules/Staff/coverage_requestAjax.php', {
-            'gibbonStaffAbsenceID': '<?php echo $gibbonStaffAbsenceID; ?>',
+            'gibbonStaffAbsenceID': '<?php echo $gibbonStaffAbsenceID ?? ''; ?>',
             'gibbonPersonIDCoverage': $(this).val(),
         }, function() {
             // Pre-highlight selected rows

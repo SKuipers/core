@@ -77,12 +77,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_cancel
 
     $row = $form->addRow();
         $row->addLabel('timestampLabel', __('Requested'));
-        $row->addTextField('timestamp')->readonly()->setValue(Format::relativeTime($coverage['timestampRequested'], false))->setTitle($coverage['timestampRequested']);
+        $row->addTextField('timestamp')->readonly()->setValue(Format::relativeTime($coverage['timestampStatus'], false))->setTitle($coverage['timestampStatus']);
 
-    if (!empty($coverage['notesRequested'])) {
+    if (!empty($coverage['notesStatus'])) {
         $row = $form->addRow();
-            $row->addLabel('notesRequestedLabel', __('Comment'));
-            $row->addTextArea('notesRequested')->setRows(2)->setValue($coverage['notesRequested'])->readonly();
+            $row->addLabel('notesStatusLabel', __('Comment'));
+            $row->addTextArea('notesStatus')->setRows(2)->setValue($coverage['notesStatus'])->readonly();
     }
 
     $row = $form->addRow();

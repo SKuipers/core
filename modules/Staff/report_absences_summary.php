@@ -59,7 +59,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_summ
 
     // Translated array of months in the current school year
     foreach ($dateRange as $monthDate) {
-        $months[$monthDate->format('Y-m-d')] =  ucfirst(strftime('%B %G', $monthDate->format('U')));
+        $months[$monthDate->format('Y-m-d')] = Format::dateReadable($monthDate->format('Y-m-d'), '%B %Y');
     }
 
     // Setup the date range used for this report
@@ -134,7 +134,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_summ
             }
 
             $calendar[] = [
-                'name'  => $monthDate->format('M'),
+                'name'  => Format::dateReadable($monthDate->format('Y-m-d'), '%b'),
                 'days'  => $days,
             ];
         }
@@ -207,7 +207,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_summ
         $id = $absence['gibbonPersonID'];
         if (empty($absencesByPerson[$id])) $absencesByPerson[$id] = $types;
         
-        $absencesByPerson[$id][$absence['type']] += $absence['allDay'] == 'Y' ? 1 : 0.5;
+        $absencesByPerson[$id][$absence['type']] += $absence['value'];
     }
 
     $allStaff = $staffGateway->queryAllStaff($criteria);

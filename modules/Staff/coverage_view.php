@@ -17,13 +17,12 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Forms\Form;
 use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Domain\School\SchoolYearGateway;
-use Gibbon\Domain\DataSet;
 use Gibbon\Domain\Staff\SubstituteGateway;
+use Gibbon\Module\Staff\Tables\AbsenceFormats;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view.php') == false) {
     // Access denied
@@ -82,35 +81,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view.php') 
     $table->addColumn('status', __('Status'))
         ->width('15%')
         ->format(function ($coverage) use ($urgencyThreshold) {
-            $relativeSeconds = strtotime($coverage['dateStart']) - time();
-            if ($relativeSeconds <= (86400 * $urgencyThreshold)) {
-                return '<div class="error badge">'.__('Urgent').'</div>';
-            } elseif ($relativeSeconds <= (86400 * ($urgencyThreshold * 3))) {
-                return '<div class="badge warning">'.__('Upcoming').'</div>';
-            } else {
-                return __('Upcoming');
-            }
+            return AbsenceFormats::coverageStatus($coverage, $urgencyThreshold);
         });
 
     $table->addColumn('requested', __('Person'))
         ->width('30%')
         ->sortable(['surname', 'preferredName'])
-        ->format(function ($coverage) {
-            return Format::name($coverage['titleAbsence'], $coverage['preferredNameAbsence'], $coverage['surnameAbsence'], 'Staff', false, true).'<br/>'.
-                   Format::small($coverage['jobTitleAbsence']);
-        });
+        ->format([AbsenceFormats::class, 'personDetails']);
 
     $table->addColumn('date', __('Date'))
-        ->format(function ($coverage) {
-            $output = Format::dateRangeReadable($coverage['dateStart'], $coverage['dateEnd']);
-            if ($coverage['allDay'] == 'Y') {
-                $output .= '<br/>'.Format::small(__n('{count} Day', '{count} Days', $coverage['days']));
-            } else {
-                $output .= '<br/>'.Format::small(Format::timeRange($coverage['timeStart'], $coverage['timeEnd']));
-            }
-            
-            return $output;
-        });
+        ->format([AbsenceFormats::class, 'dateDetails']);
 
     // Only display the Accept / Decline options for people who are substitutes
     $substitute = $container->get(SubstituteGateway::class)->getSubstituteByPerson($gibbonPersonID);

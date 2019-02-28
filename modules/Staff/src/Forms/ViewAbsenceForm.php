@@ -27,6 +27,7 @@ use Gibbon\Services\Format;
 use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
+use Gibbon\Module\Staff\Tables\AbsenceFormats;
 
 /**
  * ViewAbsenceForm
@@ -90,7 +91,7 @@ class ViewAbsenceForm
 
         if ($canManage) {
             $row = $table->addRow();
-                $row->addLabel('commentLabel', __('Confidential Comment'));
+                $row->addLabel('commentLabel', __('Comment '));
                 $row->addTextArea('comment')->setRows(2)->readonly();
         }
 
@@ -106,26 +107,13 @@ class ViewAbsenceForm
         $table->setTitle(__('Dates'));
 
         $table->addColumn('date', __('Date'))
-            ->format(Format::using('dateReadable', 'date'));
+              ->format(Format::using('dateReadable', 'date'));
 
-        $table->addColumn('timeStart', __('Time'))->format(function ($absence) {
-            if ($absence['allDay'] == 'N') {
-                return Format::small(Format::timeRange($absence['timeStart'], $absence['timeEnd']));
-            } else {
-                return Format::small(__('All Day'));
-            }
-        });
+        $table->addColumn('timeStart', __('Time'))
+              ->format([AbsenceFormats::class, 'timeDetails']);
 
         $table->addColumn('coverage', __('Coverage'))
-            ->format(function ($absence) {
-                if (empty($absence['coverage'])) {
-                    return '';
-                }
-
-                return $absence['coverage'] == 'Accepted'
-                        ? Format::name($absence['titleCoverage'], $absence['preferredNameCoverage'], $absence['surnameCoverage'], 'Staff', false, true)
-                        : '<div class="badge success">'.__('Pending').'</div>';
-            });
+              ->format([AbsenceFormats::class, 'coverage']);
 
         if ($canManage && $canRequest && $values['status'] == 'Approved') {
             $table->addActionColumn()

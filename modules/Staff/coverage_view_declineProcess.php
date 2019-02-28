@@ -17,21 +17,18 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Services\Format;
-use Gibbon\Comms\NotificationEvent;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
-use Gibbon\Module\Staff\MessageSender;
-use Gibbon\Module\Staff\Messages\CoverageDeclined;
 use Gibbon\Domain\Staff\SubstituteGateway;
+use Gibbon\Data\BackgroundProcess;
 
 require_once '../../gibbon.php';
 
 $gibbonStaffCoverageID = $_POST['gibbonStaffCoverageID'] ?? '';
 
 $URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/coverage_view_decline.php&gibbonStaffCoverageID='.$gibbonStaffCoverageID;
-$URLSuccess = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/coverage_view.php';
+$URLSuccess = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/coverage_my.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_decline.php') == false) {
     $URL .= '&return=error0';
@@ -60,24 +57,26 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_declin
 
     // Validate the database relationships exist
     $coverage = $staffCoverageGateway->getByID($gibbonStaffCoverageID);
+    $substitute = $substituteGateway->getSubstituteByPerson($coverage['gibbonPersonIDCoverage'] ?? '');
 
-    if (empty($coverage)) {
+    if (empty($coverage) || empty($substitute)) {
         $URL .= '&return=error2';
         header("Location: {$URL}");
         exit;
     }
 
-    $absence = $container->get(StaffAbsenceGateway::class)->getByID($coverage['gibbonStaffAbsenceID']);
-    $substitute = $substituteGateway->getSubstituteByPerson($coverage['gibbonPersonIDCoverage']);
-
-    if (empty($absence) || empty($substitute)) {
-        $URL .= '&return=error2';
-        header("Location: {$URL}");
-        exit;
+    // If the coverage is for a particular absence, ensure this exists
+    if (!empty($coverage['gibbonStaffAbsenceID'])) {
+        $absence = $container->get(StaffAbsenceGateway::class)->getByID($coverage['gibbonStaffAbsenceID']);
+        if (empty($absence)) {
+            $URL .= '&return=error2';
+            header("Location: {$URL}");
+            exit;
+        }
     }
 
     // Prevent two people declining at the same time (?)
-    if ($coverage['status'] != 'Requested' || empty($coverage['gibbonPersonIDCoverage'])) {
+    if ($coverage['status'] != 'Requested') {
         $URL .= '&return=error1';
         header("Location: {$URL}");
         exit;
@@ -95,36 +94,38 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_declin
     $partialFail = false;
 
     $coverage = $staffCoverageGateway->getCoverageDetailsByID($gibbonStaffCoverageID);
-    $absenceDates = $staffAbsenceDateGateway->selectDatesByCoverage($gibbonStaffCoverageID);
+    $coverageDates = $staffAbsenceDateGateway->selectDatesByCoverage($gibbonStaffCoverageID);
 
     // Unlink any absence dates from the coverage request so they can be re-requested
-    foreach ($absenceDates as $date) {
-        $updated = $staffAbsenceDateGateway->update($date['gibbonStaffAbsenceDateID'], [
-            'gibbonStaffCoverageID' => null,
-        ]);
-        $partialFail &= !$updated;
+    foreach ($coverageDates as $date) {
+        if (!empty($date['gibbonStaffAbsenceID'])) {
+            $updated = $staffAbsenceDateGateway->update($date['gibbonStaffAbsenceDateID'], [
+                'gibbonStaffCoverageID' => null,
+            ]);
+                $inserted = $staffAbsenceDateGateway->insert([
+                'gibbonStaffCoverageID' => $gibbonStaffCoverageID,
+                'date'                  => $date['date'],
+                'allDay'                => $date['allDay'],
+                'timeStart'             => $date['timeStart'],
+                'timeEnd'               => $date['timeEnd'],
+                'value'                 => $date['value'],
+            ]);
+            $partialFail &= !$updated || !$inserted;
+        }
 
         if ($markAsUnavailable) {
             $substituteGateway->insertUnavailability([
-                'gibbonPersonID' => $coverage['gibbonPersonID'],
+                'gibbonPersonID' => $coverage['gibbonPersonIDCoverage'],
                 'date'           => $date['date'],
                 'allDay'         => 'Y',
+                'reason'         => 'Not Available',
             ]);
         }
     }
 
-    $urgencyThreshold = getSettingByScope($connection2, 'Staff', 'urgencyThreshold') * 86400;
-    $relativeSeconds = strtotime($coverage['dateStart']) - time();
-    $coverage['urgent'] = $relativeSeconds <= $urgencyThreshold;
-
     // Send messages (Mail, SMS) to relevant users
-    $recipients = [$absence['gibbonPersonID']];
-    $message = new CoverageDeclined($coverage);
-
-    $sent = $container
-        ->get(MessageSender::class)
-        ->send($recipients, $message);
-
+    $process = new BackgroundProcess($gibbon->session->get('absolutePath').'/uploads/background');
+    $process->startProcess('staffNotification', __DIR__.'/notification_backgroundProcess.php', ['CoverageDeclined', $gibbonStaffCoverageID]);
 
     $URLSuccess .= $partialFail
         ? "&return=warning1"

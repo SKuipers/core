@@ -20,9 +20,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Forms\Prefab\BulkActionForm;
-use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\SubstituteGateway;
+use Gibbon\Domain\School\SchoolYearGateway;
+use Gibbon\Domain\Staff\StaffCoverageGateway;
+use Gibbon\Module\Staff\Tables\CoverageCalendar;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availability.php') == false) {
     // Access denied
@@ -61,12 +63,24 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
     }
 
     $substituteGateway = $container->get(SubstituteGateway::class);
+    $schoolYearGateway = $container->get(SchoolYearGateway::class);
+    $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, [
             'success1' => __('Your request was completed successfully.').' '.__('You may now continue by submitting a coverage request for this absence.')
         ]);
     }
+
+    $criteria = $staffCoverageGateway->newQueryCriteria()->pageSize(0);
+
+    $coverage = $staffCoverageGateway->queryCoverageByPersonCovering($criteria, $gibbonPersonID);
+    $exceptions = $substituteGateway->queryUnavailableDatesBySub($criteria, $gibbonPersonID);
+    $schoolYear = $schoolYearGateway->getSchoolYearByID($_SESSION[$guid]['gibbonSchoolYearID']);
+
+    // CALENDAR VIEW
+    $calendar = CoverageCalendar::create($coverage->toArray(), $exceptions->toArray(), $schoolYear['firstDay'], $schoolYear['lastDay']);
+    echo $calendar->getOutput().'<br/>';
 
     // BULK ACTIONS
     $form = BulkActionForm::create('bulkAction', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/coverage_availability_deleteProcess.php');
@@ -96,15 +110,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
 
     $table->addColumn('timeStart', __('Time'))->format(function ($date) {
         if ($date['allDay'] == 'N') {
-            return Format::small(Format::timeRange($date['timeStart'], $date['timeEnd']));
+            return Format::timeRange($date['timeStart'], $date['timeEnd']);
         } else {
-            return Format::small(__('All Day'));
+            return __('All Day');
         }
     });
 
-    $table->addColumn('status', __('Availability'))
+    $table->addColumn('reason', __('Reason'))
         ->format(function ($date) {
-            return Format::small(__('Not Available'));
+            return !empty($date['reason'])
+                ? __($date['reason'])
+                : Format::small(__('Not Available'));
         });
 
     $table->addActionColumn()
@@ -129,7 +145,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
     $form->addHiddenValue('gibbonPersonID', $gibbonPersonID);
 
-    $form->addRow()->addHeading(__('Not Available'));
+    $form->addRow()->addHeading(__('Add'));
 
     $row = $form->addRow();
     $row->addLabel('allDay', __('All Day'));
@@ -153,6 +169,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
     $row = $form->addRow()->addClass('timeOptions');
         $row->addLabel('timeEnd', __('End Time'));
         $row->addTime('timeEnd')->chainedTo('timeStart')->isRequired();
+
+    $row = $form->addRow();
+        $row->addLabel('reason', __('Reason'))->description(__('Optional'));
+        $row->addTextField('reason')->maxLength(255);
 
     $row = $form->addRow();
         $row->addFooter();

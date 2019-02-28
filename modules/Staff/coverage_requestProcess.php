@@ -18,13 +18,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Services\Format;
-use Gibbon\Comms\NotificationEvent;
 use Gibbon\Domain\User\UserGateway;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
-use Gibbon\Module\Staff\MessageSender;
-use Gibbon\Module\Staff\Messages\IndividualRequest;
 use Gibbon\Data\BackgroundProcess;
 
 require_once '../../gibbon.php';
@@ -46,13 +43,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     $requestDates = $_POST['requestDates'] ?? [];
 
     $data = [
-        'gibbonStaffAbsenceID'    => $gibbonStaffAbsenceID,
-        'gibbonPersonIDCoverage'  => $_POST['gibbonPersonIDCoverage'] ?? null,
-        'gibbonPersonIDRequested' => $gibbon->session->get('gibbonPersonID'),
-        'notesRequested'          => $_POST['notesRequested'],
-        'requestType'             => $_POST['requestType'],
-        'status'                  => 'Requested',
-        'notificationSent'        => 'N',
+        'gibbonStaffAbsenceID'   => $gibbonStaffAbsenceID,
+        'gibbonSchoolYearID'     => $gibbon->session->get('gibbonSchoolYearID'),
+        'gibbonPersonIDStatus'   => $gibbon->session->get('gibbonPersonID'),
+        'gibbonPersonIDCoverage' => $_POST['gibbonPersonIDCoverage'] ?? null,
+        'notesStatus'            => $_POST['notesStatus'],
+        'requestType'            => $_POST['requestType'],
+        'status'                 => 'Requested',
+        'notificationSent'       => 'N',
     ];
 
     // Validate the required values are present

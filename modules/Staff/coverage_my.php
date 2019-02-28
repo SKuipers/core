@@ -17,13 +17,13 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Forms\Form;
 use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Domain\School\SchoolYearGateway;
-use Gibbon\Domain\DataSet;
 use Gibbon\Domain\Staff\SubstituteGateway;
+use Gibbon\Module\Staff\Tables\AbsenceFormats;
+use Gibbon\Module\Staff\Tables\CoverageCalendar;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php') == false) {
     // Access denied
@@ -32,25 +32,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php') ==
     $page->breadcrumbs->add(__('My Coverage'));
 
     $gibbonPersonID = $_SESSION[$guid]['gibbonPersonID'];
-    $gibbonSchoolYearID = $_SESSION[$guid]['gibbonSchoolYearID'];
     
     $schoolYearGateway = $container->get(SchoolYearGateway::class);
     $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
     $substituteGateway = $container->get(SubstituteGateway::class);
     $urgencyThreshold = getSettingByScope($connection2, 'Staff', 'urgencyThreshold');
 
-    if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php')) {
-
-        $criteria = $staffCoverageGateway->newQueryCriteria()
+    $criteria = $staffCoverageGateway->newQueryCriteria()
             ->sortBy('date')
             ->filterBy('date:upcoming')
             ->fromPOST('staffCoverageSelf');
 
-        $coverage = $staffCoverageGateway->queryCoverageByPersonAbsent($criteria, $gibbonPersonID);
-
+    $coverage = $staffCoverageGateway->queryCoverageByPersonAbsent($criteria, $gibbonPersonID);
+    
+    if ($coverage->getResultCount() > 0) {
         // DATA TABLE
         $table = DataTable::createPaginated('staffCoverageSelf', $criteria);
-        $table->setTitle(__('Covering Me'));
+        $table->setTitle(__('My Coverage'));
 
         $table->modifyRows(function ($coverage, $row) {
             if ($coverage['status'] == 'Accepted') $row->addClass('current');
@@ -71,41 +69,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php') ==
         $table->addColumn('status', __('Status'))
             ->width('15%')
             ->format(function ($coverage) use ($urgencyThreshold) {
-                $relativeSeconds = strtotime($coverage['dateStart']) - time();
-                if ($coverage['status'] != 'Requested') {
-                    return $coverage['status'];
-                }
-                if ($relativeSeconds <= 0) {
-                    return '<div class="badge dull">'.__('Overdue').'</div>';
-                } elseif ($relativeSeconds <= (86400 * $urgencyThreshold)) {
-                    return '<div class="error badge">'.__('Urgent').'</div>';
-                } elseif ($relativeSeconds <= (86400 * ($urgencyThreshold * 3))) {
-                    return '<div class="badge warning">'.__('Upcoming').'</div>';
-                } else {
-                    return __('Upcoming');
-                }
+                return AbsenceFormats::coverageStatus($coverage, $urgencyThreshold);
             });
+
+        $table->addColumn('date', __('Date'))
+            ->format([AbsenceFormats::class, 'dateDetails']);
 
         $table->addColumn('requested', __('Substitute'))
             ->width('30%')
             ->sortable(['surnameCoverage', 'preferredNameCoverage'])
-            ->format(function ($coverage) {
-                return $coverage['gibbonPersonIDCoverage'] 
-                    ? Format::name($coverage['titleCoverage'], $coverage['preferredNameCoverage'], $coverage['surnameCoverage'], 'Staff', false, true)
-                    : '<div class="badge success">'.__('Pending').'</div>';
-            });
-
-        $table->addColumn('date', __('Date'))
-            ->format(function ($coverage) {
-                $output = Format::dateRangeReadable($coverage['dateStart'], $coverage['dateEnd']);
-                if ($coverage['allDay'] == 'Y') {
-                    $output .= '<br/>'.Format::small(__n('{count} Day', '{count} Days', $coverage['days']));
-                } else {
-                    $output .= '<br/>'.Format::small(Format::timeRange($coverage['timeStart'], $coverage['timeEnd']));
-                }
-                
-                return $output;
-            });
+            ->format([AbsenceFormats::class, 'substituteDetails']);
 
         $table->addColumn('notesCoverage', __('Comment'))
             ->format(function ($coverage) {
@@ -131,123 +104,26 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php') ==
         echo $table->render($coverage);
     }
 
-    
-    if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept.php')) {
+    $substitute = $substituteGateway->getSubstituteByPerson($gibbonPersonID);
+    if (!empty($substitute)) {
 
-        $criteria = $staffCoverageGateway->newQueryCriteria()
-            ->pageSize(0);
+        $criteria = $staffCoverageGateway->newQueryCriteria()->pageSize(0);
 
         $coverage = $staffCoverageGateway->queryCoverageByPersonCovering($criteria, $gibbonPersonID);
-        $coverageByDate = array_reduce($coverage->toArray(), function ($group, $item) {
-            $group[$item['date']][] = $item;
-            return $group;
-        }, []);
-
         $exceptions = $substituteGateway->queryUnavailableDatesBySub($criteria, $gibbonPersonID);
-        $exceptionsByDate = array_reduce($exceptions->toArray(), function ($group, $item) {
-            $group[$item['date']][] = $item;
-            return $group;
-        }, []);
-        
-    
-        $schoolYear = $schoolYearGateway->getSchoolYearByID($gibbonSchoolYearID);
-    
-        // CALENDAR VIEW
-        $calendar = [];
-        $dateRange = new DatePeriod(
-            new DateTime(substr($schoolYear['firstDay'], 0, 7).'-01'),
-            new DateInterval('P1M'),
-            new DateTime($schoolYear['lastDay'])
-        );
-    
-        foreach ($dateRange as $month) {
-            $days = [];
-            for ($dayCount = 1; $dayCount <= $month->format('t'); $dayCount++) {
-                $date = new DateTime($month->format('Y-m').'-'.$dayCount);
-                $coverageListByDay = $coverageByDate[$date->format('Y-m-d')] ?? [];
-                $coverageCount = count($coverageListByDay);
-    
-                $days[$dayCount] = [
-                    'date'    => $date,
-                    'number'  => $dayCount,
-                    'count'   => $coverageCount,
-                    'weekend' => $date->format('N') >= 6,
-                    'coverage' => current($coverageListByDay),
-                    'exception' => isset($exceptionsByDate[$date->format('Y-m-d')]) 
-                        ? current($exceptionsByDate[$date->format('Y-m-d')]) 
-                        : null,
-                ];
-            }
-    
-            $calendar[] = [
-                'name'  => $month->format('M'),
-                'days'  => $days,
-            ];
-        }
-    
-        $table = DataTable::create('staffAbsenceCalendar')
-            ->setTitle(__('Calendar'));
+        $schoolYear = $schoolYearGateway->getSchoolYearByID($_SESSION[$guid]['gibbonSchoolYearID']);
 
-        $table->getRenderer()->setClass('calendarTable calendarTableSmall');
-    
+        // CALENDAR VIEW
+        $table = CoverageCalendar::create($coverage->toArray(), $exceptions->toArray(), $schoolYear['firstDay'], $schoolYear['lastDay']);
+
         $table->addHeaderAction('availability', __('Edit Availability'))
             ->setURL('/modules/Staff/coverage_availability.php')
             ->setIcon('planner')
             ->displayLabel();
 
-        $table->addColumn('name', '')->notSortable();
-    
-        for ($dayCount = 1; $dayCount <= 31; $dayCount++) {
-            $table->addColumn($dayCount, '')
-                ->notSortable()
-                ->format(function ($month) use ($guid, $dayCount) {
-                    $day = $month['days'][$dayCount] ?? null;
-                    if (empty($day) || ($day['count'] <= 0 && !$day['exception'])) return '';
-    
-                    $coverage = $day['coverage'];
-    
-                    $url = $_SESSION[$guid]['absoluteURL'].'/fullscreen.php?q=/modules/Staff/coverage_view_details.php&gibbonStaffCoverageID='.$day['coverage']['gibbonStaffCoverageID'].'&width=800&height=550';
+        echo $table->getOutput().'<br/>';
 
-                    $params['title'] = $day['date']->format('l').'<br/>'.$day['date']->format('M j, Y');
-                    $params['class'] = '';
-                    if ($day['coverage']['allDay'] == 'N') {
-                        $params['class'] = $day['coverage']['timeStart'] < '12:00:00' ? 'half-day-am' : 'half-day-pm';
-                    }
-                    
-                    if ($day['count'] > 0) {
-                        $params['class'] .= ' thickbox';
-                        $params['title'] .= '<br/>'.Format::name($coverage['titleAbsence'], $coverage['preferredNameAbsence'], $coverage['surnameAbsence'], 'Staff', false, true);
-                        $params['title'] .= '<br/>'.$coverage['status'];
-                    } elseif ($day['exception']) {
-                        if ($day['exception']['allDay'] == 'N') {
-                            $params['class'] = $day['exception']['timeStart'] < '12:00:00' ? 'half-day-am' : 'half-day-pm';
-                        }
-
-                        $url = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/coverage_availability.php';
-                        $params['title'] .= '<br/>'.__('Not Available');
-                    }
-    
-                    return Format::link($url, $day['number'], $params);
-                })
-                ->modifyCells(function ($month, $cell) use ($dayCount) {
-                    $day = $month['days'][$dayCount] ?? null;
-                    if (empty($day)) return '';
-    
-                    if ($day['date']->format('Y-m-d') == date('Y-m-d')) $cell->addClass('today');
-                    
-                    if ($day['count'] > 0) $cell->addClass($day['coverage']['status'] == 'Requested' ? 'bg-color2' : 'bg-color0');
-                    elseif ($day['exception']) $cell->addClass('bg-grey');
-                    elseif ($day['weekend']) $cell->addClass('weekend');
-                    else $cell->addClass('day');
-    
-                    return $cell;
-                });
-        }
-    
-        echo $table->render(new DataSet($calendar));
-        echo '<br/>';
-
-
+        // QUERY
         $criteria = $staffCoverageGateway->newQueryCriteria()
             ->sortBy('date')
             ->filterBy('date:upcoming')
@@ -257,7 +133,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php') ==
 
         // DATA TABLE
         $table = DataTable::createPaginated('staffCoverageOther', $criteria);
-        $table->setTitle(__('Covering Them'));
+        $table->setTitle(__('Coverage Requests'));
 
         $table->modifyRows(function ($coverage, $row) {
             if ($coverage['status'] == 'Accepted') $row->addClass('current');
@@ -278,43 +154,20 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php') ==
         $table->addColumn('status', __('Status'))
             ->width('15%')
             ->format(function ($coverage) use ($urgencyThreshold) {
-                $relativeSeconds = strtotime($coverage['dateStart']) - time();
-                if ($coverage['status'] != 'Requested') {
-                    return $coverage['status'];
-                }
-                if ($relativeSeconds <= 0) {
-                    return '<div class="badge dull">'.__('Overdue').'</div>';
-                } elseif ($relativeSeconds <= (86400 * $urgencyThreshold)) {
-                    return '<div class="error badge">'.__('Urgent').'</div>';
-                } elseif ($relativeSeconds <= (86400 * ($urgencyThreshold * 3))) {
-                    return '<div class="badge warning">'.__('Upcoming').'</div>';
-                } else {
-                    return __('Upcoming');
-                }
+                return AbsenceFormats::coverageStatus($coverage, $urgencyThreshold);
             });
+
+        $table->addColumn('date', __('Date'))
+            ->format([AbsenceFormats::class, 'dateDetails']);
 
         $table->addColumn('requested', __('Person'))
             ->width('30%')
             ->sortable(['surname', 'preferredName'])
+            ->format([AbsenceFormats::class, 'personDetails']);
+            
+        $table->addColumn('notesStatus', __('Comment'))
             ->format(function ($coverage) {
-                return Format::name($coverage['titleAbsence'], $coverage['preferredNameAbsence'], $coverage['surnameAbsence'], 'Staff', false, true);
-            });
-
-        $table->addColumn('date', __('Date'))
-            ->format(function ($coverage) {
-                $output = Format::dateRangeReadable($coverage['dateStart'], $coverage['dateEnd']);
-                if ($coverage['allDay'] == 'Y') {
-                    $output .= '<br/>'.Format::small(__n('{count} Day', '{count} Days', $coverage['days']));
-                } else {
-                    $output .= '<br/>'.Format::small(Format::timeRange($coverage['timeStart'], $coverage['timeEnd']));
-                }
-                
-                return $output;
-            });
-
-        $table->addColumn('notesRequested', __('Comment'))
-            ->format(function ($coverage) {
-                return Format::truncate($coverage['notesRequested'], 60);
+                return Format::truncate($coverage['notesStatus'], 60);
             });
 
         $table->addActionColumn()
