@@ -78,7 +78,8 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
                     //Check count of negative behaviour records in the current year
                     try {
                         $dataBehaviour = array('gibbonPersonID' => $row['gibbonPersonID'], 'gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID']);
-                        $sqlBehaviour = "SELECT * FROM gibbonBehaviour WHERE gibbonPersonID=:gibbonPersonID AND gibbonSchoolYearID=:gibbonSchoolYearID AND type='Negative'";
+                        $sqlBehaviour = "SELECT * FROM gibbonBehaviour WHERE gibbonPersonID=:gibbonPersonID AND gibbonSchoolYearID=:gibbonSchoolYearID AND type='Negative' 
+                            AND gibbonBehaviour.date >= '2019-01-01'";
                         $resultBehaviour = $connection2->prepare($sqlBehaviour);
                         $resultBehaviour->execute($dataBehaviour);
                     } catch (PDOException $e) {
@@ -182,7 +183,7 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
                             $behaviourRecord = '<ul>';
                             try {
                                 $dataBehaviourRecord = array('gibbonPersonID' => $row['gibbonPersonID'], 'gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID']);
-                                $sqlBehaviourRecord = "SELECT * FROM gibbonBehaviour WHERE gibbonPersonID=:gibbonPersonID AND gibbonSchoolYearID=:gibbonSchoolYearID AND type='Negative' ORDER BY timestamp DESC";
+                                $sqlBehaviourRecord = "SELECT * FROM gibbonBehaviour WHERE gibbonPersonID=:gibbonPersonID AND gibbonSchoolYearID=:gibbonSchoolYearID AND type='Negative' AND gibbonBehaviour.date >= '2019-01-01' ORDER BY timestamp DESC";
                                 $resultBehaviourRecord = $connection2->prepare($sqlBehaviourRecord);
                                 $resultBehaviourRecord->execute($dataBehaviourRecord);
                             } catch (PDOException $e) {
@@ -254,13 +255,13 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
                                     //Notify tutor(s)
                                     $notificationText = sprintf(__('A warning has been issued for a student (%1$s) in your form group, pending a behaviour letter.'), $studentName);
                                     if ($row['gibbonPersonIDTutor'] != '') {
-                                        $notificationSender->addNotification($row['gibbonPersonIDTutor'], $notificationText, 'Behaviour', '/index.php?q=/modules/Behaviour/behaviour_letters.php&gibbonPersonID='.$row['gibbonPersonID']);
+                                        // $notificationSender->addNotification($row['gibbonPersonIDTutor'], $notificationText, 'Behaviour', '/index.php?q=/modules/Behaviour/behaviour_letters.php&gibbonPersonID='.$row['gibbonPersonID']);
                                     }
                                     if ($row['gibbonPersonIDTutor2'] != '') {
-                                        $notificationSender->addNotification($row['gibbonPersonIDTutor2'], $notificationText, 'Behaviour', '/index.php?q=/modules/Behaviour/behaviour_letters.php&gibbonPersonID='.$row['gibbonPersonID']);
+                                        // $notificationSender->addNotification($row['gibbonPersonIDTutor2'], $notificationText, 'Behaviour', '/index.php?q=/modules/Behaviour/behaviour_letters.php&gibbonPersonID='.$row['gibbonPersonID']);
                                     }
                                     if ($row['gibbonPersonIDTutor3'] != '') {
-                                        $notificationSender->addNotification($row['gibbonPersonIDTutor3'], $notificationText, 'Behaviour', '/index.php?q=/modules/Behaviour/behaviour_letters.php&gibbonPersonID='.$row['gibbonPersonID']);
+                                        // $notificationSender->addNotification($row['gibbonPersonIDTutor3'], $notificationText, 'Behaviour', '/index.php?q=/modules/Behaviour/behaviour_letters.php&gibbonPersonID='.$row['gibbonPersonID']);
                                     }
 
                                     //Notify teachers
@@ -273,7 +274,7 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
                                     } catch (PDOException $e) {
                                     }
                                     while ($rowTeachers = $resultTeachers->fetch()) {
-                                        $notificationSender->addNotification($rowTeachers['gibbonPersonID'], $notificationText, 'Behaviour', '/index.php?q=/modules/Behaviour/behaviour_letters.php&gibbonPersonID='.$row['gibbonPersonID']);
+                                        // $notificationSender->addNotification($rowTeachers['gibbonPersonID'], $notificationText, 'Behaviour', '/index.php?q=/modules/Behaviour/behaviour_letters.php&gibbonPersonID='.$row['gibbonPersonID']);
                                     }
                                 }
                             } else { //It's being issued
@@ -314,7 +315,7 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
                             //Send emails
                             try {
                                 $dataMember = array('gibbonPersonID' => $row['gibbonPersonID']);
-                                $sqlMember = "SELECT DISTINCT email, preferredName, surname FROM gibbonFamilyChild JOIN gibbonFamily ON (gibbonFamilyChild.gibbonFamilyID=gibbonFamily.gibbonFamilyID) JOIN gibbonFamilyAdult ON (gibbonFamilyAdult.gibbonFamilyID=gibbonFamily.gibbonFamilyID) JOIN gibbonPerson ON (gibbonFamilyAdult.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonFamilyChild.gibbonPersonID=:gibbonPersonID AND gibbonPerson.status='Full' AND contactEmail='Y' ORDER BY contactPriority, surname, preferredName";
+                                $sqlMember = "SELECT DISTINCT email, preferredName, surname, contactPriority FROM gibbonFamilyChild JOIN gibbonFamily ON (gibbonFamilyChild.gibbonFamilyID=gibbonFamily.gibbonFamilyID) JOIN gibbonFamilyAdult ON (gibbonFamilyAdult.gibbonFamilyID=gibbonFamily.gibbonFamilyID) JOIN gibbonPerson ON (gibbonFamilyAdult.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonFamilyChild.gibbonPersonID=:gibbonPersonID AND gibbonPerson.status='Full' AND contactEmail='Y' ORDER BY contactPriority, surname, preferredName";
                                 $resultMember = $connection2->prepare($sqlMember);
                                 $resultMember->execute($dataMember);
                             } catch (PDOException $e) {
@@ -327,9 +328,6 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
                                     $recipientList .= $rowMember['email'].', ';
 
                                     //Prep message
-                                    $body .= '<br/><br/><i>'.sprintf(__('Email sent via %1$s at %2$s.'), $_SESSION[$guid]['systemName'], $_SESSION[$guid]['organisationName']).'</i>';
-                                    $bodyPlain = emailBodyConvert($body);
-
                                     $mail = $container->get(Mailer::class);
 
                                     $mail->AddAddress($rowMember['email'], $rowMember['surname'].', '.$rowMember['preferredName']);
@@ -342,8 +340,10 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
                                     $mail->Encoding = 'base64';
                                     $mail->IsHTML(true);
                                     $mail->Subject = sprintf(__('Behaviour Letter for %1$s via %2$s at %3$s'), $row['surname'].', '.$row['preferredName'].' ('.$row['rollGroup'].')', $_SESSION[$guid]['systemName'], $_SESSION[$guid]['organisationName']);
-                                    $mail->Body = $body;
-                                    $mail->AltBody = $bodyPlain;
+
+                                    $mail->renderBody('mail/email.twig.html', [
+                                        'body'   => nl2br(trim($body, "\n")),
+                                    ]);
 
                                     if (!$mail->Send()) {
                                         ++$emailFailCount;
@@ -374,7 +374,7 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
     $event = new NotificationEvent('Behaviour', 'Behaviour Letters');
 
     //Notify admin
-    if ($email == false) {
+    if ($emailSendCount == 0 && $emailFailCount == 0) {
         $event->setNotificationText(__('The Behaviour Letter CLI script has run: no emails were sent.'));
     } else {
         $event->setNotificationText(sprintf(__('The Behaviour Letter CLI script has run: %1$s emails were sent, of which %2$s failed.'), $emailSendCount, $emailFailCount));
