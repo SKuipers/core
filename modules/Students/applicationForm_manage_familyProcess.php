@@ -72,8 +72,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
         $newFields = array_replace($existingFields, $newFields);
         
         // Update the student user details
-        $updated = $userGateway->updateUser([
-            'gibbonPersonID'       => $gibbonPersonIDStudent,
+        $updated = $userGateway->updateUser($gibbonPersonIDStudent, [
             'surname'              => $application['surname'],
             'firstName'            => $application['firstName'],
             'preferredName'        => $application['preferredName'],
@@ -130,8 +129,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                 $newFields = array_replace($existingFields, $newFields);
 
                 // Update the parent user details
-                $updated = $userGateway->updateUser([
-                    'gibbonPersonID'       => $gibbonPersonIDParent,
+                $updated = $userGateway->updateUser($gibbonPersonIDParent, [
                     'title'                => $application["parent{$i}title"],
                     'surname'              => $application["parent{$i}surname"],
                     'firstName'            => $application["parent{$i}firstName"],
@@ -165,8 +163,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
     $parent2gibbonPersonID = isset($_POST['parent2gibbonPersonID']) ? $_POST['parent2gibbonPersonID'] : null;
     
     // Link the application form to the existing family
-    $applicationGateway->updateApplicationForm([
-        'gibbonApplicationFormID' => $gibbonApplicationFormID,
+    $applicationGateway->updateApplicationForm($gibbonApplicationFormID, [
         'gibbonFamilyID'          => $gibbonFamilyIDExisting,
         'gibbonPersonIDStudent'   => $gibbonPersonIDStudent,
         'parent1gibbonPersonID'   => $parent1gibbonPersonID,
@@ -174,8 +171,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
     ]);
 
     // Update the address of the existing family
-    $familyGateway->updateFamily([
-        'gibbonFamilyID'        => $gibbonFamilyIDExisting,
+    $familyGateway->updateFamily($gibbonFamilyIDExisting, [
         'homeAddress'           => $application['homeAddress'],
         'homeAddressDistrict'   => $application['homeAddressDistrict'],
         'homeAddressCountry'    => $application['homeAddressCountry'],

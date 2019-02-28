@@ -102,22 +102,17 @@ class ApplicationFormGateway extends QueryableGateway
 
     public function getApplicationFormByID($gibbonApplicationFormID)
     {
-        return $this->selectRow($this->getTableName(), $this->getPrimaryKey(), $gibbonApplicationFormID)->fetch();
+        return $this->getByID($gibbonApplicationFormID);
     }
 
-    public function updateApplicationForm($data)
+    public function updateApplicationForm($gibbonApplicationFormID, $data)
     {
-        return $this->updateRow($this->getTableName(), $this->getPrimaryKey(), $data);
+        return $this->update($gibbonApplicationFormID, $data);
     }
 
     public function insertApplicationForm($data)
     {
-        return $this->insertRow($this->getTableName(), $this->getPrimaryKey(), $data);
-    }
-
-    public function updateApplicationFormRelationship($data)
-    {
-        return $this->updateRow('gibbonApplicationFormRelationship', 'gibbonApplicationFormRelationshipID', $data);
+        return $this->insert($data);
     }
 
     public function getApplicationFormRelationship($gibbonApplicationFormID, $gibbonPersonID)
@@ -130,6 +125,23 @@ class ApplicationFormGateway extends QueryableGateway
 
     public function insertApplicationFormRelationship($data)
     {
-        return $this->insertRow('gibbonApplicationFormRelationship', 'gibbonApplicationFormRelationshipID', $data);
+        $query = $this
+            ->newInsert()
+            ->into('gibbonApplicationFormRelationship')
+            ->cols($data);
+
+        return $this->runInsert($query);
+    }
+
+    public function updateApplicationFormRelationship($gibbonApplicationFormRelationshipID, $data)
+    {
+        $query = $this
+            ->newUpdate()
+            ->table('gibbonApplicationFormRelationship')
+            ->cols($data)
+            ->where('gibbonApplicationFormRelationshipID = :primaryKey')
+            ->bindValue('primaryKey', $gibbonApplicationFormRelationshipID);
+
+        return $this->runUpdate($query);
     }
 }

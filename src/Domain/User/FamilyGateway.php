@@ -82,22 +82,27 @@ class FamilyGateway extends QueryableGateway
 
     public function getFamilyByID($gibbonFamilyID)
     {
-        return $this->selectRow($this->getTableName(), $this->getPrimaryKey(), $gibbonFamilyID)->fetch();
+        return $this->getByID($gibbonFamilyID);
     }
 
-    public function updateFamily($data)
+    public function updateFamily($gibbonFamilyID, $data)
     {
-        return $this->updateRow($this->getTableName(), $this->getPrimaryKey(), $data);
+        return $this->update($gibbonFamilyID, $data);
     }
 
     public function insertFamily($data)
     {
-        return $this->insertRow($this->getTableName(), $this->getPrimaryKey(), $data);
+        return $this->insert($data);
     }
 
     public function insertFamilyAdult($data)
     {
-        return $this->insertRow('gibbonFamilyAdult', 'gibbonFamilyAdultID', $data);
+        $query = $this
+            ->newInsert()
+            ->into('gibbonFamilyAdult')
+            ->cols($data);
+
+        return $this->runInsert($query);
     }
     
     public function selectFamilyAdultsByStudent($gibbonPersonID, $allUsers = false)

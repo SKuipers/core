@@ -103,17 +103,17 @@ class UserGateway extends QueryableGateway
 
     public function getUserByID($gibbonPersonID)
     {
-        return $this->selectRow($this->getTableName(), $this->getPrimaryKey(), $gibbonPersonID)->fetch();
+        return $this->getByID($gibbonPersonID);
     }
 
-    public function updateUser($data)
+    public function updateUser($gibbonPersonID, $data)
     {
-        return $this->updateRow($this->getTableName(), $this->getPrimaryKey(), $data);
+        return $this->update($gibbonPersonID, $data);
     }
 
     public function insertUser($data)
     {
-        return $this->insertRow($this->getTableName(), $this->getPrimaryKey(), $data);
+        return $this->insert($data);
     }
     
     public function selectNotificationDetailsByPerson($gibbonPersonID)
