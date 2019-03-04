@@ -180,6 +180,14 @@ class StaffCoverageGateway extends QueryableGateway
                 return $query->where('gibbonStaffCoverage.status = :status')
                              ->bindValue('status', $status);
             },
+            'startDate' => function ($query, $dateStart) {
+                return $query->where("gibbonStaffAbsenceDate.date >= :dateStart")
+                             ->bindValue('dateStart', $dateStart);
+            },
+            'endDate' => function ($query, $dateEnd) {
+                return $query->where("gibbonStaffAbsenceDate.date <= :dateEnd")
+                             ->bindValue('dateEnd', $dateEnd);
+            },
             'date' => function ($query, $date) {
                 switch (ucfirst($date)) {
                     case 'Upcoming': return $query->where("gibbonStaffAbsenceDate.date >= CURRENT_DATE()")->where("gibbonStaffCoverage.status <> 'Declined' AND gibbonStaffCoverage.status <> 'Cancelled'");

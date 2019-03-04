@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Services\Format;
+use Gibbon\Domain\Staff\StaffCoverageGateway;
 
 //Checks whether or not a space is free over a given period of time, returning true or false accordingly.
 function isSpaceFree($guid, $connection2, $foreignKey, $foreignKeyID, $date, $timeStart, $timeEnd)
@@ -590,6 +591,36 @@ function renderTT($guid, $connection2, $gibbonPersonID, $gibbonTTID, $title = ''
                 }
             }
 
+            // STAFF COVERAGE
+            // Add coverage as a space booking *for now*
+            global $container;
+            $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
+
+            $criteria = $staffCoverageGateway->newQueryCriteria()
+                ->filterBy('startDate', date('Y-m-d', $startDayStamp))
+                ->filterBy('endDate', date('Y-m-d', $endDayStamp))
+                ->filterBy('status', 'Accepted')
+                ->pageSize(0);
+            $coverageList = $staffCoverageGateway->queryCoverageByPersonCovering($criteria, $gibbonPersonID);
+
+            foreach ($coverageList as $coverage) {
+                $fullName = Format::name($coverage['titleAbsence'], $coverage['preferredNameAbsence'], $coverage['surnameAbsence'], 'Staff', false, true);
+                if (empty($fullName)) {
+                    $fullName = Format::name($coverage['titleStatus'], $coverage['preferredNameStatus'], $coverage['surnameStatus'], 'Staff', false, true);
+                }
+
+                $eventsSpaceBooking[] = [
+                    'Coverage',
+                    $coverage['type'] .'<br/>'. __('Coverage'),
+                    '',
+                    $coverage['date'],
+                    $coverage['allDay'] == 'N' ? $coverage['timeStart'] : $timeStart,
+                    $coverage['allDay'] == 'N' ? $coverage['timeEnd'] : $timeEnd,
+                    $fullName,
+                    $coverage['notesStatus'],
+                ];
+            }
+
             //Count up max number of all day events in a day
             $eventsCombined = false;
             $maxAllDays = 0;
@@ -959,7 +990,7 @@ function renderTT($guid, $connection2, $gibbonPersonID, $gibbonTTID, $title = ''
 
 function renderTTDay($guid, $connection2, $gibbonTTID, $schoolOpen, $startDayStamp, $count, $daysInWeek, $gibbonPersonID, $gridTimeStart, $eventsSchool, $eventsPersonal, $eventsSpaceBooking, $diffTime, $maxAllDays, $narrow, $specialDayStart = '', $specialDayEnd = '', $edit = false)
 {
-    $schoolCalendarAlpha = 0.85;
+    $schoolCalendarAlpha = 0.90;
     $ttAlpha = 1.0;
 
     if ($_SESSION[$guid]['viewCalendarSchool'] != 'N' or $_SESSION[$guid]['viewCalendarPersonal'] != 'N' or $_SESSION[$guid]['viewCalendarSpaceBooking'] != 'N') {
@@ -1476,31 +1507,38 @@ function renderTTDay($guid, $connection2, $gibbonTTID, $schoolOpen, $startDaySta
                 }
             }
 
-            //Draw space bookings
-            if ($eventsSpaceBooking != false) {
-                $height = 0;
-                $top = 0;
-                foreach ($eventsSpaceBooking as $event) {
-                    if ($event[3] == date('Y-m-d', ($startDayStamp + (86400 * $count)))) {
-                        $height = ceil((strtotime(date('Y-m-d', ($startDayStamp + (86400 * $count))).' '.$event[5]) - strtotime(date('Y-m-d', ($startDayStamp + (86400 * $count))).' '.$event[4])) / 60).'px';
-                        $top = (ceil((strtotime($event[3].' '.$event[4]) - strtotime(date('Y-m-d', $startDayStamp + (86400 * $count)).' '.$dayTimeStart)) / 60 + ($startPad / 60))).'px';
-                        if ($height < 45) {
-                            $label = $event[1];
-                            $title = "title='".substr($event[4], 0, 5).'-'.substr($event[5], 0, 5).' '.__('by').' '.$event[6]."'";
-                        } else {
-                            $label = $event[1]."<br/><span style='font-weight: normal'>(".substr($event[4], 0, 5).'-'.substr($event[5], 0, 5).')<br/>'.__('by').' '.$event[6].'</span>';
-                            $title = '';
-                        }
-                        $output .= "<div class='ttSpaceBookingCalendar' $title style='z-index: $zCount; position: absolute; top: $top; width: $width ; border: 1px solid #555; height: $height; margin: 0px; padding: 0px; opacity: $schoolCalendarAlpha'>";
-                        $output .= $label;
-                        $output .= '</div>';
-                        ++$zCount;
+            $output .= '</div>';
+        }
+
+        //Draw space bookings and staff coverage
+        if ($eventsSpaceBooking != false) {
+            $dayTimeStart = $gridTimeStart;
+            $startPad = 0;
+            $output .= "<div style='position: relative'>";
+
+            $height = 0;
+            $top = 0;
+            foreach ($eventsSpaceBooking as $event) {
+                if ($event[3] == date('Y-m-d', ($startDayStamp + (86400 * $count)))) {
+                    $height = ceil((strtotime(date('Y-m-d', ($startDayStamp + (86400 * $count))).' '.$event[5]) - strtotime(date('Y-m-d', ($startDayStamp + (86400 * $count))).' '.$event[4])) / 60).'px';
+                    $top = (ceil((strtotime($event[3].' '.$event[4]) - strtotime(date('Y-m-d', $startDayStamp + (86400 * $count)).' '.$dayTimeStart)) / 60 + ($startPad / 60))).'px';
+                    if ($height < 45) {
+                        $label = $event[1];
+                        $title = "title='".substr($event[4], 0, 5).'-'.substr($event[5], 0, 5).' '.$event[6]."'";
+                    } else {
+                        $label = $event[1]."<br/><span style='font-weight: normal'>".substr($event[4], 0, 5).'-'.substr($event[5], 0, 5).'<br/>'.$event[6].'</span>';
+                        $title = "title='".$event[7]."'" ?? '';
                     }
+                    $output .= "<div class='ttSpaceBookingCalendar' $title style='z-index: $zCount; position: absolute; top: $top; width: $width ; border: 1px solid #555; height: $height; margin: 0px; padding: 0px; opacity: $schoolCalendarAlpha'>";
+                    $output .= $label;
+                    $output .= '</div>';
+                    ++$zCount;
                 }
             }
-        $output .= '</div>';
+            $output .= '</div>';
         }
     }
+
     $output .= '</td>';
 
     return $output;
