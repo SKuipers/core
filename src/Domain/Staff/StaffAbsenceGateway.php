@@ -160,7 +160,7 @@ class StaffAbsenceGateway extends QueryableGateway
     {
         $data = ['gibbonStaffAbsenceID' => $gibbonStaffAbsenceID];
         $sql = "SELECT gibbonStaffAbsence.gibbonStaffAbsenceID, gibbonStaffAbsence.gibbonStaffAbsenceID, gibbonStaffAbsenceType.name as type, reason, gibbonStaffAbsence.comment,
-                MIN(date) as date, COUNT(*) as days, MIN(date) as dateStart, MAX(date) as dateEnd, MAX(allDay), MIN(timeStart), MAX(timeEnd), 0 as urgent, 
+                MIN(date) as date, COUNT(*) as days, MIN(date) as dateStart, MAX(date) as dateEnd, MAX(allDay) as allDay, MIN(timeStart) as timeStart, MAX(timeEnd) as timeEnd, 0 as urgent, 
                 gibbonStaffAbsence.status, gibbonStaffAbsence.timestampApproval, gibbonStaffAbsence.notesApproval,
                 gibbonPersonIDCreator, timestampCreator, timestampStatus, timestampCoverage, gibbonStaffAbsence.notificationList, gibbonStaffAbsence.notificationSent, gibbonStaffAbsence.gibbonGroupID,
                 gibbonStaffCoverage.status as coverage, gibbonStaffCoverage.notesCoverage, gibbonStaffCoverage.notesStatus, 

@@ -229,6 +229,11 @@ switch ($action) {
             if (!empty($coverage['gibbonStaffAbsenceID'])) {
                 $recipients = !empty($coverage['notificationListAbsence']) ? json_decode($coverage['notificationListAbsence']) : [];
                 
+                // Add the absent person, if this coverage request was created by someone else
+                if ($coverage['gibbonPersonID'] != $coverage['gibbonPersonIDStatus']) {
+                    $recipients[] = $coverage['gibbonPersonID'];
+                }
+
                 // Add the notification group members, if selected
                 if (!empty($coverage['gibbonGroupID'])) {
                     $groupRecipients = $container->get(GroupGateway::class)->selectPersonIDsByGroup($coverage['gibbonGroupID'])->fetchAll(PDO::FETCH_COLUMN, 0);
