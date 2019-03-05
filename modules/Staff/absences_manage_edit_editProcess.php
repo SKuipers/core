@@ -49,8 +49,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_edit
 
     $data = [
         'allDay'    => $_POST['allDay'] ?? 'N',
-        'timeStart' => $_POST['timeStart'] ?? '',
-        'timeEnd'   => $_POST['timeEnd'] ?? '',
+        'timeStart' => $_POST['timeStart'] ?? null,
+        'timeEnd'   => $_POST['timeEnd'] ?? null,
         'value'     => $_POST['value'] ?? '',
     ];
 

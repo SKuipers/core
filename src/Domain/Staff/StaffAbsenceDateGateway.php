@@ -80,4 +80,17 @@ class StaffAbsenceDateGateway extends QueryableGateway
 
         return $this->db()->select($sql, $data);
     }
+
+    public function getByAbsenceAndDate($gibbonStaffAbsenceID, $date)
+    {
+        $data = ['gibbonStaffAbsenceID' => $gibbonStaffAbsenceID, 'date' => $date ];
+        $sql = "SELECT gibbonStaffAbsenceDate.gibbonStaffAbsenceID as groupBy, gibbonStaffAbsenceDate.*, gibbonStaffCoverage.status as coverage, coverage.title as titleCoverage, coverage.preferredName as preferredNameCoverage, coverage.surname as surnameCoverage, coverage.gibbonPersonID as gibbonPersonIDCoverage
+                FROM gibbonStaffAbsenceDate
+                LEFT JOIN gibbonStaffCoverage ON (gibbonStaffCoverage.gibbonStaffCoverageID=gibbonStaffAbsenceDate.gibbonStaffCoverageID)
+                LEFT JOIN gibbonPerson AS coverage ON (gibbonStaffCoverage.gibbonPersonIDCoverage=coverage.gibbonPersonID)
+                WHERE gibbonStaffAbsenceDate.gibbonStaffAbsenceID=:gibbonStaffAbsenceID
+                AND gibbonStaffAbsenceDate.date=:date";
+
+        return $this->db()->selectOne($sql, $data);
+    }
 }
