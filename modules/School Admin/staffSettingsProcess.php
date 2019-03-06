@@ -41,6 +41,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/staffSettings
             'absenceFullDayThreshold',
             'absenceHalfDayThreshold',
             'absenceNotificationGroups',
+            'absenceGoogleCalendarID',
         ],
     ];
 

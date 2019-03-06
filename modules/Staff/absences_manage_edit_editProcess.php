@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
-use Gibbon\Services\Format;
+use Gibbon\Module\Staff\AbsenceCalendarSync;
 
 require_once '../../gibbon.php';
 
@@ -55,6 +55,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_edit
     ];
 
     $updated = $staffAbsenceDateGateway->update($gibbonStaffAbsenceDateID, $data);
+
+    // Update the Google Calendar event, if one exists
+    if ($calendarSync = $container->get(AbsenceCalendarSync::class)) {
+        $calendarSync->updateCalendarAbsence($gibbonStaffAbsenceID);
+    }
 
     $URL .= !$updated
         ? '&return=error2'

@@ -17,8 +17,10 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\GoogleServiceProvider;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
+use Gibbon\Domain\System\SettingGateway;
 
 require_once '../../gibbon.php';
 
@@ -55,6 +57,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_dele
 
     // Then delete the absence itself
     $partialFail &= $staffAbsenceGateway->delete($gibbonStaffAbsenceID);
+
+    // Delete the Google Calendar event, if one exists
+    if ($calendarSync = $container->get(AbsenceCalendarSync::class)) {
+        $calendarSync->deleteCalendarAbsence($gibbonStaffAbsenceID);
+    }
 
     $URL .= $partialFail
         ? '&return=warning1'

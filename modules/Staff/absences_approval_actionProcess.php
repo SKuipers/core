@@ -17,9 +17,9 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Domain\Staff\StaffAbsenceGateway;
-use Gibbon\Services\Format;
 use Gibbon\Data\BackgroundProcess;
+use Gibbon\Domain\Staff\StaffAbsenceGateway;
+use Gibbon\Module\Staff\AbsenceCalendarSync;
 
 require_once '../../gibbon.php';
 
@@ -76,6 +76,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_approval_ac
 
     if ($status == 'Approved') {
         $process->startProcess('staffNotification', __DIR__.'/notification_backgroundProcess.php', ['NewAbsence', $gibbonStaffAbsenceID]);
+
+        // Create a Google Calendar event
+        if ($calendarSync = $container->get(AbsenceCalendarSync::class)) {
+            $calendarSync->addCalendarAbsence($gibbonStaffAbsenceID);
+        }
     }
 
     $URLSuccess .= '&return=success0';

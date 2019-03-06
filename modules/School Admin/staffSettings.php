@@ -120,6 +120,15 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/staffSettings
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addNumber($setting['name'])->isRequired()->onlyInteger(false)->setValue($setting['value']);
 
+    // Google calendar options, required Google API
+    $googleOAuth = getSettingByScope($connection2, 'System', 'googleOAuth');
+    if ($googleOAuth == 'Y') {
+        $setting = $settingGateway->getSettingByScope('Staff', 'absenceGoogleCalendarID', true);
+
+        $row = $form->addRow();
+            $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
+            $row->addTextField($setting['name'])->setValue($setting['value']);
+    }
                 
     $form->addRow()->addHeading(__('Staff Coverage'));
 
