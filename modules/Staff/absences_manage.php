@@ -88,8 +88,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
     $criteria = $staffAbsenceGateway->newQueryCriteria()
         ->searchBy($staffAbsenceGateway->getSearchableColumns(), $search)
         ->sortBy('date', 'ASC')
-        ->filterBy('startDate', Format::dateConvert($dateStart))
-        ->filterBy('endDate', Format::dateConvert($dateEnd))
+        ->filterBy('dateStart', Format::dateConvert($dateStart))
+        ->filterBy('dateEnd', Format::dateConvert($dateEnd))
         ->filterBy('type', $gibbonStaffAbsenceTypeID);
 
     $criteria->filterBy('date', !$criteria->hasFilter() && !$criteria->hasSearchText() ? 'upcoming' : '')
