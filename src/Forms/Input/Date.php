@@ -90,6 +90,32 @@ class Date extends TextField
     }
 
     /**
+     * Provide the ID of another date input to connect the input values in a date range.
+     * Chaining a value TO another date range will set the upper limit to that date's value.
+     * @param   string  $value
+     * @return  self
+     */
+    public function chainedTo($value)
+    {
+        $this->to = $value;
+
+        return $this;
+    }
+
+    /**
+     * Provide the ID of another date input to connect the input values in a date range.
+     * Chaining a value FROM another date range will set the lower limit to that date's value.
+     * @param   string  $value
+     * @return  self
+     */
+    public function chainedFrom($value)
+    {
+        $this->from = $value;
+
+        return $this;
+    }
+
+    /**
      * Gets the HTML output for this form element.
      * @return  string
      */
