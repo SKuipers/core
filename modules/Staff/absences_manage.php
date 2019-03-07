@@ -24,6 +24,7 @@ use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Module\Staff\Tables\AbsenceFormats;
+use Gibbon\Domain\System\SettingGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php') == false) {
     //Acess denied
@@ -87,8 +88,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
     $criteria = $staffAbsenceGateway->newQueryCriteria()
         ->searchBy($staffAbsenceGateway->getSearchableColumns(), $search)
         ->sortBy('date', 'ASC')
-        ->filterBy('startDate', Format::dateConvert($dateStart))
-        ->filterBy('endDate', Format::dateConvert($dateEnd))
+        ->filterBy('dateStart', Format::dateConvert($dateStart))
+        ->filterBy('dateEnd', Format::dateConvert($dateEnd))
         ->filterBy('type', $gibbonStaffAbsenceTypeID);
 
     $criteria->filterBy('date', !$criteria->hasFilter() && !$criteria->hasSearchText() ? 'upcoming' : '')
@@ -116,6 +117,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
             ->setIcon('planner')
             ->setURL('/modules/Staff/report_absences_summary.php')
             ->displayLabel()
+            ->append('&nbsp;|&nbsp;');
+    }
+
+    $calendarID = $container->get(SettingGateway::class)->getSettingByScope('Staff', 'absenceGoogleCalendarID');
+    if (!empty($calendarID)) {
+        $table->addHeaderAction('sync', __('Sync with Google'))
+            ->setIcon('refresh')
+            ->setURL('/modules/Staff/absences_manage_syncProcess.php')
+            ->addConfirmation(__('Are you sure you wish to process this action? It cannot be undone.'))
+            ->displayLabel()
+            ->directLink()
             ->append('&nbsp;|&nbsp;');
     }
 
@@ -157,7 +169,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
     $table->addColumn('type', __('Type'))
         ->description(__('Reason'))
         ->format([AbsenceFormats::class, 'typeAndReason']);
-
 
     $table->addColumn('coverage', __('Coverage'))
         ->format([AbsenceFormats::class, 'coverageList']);

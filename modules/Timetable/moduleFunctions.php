@@ -19,6 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
+use Gibbon\Domain\Staff\StaffAbsenceGateway;
 
 //Checks whether or not a space is free over a given period of time, returning true or false accordingly.
 function isSpaceFree($guid, $connection2, $foreignKey, $foreignKeyID, $date, $timeStart, $timeEnd)
@@ -619,6 +620,26 @@ function renderTT($guid, $connection2, $gibbonPersonID, $gibbonTTID, $title = ''
                     $fullName,
                     $coverage['notesStatus'],
                 ];
+            }
+
+            // STAFF ABSENCE
+            // Add an absence as a fake all-day personal event, so it doesn't overlap the calendar (which subs need to see!)
+            $staffAbsenceGateway = $container->get(StaffAbsenceGateway::class);
+
+            $criteria = $staffAbsenceGateway->newQueryCriteria()
+                ->filterBy('startDate', date('Y-m-d', $startDayStamp))
+                ->filterBy('endDate', date('Y-m-d', $endDayStamp))
+                ->filterBy('status', 'Approved')
+                ->pageSize(0);
+            $absenceList = $staffAbsenceGateway->queryAbsencesByPerson($criteria, $gibbonPersonID, false);
+
+            foreach ($absenceList as $absence) {
+                $summary = __('Absent').': '.__($absence['type']);
+                if ($absence['coverage'] == 'Accepted') {
+                    $summary .= ' - '.__('Coverage').': '.Format::name($absence['titleCoverage'], $absence['preferredNameCoverage'], $absence['surnameCoverage'], 'Staff', false, true);
+                }
+                $allDay = true;
+                $eventsPersonal[] = [$summary, 'All Day', strtotime($absence['date']), null, '', ''];
             }
 
             //Count up max number of all day events in a day

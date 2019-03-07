@@ -23,6 +23,7 @@ use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
 use Gibbon\Data\BackgroundProcess;
+use Gibbon\Module\Staff\AbsenceCalendarSync;
 
 require_once '../../gibbon.php';
 
@@ -153,6 +154,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
     $process = new BackgroundProcess($gibbon->session->get('absolutePath').'/uploads/background');
     $process->startProcess('staffNotification', __DIR__.'/notification_backgroundProcess.php', [$processType, $gibbonStaffAbsenceID]);
 
+    // Create a Google Calendar event
+    if ($type['requiresApproval'] == 'N' && $calendarSync = $container->get(AbsenceCalendarSync::class)) {
+        $calendarSync->insertCalendarAbsence($gibbonStaffAbsenceID);
+    }
 
     // Redirect to coverage request
     $coverage = $_POST['coverage'] ?? 'N';
