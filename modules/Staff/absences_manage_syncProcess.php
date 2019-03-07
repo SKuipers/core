@@ -34,7 +34,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
     $staffAbsenceGateway = $container->get(StaffAbsenceGateway::class);
     
     $criteria = $staffAbsenceGateway->newQueryCriteria()
-        ->filterBy('startDate', date('Y-m-d'))
+        ->filterBy('dateStart', date('Y-m-d'))
         ->filterBy('status', 'Approved')
         ->pageSize(0);
 
