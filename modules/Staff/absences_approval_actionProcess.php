@@ -79,7 +79,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_approval_ac
 
         // Create a Google Calendar event
         if ($calendarSync = $container->get(AbsenceCalendarSync::class)) {
-            $calendarSync->addCalendarAbsence($gibbonStaffAbsenceID);
+            $calendarSync->insertCalendarAbsence($gibbonStaffAbsenceID);
         }
     }
 

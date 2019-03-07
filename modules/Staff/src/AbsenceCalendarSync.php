@@ -20,12 +20,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 namespace Gibbon\Module\Staff;
 
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
+use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Domain\System\SettingGateway;
 use Google_Service_Calendar_Event;
 use Google_Service_Calendar;
 use Gibbon\Services\Format;
 use DateInterval;
-use DateTime;
+use DateTimeImmutable;
+use DateTimeZone;
 
 /**
  * AbsenceCalendarSync
@@ -35,20 +37,22 @@ use DateTime;
  */
 class AbsenceCalendarSync
 {
-    protected $calendarService;
     protected $staffAbsenceGateway;
+    protected $staffAbsenceDateGateway;
+    protected $calendarService;
     protected $googleCalendarID;
     protected $timezone;
 
-    public function __construct(StaffAbsenceGateway $staffAbsenceGateway, SettingGateway $settingGateway, Google_Service_Calendar $calendarService = null)
+    public function __construct(StaffAbsenceGateway $staffAbsenceGateway, StaffAbsenceDateGateway $staffAbsenceDateGateway, SettingGateway $settingGateway, Google_Service_Calendar $calendarService = null)
     {
-        $this->calendarService = $calendarService;
         $this->staffAbsenceGateway = $staffAbsenceGateway;
+        $this->staffAbsenceDateGateway = $staffAbsenceDateGateway;
+        $this->calendarService = $calendarService;
         $this->googleCalendarID = $settingGateway->getSettingByScope('Staff', 'absenceGoogleCalendarID');
         $this->timezone = $settingGateway->getSettingByScope('System', 'timezone');
     }
 
-    public function addCalendarAbsence($gibbonStaffAbsenceID)
+    public function insertCalendarAbsence($gibbonStaffAbsenceID)
     {
         if (!$this->googleCalendarID || !$this->calendarService) {
             return false;
@@ -108,12 +112,36 @@ class AbsenceCalendarSync
             'reminders'   => ['useDefault' => false],
         ];
 
+        $dateStart = new DateTimeImmutable($absence['dateStart'].' '.$absence['timeStart'], new DateTimeZone($this->timezone));
+        $dateEnd = new DateTimeImmutable($absence['dateEnd'].' '.$absence['timeEnd'], new DateTimeZone($this->timezone));
+
         if ($absence['allDay'] == 'Y') {
-            $eventData['start']['date'] = $absence['dateStart'];
-            $eventData['end']['date'] = (new DateTime($absence['dateEnd']))->add(new DateInterval('P1D'))->format('Y-m-d');
+            $eventData['start']['date'] = $dateStart->format('Y-m-d');
+            $eventData['end']['date'] = $dateEnd->add(new DateInterval('P1D'))->format('Y-m-d');
         } else {
-            $eventData['start']['dateTime'] = (new DateTime($absence['dateStart'].' '.$absence['timeStart']))->format('c');
-            $eventData['end']['dateTime'] = (new DateTime($absence['dateEnd'].' '.$absence['timeEnd']))->format('c');
+            $eventData['start']['dateTime'] = $dateStart->format('c');
+            $eventData['end']['dateTime'] = $dateEnd->format('c');
+        }
+
+        $totalDays = $dateStart->diff($dateEnd)->format('%a') + 1;
+
+        // If the time span does not equal the actual number of days absent, we likely have a recurring event
+        if ($totalDays != $absence['days']) {
+            $eventData['recurrence'] = [];
+            $absenceDates = $this->staffAbsenceDateGateway->selectDatesByAbsence($absence['gibbonStaffAbsenceID'])->fetchAll();
+
+            foreach ($absenceDates as $date) {
+                if ($date['date'] == $dateStart->format('Y-m-d')) continue;
+
+                $dateObject = new DateTimeImmutable($date['date'].' '.$date['timeStart']);
+                $eventData['recurrence'][] = 'RDATE:'.$dateObject->format('Ymd\THis');
+            }
+
+            if ($absence['allDay'] == 'Y') {
+                $eventData['end']['date'] = $dateStart->format('Y-m-d');
+            } else {
+                $eventData['end']['dateTime'] = $dateStart->setTime($dateEnd->format('H'), $dateEnd->format('i'))->format('c');
+            }
         }
 
         return $eventData;

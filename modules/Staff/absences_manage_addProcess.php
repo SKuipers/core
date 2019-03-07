@@ -156,7 +156,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
 
     // Create a Google Calendar event
     if ($type['requiresApproval'] == 'N' && $calendarSync = $container->get(AbsenceCalendarSync::class)) {
-        $calendarSync->addCalendarAbsence($gibbonStaffAbsenceID);
+        $calendarSync->insertCalendarAbsence($gibbonStaffAbsenceID);
     }
 
     // Redirect to coverage request
