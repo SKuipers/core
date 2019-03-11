@@ -22,18 +22,18 @@ fields:
         name: "Date"
         desc: "Must be unique. Format: YYYY-MM-DD"
         args: { filter: date, required: true, readonly: [gibbonStaffCoverage] }
-    # allDay:
-    #     name: "All Day"
-    #     desc: ""
-    #     args: { filter: yesno, custom: true, required: true }
-    # timeStart:
-    #     name: "Start Time"
-    #     desc: "Format: hh:mm (24hr)"
-    #     args: { filter: time, custom: true }
-    # timeEnd:
-    #     name: "End Time"
-    #     desc: "Format: hh:mm (24hr)"
-    #     args: { filter: time, custom: true }
+    allDay:
+        name: "All Day"
+        desc: ""
+        args: { filter: yesno, custom: true, required: true, readonly: [gibbonStaffCoverage] }
+    timeStart:
+        name: "Start Time"
+        desc: "Format: hh:mm (24hr)"
+        args: { filter: time, custom: true }
+    timeEnd:
+        name: "End Time"
+        desc: "Format: hh:mm (24hr)"
+        args: { filter: time, custom: true }
     status:
         name: "Status"
         desc: ""
@@ -45,27 +45,16 @@ fields:
         value: "Individual"
         args: { filter: string, hidden: true }
 
-    
-
     gibbonPersonIDCoverage:
         name: "Substitute"
         desc: "Username"
         args: { filter: nospaces, required: true, readonly: [gibbonStaffAbsenceDate] }
         relationship: { table: gibbonPerson, key: gibbonPersonID, field: username  }
-    timestampCoverage:
-        name: "Substitute Timestamp"
-        desc: ""
-        args: { filter: timestamp, linked: timestampStatus }
-    # notesCoverage:
-    #     name: "Substitute Notes"
-    #     desc: ""
-    #     args: { filter: string, custom: true }
 
     gibbonPersonIDStatus:
         name: "Created By"
         desc: "Username"
         args: { filter: nospaces, required: true, linked: gibbonPersonID, readonly: [gibbonStaffAbsenceDate] }
-        # relationship: { table: gibbonPerson, key: gibbonPersonID, field: username  }
     notesStatus:
         name: "Notes"
         desc: ""
@@ -74,12 +63,16 @@ fields:
         name: "Created On"
         desc: ""
         args: { filter: timestamp, custom: true }
+    timestampCoverage:
+        name: "Substitute Timestamp"
+        desc: ""
+        args: { filter: timestamp, linked: timestampStatus }
 
     gibbonStaffAbsenceID:
         name: "Absence ID"
         desc: ""
         args: { filter: string, linked: date }
-        relationship: { table: gibbonStaffAbsenceDate, key: gibbonStaffAbsenceID, join: gibbonStaffAbsence, on: [gibbonStaffAbsenceID, gibbonStaffAbsenceID], field: [ date, gibbonPersonID, gibbonSchoolYearID ]  }
+        relationship: { table: gibbonStaffAbsenceDate, key: gibbonStaffAbsenceID, join: gibbonStaffAbsence, on: [gibbonStaffAbsenceID, gibbonStaffAbsenceID], field: [ date, allDay, gibbonPersonID, gibbonSchoolYearID ]  }
     gibbonStaffCoverageID:
         name: "Coverage ID"
         desc: ""
@@ -99,6 +92,7 @@ tables:
             - gibbonSchoolYearID
             - gibbonPersonID
             - date
+            - allDay
             - gibbonStaffAbsenceID
             - status
             - requestType
@@ -118,9 +112,9 @@ tables:
             - gibbonStaffCoverageID
             - gibbonStaffAbsenceID
             - date
-            # - allDay
-            # - timeStart
-            # - timeEnd
+            - allDay
+            - timeStart
+            - timeEnd
             - gibbonPersonIDStatus
             - gibbonSchoolYearID
             - gibbonPersonID
