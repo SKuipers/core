@@ -111,7 +111,7 @@ class UserGateway extends QueryableGateway
                 JOIN gibbonRole ON (gibbonRole.gibbonRoleID=gibbonPerson.gibbonRoleIDPrimary)
                 LEFT JOIN gibbonStaff ON (gibbonStaff.gibbonPersonID=gibbonPerson.gibbonPersonID)
                 WHERE FIND_IN_SET(gibbonPerson.gibbonPersonID, :gibbonPersonIDList) 
-                ORDER BY surname, preferredName";
+                ORDER BY FIND_IN_SET(gibbonPerson.gibbonPersonID, :gibbonPersonIDList), surname, preferredName";
 
         return $this->db()->select($sql, $data);
     }
