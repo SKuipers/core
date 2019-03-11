@@ -627,8 +627,8 @@ function renderTT($guid, $connection2, $gibbonPersonID, $gibbonTTID, $title = ''
             $staffAbsenceGateway = $container->get(StaffAbsenceGateway::class);
 
             $criteria = $staffAbsenceGateway->newQueryCriteria()
-                ->filterBy('startDate', date('Y-m-d', $startDayStamp))
-                ->filterBy('endDate', date('Y-m-d', $endDayStamp))
+                ->filterBy('dateStart', date('Y-m-d', $startDayStamp))
+                ->filterBy('dateEnd', date('Y-m-d', $endDayStamp))
                 ->filterBy('status', 'Approved')
                 ->pageSize(0);
             $absenceList = $staffAbsenceGateway->queryAbsencesByPerson($criteria, $gibbonPersonID, false);
