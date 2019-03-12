@@ -17,10 +17,11 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Services\GoogleServiceProvider;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
-use Gibbon\Domain\System\SettingGateway;
+use Gibbon\Module\Staff\AbsenceCalendarSync;
+
+$_POST['address'] = '/modules/Staff/absences_manage.php';
 
 require_once '../../gibbon.php';
 
