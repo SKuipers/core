@@ -22,7 +22,8 @@ all stylesheets and scripts with a 'head' context.
     {% if asset.type == 'inline' %}
         <style type="text/css">{{ asset.src|raw }}</style>
     {% else %}
-        <link rel="stylesheet" href="{{ absoluteURL }}/{{ asset.src }}?v={{ assetVersion }}" type="text/css" media="{{ asset.media }}" />
+        {% set assetURL = "://" in asset.src ? asset.src : absoluteURL ~ "/" ~ asset.src ~ "?v=" ~ assetVersion %}
+        <link rel="stylesheet" href="{{ assetURL }}" type="text/css" media="{{ asset.media }}" />
     {% endif %}
 {% endfor %}
 
@@ -31,7 +32,8 @@ all stylesheets and scripts with a 'head' context.
     {% if asset.type == 'inline' %}
         <script type="text/javascript">{{ asset.src|raw }}</script>
     {% else %}
-        <script type="text/javascript" src="{{ absoluteURL }}/{{ asset.src }}?v={{ assetVersion }}"></script>
+        {% set assetURL = "://" in asset.src ? asset.src : absoluteURL ~ "/" ~ asset.src ~ "?v=" ~ assetVersion %}
+        <script type="text/javascript" src="{{ assetURL }}"></script>
     {% endif %}
 {% endfor %}
 
