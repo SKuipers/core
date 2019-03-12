@@ -38,7 +38,7 @@ class StaffAbsenceGateway extends QueryableGateway
     private static $tableName = 'gibbonStaffAbsence';
     private static $primaryKey = 'gibbonStaffAbsenceID';
 
-    private static $searchableColumns = ['gibbonStaffAbsence.reason', 'gibbonStaffAbsence.comment', 'gibbonStaffAbsenceType.name', 'gibbonPerson.preferredName', 'gibbonPerson.surname'];
+    private static $searchableColumns = ['gibbonStaffAbsence.reason', 'gibbonStaffAbsence.comment', 'gibbonStaffAbsence.status', 'gibbonStaffAbsenceType.name', 'gibbonPerson.preferredName', 'gibbonPerson.surname'];
 
     /**
      * @param QueryCriteria $criteria
