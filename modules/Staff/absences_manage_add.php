@@ -70,6 +70,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
 
     $types = $staffAbsenceTypeGateway->selectAllTypes()->fetchAll();
     $typesRequiringApproval = $staffAbsenceTypeGateway->selectTypesRequiringApproval()->fetchAll(\PDO::FETCH_COLUMN, 0);
+
     $approverOptions = explode(',', getSettingByScope($connection2, 'Staff', 'absenceApprovers'));
 
     $typesWithReasons = [];
@@ -97,7 +98,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
             ->placeholder()
             ->isRequired();
 
-    // $form->toggleVisibilityByClass('typeSelected')->onSelect('gibbonStaffAbsenceTypeID')->whenNot('Please select ...');
     $form->toggleVisibilityByClass('reasonOptions')->onSelect('gibbonStaffAbsenceTypeID')->when($typesWithReasons);
 
     $row = $form->addRow()->addClass('reasonOptions');
@@ -107,10 +107,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
             ->chainedTo('gibbonStaffAbsenceTypeID', $reasonsChained)
             ->placeholder()
             ->isRequired();
-
-    
-
-    
 
     $date = $_GET['date'] ?? '';
     $row = $form->addRow();
@@ -144,10 +140,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
             ->setClass('shortWidth')
             ->isRequired();
 
-
     if (!empty($typesRequiringApproval)) {
         $form->toggleVisibilityByClass('approvalRequired')->onSelect('gibbonStaffAbsenceTypeID')->when($typesRequiringApproval);
         $form->toggleVisibilityByClass('approvalNotRequired')->onSelect('gibbonStaffAbsenceTypeID')->whenNot(array_merge($typesRequiringApproval, ['Please select...']));
+
+        // Pre-fill the last approver from the one most recently used
+        $gibbonPersonIDApproval = $staffAbsenceGateway->getMostRecentApproverByPerson($gibbonPersonID);
 
         $form->addRow()->addHeading(__('Requires Approval'))->addClass('approvalRequired');
 
@@ -155,7 +153,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
         $row->addLabel('gibbonPersonIDApproval', __('Approver'));
         $row->addSelectUsersFromList('gibbonPersonIDApproval', $approverOptions)
             ->placeholder()
-            ->isRequired();
+            ->isRequired()
+            ->selected($gibbonPersonIDApproval ?? '');
     }
     $form->addRow()->addHeading(__('Notifications'));
 
@@ -164,7 +163,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
 
     // Notification Groups
 
-    // Get the users last notified by this staff member
+    // Get the most recent absence and pre-fill the notification group & list of people
     $recentAbsence = $staffAbsenceGateway->getMostRecentAbsenceByPerson($gibbonPersonID);
     
     $notificationSetting = $container->get(SettingGateway::class)->getSettingByScope('Staff', 'absenceNotificationGroups');
