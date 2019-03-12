@@ -144,10 +144,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_subs_availabi
                     $output .= Format::phone($person['phone1'], $person['phone1CountryCode'], $person['phone1Type']).'<br/>';
                 }
             } else {
-                if (!empty($person['absence'])) $output .= __('Absent').' - '.$person['absence'].'<br/>';
-                if (!empty($person['coverage'])) $output .= __('Covering').' - '.$person['coverage'].'<br/>';
-                if (!empty($person['timetable'])) $output .= __('Teaching').' - '.$person['timetable'].'<br/>';
-                if (!empty($person['unavailable'])) $output .= __($person['unavailable'] ?? 'Not Available').'<br/>';
+                $reason = '';
+                if (!empty($person['absence'])) $reason .= __('Absent').' - '.$person['absence'].'<br/>';
+                if (!empty($person['coverage'])) $reason .= __('Covering').' - '.$person['coverage'].'<br/>';
+                if (!empty($person['timetable'])) $reason .= __('Teaching').' - '.$person['timetable'].'<br/>';
+                if (!empty($person['unavailable'])) $reason .= __($person['unavailable']).'<br/>';
+
+                $output .= !empty($reason)? $reason : __('Not Available');
             }
             return $output;
         });

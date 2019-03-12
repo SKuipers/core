@@ -203,6 +203,19 @@ class StaffAbsenceGateway extends QueryableGateway
         return $this->db()->selectOne($sql, $data);
     }
 
+    public function getMostRecentApproverByPerson($gibbonPersonID)
+    {
+        $data = ['gibbonPersonID' => $gibbonPersonID];
+        $sql = "SELECT gibbonPersonIDApproval FROM 
+                gibbonStaffAbsence 
+                WHERE gibbonStaffAbsence.gibbonPersonID=:gibbonPersonID
+                AND gibbonPersonIDApproval IS NOT NULL
+                ORDER BY timestampCreator DESC
+                LIMIT 1";
+
+        return $this->db()->selectOne($sql, $data);
+    }
+
     protected function getSharedFilterRules()
     {
         return [

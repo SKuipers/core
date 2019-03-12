@@ -59,7 +59,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
     foreach ($dateRange as $date) {
         $data = [
             'gibbonPersonID' => $gibbonPersonID,
-            'reason'         => $_POST['reason'] ?? '',
+            'reason'         => $_POST['reason'] ?? null,
             'date'           => $date->format('Y-m-d'),
             'allDay'         => $_POST['allDay'] ?? '',
             'timeStart'      => $_POST['timeStart'] ?? null,
