@@ -1,0 +1,50 @@
+{#<!--
+Gibbon, Flexible & Open School System
+Copyright (C) 2010, Ross Parker
+
+This is a Gibbon template file, written in HTML and Twig syntax.
+For info about editing, see: https://twig.symfony.com/doc/2.x/
+-->#}
+
+<div class="flex items-center  p-6">
+    
+    <div class="w-24 h-24 rounded-full overflow-hidden mr-6">
+        <img class="w-24" src="{{ absoluteURL }}/{{ staff.image_240 }}" style="max-width: 6rem;">
+    </div>
+
+    <div class="">
+        <div class="text-lg text-grey-darkest leading-none mb-2 p-0">{{ formatUsing('name', staff.title, staff.preferredName, staff.surname, 'Staff', false, true) }}</div>
+
+        {% if staff.jobTitle %}
+            <div class="text-sm text-grey-dark mb-0">{{ staff.jobTitle }}</div>
+        {% endif %}
+
+        {% if rollGroup %}
+            <div class="text-sm text-grey-dark mb-0">{{ rollGroup.name }}</div>
+        {% endif %}
+    </div>
+
+    <div class="flex flex-grow justify-end items-center text-center">
+        {% if canViewProfile %}
+            <a class="px-2 w-16 thickbox" href="{{ absoluteURL }}/fullscreen.php?q=/modules/Staff/staff_view_details.php&width=800&height=500&gibbonPersonID={{ staff.gibbonPersonID }}">
+                <img class="" src="{{ absoluteURL }}/themes/Default/img/plus.png" title="{{ __('View') }}" width="25" height="25">
+                <div class="mt-1">{{ __('View') }}</div>
+            </a>
+        {% endif %}
+
+        {% if canViewTimetable %}
+            <a class="px-2 w-16 thickbox" href="{{ absoluteURL }}/fullscreen.php?q=/modules/Timetable/tt_view.php&width=800&height=500&gibbonPersonID={{ staff.gibbonPersonID }}&allUsers=on">
+                <img class="" src="{{ absoluteURL }}/themes/Default/img/markbook.png" title="{{ __('Timetable') }}" width="25" height="25">
+                <div class="mt-1">{{ __('Timetable') }}</div>
+            </a>
+        {% endif %}
+
+        {% if canViewRollGroups and rollGroup %}
+            <a class="px-2 w-16 thickbox" href="{{ absoluteURL }}/fullscreen.php?q=/modules/Roll Groups/rollGroups_details.php&width=800&height=500&gibbonRollGroupID={{ rollGroup.gibbonRollGroupID }}">
+                <img class="" src="{{ absoluteURL }}/themes/Default/img/attendance.png" title="{{ __('Homeroom') }}" width="25" height="25">
+                <div class="mt-1">{{ __('Homeroom') }}</div>
+            </a>
+        {% endif %}
+    </div>
+    
+</div>

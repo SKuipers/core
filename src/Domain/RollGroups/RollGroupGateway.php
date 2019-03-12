@@ -93,6 +93,20 @@ class RollGroupGateway extends QueryableGateway
         return $this->db()->select($sql, $data);
     }
 
+    public function selectRollGroupsByTutor($gibbonPersonID)
+    {
+        $data = array('gibbonPersonID' => $gibbonPersonID);
+        $sql = "SELECT gibbonRollGroup.*
+                FROM gibbonRollGroup 
+                WHERE (gibbonRollGroup.gibbonPersonIDTutor = :gibbonPersonID
+                    OR gibbonRollGroup.gibbonPersonIDTutor2 = :gibbonPersonID
+                    OR gibbonRollGroup.gibbonPersonIDTutor3 = :gibbonPersonID)
+                AND gibbonSchoolYearID=(SELECT gibbonSchoolYearID FROM gibbonSchoolYear WHERE status='Current' LIMIT 1)
+                ORDER BY gibbonRollGroup.nameShort";
+
+        return $this->db()->select($sql, $data);
+    }
+
     public function getRollGroupByID($gibbonRollGroupID)
     {
         $data = array('gibbonRollGroupID' => $gibbonRollGroupID);

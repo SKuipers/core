@@ -51,10 +51,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_cancel
     }
 
     $coverage = $staffCoverageGateway->getByID($gibbonStaffCoverageID);
-    $absence = $container->get(StaffAbsenceGateway::class)->getByID($coverage['gibbonStaffAbsenceID'] ?? '');
-    $type = $container->get(StaffAbsenceTypeGateway::class)->getByID($absence['gibbonStaffAbsenceTypeID'] ?? '');
 
-    if (empty($coverage) || empty($absence) || empty($type) || $coverage['status'] != 'Requested') {
+    if (empty($coverage) || $coverage['status'] != 'Requested') {
         $page->addError(__('The specified record cannot be found.'));
         return;
     }
@@ -67,13 +65,22 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_cancel
 
     $form->addRow()->addHeading(__('Cancel Coverage Request'));
 
-    $row = $form->addRow();
-        $row->addLabel('gibbonPersonIDLabel', __('Person'));
-        $row->addSelectStaff('gibbonPersonID')->placeholder()->isRequired()->selected($absence['gibbonPersonID'])->readonly();
+    if (!empty($coverage['gibbonStaffAbsenceID'])) {
+        $absence = $container->get(StaffAbsenceGateway::class)->getByID($coverage['gibbonStaffAbsenceID'] ?? '');
+        $type = $container->get(StaffAbsenceTypeGateway::class)->getByID($absence['gibbonStaffAbsenceTypeID'] ?? '');
 
-    $row = $form->addRow();
-        $row->addLabel('typeLabel', __('Type'));
-        $row->addTextField('type')->readonly()->setValue($absence['reason'] ? "{$type['name']} ({$absence['reason']})" : $type['name']);
+        $row = $form->addRow();
+            $row->addLabel('gibbonPersonIDLabel', __('Person'));
+            $row->addSelectStaff('gibbonPersonID')->placeholder()->isRequired()->selected($absence['gibbonPersonID'])->readonly();
+
+        $row = $form->addRow();
+            $row->addLabel('typeLabel', __('Type'));
+            $row->addTextField('type')->readonly()->setValue($absence['reason'] ? "{$type['name']} ({$absence['reason']})" : $type['name']);
+    } else {
+        $row = $form->addRow();
+            $row->addLabel('gibbonPersonIDLabel', __('Person'));
+            $row->addSelectStaff('gibbonPersonID')->placeholder()->isRequired()->selected($coverage['gibbonPersonIDStatus'])->readonly();
+    }
 
     $row = $form->addRow();
         $row->addLabel('timestampLabel', __('Requested'));
