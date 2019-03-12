@@ -38,7 +38,7 @@ class StaffCoverageGateway extends QueryableGateway
     private static $tableName = 'gibbonStaffCoverage';
     private static $primaryKey = 'gibbonStaffCoverageID';
 
-    private static $searchableColumns = ['absence.preferredName', 'absence.surname', 'coverage.preferredName', 'coverage.surname', 'gibbonStaffCoverage.status'];
+    private static $searchableColumns = ['absence.preferredName', 'absence.surname', 'coverage.preferredName', 'coverage.surname', 'status.preferredName', 'status.surname', 'gibbonStaffCoverage.status'];
 
     /**
      * @param QueryCriteria $criteria
@@ -109,11 +109,11 @@ class StaffCoverageGateway extends QueryableGateway
                 'gibbonStaffCoverage.gibbonStaffCoverageID', 'gibbonStaffCoverage.status',  'gibbonStaffAbsenceType.name as type', 'reason', 'date', 'COUNT(*) as days', 'MIN(date) as dateStart', 'MAX(date) as dateEnd', 'allDay', 'timeStart', 'timeEnd', 'timestampStatus', 'timestampCoverage', 'gibbonStaffCoverage.gibbonPersonIDCoverage', 'gibbonStaffAbsence.gibbonPersonID', 
                 'coverage.title as titleCoverage', 'coverage.preferredName as preferredNameCoverage', 'coverage.surname as surnameCoverage', 'gibbonStaffCoverage.notesCoverage'
             ])
-            ->innerJoin('gibbonStaffAbsence', 'gibbonStaffCoverage.gibbonStaffAbsenceID=gibbonStaffAbsence.gibbonStaffAbsenceID')
-            ->innerJoin('gibbonStaffAbsenceType', 'gibbonStaffAbsence.gibbonStaffAbsenceTypeID=gibbonStaffAbsenceType.gibbonStaffAbsenceTypeID')
+            ->leftJoin('gibbonStaffAbsence', 'gibbonStaffCoverage.gibbonStaffAbsenceID=gibbonStaffAbsence.gibbonStaffAbsenceID')
+            ->leftJoin('gibbonStaffAbsenceType', 'gibbonStaffAbsence.gibbonStaffAbsenceTypeID=gibbonStaffAbsenceType.gibbonStaffAbsenceTypeID')
             ->leftJoin('gibbonStaffAbsenceDate', 'gibbonStaffAbsenceDate.gibbonStaffCoverageID=gibbonStaffCoverage.gibbonStaffCoverageID')
             ->leftJoin('gibbonPerson AS coverage', 'gibbonStaffCoverage.gibbonPersonIDCoverage=coverage.gibbonPersonID')
-            ->where('gibbonStaffAbsence.gibbonPersonID = :gibbonPersonID')
+            ->where('(gibbonStaffAbsence.gibbonPersonID = :gibbonPersonID OR gibbonStaffCoverage.gibbonPersonIDStatus = :gibbonPersonID)')
             ->bindValue('gibbonPersonID', $gibbonPersonID)
             ->groupBy(['gibbonStaffCoverage.gibbonStaffCoverageID'])
             ->orderBy(["gibbonStaffCoverage.status = 'Requested' DESC"]);
