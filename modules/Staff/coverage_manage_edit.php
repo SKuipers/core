@@ -26,6 +26,7 @@ use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
 use Gibbon\Domain\User\UserGateway;
+use Gibbon\Module\Staff\Forms\ViewCoverageForm;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_edit.php') == false) {
     // Access denied
@@ -52,7 +53,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_edit
         return;
     }
 
-    $coverage = $staffCoverageGateway->getByID($gibbonStaffCoverageID);
+    $coverage = $staffCoverageGateway->getCoverageDetailsByID($gibbonStaffCoverageID);
 
     if (empty($coverage)) {
         $page->addError(__('The specified record cannot be found.'));
@@ -67,21 +68,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_edit
 
     $form->addRow()->addHeading(__('Coverage Request'));
 
+    $gibbonPersonIDStatus = !empty($coverage['gibbonPersonID'])? $coverage['gibbonPersonID'] : $coverage['gibbonPersonIDStatus'];
+    if (!empty($gibbonPersonIDStatus)) {
+        $form->addRow()->addContent(ViewCoverageForm::getStaffCard($container, $gibbonPersonIDStatus));
+    }
+
     if (!empty($coverage['gibbonStaffAbsenceID'])) {
-        $absence = $container->get(StaffAbsenceGateway::class)->getByID($coverage['gibbonStaffAbsenceID']);
-        $type = $container->get(StaffAbsenceTypeGateway::class)->getByID($absence['gibbonStaffAbsenceTypeID'] ?? '');
-
-        $row = $form->addRow();
-            $row->addLabel('gibbonPersonIDLabel', __('Absent'));
-            $row->addSelectStaff('gibbonPersonID')->placeholder()->isRequired()->selected($absence['gibbonPersonID'])->readonly();
-
         $row = $form->addRow();
             $row->addLabel('typeLabel', __('Type'));
-            $row->addTextField('type')->readonly()->setValue($absence['reason'] ? "{$type['name']} ({$absence['reason']})" : $type['name']);
-    } else {
-        $row = $form->addRow();
-            $row->addLabel('gibbonPersonIDLabel', __('Created By'));
-            $row->addSelectStaff('gibbonPersonID')->placeholder()->isRequired()->selected($coverage['gibbonPersonIDStatus'])->readonly();
+            $row->addTextField('type')->readonly()->setValue($coverage['reason'] ? "{$coverage['type']} ({$coverage['reason']})" : $coverage['type']);
     }
     
     $row = $form->addRow();
