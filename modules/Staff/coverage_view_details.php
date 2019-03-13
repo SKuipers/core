@@ -30,6 +30,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_detail
     $gibbonStaffCoverageID = $_GET['gibbonStaffCoverageID'] ?? '';
 
     $form = ViewCoverageForm::create($container, $gibbonStaffCoverageID);
+    $table = ViewCoverageForm::createViewDatesTable($container, $gibbonStaffCoverageID);
+
+    $form->addRow()->addContent($table->getOutput());
 
     echo $form->getOutput();
 }

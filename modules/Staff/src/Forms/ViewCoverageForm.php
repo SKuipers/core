@@ -23,9 +23,11 @@ use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
-use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Domain\User\UserGateway;
+use Gibbon\Domain\Staff\StaffGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
+use Gibbon\Domain\Staff\StaffCoverageGateway;
+use Gibbon\Domain\RollGroups\RollGroupGateway;
 use Psr\Container\ContainerInterface;
 
 /**
@@ -51,19 +53,17 @@ class ViewCoverageForm
     
         $form->addRow()->addHeading(__('Coverage Request'));
 
+        $gibbonPersonIDStatus = !empty($coverage['gibbonPersonID'])? $coverage['gibbonPersonID'] : $coverage['gibbonPersonIDStatus'];
+        if (!empty($gibbonPersonIDStatus)) {
+            $form->addRow()->addContent(static::getStaffCard($container, $gibbonPersonIDStatus));
+        }
+
         if (!empty($coverage['gibbonStaffAbsenceID'])) {
-            $row = $form->addRow();
-                $row->addLabel('gibbonPersonIDLabel', __('Absent'));
-                $row->addSelectStaff('gibbonPersonID')->placeholder()->isRequired()->selected($coverage['gibbonPersonID'])->readonly();
-        
             $row = $form->addRow();
                 $row->addLabel('typeLabel', __('Type'));
                 $row->addTextField('type')->readonly()->setValue($coverage['reason'] ? "{$coverage['type']} ({$coverage['reason']})" : $coverage['type']);
-        } else {
-            $row = $form->addRow();
-                $row->addLabel('gibbonPersonIDLabel', __('Created By'));
-                $row->addSelectStaff('gibbonPersonID')->placeholder()->isRequired()->selected($coverage['gibbonPersonIDStatus'])->readonly();
         }
+
         $row = $form->addRow();
             $row->addLabel('timestamp', __('Requested'));
             $row->addTextField('timestampValue')
@@ -132,10 +132,17 @@ class ViewCoverageForm
                 $row->addTextArea('notesCoverage')->setRows(3)->readonly();
         }
     
+        $form->loadAllValuesFrom($coverage);
+
+        return $form;
+    }
+
+    public static function createViewDatesTable(ContainerInterface $container, $gibbonStaffCoverageID)
+    {
         // DATA TABLE
         $absenceDates = $container->get(StaffAbsenceDateGateway::class)->selectDatesByCoverage($gibbonStaffCoverageID);
         
-        $table = DataTable::create('staffCoverageDates');
+        $table = DataTable::create('staffCoverageDates')->withData($absenceDates->toDataSet());
         $table->setTitle(__('Dates'));
     
         $table->addColumn('date', __('Date'))
@@ -160,11 +167,24 @@ class ViewCoverageForm
                         ? Format::name($absence['titleCoverage'], $absence['preferredNameCoverage'], $absence['surnameCoverage'], 'Staff', false, true)
                         : '<div class="badge success">'.__('Pending').'</div>';
             });
-    
-        $row = $form->addRow()->addContent($table->render($absenceDates->toDataSet()));
 
-        $form->loadAllValuesFrom($coverage);
+        return $table;
+    }
 
-        return $form;
+    public static function getStaffCard(ContainerInterface $container, $gibbonPersonID)
+    {
+        $guid = $container->get('config')->getConfig('guid');
+        $connection2 = $container->get('db')->getConnection();
+
+        $staff = $container->get(StaffGateway::class)->selectStaffByID($gibbonPersonID ?? '')->fetch();
+        $rollGroup = $container->get(RollGroupGateway::class)->selectRollGroupsByTutor($gibbonPersonID ?? '')->fetch();
+
+        return $container->get('page')->fetchFromTemplate('users/staffCard.twig.html', [
+            'staff' => $staff,
+            'rollGroup' => $rollGroup,
+            'canViewProfile' => isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.php'),
+            'canViewTimetable' => isActionAccessible($guid, $connection2, '/modules/Timetable/tt_view.php'),
+            'canViewRollGroups' => isActionAccessible($guid, $connection2, '/modules/Roll Groups/rollGroups.php'),
+        ]);
     }
 }

@@ -89,7 +89,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                     echo '</td>';
                     echo "<td style='width: 33%; vertical-align: top'>";
                     echo "<span style='font-size: 115%; font-weight: bold'>".__('Staff Type').'</span><br/>';
-                    echo '<i>'.$row['type'].'</i>';
+                    echo '<i>'.__($row['type']).'</i>';
                     echo '</td>';
                     echo "<td style='width: 33%; vertical-align: top'>";
                     echo "<span style='font-size: 115%; font-weight: bold'>".__('Job Title').'</span><br/>';
@@ -320,7 +320,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                         echo '</td>';
                         echo "<td style='width: 33%; vertical-align: top'>";
                         echo "<span style='font-size: 115%; font-weight: bold'>".__('Staff Type').'</span><br/>';
-                        echo '<i>'.$row['type'].'</i>';
+                        echo '<i>'.__($row['type']).'</i>';
                         echo '</td>';
                         echo "<td style='width: 33%; vertical-align: top'>";
                         echo "<span style='font-size: 115%; font-weight: bold'>".__('Job Title').'</span><br/>';
@@ -473,7 +473,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                         echo '</td>';
                         echo "<td style='width: 33%; vertical-align: top'>";
                         echo "<span style='font-size: 115%; font-weight: bold'>".__('Staff Type').'</span><br/>';
-                        echo '<i>'.$row['type'].'</i>';
+                        echo '<i>'.__($row['type']).'</i>';
                         echo '</td>';
                         echo "<td style='width: 33%; vertical-align: top'>";
                         echo "<span style='font-size: 115%; font-weight: bold'>".__('Job Title').'</span><br/>';

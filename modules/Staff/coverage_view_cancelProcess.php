@@ -39,9 +39,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_cancel
     $staffAbsenceDateGateway = $container->get(StaffAbsenceDateGateway::class);
 
     $data = [
-        'timestampCoverage'      => date('Y-m-d H:i:s'),
-        'notesCoverage'          => $_POST['notesCoverage'],
-        'status'                 => 'Cancelled',
+        'timestampStatus' => date('Y-m-d H:i:s'),
+        'notesStatus'     => $_POST['notesStatus'],
+        'status'          => 'Cancelled',
     ];
 
     // Validate the required values are present
