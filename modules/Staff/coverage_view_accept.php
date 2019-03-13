@@ -106,14 +106,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
     $table->addColumn('date', __('Date'))
         ->format(Format::using('dateReadable', 'date'));
 
-    // $table->addColumn('tt', __('Timetable'))
-    //     ->format(function ($absence) use ($guid) {
-    //         $text = __('Preview');
-    //         $url = $_SESSION[$guid]['absoluteURL'].'/fullscreen.php?q=/modules/Staff/coverage_view_preview.php&gibbonStaffAbsenceDateID='.$absence['gibbonStaffAbsenceDateID'].'&width=768&height=600';
-
-    //         return Format::link($url, $text, ['class' => 'thickbox']);
-    //     });
-
     $table->addColumn('timeStart', __('Time'))
         ->format(function ($coverage) {
             if ($coverage['allDay'] == 'N') {
