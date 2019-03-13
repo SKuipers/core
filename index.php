@@ -347,6 +347,9 @@ $page->stylesheets->add(
     ['type' => 'inline']
 );
 
+// Tailwind CSS TEST
+$page->stylesheets->add('tailwind', 'resources/assets/css/utilities.min.css', ['weight' => 1]);
+
 /**
  * USER CONFIGURATION
  *
