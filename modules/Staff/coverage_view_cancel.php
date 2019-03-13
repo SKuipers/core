@@ -25,6 +25,7 @@ use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
+use Gibbon\Module\Staff\Forms\ViewCoverageForm;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_cancel.php') == false) {
     // Access denied
@@ -50,7 +51,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_cancel
         return;
     }
 
-    $coverage = $staffCoverageGateway->getByID($gibbonStaffCoverageID);
+    $coverage = $staffCoverageGateway->getCoverageDetailsByID($gibbonStaffCoverageID);
 
     if (empty($coverage) || $coverage['status'] != 'Requested') {
         $page->addError(__('The specified record cannot be found.'));
@@ -65,21 +66,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_cancel
 
     $form->addRow()->addHeading(__('Cancel Coverage Request'));
 
+    $gibbonPersonIDStatus = !empty($coverage['gibbonPersonID'])? $coverage['gibbonPersonID'] : $coverage['gibbonPersonIDStatus'];
+    if (!empty($gibbonPersonIDStatus)) {
+        $form->addRow()->addContent(ViewCoverageForm::getStaffCard($container, $gibbonPersonIDStatus));
+    }
+
     if (!empty($coverage['gibbonStaffAbsenceID'])) {
-        $absence = $container->get(StaffAbsenceGateway::class)->getByID($coverage['gibbonStaffAbsenceID'] ?? '');
-        $type = $container->get(StaffAbsenceTypeGateway::class)->getByID($absence['gibbonStaffAbsenceTypeID'] ?? '');
-
-        $row = $form->addRow();
-            $row->addLabel('gibbonPersonIDLabel', __('Person'));
-            $row->addSelectStaff('gibbonPersonID')->placeholder()->isRequired()->selected($absence['gibbonPersonID'])->readonly();
-
         $row = $form->addRow();
             $row->addLabel('typeLabel', __('Type'));
-            $row->addTextField('type')->readonly()->setValue($absence['reason'] ? "{$type['name']} ({$absence['reason']})" : $type['name']);
-    } else {
-        $row = $form->addRow();
-            $row->addLabel('gibbonPersonIDLabel', __('Person'));
-            $row->addSelectStaff('gibbonPersonID')->placeholder()->isRequired()->selected($coverage['gibbonPersonIDStatus'])->readonly();
+            $row->addTextField('type')->readonly()->setValue($coverage['reason'] ? "{$coverage['type']} ({$coverage['reason']})" : $coverage['type']);
     }
 
     $row = $form->addRow();
@@ -88,13 +83,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_cancel
 
     if (!empty($coverage['notesStatus'])) {
         $row = $form->addRow();
-            $row->addLabel('notesStatusLabel', __('Comment'));
-            $row->addTextArea('notesStatus')->setRows(2)->setValue($coverage['notesStatus'])->readonly();
+            $row->addLabel('notesStatusReadonlyLabel', __('Comment'));
+            $row->addTextArea('notesStatusReadonly')->setRows(2)->setValue($coverage['notesStatus'])->readonly();
     }
 
     $row = $form->addRow();
-        $row->addLabel('notesCoverage', __('Reply'));
-        $row->addTextArea('notesCoverage')->setRows(3);
+        $row->addLabel('notesStatus', __('Reply'));
+        $row->addTextArea('notesStatus')->setRows(3);
 
     $row = $form->addRow();
         $row->addFooter();
