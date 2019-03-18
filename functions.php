@@ -3351,13 +3351,17 @@ function isSchoolOpen($guid, $date, $connection2, $allYears = '')
     $timestamp = dateConvertToTimestamp($date);
     $dayOfWeek = date('D', $timestamp);
 
+    if (empty($_SESSION[$guid]['gibbonSchoolYearID'])) {
+        setCurrentSchoolYear($guid, $connection2);
+    }
+
     //See if date falls into a school term
     try {
         $data = array();
         $sqlWhere = '';
         if ($allYears != true) {
-            $data[$_SESSION[$guid]['gibbonSchoolYearID']] = $_SESSION[$guid]['gibbonSchoolYearID'];
-            $sqlWhere = ' AND gibbonSchoolYear.gibbonSchoolYearID=:'.$_SESSION[$guid]['gibbonSchoolYearID'];
+            $data['gibbonSchoolYearID'] = $_SESSION[$guid]['gibbonSchoolYearID'];
+            $sqlWhere = ' AND gibbonSchoolYear.gibbonSchoolYearID=:gibbonSchoolYearID';
         }
 
         $sql = "SELECT gibbonSchoolYearTerm.firstDay, gibbonSchoolYearTerm.lastDay FROM gibbonSchoolYearTerm, gibbonSchoolYear WHERE gibbonSchoolYearTerm.gibbonSchoolYearID=gibbonSchoolYear.gibbonSchoolYearID $sqlWhere";
