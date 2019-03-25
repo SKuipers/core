@@ -1347,6 +1347,10 @@ select[multiple] {
     display: table-cell;
 }
 
+.column.inline.displayNone {
+    display: none;
+}
+
 .column.inline div {
 	display:inline-block;
 	width:auto;
@@ -1862,39 +1866,17 @@ button[disabled], input[disabled], textarea[disabled] {
     box-shadow: none;
 }
 
-/* PERSON SELECT */
-.personPhoto {
-    background:#dddddd no-repeat;
-    border-radius: 70px;
-    height: 70px;
-    width: 70px;
-    position: absolute;
-    top: calc(50% - 35px);
-    right: 324px;
-}
-
-.personCount {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    background: #9d7cc6;
-    color: #ffffff;
-    text-align: center;
-    border-radius: 20px;
-    line-height: 22px;
-    min-width: 20px;
-    max-height: 20px;
-}
-
-.personSelect:not([multiple]) {
-    margin: 30px 0px;
-}
-
+/* PERSON SELECT - LiveValidation styling */
 .personSelect + .LV_validation_message {
     position: absolute;
     top: 40%;
     right: 410px;
     white-space: nowrap; 
+}
+
+.personSelect[multiple] + .LV_validation_message {
+    top: 78%;
+    right: 325px;
 }
 
 /* FINDER */
@@ -1931,6 +1913,7 @@ button[disabled], input[disabled], textarea[disabled] {
     width: 36px;
     float: left;
     margin-top: 2px;
+    white-space: nowrap;
 }
 
 
