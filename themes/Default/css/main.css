@@ -371,7 +371,6 @@ ul.moduleMenu h4 {
 
 /* LINKS */
 a,a:link,a:hover {
-	background:transparent;
 	text-decoration:underline;
 }
 a:link {
