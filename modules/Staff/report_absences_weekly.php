@@ -165,9 +165,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_week
                 return $output;
             });
 
-        $table->addColumn('type', __('Type'))
-            ->format([AbsenceFormats::class, 'typeAndReason']);
-
         if (isActionAccessible($guid, $connection2, '/modules/Staff/report_subs_availability.php')) {
             $table->addColumn('coverage', __('Coverage'))
                 ->width('30%')

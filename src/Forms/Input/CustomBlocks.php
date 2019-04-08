@@ -55,13 +55,14 @@ class CustomBlocks implements OutputableInterface
         $this->name = $name;
 
         $this->toolsTable = $factory->createTable()->setClass('inputTools fullWidth');
-        $this->blockButtons = $factory->createGrid()->setClass('blockButtons blank fullWidth')->setColumns(2);
+        $this->blockButtons = $factory->createGrid()->setClass('blockButtons blank fullWidth');
         $this->addBlockButton('delete', __('Delete'), 'garbage.png');
 
         $this->settings = array(
-            'placeholder' => __('Blocks will appear here...'),
-            'deleteMessage' => __('Are you sure you want to delete this record?'),
-            'currentBlocks' => array(),
+            'placeholder'      => __('Blocks will appear here...'),
+            'deleteMessage'    => __('Are you sure you want to delete this record?'),
+            'duplicateMessage' => __('This element has already been selected!'),
+            'currentBlocks'    => array(),
         );
     }
 

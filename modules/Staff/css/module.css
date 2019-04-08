@@ -34,7 +34,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
     padding: 0px !important;
     border: 1px solid #dfdfdf !important;
     text-align: center;
-    height: 40px;
     width: 30px;
     font-size: 90%;
     overflow: hidden;
@@ -102,7 +101,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 }
 
 .calendarTableSmall td {
-    height: 22px;
+    /* height: 22px; */
     /* width: 22px; */
     overflow: hidden;
 }

@@ -41,7 +41,7 @@ class AbsenceFormats
     {
         return $coverage['gibbonPersonIDCoverage'] 
             ? Format::name($coverage['titleCoverage'], $coverage['preferredNameCoverage'], $coverage['surnameCoverage'], 'Staff', false, true)
-            : '<div class="badge success">'.__('Pending').'</div>';
+            : '<span class="tag success">'.__('Pending').'</span>';
     }
 
     public static function dateDetails($absence)
@@ -81,7 +81,7 @@ class AbsenceFormats
         if ($absence['coverage'] == 'Accepted') {
             return Format::name($absence['titleCoverage'], $absence['preferredNameCoverage'], $absence['surnameCoverage'], 'Staff', false, true);
         } elseif ($absence['coverage'] == 'Requested') {
-            return '<div class="badge success">'.__('Pending').'</div>';
+            return '<span class="tag success">'.__('Pending').'</span>';
         }
         return '';
     }
@@ -105,11 +105,11 @@ class AbsenceFormats
 
         $relativeSeconds = strtotime($coverage['dateStart']) - time();
         if ($relativeSeconds <= 0) {
-            return '<div class="badge dull">'.__('Overdue').'</div>';
+            return '<span class="tag dull">'.__('Overdue').'</span>';
         } elseif ($relativeSeconds <= (86400 * $urgencyThreshold)) {
-            return '<div class="error badge">'.__('Urgent').'</div>';
+            return '<span class="error tag">'.__('Urgent').'</span>';
         } elseif ($relativeSeconds <= (86400 * ($urgencyThreshold * 3))) {
-            return '<div class="badge warning">'.__('Upcoming').'</div>';
+            return '<span class="tag warning">'.__('Upcoming').'</span>';
         } else {
             return __('Upcoming');
         }

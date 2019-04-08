@@ -19,6 +19,7 @@ along with this program. If not, see <http:// www.gnu.org/licenses/>.
 
 use Gibbon\Domain\System\ModuleGateway;
 use Gibbon\Domain\DataUpdater\DataUpdaterGateway;
+use Gibbon\Domain\Students\StudentGateway;
 
 /**
  * BOOTSTRAP
@@ -338,12 +339,12 @@ if (getSettingByScope($connection2, 'User Admin', 'personalBackground') == 'Y' &
     $backgroundScroll = 'repeat fixed center top';
 } else {
     $backgroundImage = $session->get('absoluteURL').'/themes/'.$session->get('gibbonThemeName').'/img/backgroundPage.jpg';
-    $backgroundScroll = 'no-repeat fixed center top #A88EDB!important;';
+    $backgroundScroll = 'no-repeat fixed center top #626cd3!important;';
 }
 
 $page->stylesheets->add(
     'personal-background',
-    'body { background: url('.$backgroundImage.') '.$backgroundScroll.'  }',
+    'body { background: url('.$backgroundImage.') '.$backgroundScroll.' }',
     ['type' => 'inline']
 );
 
@@ -431,7 +432,11 @@ if (!$session->has('address') && !empty($_GET['return'])) {
  */
 if ($isLoggedIn) {
     if ($cacheLoad || !$session->has('fastFinder')) {
-        $session->set('fastFinder', getFastFinder($connection2, $guid));
+        $templateData = getFastFinder($connection2, $guid);
+        $templateData['enrolmentCount'] = $container->get(StudentGateway::class)->getStudentEnrolmentCount($session->get('gibbonSchoolYearID'));
+
+        $fastFinder = $page->fetchFromTemplate('finder.twig.html', $templateData);
+        $session->set('fastFinder', $fastFinder);
     }
 
     $moduleGateway = $container->get(ModuleGateway::class);

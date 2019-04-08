@@ -165,7 +165,7 @@ class ViewCoverageForm
     
                 return $absence['coverage'] == 'Accepted'
                         ? Format::name($absence['titleCoverage'], $absence['preferredNameCoverage'], $absence['surnameCoverage'], 'Staff', false, true)
-                        : '<div class="badge success">'.__('Pending').'</div>';
+                        : '<span class="tag success">'.__('Pending').'</span>';
             });
 
         return $table;

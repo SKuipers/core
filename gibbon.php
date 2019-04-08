@@ -30,6 +30,7 @@ $container->add('autoloader', $autoloader);
 
 $container->addServiceProvider(new Gibbon\Services\CoreServiceProvider(__DIR__));
 $container->addServiceProvider(new Gibbon\Services\GoogleServiceProvider());
+$container->addServiceProvider(new Gibbon\Services\ViewServiceProvider());
 
 // Globals for backwards compatibility
 $gibbon = $container->get('config');
