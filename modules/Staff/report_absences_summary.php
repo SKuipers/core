@@ -184,6 +184,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_summ
                     elseif ($day['weekend']) $cell->addClass('weekend');
                     else $cell->addClass('day');
 
+                    $cell->addClass('h-3 sm:h-6');
+
                     return $cell;
                 });
         }

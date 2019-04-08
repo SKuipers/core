@@ -134,6 +134,8 @@ class CoverageCalendar
                     elseif ($day['exception']) $cell->addClass('bg-grey');
                     elseif ($day['weekend']) $cell->addClass('weekend');
                     else $cell->addClass('day');
+
+                    $cell->addClass('h-3 sm:h-6');
     
                     return $cell;
                 });

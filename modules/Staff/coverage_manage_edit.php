@@ -163,7 +163,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_edit
 
             return $coverage['coverage'] == 'Accepted'
                     ? Format::name($coverage['titleCoverage'], $coverage['preferredNameCoverage'], $coverage['surnameCoverage'], 'Staff', false, true)
-                    : '<div class="badge success">'.__('Pending').'</div>';
+                    : '<span class="tag success">'.__('Pending').'</span>';
         });
 
     $row = $form->addRow()->addContent($table->render($coverageDates->toDataSet()));

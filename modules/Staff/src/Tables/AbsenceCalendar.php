@@ -65,7 +65,7 @@ class AbsenceCalendar
 
         $table = DataTable::create('staffAbsenceCalendar');
         $table->setTitle(__('Calendar'));
-        $table->getRenderer()->setClass('calendarTable calendarTableSmall');
+        $table->getRenderer()->setClass('calendarTable calendarTableSmall ');
 
         $table->addColumn('name', '')->notSortable();
 
@@ -95,6 +95,8 @@ class AbsenceCalendar
                     if ($day['count'] > 0) $cell->addClass('bg-color'.($day['absence']['sequenceNumber'] % 10));
                     elseif ($day['weekend']) $cell->addClass('weekend');
                     else $cell->addClass('day');
+
+                    $cell->addClass('h-3 sm:h-6');
 
                     return $cell;
                 });
