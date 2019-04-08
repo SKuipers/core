@@ -1,4 +1,5 @@
-/*!
+<?php
+/*
 Gibbon, Flexible & Open School System
 Copyright (C) 2010, Ross Parker
 
@@ -16,4 +17,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-@import "bootstrap"
+include '../../gibbon.php';
+include './moduleFunctions.php';
+
+$id = $_POST['id'];
+$value = $_POST['value'];
+
+echo '<div style="margin-left: -25px; width: 740px; overflow: visible;">';
+echo getEditor($guid, true, $id, $value, 10, false, false, false, false, '', false);
+echo '</div>';

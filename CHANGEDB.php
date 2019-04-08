@@ -841,6 +841,11 @@ ALTER TABLE gibbonUnitClassBlock DROP COLUMN gibbonOutcomeIDList;end
 ALTER TABLE `gibbonTTSpaceBooking` CHANGE `foreignKey` `foreignKey` ENUM('gibbonSpaceID','gibbonLibraryItemID') NOT NULL DEFAULT 'gibbonSpaceID';end
 UPDATE gibbonTTSpaceBooking SET foreignKey='gibbonSpaceID' WHERE foreignKey='';end
 INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`)VALUES ('System', 'mailerSMTPSecure', 'SMTP Encryption', 'Automatically sets the encryption based on the port, otherwise select one manually.', 'auto');end
+UPDATE gibbonSetting SET description='Name of Google Project in Developers Console.' WHERE scope='System' AND name='googleClientName';end
+INSERT INTO `gibboni18n` (`code`, `name`, `active`, `systemDefault`, `dateFormat`, `dateFormatRegEx`, `dateFormatPHP`,`rtl`) VALUES ('my_MM','မြန်မာ - မြန်မာ', 'N', 'N', 'dd-mm-yyyy', '/^(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\\\d\\\d$/i', 'd-m-Y', 'N');end
+ALTER TABLE gibbonPlannerEntry DROP COLUMN gibbonHookID;end
+ALTER TABLE `gibbonHook` CHANGE `type` `type` ENUM('Public Home Page','Student Profile','Parental Dashboard','Staff Dashboard','Student Dashboard') CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL;end
+DROP TABLE gibbonUnitBlockStar;end
 INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES ((SELECT gibbonModuleID FROM gibbonModule WHERE name='School Admin'), 'Manage Staff Settings', 0, 'People', 'Manage settings for the Staff module', 'staffSettings.php,staffSettings_manage_add.php,staffSettings_manage_edit.php,staffSettings_manage_delete.php', 'staffSettings.php', 'Y', 'N', 'N', 'N', 'N', 'Y', 'N', 'N', 'N');end
 INSERT INTO `gibbonPermission` (`gibbonRoleID` ,`gibbonActionID`) VALUES ('001', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='School Admin' AND gibbonAction.name='Manage Staff Settings'));end
 CREATE TABLE `gibbonStaffAbsence` (

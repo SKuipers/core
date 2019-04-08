@@ -19,6 +19,7 @@ along with this program. If not, see <http:// www.gnu.org/licenses/>.
 
 use Gibbon\Domain\System\ModuleGateway;
 use Gibbon\Domain\DataUpdater\DataUpdaterGateway;
+use Gibbon\Domain\Students\StudentGateway;
 
 /**
  * BOOTSTRAP
@@ -282,7 +283,7 @@ $page->scripts->addMultiple([
     'jquery-ui'      => 'lib/jquery-ui/js/jquery-ui.min.js',
     'jquery-time'    => 'lib/jquery-timepicker/jquery.timepicker.min.js',
     'jquery-chained' => 'lib/chained/jquery.chained.min.js',
-    'core'           => 'resources/assets/js/core.js',
+    'core'           => 'resources/assets/js/core.min.js',
 ], ['context' => 'head']);
 
 // Set page scripts: foot - jquery
@@ -343,12 +344,12 @@ if (getSettingByScope($connection2, 'User Admin', 'personalBackground') == 'Y' &
 
 $page->stylesheets->add(
     'personal-background',
-    'body { background: url('.$backgroundImage.') '.$backgroundScroll.' #A88EDB!important; }',
+    'body { background: url('.$backgroundImage.') '.$backgroundScroll.' #626cd3!important; }',
     ['type' => 'inline']
 );
 
-// Tailwind CSS TEST
-$page->stylesheets->add('tailwind', 'resources/assets/css/utilities.min.css', ['weight' => 1]);
+$page->stylesheets->add('theme-dev', 'resources/assets/css/theme.min.css');
+$page->stylesheets->add('core', 'resources/assets/css/core.min.css', ['weight' => 10]);
 
 /**
  * USER CONFIGURATION
@@ -431,7 +432,11 @@ if (!$session->has('address') && !empty($_GET['return'])) {
  */
 if ($isLoggedIn) {
     if ($cacheLoad || !$session->has('fastFinder')) {
-        $session->set('fastFinder', getFastFinder($connection2, $guid));
+        $templateData = getFastFinder($connection2, $guid);
+        $templateData['enrolmentCount'] = $container->get(StudentGateway::class)->getStudentEnrolmentCount($session->get('gibbonSchoolYearID'));
+
+        $fastFinder = $page->fetchFromTemplate('finder.twig.html', $templateData);
+        $session->set('fastFinder', $fastFinder);
     }
 
     $moduleGateway = $container->get(ModuleGateway::class);
