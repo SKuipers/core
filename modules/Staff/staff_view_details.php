@@ -667,8 +667,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
 
                             $count = 0;
                             $rowNum = 'odd';
-                            while ($row = $result->fetch()) {
-                                if ($row['exception'] == null) {
+                            while ($rowFacility = $result->fetch()) {
+                                if ($rowFacility['exception'] == null) {
                                     if ($count % 2 == 0) {
                                         $rowNum = 'even';
                                     } else {
@@ -678,10 +678,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
 
                                     echo "<tr class=$rowNum>";
                                     echo '<td>';
-                                    echo $row['name'];
+                                    echo $rowFacility['name'];
                                     echo '</td>';
                                     echo '<td>';
-                                    echo $row['usageType'];
+                                    echo $rowFacility['usageType'];
                                     echo '</td>';
                                     echo '</tr>';
                                 }
