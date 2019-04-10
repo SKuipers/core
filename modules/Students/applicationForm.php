@@ -282,20 +282,21 @@ if ($proceed == false) {
         $row->addDate('visaExpiryDate');
 
     // STUDENT CONTACT
-    $form->addRow()->addSubheading(__('Student Contact'));
+    // $form->addRow()->addSubheading(__('Student Contact'));
 
-    $row = $form->addRow();
-        $row->addLabel('email', __('Email'));
-        $email = $row->addEmail('email');
-        if ($uniqueEmailAddress == 'Y') {
-            $email->uniqueField('./publicRegistrationCheck.php');
-        }
+    // $row = $form->addRow();
+    //     $row->addLabel('email', __('Email'));
+    //     $email = $row->addEmail('email');
+    //     if ($uniqueEmailAddress == 'Y') {
+    //         $email->uniqueField('./publicRegistrationCheck.php');
+    //     }
 
-    for ($i = 1; $i < 3; ++$i) {
-        $row = $form->addRow();
-            $row->addLabel('', __('Phone').' '.$i)->description(__('Type, country code, number.'));
-            $row->addPhoneNumber('phone'.$i);
-    }
+    // for ($i = 1; $i < 3; ++$i) {
+    //     $row = $form->addRow();
+    //         $row->addLabel('', __('Phone').' '.$i)->description(__('Type, country code, number.'));
+    //         $row->addPhoneNumber('phone'.$i);
+    // }
+    $form->addHiddenValue('email', '');
 
     // SPECIAL EDUCATION & MEDICAL
     $senOptionsActive = getSettingByScope($connection2, 'Application Form', 'senOptionsActive');
