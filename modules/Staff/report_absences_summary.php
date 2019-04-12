@@ -143,7 +143,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_summ
         $table = DataTable::createPaginated('staffAbsenceCalendar', $criteria);
         $table->setTitle(__('Staff Absence Summary'));
         $table->setDescription(__n('{count} Absence', '{count} Absences', $totalAbsence));
-        $table->getRenderer()->setClass('calendarTable calendarTableSmall');
+        $table->getRenderer()->addData('class', 'calendarTable calendarTableSmall');
 
         $table->addMetaData('hidePagination', true);
 

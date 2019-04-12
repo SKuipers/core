@@ -101,7 +101,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
 
     $table = DataTable::create('staffCoverageDates');
     $table->setTitle(__('Dates'));
-    $table->getRenderer()->setClass('bulkActionForm datesTable');
+    $table->getRenderer()->addData('class', 'bulkActionForm datesTable');
 
     $table->addColumn('date', __('Date'))
         ->format(Format::using('dateReadable', 'date'));
