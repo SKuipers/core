@@ -66,7 +66,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_add.
     $table = DataTable::create('staffAbsenceDates');
     $table->setTitle(__('Availability'));
     $table->setDescription('<strong>'.$fullName.'</strong><br/><br/>'.$substitute['details']);
-    $table->getRenderer()->setClass('bulkActionForm');
+    $table->getRenderer()->addData('class', 'bulkActionForm');
 
     $table->addColumn('dateLabel', __('Date'))
         ->format(Format::using('dateReadable', 'date'));

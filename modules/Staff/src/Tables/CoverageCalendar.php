@@ -79,7 +79,7 @@ class CoverageCalendar
         $table = DataTable::create('staffAbsenceCalendar')
             ->setTitle(__('Calendar'));
 
-        $table->getRenderer()->setClass('calendarTable calendarTableSmall');
+        $table->getRenderer()->addData('class', 'calendarTable calendarTableSmall');
     
         $table->addColumn('name', '')->notSortable();
     
