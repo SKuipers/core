@@ -211,7 +211,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_atte
             $header->addContent(sprintf(__('Sessions Recorded: %s of %s'), count($sessionAttendanceData), count($activitySessions)))
                 ->addClass('emphasis subdued right');
 
-        $row->addContent("<div class='doublescroll-top -mt-4'><div class='doublescroll-top-tablewidth'></div></div>");
+        // $row->addContent("<div class='doublescroll-top -mt-4'><div class='doublescroll-top-tablewidth'></div></div>");
 
         // Wrap the attendance table in a double-scroll container
         $table = $row->addColumn()->addClass('doublescroll-container')
