@@ -39,47 +39,6 @@ body {
 
 /* LAYOUT */
 
-#wrap-report {
-	width:1101px;
-	padding-top: 10px;
-	padding-left: 1px;
-	margin: 10px auto ;
-	position:relative ;
-}
-
-#header-logo-report {
-	margin:0 0 0 0px;
-	padding:0px 0;
-	color:#ccc;
-	border:none;
-	width: 250px;
-}
-
-#header-finder {
-	float: right ;
-	color:#fff;
-	font-weight:bold;
-	position:absolute;
-	top:24px;
-	right:24px;
-	left:auto;
-	width:400px;
-}
-#header-finder h2 {
-	text-align: right ;
-	border-bottom: none ;
-	font-size: 90% ;
-	margin-bottom: 0!important ;
-	margin-top: 0!important ;
-}
-
-
-#content-wrap-report {
-	background-color: rgba(255,255,255,0.9) ;
-	position:relative;
-	width:100%;
-}
-
 #content div.trail {
 	text-align: left;
 	font-size: 70%;
@@ -127,16 +86,6 @@ div.sidebarExtra {
 	margin-bottom: 10px ;
 }
 
-#footer-report {
-	clear:both;
-	width:750px;
-	color: #333;
-	margin: 0 0 0 -1px;
-	padding: 5px 0px 5px 0px;
-	font-size:75%;
-	text-align: right ;
-	font-style: italic ;
-}
 
 
 img.minorLinkIconLarge {
@@ -195,9 +144,7 @@ h1, h2, h3, h4, h5, h6 {
 h1 {
 	font-size: 17pt;
 }
-h1.report {
-	font-size: 17pt;
-}
+
 h2 {
 	font-size: 14pt;
 }
@@ -292,7 +239,6 @@ table th {
 	padding:15px 5px 15px 5px;
 	border-top:1px solid #fafafa;
 	border-bottom:1px solid #e0e0e0;
-	font-size: 110% ;
 	background: #ebebeb;
 	background: -webkit-gradient(linear, left top, left bottom, from(#ebebeb), to(#dfdfdf));
 	background: -moz-linear-gradient(top,  #ebebeb,  #dfdfdf);
@@ -316,11 +262,9 @@ table tr:first-child th:last-child {
 }
 table tr {
 	text-align: center;
-	padding-left:20px;
 }
 table td:first-child {
 	text-align: left;
-	padding-left:20px;
 	border-left: 0;
 }
 table td:last-child {
@@ -1075,7 +1019,7 @@ select[multiple] {
 
 
 table tr.heading td {
-	padding:15px 5px 15px 5px !important;
+	padding:15px 5px 15px 5px ;
 	border-top:1px solid #fafafa;
 	border-bottom:1px solid #e0e0e0;
 	font-size: 110% !important;
@@ -1091,14 +1035,14 @@ table tr.heading:first-child td:first-child {
 	-webkit-border-top-left-radius:3px;
 	border-top-left-radius:3px;
 	text-align: left;
-	padding-left: 15px !important;
+	padding-left: 15px ;
 }
 
 table tr.heading:first-child td:last-child {
 	-moz-border-radius-topright:3px;
 	-webkit-border-top-right-radius:3px;
 	border-top-right-radius:3px;
-	padding-left: 5px !important;
+	padding-left: 5px ;
 }
 
 /* Usability tweak to make large data tables like User Permissions easier to read */
@@ -1326,10 +1270,6 @@ tr.selected, tr.selected td, div.selected, td.selected {
 }
 
 /* Gibbon Data Table CSS - Will be moved to core.css */
-.dataTable {
-    overflow-x: auto;
-}
-
 .dataTable .sortable {
 	cursor: pointer;
     position: relative;
@@ -1393,7 +1333,7 @@ tr.selected, tr.selected td, div.selected, td.selected {
     flex-flow: row nowrap;
     align-items: flex-end;
     justify-content: space-between;
-    margin-bottom: 5px;
+    padding-bottom: 5px;
 }
 
 .dataTable .expandable {
@@ -1432,45 +1372,6 @@ tr.selected, tr.selected td, div.selected, td.selected {
 .dataTable .expander.expanded:before {
     transform: rotate(45deg);
     -webkit-transform: rotate(45deg);
-}
-
-.bulkActionForm {
-    position: relative;
-}
-
-.bulkActionForm .bulkActionPanel {
-    position:absolute;
-    z-index:1;
-    top: 44px;
-    right: 0;
-    width: 100%;
-    background: #9d7cc6;
-    padding: 5px;
-    box-sizing: border-box;
-    border-top-right-radius: 3px;
-    border-top-left-radius: 3px;
-}
-
-
-.bulkActionForm .bulkActionCount {
-    position: relative;
-    right: 10px;
-    font-size:13px;
-    line-height:32px;
-    color:#fff
-}
-
-.bulkActionForm .bulkCheckbox {
-    position: relative;
-    text-align: center;
-}
-
-.bulkActionForm .bulkCheckbox label {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 100%;
 }
 
 .dataTable .linkTop {

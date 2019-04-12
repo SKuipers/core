@@ -492,7 +492,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                         echo '</tr>';
                         echo '<tr>';
                         echo "<td style='width: 33%;'>";
-                        echo "<span class='label'>".__('Parent 1 Second Langage').'</span><br/>';
+                        echo "<span class='label'>".__('Parent 1 Second Language').'</span><br/>';
                         echo $rowMember['languageSecond'];
                         echo '</td>';
                         echo "<td style='width: 33%;'>";
@@ -561,7 +561,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                     echo '</tr>';
                     echo '<tr>';
                     echo "<td style='width: 33%;'>";
-                    echo "<span class='label'>".sprintf(__('Parent %1$s Second Langage'), $i).'</span><br/>';
+                    echo "<span class='label'>".sprintf(__('Parent %1$s Second Language'), $i).'</span><br/>';
                     echo $row['parent'.$i.'languageSecond'];
                     echo '</td>';
                     echo "<td style='width: 33%;'>";
@@ -695,7 +695,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                             echo '</tr>';
                             echo '<tr>';
                             echo "<td style='width: 33%;'>";
-                            echo "<span class='label'>".sprintf(__('Parent %1$s Second Langage'), $count).'</span><br/>';
+                            echo "<span class='label'>".sprintf(__('Parent %1$s Second Language'), $count).'</span><br/>';
                             echo $rowMember['languageSecond'];
                             echo '</td>';
                             echo "<td style='width: 33%;'>";
