@@ -457,7 +457,7 @@ use Gibbon\Services\Format;
                 echo '</div>';
             }
 
-            echo '<table class="columnLabels blank '.strtolower($column->getData('attainmentType')).'" cellspacing=0><tr>';
+            echo '<table class="columnLabels blank rounded-t-none '.strtolower($column->getData('attainmentType')).'" cellspacing=0><tr>';
 
             if ($column->gibbonMarkbookColumnID == false ) { //or $contents == false
             	echo '<th>';
@@ -651,7 +651,7 @@ use Gibbon\Services\Format;
                 ++$count;
 
                 echo "<tr >";
-                echo '<td class="firstColumn">';
+                echo '<td class="firstColumn '.($count % 2 == 0 ? 'odd' : 'even').'">';
 
                 if ($studentOrderBy == 'rollOrder' && !empty($rowStudents['rollOrder']) ) {
                     echo $rowStudents['rollOrder'].') ';
