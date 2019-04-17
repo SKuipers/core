@@ -55,6 +55,8 @@ class NoCoverageAvailable extends Message
     {
         return [
             __('Comment') => $this->coverage['notesStatus'],
+            __('Date')    => Format::dateRangeReadable($this->coverage['dateStart'], $this->coverage['dateEnd']),
+            __('Time')    => $this->coverage['allDay'] == 'Y' ? __('All Day') : Format::timeRange($this->coverage['timeStart'], $this->coverage['timeEnd']),
         ];
     }
 

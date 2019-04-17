@@ -34,6 +34,7 @@ class NewCoverage extends Message
             'nameAbsent'   => Format::name($coverage['titleAbsence'], $coverage['preferredNameAbsence'], $coverage['surnameAbsence'], 'Staff', false, true),
             'nameCoverage' => Format::name($coverage['titleCoverage'], $coverage['preferredNameCoverage'], $coverage['surnameCoverage'], 'Staff', false, true),
             'date'         => Format::dateRangeReadable($coverage['dateStart'], $coverage['dateEnd']),
+            'time'         => $coverage['allDay'] == 'Y' ? __('All Day') : Format::timeRange($coverage['timeStart'], $coverage['timeEnd']),
             'type'         => trim($coverage['type'].' '.$coverage['reason']),
         ];
     }
@@ -61,6 +62,7 @@ class NewCoverage extends Message
             __('Staff')      => $this->details['nameAbsent'],
             __('Type')       => $this->details['type'],
             __('Date')       => $this->details['date'],
+            __('Time')       => $this->details['time'],
             __('Comment')    => $this->coverage['notesStatus'],
             __('Substitute') => $this->details['nameCoverage'],
             __('Reply')      => $this->coverage['notesCoverage'],

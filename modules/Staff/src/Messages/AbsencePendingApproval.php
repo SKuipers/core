@@ -33,6 +33,7 @@ class AbsencePendingApproval extends Message
         $this->details = [
             'name' => Format::name($absence['titleAbsence'], $absence['preferredNameAbsence'], $absence['surnameAbsence'], 'Staff', false, true),
             'date' => Format::dateRangeReadable($absence['dateStart'], $absence['dateEnd']),
+            'time' => $absence['allDay'] == 'Y' ? __('All Day') : Format::timeRange($absence['timeStart'], $absence['timeEnd']),
             'type' => trim($absence['type'].' '.$absence['reason']),
         ];
     }
@@ -57,9 +58,10 @@ class AbsencePendingApproval extends Message
     public function getDetails() : array
     {
         return [
-            __('Staff')   => $this->details['name'],
-            __('Type')    => $this->details['type'],
-            __('Date')    => $this->details['date'],
+            __('Staff')    => $this->details['name'],
+            __('Type')     => $this->details['type'],
+            __('Date')     => $this->details['date'],
+            __('Time')     => $this->details['time'],
             __('Comment ') => $this->absence['comment'],
         ];
     }
