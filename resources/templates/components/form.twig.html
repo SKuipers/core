@@ -22,7 +22,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
     {% for row in form.getRows %}
 
         {% if renderStyle == 'flex' %}
-            {% set rowClass = 'flex flex-col sm:flex-row justify-between content-center p-0 max-w-full lg:max-w-3xl' %}
+            {% set rowClass = 'flex flex-col sm:flex-row justify-between content-center p-0' %}
         {% endif %}
 
         <tr id="{{ row.getID }}" class="{{ row.getClass|replace({'standardWidth': ''}) }} {{ rowClass }}">
