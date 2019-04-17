@@ -51,6 +51,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
         'gibbonStaffAbsenceTypeID' => $_POST['gibbonStaffAbsenceTypeID'] ?? '',
         'reason'                   => $_POST['reason'] ?? '',
         'comment'                  => $_POST['comment'] ?? '',
+        'commentConfidential'      => $_POST['commentConfidential'] ?? '',
         'status'                   => 'Approved',
         'gibbonPersonIDCreator'    => $gibbon->session->get('gibbonPersonID'),
         'notificationSent'         => 'N',

@@ -855,6 +855,7 @@ CREATE TABLE `gibbonStaffAbsence` (
     `gibbonPersonID` int(10) UNSIGNED ZEROFILL NOT NULL,
     `reason` VARCHAR(60) NULL,
     `comment` TEXT NULL,
+    `commentConfidential` TEXT NULL,
     `status` ENUM('Pending Approval','Approved','Declined') DEFAULT 'Approved',
     `gibbonPersonIDApproval` int(10) UNSIGNED ZEROFILL NULL,
     `timestampApproval` timestamp NULL,

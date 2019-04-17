@@ -57,13 +57,18 @@ class AbsencePendingApproval extends Message
 
     public function getDetails() : array
     {
-        return [
-            __('Staff')    => $this->details['name'],
-            __('Type')     => $this->details['type'],
-            __('Date')     => $this->details['date'],
-            __('Time')     => $this->details['time'],
-            __('Comment ') => $this->absence['comment'],
+        $details = [
+            __('Staff')   => $this->details['name'],
+            __('Type')    => $this->details['type'],
+            __('Date')    => $this->details['date'],
+            __('Time')    => $this->details['time'],
         ];
+        
+        $details += !empty($this->absence['commentConfidential'])
+            ? [__('Confidential Comment') => $this->absence['commentConfidential']]
+            : [__('Comment') => $this->absence['comment']];
+
+        return $details;
     }
 
     public function getModule() : string

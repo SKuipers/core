@@ -50,56 +50,57 @@ class ViewAbsenceForm
 
         $form = Form::create('staffAbsence', '');
 
-        $form->getRenderer()
-            ->setWrapper('form', 'div')
-            ->setWrapper('row', 'div')
-            ->setWrapper('cell', 'div');
-
         $form->setFactory(DatabaseFormFactory::create($pdo));
         $form->addHiddenValue('address', $_SESSION[$guid]['address']);
         $form->addHiddenValue('gibbonStaffAbsenceID', $gibbonStaffAbsenceID);
 
-        $table = $form->addRow()->addTable()->setClass('smallIntBorder standardForm fullWidth');
+        // $table = $form->addRow()->addTable()->setClass('smallIntBorder standardForm fullWidth');
 
-        $row = $table->addRow();
+        $row = $form->addRow();
             $row->addLabel('personLabel', __('Person'));
             $row->addSelectStaff('person')->readonly()->selected($values['gibbonPersonID']);
 
         $type = $container->get(StaffAbsenceTypeGateway::class)->getByID($values['gibbonStaffAbsenceTypeID']);
 
+        $row = $form->addRow();
+            $row->addLabel('typeLabel', __('Type'));
+            $row->addTextField('type')->readonly()->setValue($type['name']);
+
+        if (!empty($values['reason'])) {
+            $row = $form->addRow()->addClass('reasonOptions');
+                $row->addLabel('reasonLabel', __('Reason'));
+                $row->addTextField('reason')->readonly();
+        }
+        
         if ($type['requiresApproval'] == 'Y') {
             $approver = '';
             if (!empty($values['gibbonPersonIDApproval'])) {
                 $approver = $container->get(UserGateway::class)->getByID($values['gibbonPersonIDApproval']);
                 $approver = Format::small(__('By').' '.Format::nameList([$approver], 'Staff', false, true));
+
+                if (!empty($values['commentConfidential']) && $_SESSION[$guid]['gibbonPersonID'] == $values['gibbonPersonIDApproval']) {
+                    $row = $form->addRow();
+                        $row->addLabel('commentConfidentialLabel', __('Confidential Comment'))->description(__('This message is only shared with the selected approver.'));
+                        $row->addTextArea('commentConfidential')->setRows(2)->readonly();
+                }
             }
 
-            $row = $table->addRow();
+            $row = $form->addRow();
                 $row->addLabel('status', __('Status'));
                 $row->addContent($values['status'].'<br/>'.$approver)->wrap('<div class="standardWidth floatRight">', '</div>');
         }
 
-        $row = $table->addRow();
-            $row->addLabel('typeLabel', __('Type'));
-            $row->addTextField('type')->readonly()->setValue($type['name']);
-
-        if (!empty($values['reason'])) {
-            $row = $table->addRow()->addClass('reasonOptions');
-                $row->addLabel('reasonLabel', __('Reason'));
-                $row->addTextField('reason')->readonly();
-        }
-
-        if ($canManage) {
-            $row = $table->addRow();
-                $row->addLabel('commentLabel', __('Comment '));
-                $row->addTextArea('comment')->setRows(2)->readonly();
-        }
-
         $creator = $container->get(UserGateway::class)->getByID($values['gibbonPersonIDCreator']);
 
-        $row = $table->addRow();
+        $row = $form->addRow();
             $row->addLabel('timestampLabel', __('Created'));
             $row->addContent(Format::relativeTime($values['timestampCreator']).'<br/>'.Format::small(__('By').' '.Format::nameList([$creator], 'Staff')))->wrap('<div class="standardWidth floatRight">', '</div>');
+
+        if ($canManage) {
+            $row = $form->addRow();
+                $row->addLabel('commentLabel', __('Comment'));
+                $row->addTextArea('comment')->setRows(2)->readonly();
+        }
 
         $absenceDates = $container->get(StaffAbsenceDateGateway::class)->selectDatesByAbsence($values['gibbonStaffAbsenceID']);
 
