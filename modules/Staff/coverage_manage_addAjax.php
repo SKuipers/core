@@ -28,7 +28,7 @@ require_once '../../gibbon.php';
 $request = [
     'dateStart' => $_POST['dateStart'] ?? '',
     'dateEnd'   => $_POST['dateEnd'] ?? '',
-    'allDay'    => $_POST['allDay'] ?? 'Y',
+    'allDay'    => $_POST['allDay'] ?? 'N',
     'timeStart' => $_POST['timeStart'] ?? '',
     'timeEnd'   => $_POST['timeEnd'] ?? '',
 ];

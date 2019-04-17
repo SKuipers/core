@@ -84,7 +84,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_add.
         $dateData = [
             'gibbonStaffCoverageID' => $gibbonStaffCoverageID,
             'date'                  => $date,
-            'allDay'                => $_POST['allDay'] ?? 'Y',
+            'allDay'                => $_POST['allDay'] ?? 'N',
             'timeStart'             => $_POST['timeStart'] ?? null,
             'timeEnd'               => $_POST['timeEnd'] ?? null,
         ];
