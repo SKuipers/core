@@ -114,6 +114,7 @@ class Table implements OutputableInterface, ValidatableInterface
 
             // Output each element inside the row
             foreach ($row->getElements() as $element) {
+                $element->addClass('text-xxs sm:text-xs');
                 $output .= '<th '.$element->getAttributeString('class,title,rowspan,colspan,data').'>';
                     $output .= $element->getOutput();
                 $output .= '</th>';
@@ -129,7 +130,12 @@ class Table implements OutputableInterface, ValidatableInterface
 
             // Output each element inside the row
             foreach ($row->getElements() as $element) {
+                $element->removeClass('standardWidth');
+
                 $output .= '<td '.$element->getAttributeString('class,title,rowspan,colspan,data').'>';
+                    if (stripos($this->getClass(), 'formTable') !== false) {
+                        $element->setClass('w-full '.$element->getClass());
+                    }
                     $output .= $element->getOutput();
                 $output .= '</td>';
             }

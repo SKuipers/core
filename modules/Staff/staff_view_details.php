@@ -487,11 +487,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                     } elseif ($subpage == 'Facilities') {
                         try {
                             $data = array('gibbonPersonID1' => $gibbonPersonID, 'gibbonPersonID2' => $gibbonPersonID, 'gibbonPersonID3' => $gibbonPersonID, 'gibbonPersonID4' => $gibbonPersonID, 'gibbonPersonID5' => $gibbonPersonID, 'gibbonPersonID6' => $gibbonPersonID, 'gibbonSchoolYearID1' => $_SESSION[$guid]['gibbonSchoolYearID'], 'gibbonSchoolYearID2' => $_SESSION[$guid]['gibbonSchoolYearID']);
-                            $sql = '(SELECT gibbonSpace.*, gibbonSpacePersonID, usageType, NULL AS \'exception\' FROM gibbonSpacePerson JOIN gibbonSpace ON (gibbonSpacePerson.gibbonSpaceID=gibbonSpace.gibbonSpaceID) WHERE gibbonPersonID=:gibbonPersonID1)
+                            $sql = '(SELECT gibbonSpace.*, gibbonSpacePersonID, usageType, NULL AS \'exception\', gibbonSpace.phoneInternal FROM gibbonSpacePerson JOIN gibbonSpace ON (gibbonSpacePerson.gibbonSpaceID=gibbonSpace.gibbonSpaceID) WHERE gibbonPersonID=:gibbonPersonID1)
                             UNION
-                            (SELECT DISTINCT gibbonSpace.*, NULL AS gibbonSpacePersonID, \'Roll Group\' AS usageType, NULL AS \'exception\' FROM gibbonRollGroup JOIN gibbonSpace ON (gibbonRollGroup.gibbonSpaceID=gibbonSpace.gibbonSpaceID) WHERE (gibbonPersonIDTutor=:gibbonPersonID2 OR gibbonPersonIDTutor2=:gibbonPersonID3 OR gibbonPersonIDTutor3=:gibbonPersonID4) AND gibbonRollGroup.gibbonSchoolYearID=:gibbonSchoolYearID1)
+                            (SELECT DISTINCT gibbonSpace.*, NULL AS gibbonSpacePersonID, \'Roll Group\' AS usageType, NULL AS \'exception\', gibbonSpace.phoneInternal FROM gibbonRollGroup JOIN gibbonSpace ON (gibbonRollGroup.gibbonSpaceID=gibbonSpace.gibbonSpaceID) WHERE (gibbonPersonIDTutor=:gibbonPersonID2 OR gibbonPersonIDTutor2=:gibbonPersonID3 OR gibbonPersonIDTutor3=:gibbonPersonID4) AND gibbonRollGroup.gibbonSchoolYearID=:gibbonSchoolYearID1)
                             UNION
-                            (SELECT DISTINCT gibbonSpace.*, NULL AS gibbonSpacePersonID, \'Timetable\' AS usageType, gibbonTTDayRowClassException.gibbonPersonID AS \'exception\' FROM gibbonSpace JOIN gibbonTTDayRowClass ON (gibbonTTDayRowClass.gibbonSpaceID=gibbonSpace.gibbonSpaceID) JOIN gibbonCourseClass ON (gibbonTTDayRowClass.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) JOIN gibbonCourse ON (gibbonCourseClass.gibbonCourseID=gibbonCourse.gibbonCourseID) JOIN gibbonCourseClassPerson ON (gibbonCourseClassPerson.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) LEFT JOIN gibbonTTDayRowClassException ON (gibbonTTDayRowClassException.gibbonTTDayRowClassID=gibbonTTDayRowClass.gibbonTTDayRowClassID AND (gibbonTTDayRowClassException.gibbonPersonID=:gibbonPersonID6 OR gibbonTTDayRowClassException.gibbonPersonID IS NULL)) WHERE gibbonCourse.gibbonSchoolYearID=:gibbonSchoolYearID2 AND gibbonCourseClassPerson.gibbonPersonID=:gibbonPersonID5)
+                            (SELECT DISTINCT gibbonSpace.*, NULL AS gibbonSpacePersonID, \'Timetable\' AS usageType, gibbonTTDayRowClassException.gibbonPersonID AS \'exception\', gibbonSpace.phoneInternal FROM gibbonSpace JOIN gibbonTTDayRowClass ON (gibbonTTDayRowClass.gibbonSpaceID=gibbonSpace.gibbonSpaceID) JOIN gibbonCourseClass ON (gibbonTTDayRowClass.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) JOIN gibbonCourse ON (gibbonCourseClass.gibbonCourseID=gibbonCourse.gibbonCourseID) JOIN gibbonCourseClassPerson ON (gibbonCourseClassPerson.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) LEFT JOIN gibbonTTDayRowClassException ON (gibbonTTDayRowClassException.gibbonTTDayRowClassID=gibbonTTDayRowClass.gibbonTTDayRowClassID AND (gibbonTTDayRowClassException.gibbonPersonID=:gibbonPersonID6 OR gibbonTTDayRowClassException.gibbonPersonID IS NULL)) WHERE gibbonCourse.gibbonSchoolYearID=:gibbonSchoolYearID2 AND gibbonCourseClassPerson.gibbonPersonID=:gibbonPersonID5)
                             ORDER BY name';
                             $result = $connection2->prepare($sql);
                             $result->execute($data);
@@ -510,14 +510,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                             echo __('Name');
                             echo '</th>';
                             echo '<th>';
+                            echo __('Extension');
+                            echo '</th>';
+                            echo '<th>';
                             echo __('Usage').'<br/>';
                             echo '</th>';
                             echo '</tr>';
 
                             $count = 0;
                             $rowNum = 'odd';
-                            while ($row = $result->fetch()) {
-                                if ($row['exception'] == null) {
+                            while ($rowFacility = $result->fetch()) {
+                                if ($rowFacility['exception'] == null) {
                                     if ($count % 2 == 0) {
                                         $rowNum = 'even';
                                     } else {
@@ -527,10 +530,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
 
                                     echo "<tr class=$rowNum>";
                                     echo '<td>';
-                                    echo $row['name'];
+                                    echo $rowFacility['name'];
                                     echo '</td>';
                                     echo '<td>';
-                                    echo $row['usageType'];
+                                    echo $rowFacility['phoneInternal'];
+                                    echo '</td>';
+                                    echo '<td>';
+                                    echo $rowFacility['usageType'];
                                     echo '</td>';
                                     echo '</tr>';
                                 }
@@ -701,6 +707,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                     $_SESSION[$guid]['sidebarExtra'] .= getUserPhoto($guid, $row['image_240'], 240);
 
                     //PERSONAL DATA MENU ITEMS
+                    $_SESSION[$guid]['sidebarExtra'] .= '<div class="column-no-break">';
                     $_SESSION[$guid]['sidebarExtra'] .= '<h4>Personal</h4>';
                     $_SESSION[$guid]['sidebarExtra'] .= "<ul class='moduleMenu'>";
                     $style = '';
@@ -731,6 +738,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                         $_SESSION[$guid]['sidebarExtra'] .= "<li><a $style href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q='.$_GET['q']."&gibbonPersonID=$gibbonPersonID&search=".$search."&allStaff=$allStaff&subpage=Timetable'>".__('Timetable').'</a></li>';
                     }
                     $_SESSION[$guid]['sidebarExtra'] .= '</ul>';
+                    $_SESSION[$guid]['sidebarExtra'] .= '</div>';
                 }
             }
         }

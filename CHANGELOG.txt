@@ -19,6 +19,7 @@ CHANGELOG
 v18.0.00
 --------
     Headlines
+        Fully responsive layouts and navigation on all screen sizes
         Added responsive HTML email templates for outgoing notifications and messages
         Activated Urdu and Croatian as available languages
         Added Burmese as a development language
@@ -27,16 +28,19 @@ v18.0.00
         System: removed Likes/Stars feature
 
     Significant Changes
+        System: added a webpack-based build process for javascript and css files
         Attendance: added ability to set future absence for multiple students
 
     Security
 
     Tweaks & Additions
+        System: updated the Google login button to be responsive and translatable
         System: updated Google login scopes to remove plus.me, based on Google API changes
         System: made disabled checkboxes more visible
         System: method for columns that require the translation, and update the columns where this is applicable
         System: added Omani Rial as a currency option
         System: added an option to select SMTP encryption in Third Party Settings
+        Form Groups: hide student count from non-staff
         Students: added link from student profile to Individual Needs edit screen
         System Admin: updated importer to add Skip Non-Required Fields option when importing partial data
         Timetable: update View Timetable by Person to access Expected users when All Users filter is enabled
@@ -53,7 +57,9 @@ v18.0.00
         Library: removed lending icon for items that are not borrowable
         Markbook: fixed column title showing term's name when the term filter is applied in View Markbook
         Markbook: fixed bug preventing parents and students from viewing the markbook with work submitted to a lesson plan
+        Markbook: fixed column widths when modified assessment is enabled
         School Admin: fixed interface string typos
+        Staff: fixed staff photo not displaying on Facilities sub-page in staff profile
         System Admin: fixed typo in Google integration settings
         Timetable Admin: fixed malformed translatable interface strings
         User Admin: fixed issue preventing action names from being translated in Manage Permissions

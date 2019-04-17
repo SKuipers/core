@@ -59,36 +59,173 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     @apply bg-gray-100 border-gray-600 text-gray-600;
 }
 
-.message {
+.alert.message {
+    @apply shadow border-l-6 p-3 my-3 text-xs;
     @apply bg-blue-200 border-blue-700 text-blue-700;
 }
 
-.success {
+.alert.success {
+    @apply shadow border-l-6 p-3 my-3 text-xs;
     @apply bg-green-200 border-green-700 text-green-700;
 }
 
-.warning {
+.alert.warning {
+    @apply shadow border-l-6 p-3 my-3 text-xs;
     @apply bg-orange-300 border-orange-700 text-orange-700;
 }
 
-.error {
+.alert.error {
+    @apply shadow border-l-6 p-3 my-3 text-xs;
     @apply bg-red-200 border-red-700 text-red-700;
 }
 
-.exception {
+.alert.exception {
+    @apply shadow border-l-6 p-3 my-3 text-xs;
     @apply bg-gray-300 border-gray-800 text-gray-800;
 }
 
-div.message, div.success, div.warning, div.error, div.exception
-{
-    @apply shadow border-l-6 p-3 my-3 text-xs;
-}
-
 .badge {
-    @apply absolute z-10 rounded-full bg-blue-400 text-xs text-white no-underline leading-tight font-sans;
+    @apply absolute z-10 rounded-full bg-purple-400 text-xs text-white no-underline leading-tight font-sans;
     padding: 2px 6px 2px 6px;
 }
 
-.tag {
-    @apply inline-block rounded-full border m-0 px-4  leading-loose;
+/*
+ --------------------------------------------------------------------------
+  Live Validation
+ --------------------------------------------------------------------------
+*/
+
+.LV_validation_message {
+    @apply absolute right-0 pt-px px-1 mr-2 text-xs font-bold leading-loose bg-white z-10;
+}
+
+select + .LV_validation_message {
+    @apply mr-6;
+}
+
+.tinymce + .LV_validation_message {
+    @apply bottom-0 mb-2;
+}
+
+.LV_valid {
+    @apply text-green-700;
+}
+
+.LV_invalid {
+    @apply text-red-700;
+}
+
+.LV_invalid_field {
+    @apply border border-red-700;
+}
+
+.LV_validation_message:empty,
+.LV_invalid ~ .LV_invalid {
+    @apply hidden;
+}
+
+/*
+ --------------------------------------------------------------------------
+  Forms
+ --------------------------------------------------------------------------
+*/
+
+input, select, textarea {
+    @apply border-gray-500;
+}
+
+input:focus, select:focus, textarea:focus {
+    @apply shadow-outline border-blue-500;
+    
+}
+
+input[readonly]:focus, select[readonly]:focus, textarea[readonly]:focus {
+    @apply shadow-none;
+}
+
+.column.inline {
+    @apply flex flex-wrap ;
+}
+
+@screen sm {
+    .column.inline {
+        @apply flex flex-row justify-between items-center;
+    }
+}
+
+.column.inline.displayNone {
+    @apply hidden;
+}
+
+.column.stacked {
+    @apply flex flex-col justify-end items-stretch content-center;
+}
+
+/* Prevent the input zoom-in effect that happens on mobile devices */
+@media (max-width: 767px) {
+    input, select, option, textarea {
+        font-size: initial !important;
+    }
+}
+
+/*
+ --------------------------------------------------------------------------
+  Finder
+ --------------------------------------------------------------------------
+*/
+
+/* Input Style */
+
+.token-input-list-facebook {
+    @apply w-full overflow-hidden m-0 p-0 list-none bg-white border border-gray-500 text-xs;
+    cursor: text;
+}
+
+.token-input-list-facebook input,
+.token-input-input-token-facebook input {
+    @apply shadow-none border-0 bg-transparent;
+    height: 26px;
+}
+
+/* Token Style */
+
+.token-input-token-facebook {
+    @apply float-left rounded-sm m-px p-1 bg-blue-500 cursor-pointer text-white ;
+    
+}
+
+.token-input-selected-token-facebook {
+    @apply bg-blue-800 text-white;
+}
+
+.token-input-token-facebook p {
+    @apply m-0 p-0 pr-1 inline;
+}
+
+/* Dropdown Style */
+
+.token-input-dropdown-facebook {
+    @apply absolute w-full overflow-hidden bg-white border border-gray-500 border-t-0 z-10;
+    box-sizing: content-box;
+}
+
+.token-input-input-token-facebook,
+.token-input-dropdown-facebook ul {
+    @apply m-0 p-0;
+}
+
+.token-input-dropdown-facebook li {
+    @apply m-0 px-2 py-1 cursor-pointer;
+}
+
+.token-input-dropdown-facebook p {
+    @apply font-bold text-gray-600 m-0 p-2;
+}
+
+.token-input-dropdown-facebook em {
+    @apply font-bold not-italic;
+}
+
+.token-input-selected-dropdown-item-facebook {
+    @apply bg-blue-700 text-white;
 }

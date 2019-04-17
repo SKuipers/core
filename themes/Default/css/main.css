@@ -39,47 +39,6 @@ body {
 
 /* LAYOUT */
 
-#wrap-report {
-	width:1101px;
-	padding-top: 10px;
-	padding-left: 1px;
-	margin: 10px auto ;
-	position:relative ;
-}
-
-#header-logo-report {
-	margin:0 0 0 0px;
-	padding:0px 0;
-	color:#ccc;
-	border:none;
-	width: 250px;
-}
-
-#header-finder {
-	float: right ;
-	color:#fff;
-	font-weight:bold;
-	position:absolute;
-	top:24px;
-	right:24px;
-	left:auto;
-	width:400px;
-}
-#header-finder h2 {
-	text-align: right ;
-	border-bottom: none ;
-	font-size: 90% ;
-	margin-bottom: 0!important ;
-	margin-top: 0!important ;
-}
-
-
-#content-wrap-report {
-	background-color: rgba(255,255,255,0.9) ;
-	position:relative;
-	width:100%;
-}
-
 #content div.trail {
 	text-align: left;
 	font-size: 70%;
@@ -127,16 +86,6 @@ div.sidebarExtra {
 	margin-bottom: 10px ;
 }
 
-#footer-report {
-	clear:both;
-	width:750px;
-	color: #333;
-	margin: 0 0 0 -1px;
-	padding: 5px 0px 5px 0px;
-	font-size:75%;
-	text-align: right ;
-	font-style: italic ;
-}
 
 
 img.minorLinkIconLarge {
@@ -187,7 +136,6 @@ h1, h2, h3, h4, h5, h6 {
 	color:#444;
 	background-color: none ;
 	padding: 0 0 0 0px;
-	line-height: 85%;
 	text-align: left;
 	text-transform: uppercase;
 	padding-bottom: 5px ;
@@ -196,9 +144,7 @@ h1, h2, h3, h4, h5, h6 {
 h1 {
 	font-size: 17pt;
 }
-h1.report {
-	font-size: 17pt;
-}
+
 h2 {
 	font-size: 14pt;
 }
@@ -207,6 +153,11 @@ h2 {
 	border-left: none ;
 	background: none ;
 }
+
+#sidebar p:last-of-type {
+    margin-bottom: 0;
+}
+
 h3 {
 	font-size: 13pt;
 }
@@ -288,7 +239,6 @@ table th {
 	padding:15px 5px 15px 5px;
 	border-top:1px solid #fafafa;
 	border-bottom:1px solid #e0e0e0;
-	font-size: 110% ;
 	background: #ebebeb;
 	background: -webkit-gradient(linear, left top, left bottom, from(#ebebeb), to(#dfdfdf));
 	background: -moz-linear-gradient(top,  #ebebeb,  #dfdfdf);
@@ -312,11 +262,9 @@ table tr:first-child th:last-child {
 }
 table tr {
 	text-align: center;
-	padding-left:20px;
 }
 table td:first-child {
 	text-align: left;
-	padding-left:20px;
 	border-left: 0;
 }
 table td:last-child {
@@ -402,6 +350,7 @@ table.noIntBorder td:last-child {
 }
 table.smallIntBorder {
     background: #fafafa;
+    margin: 5px 0px;
 }
 table.smallIntBorder td {
 	border-left: none!important ;
@@ -458,18 +407,16 @@ td.mceIframeContainer {
 
 
 /* FORMS */
-input:not([type="checkbox"]):not([type="radio"]), button, textarea {
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), button, textarea {
     -webkit-appearance: none;
     -webkit-border-radius: 0;
     border-radius: 0;
 }
 
 input[type="text"], input[type="password"], input[type="file"] {
-	border: 1px solid #BFBFBF;
+	border-width: 1px;
 	background-color: #ffffff ;
 	height: 28px;
-	float:right;
-	margin-left: 4px ;
 	font-size: 13px ;
     box-sizing: border-box;
 }
@@ -489,21 +436,19 @@ textarea[readonly] {
 }
 
 textarea {
-	border: 1px solid #BFBFBF;
+	border-width: 1px;
 	background-color: #ffffff ;
 	float:right;
-	margin-left: 4px ;
 	font-size: 13px ;
     box-sizing: border-box;
     padding: 4px;
 }
 
 select {
-	border: 1px solid #BFBFBF;
+	border-width: 1px;
 	background-color: #ffffff ;
 	height: 28px;
 	float:right;
-	margin-left: 4px ;
 	font-size: 13px ;
     box-sizing: border-box;
     -webkit-border-radius: 0;
@@ -728,29 +673,14 @@ div#ui-datepicker-div {
 	z-index: 1000!important;
 }
 
-/* Live Validation */
-
-.LV_validation_message{
-    font-weight:bold;
-    margin:6px 0px 0px 5px;
-    float:right;
-	text-align: right;
-	font-size: 12px;
-}
-
-.LV_valid {
-    color:#00CC00;
-}
-
-.LV_invalid {
-    color:#CC0000;
-}
 
 /* From WP for tinymce display */
 .editor-toolbar .active {
     background-color: #f0f0f0;
     color:#333;
     padding-bottom: 0.5rem;
+    margin-bottom: -1px;
+    z-index: 10;
 }
 
 .wp_themeSkin .mceStatusbar{border-color:#dfdfdf;}
@@ -907,6 +837,10 @@ td.hiddenReveal, div.hiddenReveal, tr.hiddenReveal td {
 }
 
 /* Timetable styles */
+#tt * {
+    box-sizing: content-box;
+}
+
 th.ttCalendarBar {
 	vertical-align: top;
 	width: 100%;
@@ -1070,11 +1004,6 @@ td.wordWrap {
 
 /* v14 NEW CLASSES */
 
-/* Ensure forms leave enough room in the second column for LiveValidation to fit. Updated to fix nested tables in forms. */
-table.standardForm td.standardWidth:last-child:nth-child(2) {
-	min-width: 450px;
-}
-
 select[multiple] {
 	height: auto;
 }
@@ -1087,61 +1016,10 @@ select[multiple] {
 	width: 230px;
 }
 
-.phoneNumber input {
-	width: 160px;
-}
-
-.phoneNumber select[name$="CountryCode"] {
-	width: 60px;
-}
-
-.phoneNumber select[name$="Type"] {
-	width: 70px;
-}
-
-.phoneNumber .phoneInputs {
-    position: relative;
-}
-
-.column > div:after {
-  content: "";
-  display: table;
-  clear: both;
-}
-
-.column.inline {
-    white-space: nowrap;
-    display: table-cell;
-}
-
-.column.inline.displayNone {
-    display: none;
-}
-
-.column.inline div {
-	display:inline-block;
-	width:auto;
-    vertical-align: middle;
-}
-
-.column.stacked div:not(:last-of-type) {
-    margin-bottom: 10px;
-}
-
-.formTable .standardWidth {
-    width: auto;
-}
-
-.formTable input,
-.formTable select,
-.formTable textarea {
-	float: left;
-    margin-left: 0px;
-}
 
 
 table tr.heading td {
-	padding:15px 5px 15px 5px !important;
+	padding:15px 5px 15px 5px ;
 	border-top:1px solid #fafafa;
 	border-bottom:1px solid #e0e0e0;
 	font-size: 110% !important;
@@ -1157,14 +1035,14 @@ table tr.heading:first-child td:first-child {
 	-webkit-border-top-left-radius:3px;
 	border-top-left-radius:3px;
 	text-align: left;
-	padding-left: 15px !important;
+	padding-left: 15px ;
 }
 
 table tr.heading:first-child td:last-child {
 	-moz-border-radius-topright:3px;
 	-webkit-border-top-right-radius:3px;
 	border-top-right-radius:3px;
-	padding-left: 5px !important;
+	padding-left: 5px ;
 }
 
 /* Usability tweak to make large data tables like User Permissions easier to read */
@@ -1173,24 +1051,7 @@ table.columnHighlight .hover:not(:first-child) {
 	background: #EDF7FF !important;
 }
 
-/* Unfloat validation preceded by a phone input, adjust line height for vertical alignment */
-input[name*="phone"] ~ .LV_invalid {
-    float: none;
-    position: absolute;
-    left: calc(-100% - 6px);
-    text-align: right;
-    width: 100%;
-}
 
-/* Hide validation preceded by another validation message in the same parent element */
-.LV_invalid ~ .LV_invalid {
-    display: none;
-}
-
-/* Remove the tiny gap that appears near validation elements */
-.LV_valid:empty, .LV_invalid:empty {
-    margin: 0;
-}
 
 /* v15 NEW CLASSES */
 .input-box {
@@ -1409,10 +1270,6 @@ tr.selected, tr.selected td, div.selected, td.selected {
 }
 
 /* Gibbon Data Table CSS - Will be moved to core.css */
-.dataTable {
-    overflow-x: auto;
-}
-
 .dataTable .sortable {
 	cursor: pointer;
     position: relative;
@@ -1476,7 +1333,7 @@ tr.selected, tr.selected td, div.selected, td.selected {
     flex-flow: row nowrap;
     align-items: flex-end;
     justify-content: space-between;
-    margin-bottom: 5px;
+    padding-bottom: 5px;
 }
 
 .dataTable .expandable {
@@ -1515,49 +1372,6 @@ tr.selected, tr.selected td, div.selected, td.selected {
 .dataTable .expander.expanded:before {
     transform: rotate(45deg);
     -webkit-transform: rotate(45deg);
-}
-
-.bulkActionForm {
-    position: relative;
-}
-
-.bulkActionForm .bulkActionPanel {
-    position:absolute;
-    z-index:1;
-    top: 44px;
-    right: 0;
-    width: 100%;
-    background: #9d7cc6;
-    padding: 5px;
-    box-sizing: border-box;
-    border-top-right-radius: 3px;
-    border-top-left-radius: 3px;
-}
-
-.bulkActionForm .bulkActionPanel .LV_validation_message {
-    position: absolute;
-    bottom: -14px;
-}
-
-.bulkActionForm .bulkActionCount {
-    position: relative;
-    right: 10px;
-    font-size:13px;
-    line-height:32px;
-    color:#fff
-}
-
-.bulkActionForm .bulkCheckbox {
-    position: relative;
-    text-align: center;
-}
-
-.bulkActionForm .bulkCheckbox label {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 100%;
 }
 
 .dataTable .linkTop {
@@ -1613,18 +1427,8 @@ button[disabled], input[disabled], textarea[disabled] {
     opacity: 0.65;
 }
 
-/* PERSON SELECT - LiveValidation styling */
-.personSelect + .LV_validation_message {
-    position: absolute;
-    top: 40%;
-    right: 410px;
-    white-space: nowrap; 
-}
 
-.personSelect[multiple] + .LV_validation_message {
-    top: 78%;
-    right: 325px;
-}
+
 
 /* PRINT STYLES */
 body.print div.trail {

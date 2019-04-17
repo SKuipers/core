@@ -21,7 +21,12 @@ namespace Gibbon\Services;
 
 use Gibbon\Forms\Form;
 use Gibbon\Forms\FormFactory;
+use Gibbon\Forms\FormFactoryInterface;
 use Gibbon\Forms\View\FormView;
+use Gibbon\Forms\View\FormRendererInterface;
+use Gibbon\Tables\DataTable;
+use Gibbon\Tables\View\DataTableView;
+use Gibbon\Tables\View\PaginatedView;
 use League\Container\ServiceProvider\AbstractServiceProvider;
 
 /**
@@ -42,6 +47,11 @@ class ViewServiceProvider extends AbstractServiceProvider
      */
     protected $provides = [
         Form::class,
+        FormRendererInterface::class,
+        FormFactoryInterface::class,
+        DataTable::class,
+        DataTableView::class,
+        PaginatedView::class,
     ];
 
     /**
@@ -59,6 +69,28 @@ class ViewServiceProvider extends AbstractServiceProvider
             $renderer = new FormView($this->getContainer()->get('twig'));
 
             return (new Form($factory, $renderer))->setClass('w-full smallIntBorder standardForm');
+        });
+
+        $container->add(FormRendererInterface::class, function () {
+            return new FormView($this->getContainer()->get('twig'));
+        });
+
+        $container->add(FormFactoryInterface::class, function () {
+            return new FormFactory();
+        });
+        
+        $container->add(DataTable::class, function () use ($container) {
+            $renderer = new DataTableView($container->get('twig'));
+
+            return new DataTable($renderer);
+        });
+
+        $container->add(DataTableView::class, function () use ($container) {
+            return new DataTableView($container->get('twig'));
+        });
+
+        $container->add(PaginatedView::class, function () use ($container) {
+            return new PaginatedView($container->get('twig'));
         });
     }
 }

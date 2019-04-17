@@ -526,7 +526,7 @@ class Format
 
         switch ($size) {
             case 240:
-            case 'lg':  $class .= 'w-48 sm:w-64 p-1'; break;
+            case 'lg':  $class .= 'w-48 sm:w-64 max-w-full p-1'; break;
             case 75:
             case 'md':  $class .= 'w-20 lg:w-24 p-1'; break;
 
@@ -536,7 +536,8 @@ class Format
         }
 
         if (empty($path) or file_exists(static::$settings['absolutePath'].'/'.$path) == false) {
-            $path = '/themes/'.static::$settings['gibbonThemeName'].'/img/anonymous_'.$size.'.jpg';
+            $imageSize = $size == 240 || $size == 'lg' ? 240 : 75;
+            $path = '/themes/'.static::$settings['gibbonThemeName'].'/img/anonymous_'.$imageSize.'.jpg';
         }
 
         return sprintf('<img class="mx-auto %1$s" src="%2$s">', $class, static::$settings['absoluteURL'].'/'.$path);
