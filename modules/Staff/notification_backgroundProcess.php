@@ -99,7 +99,7 @@ switch ($action) {
             }
 
             // Send messages
-            if ($sent = $messageSender->send($recipients, $message)) {
+            if ($sent = $messageSender->send($message, $recipients, $absence['gibbonPersonID'])) {
                 $sendCount += count($recipients);
 
                 $staffAbsenceGateway->update($gibbonStaffAbsenceID, [
@@ -121,7 +121,7 @@ switch ($action) {
             $recipients = [$absence['gibbonPersonIDApproval']];
 
             // Send messages
-            if ($sent = $messageSender->send($recipients, $message)) {
+            if ($sent = $messageSender->send($message, $recipients, $absence['gibbonPersonID'])) {
                 $sendCount += count($recipients);
             }
         }
@@ -139,7 +139,7 @@ switch ($action) {
             $recipients = [$absence['gibbonPersonID']];
 
             // Send messages
-            if ($sent = $messageSender->send($recipients, $message)) {
+            if ($sent = $messageSender->send($message, $recipients, $absence['gibbonPersonIDApproval'])) {
                 $sendCount += count($recipients);
             }
         }
@@ -156,7 +156,7 @@ switch ($action) {
             $recipients = [$coverage['gibbonPersonIDCoverage']];
             $message = new IndividualRequest($coverage);
 
-            if ($sent = $messageSender->send($recipients, $message)) {
+            if ($sent = $messageSender->send($message, $recipients, $coverage['gibbonPersonID'])) {
                 $sendCount += count($recipients);
 
                 $staffCoverageGateway->update($gibbonStaffCoverageID, [
@@ -195,7 +195,7 @@ switch ($action) {
                 $message = new NoCoverageAvailable($coverage);
             }
 
-            if ($sent = $messageSender->send($recipients, $message)) {
+            if ($sent = $messageSender->send($message, $recipients, $coverage['gibbonPersonID'])) {
                 $sendCount += count($recipients);
 
                 $staffCoverageGateway->update($gibbonStaffCoverageID, [
@@ -221,7 +221,7 @@ switch ($action) {
                 ? new CoveragePartial($coverage, $uncoveredDates)
                 : new CoverageAccepted($coverage);
 
-            if ($sent = $messageSender->send($recipients, $message)) {
+            if ($sent = $messageSender->send($message, $recipients, $coverage['gibbonPersonIDCoverage'])) {
                 $sendCount += count($recipients);
             }
 
@@ -242,7 +242,7 @@ switch ($action) {
 
                 $message = new NewCoverage($coverage);
 
-                if ($sent2 = $messageSender->send($recipients, $message)) {
+                if ($sent2 = $messageSender->send($message, $recipients, $coverage['gibbonPersonID'])) {
                     $sendCount += count($recipients);
                 }
             }
@@ -259,7 +259,7 @@ switch ($action) {
             $recipients = [$coverage['gibbonPersonIDStatus']];
             $message = new CoverageDeclined($coverage);
 
-            if ($sent = $messageSender->send($recipients, $message)) {
+            if ($sent = $messageSender->send($message, $recipients, $coverage['gibbonPersonIDCoverage'])) {
                 $sendCount += count($recipients);
             }
         }
@@ -276,7 +276,7 @@ switch ($action) {
             $recipients = [$coverage['gibbonPersonIDStatus']];
             $message = new CoverageCancelled($coverage);
 
-            if ($sent = $messageSender->send($recipients, $message)) {
+            if ($sent = $messageSender->send($message, $recipients, $coverage['gibbonPersonID'])) {
                 $sendCount += count($recipients);
             }
         }
