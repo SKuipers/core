@@ -6,25 +6,27 @@ This is a Gibbon template file, written in HTML and Twig syntax.
 For info about editing, see: https://twig.symfony.com/doc/2.x/
 -->#}
 
-<div class="flex items-center  p-6">
+<div class="border rounded bg-gray-100 flex flex-wrap items-center p-6 my-4">
     
-    <div class="w-24 h-24 rounded-full overflow-hidden mr-6">
+    {#
+    <div class="flex-none w-24 h-24 rounded-full overflow-hidden mr-6">
         <img class="w-24" src="{{ absoluteURL }}/{{ staff.image_240 }}" style="max-width: 6rem;">
     </div>
+    #}
 
-    <div class="">
-        <div class="text-lg text-grey-darkest leading-none mb-2 p-0">{{ formatUsing('name', staff.title, staff.preferredName, staff.surname, 'Staff', false, true) }}</div>
+    <div class="w-full sm:w-1/2">
+        <div class="text-lg text-gray-800 leading-none mb-2 p-0">{{ formatUsing('name', staff.title, staff.preferredName, staff.surname, 'Staff', false, true) }}</div>
 
         {% if staff.jobTitle %}
-            <div class="text-sm text-grey-dark mb-0">{{ staff.jobTitle }}</div>
+            <div class="text-sm text-gray-600 mb-0">{{ staff.jobTitle }}</div>
         {% endif %}
 
         {% if rollGroup %}
-            <div class="text-sm text-grey-dark mb-0">{{ rollGroup.name }}</div>
+            <div class="text-sm text-gray-600 mb-0">{{ rollGroup.name }}</div>
         {% endif %}
     </div>
 
-    <div class="flex flex-grow justify-end items-center text-center">
+    <div class="w-full sm:w-1/2 flex flex-grow justify-between sm:justify-end items-center text-xs text-center mt-6 sm:mt-0">
         {% if canViewProfile %}
             <a class="px-2 w-16 thickbox" href="{{ absoluteURL }}/fullscreen.php?q=/modules/Staff/staff_view_details.php&width=800&height=500&gibbonPersonID={{ staff.gibbonPersonID }}">
                 <img class="" src="{{ absoluteURL }}/themes/Default/img/plus.png" title="{{ __('View') }}" width="25" height="25">
@@ -47,14 +49,3 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
         {% endif %}
     </div>
 </div>
-
-<!-- <div class="mx-2 mb-2">
-    <div class="bg-white rounded-t-lg rounded-bl-lg shadow p-4 text-sm">
-        This is a comment
-    </div>
-    
-    <div class="leading-loose text-grey-dark text-right">
-        Sandra Kuipers, 21 hrs ago
-    </div>
-</div> -->
-

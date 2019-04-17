@@ -18,6 +18,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Module\Staff\Forms\ViewCoverageForm;
+use Gibbon\Domain\Staff\StaffCoverageGateway;
+use Gibbon\Module\Staff\Forms\StaffCard;
+use Gibbon\Domain\Staff\StaffAbsenceGateway;
+use Gibbon\Domain\User\UserGateway;
+use Gibbon\Services\Format;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_details.php') == false) {
     // Access denied
@@ -29,10 +34,45 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_detail
 
     $gibbonStaffCoverageID = $_GET['gibbonStaffCoverageID'] ?? '';
 
-    $form = ViewCoverageForm::create($container, $gibbonStaffCoverageID);
-    $table = ViewCoverageForm::createViewDatesTable($container, $gibbonStaffCoverageID);
+    $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
+    $coverage = $container->get(StaffCoverageGateway::class)->getByID($gibbonStaffCoverageID);
+    
+    
+    if (!empty($coverage['gibbonStaffAbsenceID'])) {
+        $absence = $container->get(StaffAbsenceGateway::class)->getByID($coverage['gibbonStaffAbsenceID']);
+        $gibbonPersonID = $absence['gibbonPersonID'];
+        // Absence Coverage
+    } else {
+        // General Coverage
+        $gibbonPersonID = $coverage['gibbonPersonIDStatus'];
+    }
 
-    $form->addRow()->addContent($table->getOutput());
+    // Staff Card
+    $staffCard = $container->get(StaffCard::class);
+    $page->writeFromTemplate('users/staffCard.twig.html', $staffCard->compose($gibbonPersonID));
 
-    echo $form->getOutput();
+    // Coverage Request
+    $requester = $container->get(UserGateway::class)->getByID($coverage['gibbonPersonIDStatus']);
+    $page->writeFromTemplate('users/statusComment.twig.html', [
+        'name'    => Format::name($requester['title'], $requester['preferredName'], $requester['surname'], 'Staff', false, true),
+        'action'   => __('Requested'),
+        'photo'   => $_SESSION[$guid]['absoluteURL'].'/'.$requester['image_240'],
+        'date'    => Format::relativeTime($coverage['timestampStatus']),
+        'status'  => $coverage['status'] == 'Requested' ? __('Pending') : '',
+        'tag'     => 'message',
+        'comment' => $coverage['notesStatus'],
+    ]);
+
+    if ($coverage['status'] != 'Requested') {
+        $substitute = $container->get(UserGateway::class)->getByID($coverage['gibbonPersonIDCoverage']);
+        $page->writeFromTemplate('users/statusComment.twig.html', [
+            'name'    => Format::name($substitute['title'], $substitute['preferredName'], $substitute['surname'] ,'Staff', false, true),
+            'action'   => __($coverage['status']),
+            'photo'   => $_SESSION[$guid]['absoluteURL'].'/'.$substitute['image_240'],
+            'date'    => Format::relativeTime($coverage['timestampCoverage']),
+            'status'  => __($coverage['status']),
+            'tag'     => $coverage['status'] == 'Accepted' ? 'success' : 'error',
+            'comment' => $coverage['notesCoverage'],
+        ]);
+    }
 }
