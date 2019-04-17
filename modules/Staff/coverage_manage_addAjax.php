@@ -54,6 +54,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_add.
     $dates = [];
     $dateRange = new DatePeriod($start, new DateInterval('P1D'), $end);
     foreach ($dateRange as $date) {
+        if (!isSchoolOpen($guid, $date->format('Y-m-d'), $connection2)) continue;
+        
         $dates[] = ['date' => $date->format('Y-m-d')];
     }
 
