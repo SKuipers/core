@@ -169,7 +169,7 @@ class StaffAbsenceGateway extends QueryableGateway
     public function getAbsenceDetailsByID($gibbonStaffAbsenceID)
     {
         $data = ['gibbonStaffAbsenceID' => $gibbonStaffAbsenceID];
-        $sql = "SELECT gibbonStaffAbsence.gibbonStaffAbsenceID, gibbonStaffAbsence.gibbonStaffAbsenceID, gibbonStaffAbsenceType.name as type, reason, gibbonStaffAbsence.comment,
+        $sql = "SELECT gibbonStaffAbsence.gibbonStaffAbsenceID, gibbonStaffAbsence.gibbonStaffAbsenceID, gibbonStaffAbsenceType.name as type, reason, gibbonStaffAbsence.comment, gibbonStaffAbsence.commentConfidential, 
                 MIN(date) as date, COUNT(DISTINCT gibbonStaffAbsenceDateID) as days, MIN(date) as dateStart, MAX(date) as dateEnd, MAX(allDay) as allDay, MIN(timeStart) as timeStart, MAX(timeEnd) as timeEnd, 0 as urgent, 
                 gibbonStaffAbsence.status, gibbonStaffAbsence.timestampApproval, gibbonStaffAbsence.notesApproval,
                 gibbonPersonIDCreator, timestampCreator, timestampStatus, timestampCoverage, gibbonStaffAbsence.notificationList, gibbonStaffAbsence.notificationSent, gibbonStaffAbsence.gibbonGroupID, gibbonStaffAbsence.googleCalendarEventID,

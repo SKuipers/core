@@ -155,6 +155,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
             ->placeholder()
             ->isRequired()
             ->selected($gibbonPersonIDApproval ?? '');
+
+        $row = $form->addRow()->addClass('approvalRequired');
+            $row->addLabel('commentConfidential', __('Confidential Comment'))->description(__('This message is only shared with the selected approver.'));
+            $row->addTextArea('commentConfidential')->setRows(3);
     }
     $form->addRow()->addHeading(__('Notifications'));
 
@@ -197,7 +201,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
             ->tokenFormatter('function(item){ return "<li><div class=\'inline-block p-px text-xs leading-normal\'>" + item.name + "</div></li>"; }');
 
     $row = $form->addRow();
-        $row->addLabel('comment', __('Comment '))->description(__('This message is shared with the people notified of this absence and users who manage staff absences.'));
+        $row->addLabel('comment', __('Comment'))->description(__('This message is shared with the people notified of this absence and users who manage staff absences.'));
         $row->addTextArea('comment')->setRows(3);
 
     if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php')) {

@@ -92,7 +92,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_add.
             ->setClass('shortWidth')
             ->isRequired();
         $col->addTime('timeEnd')
-            ->chainedTo('timeStart', false)
+            ->chainedTo('timeStart')
             ->setClass('shortWidth')
             ->isRequired();
 

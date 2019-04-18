@@ -51,13 +51,15 @@ class MessageSender
         $this->sms = $sms;
     }
 
-    public function send(array $recipients, Message $message)
+    public function send(Message $message, array $recipients, $senderID = '')
     {
         $via = $message->via();
         $result = [];
 
         // Get the user data per gibbonPersonID
         $userGateway = &$this->userGateway;
+
+        $sender = !empty($senderID) ? $this->userGateway->getByID($senderID) : [];
         $recipients = array_map(function ($gibbonPersonID) use (&$userGateway) {
             return $userGateway->getByID($gibbonPersonID);
         }, array_filter(array_unique($recipients)));
@@ -79,6 +81,10 @@ class MessageSender
         if (in_array('mail', $via) && !empty($this->mail)) {
             $this->mail->setDefaultSender($message->toMail()['subject']);
             $this->mail->renderBody('mail/message.twig.html', $message->toMail());
+
+            if (!empty($sender['email'])) {
+                $this->mail->addReplyTo($sender['email'], $sender['preferredName'].' '.$sender['surname']);
+            }
 
             foreach ($recipients as $person) {
                 if (empty($person['email'])) continue;

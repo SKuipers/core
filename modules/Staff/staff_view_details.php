@@ -296,8 +296,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                                 $details = $staffAbsenceDateGateway->getByAbsenceAndDate($absence['gibbonStaffAbsenceID'], date('Y-m-d'));
                                 $time = $details['allDay'] == 'N' ? Format::timeRange($details['timeStart'], $details['timeEnd']) : __('All Day');
 
-                                $absenceMessage .= '<li>'.$absence['type'].'</li>';
-                                $absenceMessage .= '<li>'.Format::dateRangeReadable($absence['dateStart'], $absence['dateEnd']).' '.$time;
+                                $absenceMessage .= '<li>'.Format::dateRangeReadable($absence['dateStart'], $absence['dateEnd']).'  '.$time;
                                 if ($details['coverage'] == 'Accepted') {
                                     $absenceMessage .= '<li>'.__('Coverage').': '.Format::name($details['titleCoverage'], $details['preferredNameCoverage'], $details['surnameCoverage'], 'Staff', false, true);
                                 }

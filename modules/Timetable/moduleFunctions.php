@@ -612,13 +612,13 @@ function renderTT($guid, $connection2, $gibbonPersonID, $gibbonTTID, $title = ''
 
                 $eventsSpaceBooking[] = [
                     'Coverage',
-                    $coverage['type'] .'<br/>'. __('Coverage'),
+                    __('Coverage'),
                     '',
                     $coverage['date'],
                     $coverage['allDay'] == 'N' ? $coverage['timeStart'] : $timeStart,
                     $coverage['allDay'] == 'N' ? $coverage['timeEnd'] : $timeEnd,
                     $fullName,
-                    $coverage['notesStatus'],
+                    '',
                 ];
             }
 
@@ -634,7 +634,7 @@ function renderTT($guid, $connection2, $gibbonPersonID, $gibbonTTID, $title = ''
             $absenceList = $staffAbsenceGateway->queryAbsencesByPerson($criteria, $gibbonPersonID, false);
 
             foreach ($absenceList as $absence) {
-                $summary = __('Absent').': '.__($absence['type']);
+                $summary = __('Absent');
                 if ($absence['coverage'] == 'Accepted') {
                     $summary .= ' - '.__('Coverage').': '.Format::name($absence['titleCoverage'], $absence['preferredNameCoverage'], $absence['surnameCoverage'], 'Staff', false, true);
                 }
