@@ -22,11 +22,10 @@ use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
-use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
-use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
 use Gibbon\Domain\Staff\SubstituteGateway;
-use Gibbon\Module\Staff\Forms\ViewCoverageForm;
+use Gibbon\Module\Staff\Forms\StaffCard;
+use Gibbon\Domain\User\UserGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept.php') == false) {
     // Access denied
@@ -64,6 +63,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
         return;
     }
 
+    
+
+    // Staff Card
+    $gibbonPersonIDStatus = !empty($coverage['gibbonPersonID'])? $coverage['gibbonPersonID'] : $coverage['gibbonPersonIDStatus'];
+    $page->writeFromTemplate('users/staffCard.twig.html', $container->get(StaffCard::class)->compose($gibbonPersonIDStatus));
+
+    // Coverage Request
+    $requester = $container->get(UserGateway::class)->getByID($coverage['gibbonPersonIDStatus']);
+    $page->writeFromTemplate('users/statusComment.twig.html', [
+        'name'    => Format::name($requester['title'], $requester['preferredName'], $requester['surname'], 'Staff', false, true),
+        'action'   => __('Requested'),
+        'photo'   => $_SESSION[$guid]['absoluteURL'].'/'.$requester['image_240'],
+        'date'    => Format::relativeTime($coverage['timestampStatus']),
+        'comment' => $coverage['notesStatus'],
+    ]);
+
+    // FORM
     $form = Form::create('staffCoverage', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/coverage_view_acceptProcess.php');
 
     $form->setFactory(DatabaseFormFactory::create($pdo));
@@ -72,27 +88,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
 
     $form->addRow()->addHeading(__('Accept Coverage Request'));
 
-    $gibbonPersonIDStatus = !empty($coverage['gibbonPersonID'])? $coverage['gibbonPersonID'] : $coverage['gibbonPersonIDStatus'];
-    if (!empty($gibbonPersonIDStatus)) {
-        $form->addRow()->addContent(ViewCoverageForm::getStaffCard($container, $gibbonPersonIDStatus));
-    }
-
-    if (!empty($coverage['gibbonStaffAbsenceID'])) {
-        $row = $form->addRow();
-            $row->addLabel('typeLabel', __('Type'));
-            $row->addTextField('type')->readonly()->setValue($coverage['reason'] ? "{$coverage['type']} ({$coverage['reason']})" : $coverage['type']);
-    }
-    
-    $row = $form->addRow();
-        $row->addLabel('timestampLabel', __('Requested'));
-        $row->addTextField('timestamp')->readonly()->setValue(Format::relativeTime($coverage['timestampStatus'], false))->setTitle($coverage['timestampStatus']);
-
-    if (!empty($coverage['notesStatus'])) {
-        $row = $form->addRow();
-            $row->addLabel('notesStatusLabel', __('Comment'));
-            $row->addTextArea('notesStatus')->setRows(3)->setValue($coverage['notesStatus'])->readonly();
-    }
-
     // DATA TABLE
     $coverageDates = $container->get(StaffAbsenceDateGateway::class)->selectDatesByCoverage($gibbonStaffCoverageID);
 
@@ -100,7 +95,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
     $unavailable = $container->get(SubstituteGateway::class)->selectUnavailableDatesBySub($gibbonPersonID, $gibbonStaffCoverageID)->fetchGrouped();
 
     $table = DataTable::create('staffCoverageDates');
-    $table->setTitle(__('Dates'));
     $table->getRenderer()->addData('class', 'bulkActionForm datesTable');
 
     $table->addColumn('date', __('Date'))
@@ -143,7 +137,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
         });
 
     $row = $form->addRow()->addContent($table->render($coverageDates->toDataSet()));
-
+    
     if ($datesAvailableToRequest > 0) {
         $row = $form->addRow();
             $row->addLabel('notesCoverage', __('Reply'));

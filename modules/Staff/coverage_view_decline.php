@@ -19,13 +19,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
-use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
-use Gibbon\Domain\Staff\StaffAbsenceGateway;
-use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
-use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
-use Gibbon\Module\Staff\Forms\ViewCoverageForm;
+use Gibbon\Module\Staff\Forms\StaffCard;
+use Gibbon\Domain\User\UserGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_decline.php') == false) {
     // Access denied
@@ -65,27 +62,20 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_declin
     $form->addHiddenValue('gibbonStaffCoverageID', $gibbonStaffCoverageID);
 
     $form->addRow()->addHeading(__('Decline Coverage Request'));
-
+    
+    // Staff Card
     $gibbonPersonIDStatus = !empty($coverage['gibbonPersonID'])? $coverage['gibbonPersonID'] : $coverage['gibbonPersonIDStatus'];
-    if (!empty($gibbonPersonIDStatus)) {
-        $form->addRow()->addContent(ViewCoverageForm::getStaffCard($container, $gibbonPersonIDStatus));
-    }
+    $page->writeFromTemplate('users/staffCard.twig.html', $container->get(StaffCard::class)->compose($gibbonPersonIDStatus));
 
-    if (!empty($coverage['gibbonStaffAbsenceID'])) {
-        $row = $form->addRow();
-            $row->addLabel('typeLabel', __('Type'));
-            $row->addTextField('type')->readonly()->setValue($coverage['reason'] ? "{$coverage['type']} ({$coverage['reason']})" : $coverage['type']);
-    }
-
-    $row = $form->addRow();
-        $row->addLabel('timestampLabel', __('Requested'));
-        $row->addTextField('timestamp')->readonly()->setValue(Format::relativeTime($coverage['timestampStatus'], false))->setTitle($coverage['timestampStatus']);
-
-    if (!empty($coverage['notesStatus'])) {
-        $row = $form->addRow();
-            $row->addLabel('notesStatusLabel', __('Comment'));
-            $row->addTextArea('notesStatus')->setRows(2)->setValue($coverage['notesStatus'])->readonly();
-    }
+    // Coverage Request
+    $requester = $container->get(UserGateway::class)->getByID($coverage['gibbonPersonIDStatus']);
+    $page->writeFromTemplate('users/statusComment.twig.html', [
+        'name'    => Format::name($requester['title'], $requester['preferredName'], $requester['surname'], 'Staff', false, true),
+        'action'   => __('Requested'),
+        'photo'   => $_SESSION[$guid]['absoluteURL'].'/'.$requester['image_240'],
+        'date'    => Format::relativeTime($coverage['timestampStatus']),
+        'comment' => $coverage['notesStatus'],
+    ]);
 
     $row = $form->addRow();
         $row->addLabel('markAsUnavailable', __('Not Available'))->description(__('Checking this will mark you as unavailable for any further requests on these dates.'));

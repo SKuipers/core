@@ -67,10 +67,11 @@ class AbsenceCalendar
         $table->setTitle(__('Calendar'));
         $table->getRenderer()->addData('class', 'calendarTable calendarTableSmall ');
 
-        $table->addColumn('name', '')->notSortable();
+        $table->addColumn('name', '')->notSortable()->context('primary');
 
         for ($dayCount = 1; $dayCount <= 31; $dayCount++) {
             $table->addColumn($dayCount, '')
+                ->context('primary')
                 ->notSortable()
                 ->format(function ($month) use ($dayCount) {
                     $day = $month['days'][$dayCount] ?? null;

@@ -41,7 +41,7 @@ class AbsenceFormats
     {
         return $coverage['gibbonPersonIDCoverage'] 
             ? Format::name($coverage['titleCoverage'], $coverage['preferredNameCoverage'], $coverage['surnameCoverage'], 'Staff', false, true)
-            : '<span class="tag success">'.__('Pending').'</span>';
+            : '<span class="tag message">'.__('Pending').'</span>';
     }
 
     public static function dateDetails($absence)
@@ -81,7 +81,7 @@ class AbsenceFormats
         if ($absence['coverage'] == 'Accepted') {
             return Format::name($absence['titleCoverage'], $absence['preferredNameCoverage'], $absence['surnameCoverage'], 'Staff', false, true);
         } elseif ($absence['coverage'] == 'Requested') {
-            return '<span class="tag success">'.__('Pending').'</span>';
+            return '<span class="tag message">'.__('Pending').'</span>';
         }
         return '';
     }
@@ -107,7 +107,7 @@ class AbsenceFormats
         if ($relativeSeconds <= 0) {
             return '<span class="tag dull">'.__('Overdue').'</span>';
         } elseif ($relativeSeconds <= (86400 * $urgencyThreshold)) {
-            return '<span class="error tag">'.__('Urgent').'</span>';
+            return '<span class="tag error">'.__('Urgent').'</span>';
         } elseif ($relativeSeconds <= (86400 * ($urgencyThreshold * 3))) {
             return '<span class="tag warning">'.__('Upcoming').'</span>';
         } else {
