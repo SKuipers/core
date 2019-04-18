@@ -1282,3 +1282,8 @@ table.smallIntBorder td.noPadding {
     width: 14px;
     opacity: 0.65;
 }
+
+/* TIS Application Form hack for IE 11 */
+#applicationForm tr {
+    max-width: 780px;
+}
