@@ -81,12 +81,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
 
     // FORM
     $form = Form::create('staffCoverage', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/coverage_view_acceptProcess.php');
-
+    $form->setClass('blank w-full');
     $form->setFactory(DatabaseFormFactory::create($pdo));
     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
     $form->addHiddenValue('gibbonStaffCoverageID', $gibbonStaffCoverageID);
-
-    $form->addRow()->addHeading(__('Accept Coverage Request'));
 
     // DATA TABLE
     $coverageDates = $container->get(StaffAbsenceDateGateway::class)->selectDatesByCoverage($gibbonStaffCoverageID);
@@ -95,7 +93,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
     $unavailable = $container->get(SubstituteGateway::class)->selectUnavailableDatesBySub($gibbonPersonID, $gibbonStaffCoverageID)->fetchGrouped();
 
     $table = DataTable::create('staffCoverageDates');
-    $table->getRenderer()->addData('class', 'bulkActionForm datesTable');
+    $table->setTitle(__('Dates'));
+    $table->getRenderer()->addData('class', 'bulkActionForm datesTable mb-4');
 
     $table->addColumn('date', __('Date'))
         ->format(Format::using('dateReadable', 'date'));
@@ -137,17 +136,21 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
         });
 
     $row = $form->addRow()->addContent($table->render($coverageDates->toDataSet()));
-    
-    if ($datesAvailableToRequest > 0) {
-        $row = $form->addRow();
-            $row->addLabel('notesCoverage', __('Reply'));
-            $row->addTextArea('notesCoverage')->setRows(3);
+  
+    $table = $form->addRow()->addTable()->setClass('smallIntBorder w-full');
 
-        $row = $form->addRow();
-            $row->addFooter();
+    $table->addRow()->addHeading(__('Accept Coverage Request'));
+
+    if ($datesAvailableToRequest > 0) {
+        $row = $table->addRow();
+            $row->addLabel('notesCoverage', __('Reply'));
+            $row->addTextArea('notesCoverage')->setRows(3)->setClass('w-full sm:max-w-xs');
+
+        $row = $table->addRow();
+            $row->addContent();
             $row->addSubmit();
     } else {
-        $row = $form->addRow();
+        $row = $table->addRow();
             $row->addAlert(__('Not Available'), 'warning');
     }
 
