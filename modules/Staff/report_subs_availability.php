@@ -99,6 +99,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_subs_availabi
 
     echo $form->getOutput();
 
+    if (!isSchoolOpen($guid, $date, $connection2)) {
+        echo Format::alert(__('School is closed on the specified day.'), 'error');
+        return;
+    }
+
     $subs = $subGateway->queryAvailableSubsByDate($criteria, $date, $timeStart, $timeEnd);
 
     
