@@ -47,19 +47,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_week
 	$form->setClass('blank fullWidth');
 	$form->addHiddenValue('address', $_SESSION[$guid]['address']);
 
-	$row = $form->addRow();
+	$row = $form->addRow()->addClass('flex flex-wrap');
 
 	$link = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/report_absences_weekly.php';
 	$lastWeek = $date->modify('-1 week')->format($dateFormat);
 	$thisWeek = (new DateTime('Today'))->format($dateFormat);
 	$nextWeek = $date->modify('+1 week')->format($dateFormat);
 
-	$col = $row->addColumn()->addClass('inline');
+	$col = $row->addColumn()->addClass('flex items-center ');
 		$col->addButton(__('Last Week'))->addClass('buttonLink')->onClick("window.location.href='{$link}&dateStart={$lastWeek}'");
 		$col->addButton(__('This Week'))->addClass('buttonLink')->onClick("window.location.href='{$link}&dateStart={$thisWeek}'");
 		$col->addButton(__('Next Week'))->addClass('buttonLink')->onClick("window.location.href='{$link}&dateStart={$nextWeek}'");
 
-	$col = $row->addColumn()->addClass('inline right');
+	$col = $row->addColumn()->addClass('flex items-center justify-end');
 		$col->addDate('dateStart')->setValue($date->format($dateFormat))->setClass('shortWidth');
 		$col->addSubmit(__('Go'));
 
