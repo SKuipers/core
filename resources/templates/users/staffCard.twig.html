@@ -6,46 +6,89 @@ This is a Gibbon template file, written in HTML and Twig syntax.
 For info about editing, see: https://twig.symfony.com/doc/2.x/
 -->#}
 
-<div class="border rounded bg-gray-100 flex flex-wrap items-center p-6 my-4">
+<div class="border rounded bg-gray-100 my-4">
     
-    {#
-    <div class="flex-none w-24 h-24 rounded-full overflow-hidden mr-6">
-        <img class="w-24" src="{{ absoluteURL }}/{{ staff.image_240 }}" style="max-width: 6rem;">
+    <div class="px-4 py-6 flex flex-wrap items-center">
+        {#
+        <div class="flex-none w-24 h-24 rounded-full overflow-hidden mr-6">
+            <img class="w-24" src="{{ absoluteURL }}/{{ staff.image_240 }}" style="max-width: 6rem;">
+        </div>
+        #}
+
+        <div class="w-full sm:w-1/2">
+            <div class="text-lg text-gray-800 leading-none mb-2 p-0">{{ formatUsing('name', staff.title, staff.preferredName, staff.surname, 'Staff', false, true) }}</div>
+
+            {% if staff.jobTitle %}
+                <div class="text-sm text-gray-600 mb-0">{{ staff.jobTitle }}</div>
+            {% endif %}
+
+            {% if rollGroup %}
+                <div class="text-sm text-gray-600 mb-0">{{ rollGroup.name }}</div>
+            {% endif %}
+        </div>
+
+        <div class="w-full sm:w-1/2 flex flex-grow justify-between sm:justify-end items-center text-xs text-center mt-6 sm:mt-0">
+            {% if canViewProfile %}
+                <a class="px-2 w-20 thickbox" href="{{ absoluteURL }}/fullscreen.php?q=/modules/Staff/staff_view_details.php&width=800&height=500&gibbonPersonID={{ staff.gibbonPersonID }}">
+                    <img class="" src="{{ absoluteURL }}/themes/Default/img/plus.png" title="{{ __('Profile') }}" width="25" height="25">
+                    <div class="mt-1">{{ __('Profile') }}</div>
+                </a>
+            {% endif %}
+
+            {% if canViewAbsences %}
+                <a class="px-2 w-20 thickbox" href="{{ absoluteURL }}/fullscreen.php?q=/modules/Staff/absences_view_byPerson.php&width=800&height=500&gibbonPersonID={{ staff.gibbonPersonID }}">
+                    <img class="" src="{{ absoluteURL }}/themes/Default/img/planner.png" title="{{ __('Absences') }}" width="25" height="25">
+                    <div class="mt-1">{{ __('Absences') }}</div>
+                </a>
+            {% endif %}
+
+            {% if canViewTimetable %}
+                <a class="px-2 w-20 thickbox" href="{{ absoluteURL }}/fullscreen.php?q=/modules/Timetable/tt_view.php&width=800&height=500&gibbonPersonID={{ staff.gibbonPersonID }}&allUsers=on">
+                    <img class="" src="{{ absoluteURL }}/themes/Default/img/markbook.png" title="{{ __('Timetable') }}" width="25" height="25">
+                    <div class="mt-1">{{ __('Timetable') }}</div>
+                </a>
+            {% endif %}
+
+            {% if canViewRollGroups and rollGroup %}
+                <a class="px-2 w-20 thickbox" href="{{ absoluteURL }}/fullscreen.php?q=/modules/Roll Groups/rollGroups_details.php&width=800&height=500&gibbonRollGroupID={{ rollGroup.gibbonRollGroupID }}">
+                    <img class="" src="{{ absoluteURL }}/themes/Default/img/attendance.png" title="{{ __('Homeroom') }}" width="25" height="25">
+                    <div class="mt-1">{{ __('Homeroom') }}</div>
+                </a>
+            {% endif %}
+        </div>
     </div>
-    #}
 
-    <div class="w-full sm:w-1/2">
-        <div class="text-lg text-gray-800 leading-none mb-2 p-0">{{ formatUsing('name', staff.title, staff.preferredName, staff.surname, 'Staff', false, true) }}</div>
-
-        {% if staff.jobTitle %}
-            <div class="text-sm text-gray-600 mb-0">{{ staff.jobTitle }}</div>
-        {% endif %}
-
-        {% if rollGroup %}
-            <div class="text-sm text-gray-600 mb-0">{{ rollGroup.name }}</div>
-        {% endif %}
+    {##
+    {% if absence %}
+    <div class="px-4 py-4 border-t leading-normal flex">
+        <div class="mr-4">
+            <div class="flex-none relative rounded-sm bg-color{{ typeSequence % 10 }} w-10 h-10 flex items-center justify-center text-white text-xl font-bold font-sans leading-normal">
+                {{ typeShort }}
+            </div>
+        </div>
+        <div class="">
+            <div class="text-gray-800 text-base font-medium">{{ type }}</div>
+            <div class="text-gray-600 text-sm">{{ date }} · {{ time|raw }} </div>
+        </div>
     </div>
+    {% endif %}
+    ###}
 
-    <div class="w-full sm:w-1/2 flex flex-grow justify-between sm:justify-end items-center text-xs text-center mt-6 sm:mt-0">
-        {% if canViewProfile %}
-            <a class="px-2 w-16 thickbox" href="{{ absoluteURL }}/fullscreen.php?q=/modules/Staff/staff_view_details.php&width=800&height=500&gibbonPersonID={{ staff.gibbonPersonID }}">
-                <img class="" src="{{ absoluteURL }}/themes/Default/img/plus.png" title="{{ __('View') }}" width="25" height="25">
-                <div class="mt-1">{{ __('View') }}</div>
-            </a>
-        {% endif %}
-
-        {% if canViewTimetable %}
-            <a class="px-2 w-16 thickbox" href="{{ absoluteURL }}/fullscreen.php?q=/modules/Timetable/tt_view.php&width=800&height=500&gibbonPersonID={{ staff.gibbonPersonID }}&allUsers=on">
-                <img class="" src="{{ absoluteURL }}/themes/Default/img/markbook.png" title="{{ __('Timetable') }}" width="25" height="25">
-                <div class="mt-1">{{ __('Timetable') }}</div>
-            </a>
-        {% endif %}
-
-        {% if canViewRollGroups and rollGroup %}
-            <a class="px-2 w-16 thickbox" href="{{ absoluteURL }}/fullscreen.php?q=/modules/Roll Groups/rollGroups_details.php&width=800&height=500&gibbonRollGroupID={{ rollGroup.gibbonRollGroupID }}">
-                <img class="" src="{{ absoluteURL }}/themes/Default/img/attendance.png" title="{{ __('Homeroom') }}" width="25" height="25">
-                <div class="mt-1">{{ __('Homeroom') }}</div>
-            </a>
-        {% endif %}
-    </div>
 </div>
+
+
+
+
+{##
+<div class=" flex">
+        <div class="w-16 mr-4">
+            <div class="flex-none overflow-hidden w-16 h-16 rounded-full bg-color{{ typeSequence % 10 }} flex items-center justify-center">
+                <span class="text-white text-3xl font-bold font-sans leading-normal">{{ typeShort }}</span>
+            </div>
+        </div>
+        <div class="flex-1 px-4 py-4 relative bg-gray-100 rounded text-gray-800 text-sm leading-snug border border-gray-400 ">
+            <div class="text-gray-800 text-base font-medium">{{ type }}</div>
+            <div class="text-gray-600 text-sm">{{ date }} · {{ time|raw }} </div>
+        </div>
+    </div>
+###}

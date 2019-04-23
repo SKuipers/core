@@ -26,6 +26,11 @@ use Gibbon\Services\Format;
 use Gibbon\Module\Staff\Tables\AbsenceFormats;
 use Gibbon\Domain\User\UserGateway;
 use Gibbon\Module\Staff\Forms\StaffCard;
+use Gibbon\Domain\DataSet;
+use Gibbon\Tables\View\DetailsView;
+use Gibbon\Tables\View\DataTableView;
+use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
+use Gibbon\Module\Staff\Tables\AbsenceDates;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_approval_action.php') == false) {
     // Access denied
@@ -37,22 +42,26 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_approval_ac
 
     $page->breadcrumbs
         ->add(__('Approve Staff Absences'), 'absences_approval.php')
-        ->add(__($action));
+        ->add(__('Approval'));
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], $editLink, null);
     }
 
-    $absence = $container->get(StaffAbsenceGateway::class)->getByID($gibbonStaffAbsenceID);
+    $absence = $container->get(StaffAbsenceGateway::class)->getAbsenceDetailsByID($gibbonStaffAbsenceID);
 
     if (empty($absence)) {
         $page->addError(__('The specified record cannot be found.'));
         return;
     }
-
+    
     // Staff Card
     $staffCard = $container->get(StaffCard::class);
     $page->writeFromTemplate('users/staffCard.twig.html', $staffCard->compose($absence['gibbonPersonID']));
+
+    // Absence Dates
+    $table = $container->get(AbsenceDates::class)->compose($absence);
+    $page->write($table->getOutput());
 
     // Absence Request
     $person = $container->get(UserGateway::class)->getByID($absence['gibbonPersonID']);
@@ -66,32 +75,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_approval_ac
         'comment' => !empty($absence['commentConfidential']) ? $absence['commentConfidential'] : $absence['comment'],
     ]);
 
-    // Absence Dates
-    $absenceDates = $container->get(StaffAbsenceDateGateway::class)->selectDatesByAbsence($absence['gibbonStaffAbsenceID']);
-
-    $table = DataTable::create('staffAbsenceDates')->withData($absenceDates->toDataSet());
-
-    $table->setTitle(__('Dates'));
-
-    $table->addColumn('date', __('Date'))
-            ->format(Format::using('dateReadable', 'date'));
-
-    $table->addColumn('timeStart', __('Time'))
-            ->format([AbsenceFormats::class, 'timeDetails']);
-
-    echo $table->getOutput();
-    echo '<br/>';
-
     // Approval Form
     $form = Form::create('staffAbsenceApproval', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/absences_approval_actionProcess.php');
 
     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
     $form->addHiddenValue('gibbonStaffAbsenceID', $gibbonStaffAbsenceID);
-    $form->addHiddenValue('action', $action);
 
+    $options = [
+        'Approve' => __('Approve'),
+        'Decline' => __('Decline'),
+    ];
     $row = $form->addRow();
-        $row->addLabel('actionLabel', __('Action'));
-        $row->addTextField('actionValue')->readonly()->setValue($action);
+        $row->addLabel('action', __('Action'));
+        $row->addSelect('action')->fromArray($options)->selected($action);
 
     $row = $form->addRow();
         $row->addLabel('notesApproval', __('Reply'));

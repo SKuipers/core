@@ -54,6 +54,7 @@ class StaffCard
             'staff' => $this->staffGateway->selectStaffByID($gibbonPersonID ?? '')->fetch(),
             'rollGroup' => $this->rollGroupGateway->selectRollGroupsByTutor($gibbonPersonID ?? '')->fetch(),
             'canViewProfile' => isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.php'),
+            'canViewAbsences' => isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPerson.php', 'View Absences_any'),
             'canViewTimetable' => isActionAccessible($guid, $connection2, '/modules/Timetable/tt_view.php'),
             'canViewRollGroups' => isActionAccessible($guid, $connection2, '/modules/Roll Groups/rollGroups.php'),
         ];
