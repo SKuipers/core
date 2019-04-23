@@ -19,34 +19,33 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
+use Gibbon\Module\Attendance\AttendanceView;
 
 //Module includes
-include './modules/'.$_SESSION[$guid]['module'].'/moduleFunctions.php';
+require_once __DIR__ . '/moduleFunctions.php';
+require_once __DIR__ . '/src/AttendanceView.php';
 
-require_once $_SESSION[$guid]['absolutePath'].'/modules/Attendance/src/attendanceView.php';
+// set page breadcrumb
+$page->breadcrumbs->add(__('Take Attendance by Roll Group'));
 
 if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_take_byRollGroup.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     $highestAction = getHighestGroupedAction($guid, $_GET['q'], $connection2);
     if ($highestAction == false) {
         echo "<div class='error'>";
-        echo __($guid, 'The highest grouped action cannot be determined.');
+        echo __('The highest grouped action cannot be determined.');
         echo '</div>';
     } else {
         //Proceed!
-        echo "<div class='trail'>";
-        echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > </div><div class='trailEnd'>".__($guid, 'Take Attendance by Roll Group').'</div>';
-        echo '</div>';
-
         if (isset($_GET['return'])) {
-            returnProcess($guid, $_GET['return'], null, array('warning1' => 'Your request was successful, but some data was not properly saved.', 'error3' => 'Your request failed because the specified date is not in the future, or is not a school day.'));
+            returnProcess($guid, $_GET['return'], null, array('error3' => __('Your request failed because the specified date is in the future, or is not a school day.')));
         }
 
-        $attendance = new Module\Attendance\attendanceView($gibbon, $pdo);
+        $attendance = new AttendanceView($gibbon, $pdo);
 
         $gibbonRollGroupID = '';
         if (isset($_GET['gibbonRollGroupID']) == false) {
@@ -79,11 +78,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_take
 
         $row = $form->addRow();
             $row->addLabel('gibbonRollGroupID', __('Roll Group'));
-            $row->addSelectRollGroup('gibbonRollGroupID', $_SESSION[$guid]['gibbonSchoolYearID'])->isRequired()->selected($gibbonRollGroupID)->placeholder();
+            $row->addSelectRollGroup('gibbonRollGroupID', $_SESSION[$guid]['gibbonSchoolYearID'])->required()->selected($gibbonRollGroupID)->placeholder();
 
         $row = $form->addRow();
             $row->addLabel('currentDate', __('Date'));
-            $row->addDate('currentDate')->isRequired()->setValue(dateConvertBack($guid, $currentDate));
+            $row->addDate('currentDate')->required()->setValue(dateConvertBack($guid, $currentDate));
 
         $row = $form->addRow();
             $row->addSearchSubmit($gibbon->session);
@@ -93,12 +92,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_take
         if ($gibbonRollGroupID != '') {
             if ($currentDate > $today) {
                 echo "<div class='error'>";
-                echo __($guid, 'The specified date is in the future: it must be today or earlier.');
+                echo __('The specified date is in the future: it must be today or earlier.');
                 echo '</div>';
             } else {
                 if (isSchoolOpen($guid, $currentDate, $connection2) == false) {
                     echo "<div class='error'>";
-                    echo __($guid, 'School is closed on the specified date, and so attendance information cannot be recorded.');
+                    echo __('School is closed on the specified date, and so attendance information cannot be recorded.');
                     echo '</div>';
                 } else {
                     $prefillAttendanceType = getSettingByScope($connection2, 'Attendance', 'prefillRollGroup');
@@ -141,14 +140,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_take
 
                         if ($resultLog->rowCount() < 1) {
                             echo "<div class='error'>";
-                            echo __($guid, 'Attendance has not been taken for this group yet for the specified date. The entries below are a best-guess based on defaults and information put into the system in advance, not actual data.');
+                            echo __('Attendance has not been taken for this group yet for the specified date. The entries below are a best-guess based on defaults and information put into the system in advance, not actual data.');
                             echo '</div>';
                         } else {
                             echo "<div class='success'>";
-                            echo __($guid, 'Attendance has been taken at the following times for the specified date for this group:');
+                            echo __('Attendance has been taken at the following times for the specified date for this group:');
                             echo '<ul>';
                             while ($rowLog = $resultLog->fetch()) {
-                                echo '<li>'.sprintf(__($guid, 'Recorded at %1$s on %2$s by %3$s.'), substr($rowLog['timestampTaken'], 11), dateConvertBack($guid, substr($rowLog['timestampTaken'], 0, 10)), formatName('', $rowLog['preferredName'], $rowLog['surname'], 'Staff', false, true)).'</li>';
+                                echo '<li>'.sprintf(__('Recorded at %1$s on %2$s by %3$s.'), substr($rowLog['timestampTaken'], 11), dateConvertBack($guid, substr($rowLog['timestampTaken'], 0, 10)), formatName('', $rowLog['preferredName'], $rowLog['surname'], 'Staff', false, true)).'</li>';
                             }
                             echo '</ul>';
                             echo '</div>';
@@ -166,7 +165,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_take
 
                         if ($resultRollGroup->rowCount() < 1) {
                             echo "<div class='error'>";
-                            echo __($guid, 'There are no records to display.');
+                            echo __('There are no records to display.');
                             echo '</div>';
                         } else {
                             $count = 0;
@@ -215,7 +214,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_take
 
                             $form = Form::create('attendanceByRollGroup', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']. '/attendance_take_byRollGroupProcess.php');
                             $form->setAutocomplete('off');
-                            $form->addClass('attendanceGrid');
 
                             $form->addHiddenValue('address', $_SESSION[$guid]['address']);
                             $form->addHiddenValue('gibbonRollGroupID', $gibbonRollGroupID);
@@ -224,31 +222,34 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_take
 
                             $form->addRow()->addHeading(__('Take Attendance') . ': '. htmlPrep($rollGroup['name']));
 
-                            $grid = $form->addRow()->addGrid('attendance')->setColumns(4);
+                            $grid = $form->addRow()->addGrid('attendance')->setBreakpoints('w-1/2 sm:w-1/4 md:w-1/5 lg:w-1/4');
 
                             foreach ($students as $student) {
                                 $form->addHiddenValue($count . '-gibbonPersonID', $student['gibbonPersonID']);
 
-                                $cell = $grid->addCell()->addClass('textCenter stacked')->addClass($student['cellHighlight']);
+                                $cell = $grid->addCell()
+                                    ->setClass('text-center py-2 px-1 -mr-px -mb-px flex flex-col justify-between')
+                                    ->addClass($student['cellHighlight']);
+
                                 $cell->addContent(getUserPhoto($guid, $student['image_240'], 75));
                                 $cell->addWebLink(formatName('', htmlPrep($student['preferredName']), htmlPrep($student['surname']), 'Student', false))
                                      ->setURL('index.php?q=/modules/Students/student_view_details.php')
                                      ->addParam('gibbonPersonID', $student['gibbonPersonID'])
                                      ->addParam('subpage', 'Attendance')
-                                     ->wrap('<b>', '</b>');
-                                $cell->addContent($student['absenceCount'])->wrap('<span class="small emphasis">', '<span>');
+                                     ->setClass('pt-2 font-bold underline');
+                                $cell->addContent($student['absenceCount'])->wrap('<div class="text-xxs italic py-2">', '</div>');
                                 $cell->addSelect($count.'-type')
                                      ->fromArray(array_keys($attendance->getAttendanceTypes()))
                                      ->selected($student['log']['type'])
-                                     ->setClass('attendanceField floatNone shortWidth');
+                                     ->setClass('mx-auto float-none w-32 m-0 mb-px');
                                 $cell->addSelect($count.'-reason')
                                      ->fromArray($attendance->getAttendanceReasons())
                                      ->selected($student['log']['reason'])
-                                     ->setClass('attendanceField attendanceFieldStacked floatNone shortWidth');
+                                     ->setClass('mx-auto float-none w-32 m-0 mb-px');
                                 $cell->addTextField($count.'-comment')
                                      ->maxLength(255)
                                      ->setValue($student['log']['comment'])
-                                     ->setClass('attendanceField attendanceFieldStacked floatNone shortWidth');
+                                     ->setClass('mx-auto float-none w-32 m-0 mb-2');
                                 $cell->addContent($attendance->renderMiniHistory($student['gibbonPersonID']));
 
                                 $count++;
@@ -260,13 +261,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_take
                                 ->wrap('<b>', '</b>');
 
                             $row = $form->addRow();
-                                // Drop-downs to change the whole group at once
-                                $col = $row->addColumn()->addClass('inline');
-                                    $col->addSelect('set-all-type')->fromArray(array_keys($attendance->getAttendanceTypes()))->setClass('attendanceField');
-                                    $col->addSelect('set-all-reason')->fromArray($attendance->getAttendanceReasons())->setClass('attendanceField');
-                                    $col->addTextField('set-all-comment')->maxLength(255)->setClass('attendanceField');
-                                    $col->addButton(__('Change All'))->setID('set-all');
-                                $row->addSubmit();
+
+                            // Drop-downs to change the whole group at once
+                            $row->addButton(__('Change All').'?')->addData('toggle', '.change-all')->addClass('w-32 m-px sm:self-center');
+
+                            $col = $row->addColumn()->setClass('change-all hidden flex flex-col sm:flex-row items-stretch sm:items-center');
+                                $col->addSelect('set-all-type')->fromArray(array_keys($attendance->getAttendanceTypes()))->addClass('m-px');
+                                $col->addSelect('set-all-reason')->fromArray($attendance->getAttendanceReasons())->addClass('m-px');
+                                $col->addTextField('set-all-comment')->maxLength(255)->addClass('m-px');
+                            $col->addButton(__('Apply'))->setID('set-all');
+
+                            $row->addSubmit();
 
                             echo $form->getOutput();
                         }

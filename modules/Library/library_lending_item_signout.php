@@ -20,18 +20,23 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 
+$gibbonLibraryItemID = trim($_GET['gibbonLibraryItemID']) ?? '';
+
+$page->breadcrumbs
+    ->add(__('Lending & Activity Log'), 'library_lending.php')
+    ->add(__('View Item'), 'library_lending_item.php', ['gibbonLibraryItemID' => $gibbonLibraryItemID])
+    ->add(__('Sign Out'));
+
 if (isActionAccessible($guid, $connection2, '/modules/Library/library_lending_item_signOut.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    $gibbonLibraryItemID = $_GET['gibbonLibraryItemID'];
-
-    if ($gibbonLibraryItemID == '') {
+    if (empty($gibbonLibraryItemID)) {
         echo "<div class='error'>";
-        echo __($guid, 'You have not specified one or more required parameters.');
+        echo __('You have not specified one or more required parameters.');
         echo '</div>';
     } else {
         try {
@@ -45,14 +50,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_lending_it
 
         if ($result->rowCount() != 1) {
             echo "<div class='error'>";
-            echo __($guid, 'The specified record does not exist.');
+            echo __('The specified record does not exist.');
             echo '</div>';
         } else {
             $values = $result->fetch();
-
-            echo "<div class='trail'>";
-            echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/library_lending.php'>".__($guid, 'Lending & Activity Log')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/library_lending_item.php&gibbonLibraryItemID=$gibbonLibraryItemID'>".__($guid, 'View Item')."</a> > </div><div class='trailEnd'>".__($guid, 'Sign Out').'</div>';
-            echo '</div>';
 
             if (isset($_GET['return'])) {
                 returnProcess($guid, $_GET['return'], null, null);
@@ -77,31 +78,29 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_lending_it
 
                 echo "<div class='warning'>";
                 if ($values['returnAction'] == 'Make Available') {
-                    echo __($guid, 'This item has been marked to be <u>made available</u> for loan on return.');
+                    echo __('This item has been marked to be <u>made available</u> for loan on return.');
                 }
                 if ($values['returnAction'] == 'Reserve' and $values['gibbonPersonIDReturnAction'] != '') {
-                    echo __($guid, "This item has been marked to be <u>reserved</u> for <u>$person</u> on return.");
+                    echo __("This item has been marked to be <u>reserved</u> for <u>$person</u> on return.");
                 }
                 if ($values['returnAction'] == 'Decommission' and $values['gibbonPersonIDReturnAction'] != '') {
-                    echo __($guid, "This item has been marked to be <u>decommissioned</u> by <u>$person</u> on return.");
+                    echo __("This item has been marked to be <u>decommissioned</u> by <u>$person</u> on return.");
                 }
                 if ($values['returnAction'] == 'Repair' and $values['gibbonPersonIDReturnAction'] != '') {
-                    echo __($guid, "This item has been marked to be <u>repaired</u> by <u>$person</u> on return.");
+                    echo __("This item has been marked to be <u>repaired</u> by <u>$person</u> on return.");
                 }
-                echo ' '.__($guid, 'You can change this below if you wish.');
+                echo ' '.__('You can change this below if you wish.');
                 echo '</div>';
             }
 
             if ($_GET['name'] != '' or $_GET['gibbonLibraryTypeID'] != '' or $_GET['gibbonSpaceID'] != '' or $_GET['status'] != '') {
                 echo "<div class='linkTop'>";
-                echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Library/library_lending_item.php&name='.$_GET['name']."&gibbonLibraryItemID=$gibbonLibraryItemID&gibbonLibraryTypeID=".$_GET['gibbonLibraryTypeID'].'&gibbonSpaceID='.$_GET['gibbonSpaceID'].'&status='.$_GET['status']."'>".__($guid, 'Back').'</a>';
+                echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Library/library_lending_item.php&name='.$_GET['name']."&gibbonLibraryItemID=$gibbonLibraryItemID&gibbonLibraryTypeID=".$_GET['gibbonLibraryTypeID'].'&gibbonSpaceID='.$_GET['gibbonSpaceID'].'&status='.$_GET['status']."'>".__('Back').'</a>';
                 echo '</div>';
             }
 
             $form = Form::create('libraryLendingSignout', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/library_lending_item_signoutProcess.php?name=".$_GET['name'].'&gibbonLibraryTypeID='.$_GET['gibbonLibraryTypeID'].'&gibbonSpaceID='.$_GET['gibbonSpaceID'].'&status='.$_GET['status']);
-
             $form->setFactory(DatabaseFormFactory::create($pdo));
-            $form->setClass('smallIntBorder fullWidth');
 
             $form->addHiddenValue('address', $_SESSION[$guid]['address']);
             $form->addHiddenValue('gibbonLibraryItemID', $gibbonLibraryItemID);
@@ -110,15 +109,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_lending_it
 
             $row = $form->addRow();
                 $row->addLabel('idLabel', __('ID'));
-                $row->addTextField('idLabel')->setValue($values['id'])->readonly()->isRequired();
+                $row->addTextField('idLabel')->setValue($values['id'])->readonly()->required();
 
             $row = $form->addRow();
                 $row->addLabel('name', __('Name'));
-                $row->addTextField('name')->setValue($values['name'])->readonly()->isRequired();
+                $row->addTextField('name')->setValue($values['name'])->readonly()->required();
 
             $row = $form->addRow();
                 $row->addLabel('statusCurrent', __('Current Status'));
-                $row->addTextField('statusCurrent')->setValue($values['status'])->readonly()->isRequired();
+                $row->addTextField('statusCurrent')->setValue($values['status'])->readonly()->required();
 
             $form->addRow()->addHeading(__('This Event'));
 
@@ -131,7 +130,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_lending_it
             );
             $row = $form->addRow();
                 $row->addLabel('status', __('New Status'));
-                $row->addSelect('status')->fromArray($statuses)->isRequired()->selected('On Loan')->placeholder();
+                $row->addSelect('status')->fromArray($statuses)->required()->selected('On Loan')->placeholder();
 
             $people = array();
 
@@ -167,13 +166,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_lending_it
 
             $row = $form->addRow();
                 $row->addLabel('gibbonPersonIDStatusResponsible', __('Responsible User'))->description(__('Who is responsible for this new status?'));
-                $row->addSelect('gibbonPersonIDStatusResponsible')->fromArray($people)->placeholder()->isRequired();
+                $row->addSelect('gibbonPersonIDStatusResponsible')->fromArray($people)->placeholder()->required();
 
             $loanLength = getSettingByScope($connection2, 'Library', 'defaultLoanLength');
             $loanLength = (is_numeric($loanLength) == false or $loanLength < 0) ? 7 : $loanLength ;
             $row = $form->addRow();
                 $row->addLabel('returnExpected', __('Expected Return Date'))->description(sprintf(__('Default renew length is today plus %1$s day(s)'), $loanLength));
-                $row->addDate('returnExpected')->setValue(date($_SESSION[$guid]['i18n']['dateFormatPHP'], time() + ($loanLength * 60 * 60 * 24)))->isRequired();
+                $row->addDate('returnExpected')->setValue(date($_SESSION[$guid]['i18n']['dateFormatPHP'], time() + ($loanLength * 60 * 60 * 24)))->required();
 
             $row = $form->addRow()->addHeading(__('On Return'));
 
@@ -199,4 +198,3 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_lending_it
         }
     }
 }
-?>

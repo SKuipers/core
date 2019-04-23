@@ -22,13 +22,16 @@ use Gibbon\Forms\Form;
 if (isActionAccessible($guid, $connection2, '/modules/User Admin/family_manage_edit_editAdult.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/User Admin/family_manage.php'>".__($guid, 'Manage Families')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/User Admin/family_manage_edit.php&gibbonFamilyID='.$_GET['gibbonFamilyID']."'>".__($guid, 'Edit Family')."</a> > </div><div class='trailEnd'>".__($guid, 'Edit Adult').'</div>';
-    echo '</div>';
+    $urlParams = ['gibbonFamilyID' => $_GET['gibbonFamilyID']];
+    
+    $page->breadcrumbs
+        ->add(__('Manage Families'), 'family_manage.php')
+        ->add(__('Edit Family'), 'family_manage_edit.php', $urlParams)
+        ->add(__('Edit Adult'));  
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, null);
@@ -40,7 +43,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/family_manage_e
     $search = $_GET['search'];
     if ($gibbonPersonID == '' or $gibbonFamilyID == '') {
         echo "<div class='error'>";
-        echo __($guid, 'You have not specified one or more required parameters.');
+        echo __('You have not specified one or more required parameters.');
         echo '</div>';
     } else {
         try {
@@ -54,7 +57,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/family_manage_e
 
         if ($result->rowCount() != 1) {
             echo "<div class='error'>";
-            echo __($guid, 'The specified record cannot be found.');
+            echo __('The specified record cannot be found.');
             echo '</div>';
         } else {
             //Let's go!
@@ -62,21 +65,19 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/family_manage_e
 
             if ($search != '') {
                 echo "<div class='linkTop'>";
-                echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/User Admin/family_manage_edit.php&gibbonFamilyID=$gibbonFamilyID&search=$search'>".__($guid, 'Back').'</a>';
+                echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/User Admin/family_manage_edit.php&gibbonFamilyID=$gibbonFamilyID&search=$search'>".__('Back').'</a>';
                 echo '</div>';
             }
 
             $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/family_manage_edit_editAdultProcess.php?gibbonPersonID=$gibbonPersonID&gibbonFamilyID=$gibbonFamilyID&search=$search");
 
-            $form->setClass('smallIntBorder fullWidth');
-
             $form->addHiddenValue('address', $_SESSION[$guid]['address']);
 
-            $form->addRow()->addHeading(__('Add Adult'));
+            $form->addRow()->addHeading(__('Edit Adult'));
 
             $row = $form->addRow();
                 $row->addLabel('adult', __('Adult\'s Name'));
-                $row->addTextField('adult')->setValue(formatName(htmlPrep($values['title']), htmlPrep($values['preferredName']), htmlPrep($values['surname']), 'Parent'))->isRequired()->readonly();
+                $row->addTextField('adult')->setValue(formatName(htmlPrep($values['title']), htmlPrep($values['preferredName']), htmlPrep($values['surname']), 'Parent'))->required()->readonly();
 
             $row = $form->addRow();
                 $row->addLabel('comment', __('Comment'))->description(__('Data displayed in full Student Profile'));
@@ -84,7 +85,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/family_manage_e
 
             $row = $form->addRow();
                 $row->addLabel('childDataAccess', __('Data Access?'))->description(__('Access data on family\'s children?'));
-                $row->addYesNo('childDataAccess')->isRequired();
+                $row->addYesNo('childDataAccess')->required();
 
             $priorities = array(
                 '1' => __('1'),
@@ -93,23 +94,23 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/family_manage_e
             );
             $row = $form->addRow();
                 $row->addLabel('contactPriority', __('Contact Priority'))->description(__('The order in which school should contact family members.'));
-                $row->addSelect('contactPriority')->fromArray($priorities)->isRequired();
+                $row->addSelect('contactPriority')->fromArray($priorities)->required();
 
             $row = $form->addRow()->addClass('contact');
                 $row->addLabel('contactCall', __('Call?'))->description(__('Receive non-emergency phone calls from school?'));
-                $row->addYesNo('contactCall')->isRequired();
+                $row->addYesNo('contactCall')->required();
 
             $row = $form->addRow()->addClass('contact');
                 $row->addLabel('contactSMS', __('SMS?'))->description(__('Receive non-emergency SMS messages from school?'));
-                $row->addYesNo('contactSMS')->isRequired();
+                $row->addYesNo('contactSMS')->required();
 
             $row = $form->addRow()->addClass('contact');
                 $row->addLabel('contactEmail', __('Email?'))->description(__('Receive non-emergency emails from school?'));
-                $row->addYesNo('contactEmail')->isRequired();
+                $row->addYesNo('contactEmail')->required();
 
             $row = $form->addRow()->addClass('contact');
                 $row->addLabel('contactMail', __('Mail?'))->description(__('Receive postage mail from school?'));
-                $row->addYesNo('contactMail')->isRequired();
+                $row->addYesNo('contactMail')->required();
 
             $row = $form->addRow();
                 $row->addFooter();

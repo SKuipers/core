@@ -21,18 +21,17 @@ use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 
 //Module includes
-include './modules/'.$_SESSION[$guid]['module'].'/moduleFunctions.php';
+require_once __DIR__ . '/moduleFunctions.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > </div><div class='trailEnd'>".__($guid, 'Rollover').'</div>';
-    echo '</div>';
-
+    //Proceed!
+    $page->breadcrumbs->add(__('Rollover'));
+    
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, null);
     }
@@ -48,13 +47,13 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
     //Step 1
     if ($step == 1) {
         echo '<h3>';
-        echo __($guid, 'Step 1');
+        echo __('Step 1');
         echo '</h3>';
 
         $nextYear = getNextSchoolYearID($_SESSION[$guid]['gibbonSchoolYearID'], $connection2);
         if ($nextYear == false) {
             echo "<div class='error'>";
-            echo __($guid, 'The next school year cannot be determined, so this action cannot be performed.');
+            echo __('The next school year cannot be determined, so this action cannot be performed.');
             echo '</div>';
         } else {
             try {
@@ -71,7 +70,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
             $nameNext = $rowNext['name'];
             if ($nameNext == '') {
                 echo "<div class='error'>";
-                echo __($guid, 'The next school year cannot be determined, so this action cannot be performed.');
+                echo __('The next school year cannot be determined, so this action cannot be performed.');
                 echo '</div>';
             } else {
                 $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.$_SESSION[$guid]['module'].'/rollover.php&step=2');
@@ -91,13 +90,13 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
         }
     } elseif ($step == 2) {
         echo '<h3>';
-        echo __($guid, 'Step 2');
+        echo __('Step 2');
         echo '</h3>';
 
         $nextYear = $_POST['nextYear'];
         if ($nextYear == '' or $nextYear != getNextSchoolYearID($_SESSION[$guid]['gibbonSchoolYearID'], $connection2)) {
             echo "<div class='error'>";
-            echo __($guid, 'The next school year cannot be determined, so this action cannot be performed.');
+            echo __('The next school year cannot be determined, so this action cannot be performed.');
             echo '</div>';
         } else {
             try {
@@ -115,11 +114,11 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
             $sequenceNext = $rowNext['sequenceNumber'];
             if ($nameNext == '' or $sequenceNext == '') {
                 echo "<div class='error'>";
-                echo __($guid, 'The next school year cannot be determined, so this action cannot be performed.');
+                echo __('The next school year cannot be determined, so this action cannot be performed.');
                 echo '</div>';
             } else {
                 echo '<p>';
-                echo sprintf(__($guid, 'In rolling over to %1$s, the following actions will take place. You may need to adjust some fields below to get the result you desire.'), $nameNext);
+                echo sprintf(__('In rolling over to %1$s, the following actions will take place. You may need to adjust some fields below to get the result you desire.'), $nameNext);
                 echo '</p>';
 
                 //Set up years, roll groups and statuses arrays for use later on
@@ -169,23 +168,23 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
 
                     $row = $form->addRow();
                         $row->addLabel('nextname', __('School Year Name'))->description(__('Must be unique.'));
-                        $row->addTextField('nextname')->isRequired()->maxLength(9);
+                        $row->addTextField('nextname')->required()->maxLength(9);
 
                     $row = $form->addRow();
                         $row->addLabel('nextstatus', __('Status'));
-                        $row->addTextField('nextstatus')->setValue(__('Upcoming'))->isRequired()->readonly();
+                        $row->addTextField('nextstatus')->setValue(__('Upcoming'))->required()->readonly();
 
                     $row = $form->addRow();
                         $row->addLabel('nextsequenceNumber', __('Sequence Number'))->description(__('Must be unique. Controls chronological ordering.'));
-                        $row->addSequenceNumber('nextsequenceNumber', 'gibbonSchoolYear', '', 'sequenceNumber')->isRequired()->maxLength(3)->readonly();
+                        $row->addSequenceNumber('nextsequenceNumber', 'gibbonSchoolYear', '', 'sequenceNumber')->required()->maxLength(3)->readonly();
 
                     $row = $form->addRow();
                         $row->addLabel('nextfirstDay', __('First Day'))->description($_SESSION[$guid]['i18n']['dateFormat'])->prepend(__('Format:'));
-                        $row->addDate('nextfirstDay')->isRequired();
+                        $row->addDate('nextfirstDay')->required();
 
                     $row = $form->addRow();
                         $row->addLabel('nextlastDay', __('Last Day'))->description($_SESSION[$guid]['i18n']['dateFormat'])->prepend(__('Format:'));
-                        $row->addDate('nextlastDay')->isRequired();
+                        $row->addDate('nextlastDay')->required();
                 }
 
                 //SET EXPECTED USERS TO FULL
@@ -218,7 +217,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                             $row->addColumn()->addContent(__($rowExpect['name']));
                             $row->addColumn()->addContent(__('Expected'));
                             $column = $row->addColumn();
-                                $column->addSelect($count."-expect-status")->fromArray($statuses)->isRequired()->setClass('shortWidth floatNone');
+                                $column->addSelect($count."-expect-status")->fromArray($statuses)->required()->setClass('shortWidth floatNone');
                     }
                     $form->addHiddenValue("expect-count", $count);
                 }
@@ -259,9 +258,9 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                                 $column = $row->addColumn();
                                     $column->addCheckbox($count."-enrol-enrol")->setValue('Y')->checked('Y');
                                 $column = $row->addColumn();
-                                    $column->addSelect($count."-enrol-gibbonYearGroupID")->fromArray($yearGroups)->isRequired()->setClass('shortWidth floatNone');
+                                    $column->addSelect($count."-enrol-gibbonYearGroupID")->fromArray($yearGroups)->required()->setClass('shortWidth floatNone');
                                 $column = $row->addColumn();
-                                    $column->addSelect($count."-enrol-gibbonRollGroupID")->fromArray($rollGroups)->isRequired()->setClass('shortWidth floatNone');
+                                    $column->addSelect($count."-enrol-gibbonRollGroupID")->fromArray($rollGroups)->required()->setClass('shortWidth floatNone');
                         }
                         $form->addHiddenValue("enrol-count", $count);
                     }
@@ -346,14 +345,14 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
 
                                 $form->addHiddenValue($count."-enrolFull-gibbonPersonID", $student[0]);
                                 $row = $form->addRow();
-                                    $row->addColumn()->addContent(formatName('', $student[2], $student[2], 'Student', true));
+                                    $row->addColumn()->addContent(formatName('', $student[2], $student[1], 'Student', true));
                                     $row->addColumn()->addContent(__($student[3]));
                                     $column = $row->addColumn();
                                         $column->addCheckbox($count."-enrolFull-enrol")->setValue('Y')->checked('Y');
                                     $column = $row->addColumn();
-                                        $column->addSelect($count."-enrolFull-gibbonYearGroupID")->fromArray($yearGroups)->isRequired()->setClass('shortWidth floatNone')->selected($yearGroupSelect);
+                                        $column->addSelect($count."-enrolFull-gibbonYearGroupID")->fromArray($yearGroups)->required()->setClass('shortWidth floatNone')->selected($yearGroupSelect);
                                     $column = $row->addColumn();
-                                        $column->addSelect($count."-enrolFull-gibbonRollGroupID")->fromArray($rollGroups)->isRequired()->setClass('shortWidth floatNone')->selected($rollGroupSelect);
+                                        $column->addSelect($count."-enrolFull-gibbonRollGroupID")->fromArray($rollGroups)->required()->setClass('shortWidth floatNone')->selected($rollGroupSelect);
                             }
                             $form->addHiddenValue("enrolFull-count", $count);
                         }
@@ -362,7 +361,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
 
                 //RE-ENROL OTHER STUDENTS
                 $form->addRow()->addHeading(__('Re-Enrol Other Students'));
-                $form->addRow()->addContent(__('Any students who are not re-enroled will have their status set to "Left".').' '.__($guid, 'Students who are already enroled will have their enrolment updated.'));
+                $form->addRow()->addContent(__('Any students who are not re-enroled will have their status set to "Left".').' '.__('Students who are already enroled will have their enrolment updated.'));
 
                 $lastYearGroup = getLastYearGroupID($connection2);
 
@@ -425,9 +424,9 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                                     $enrolmentCheckRollGroup=$rowReenrol['gibbonRollGroupIDNext'];
                                 }
                                 $column = $row->addColumn();
-                                    $column->addSelect($count."-reenrol-gibbonYearGroupID")->fromArray($yearGroups)->isRequired()->setClass('shortWidth floatNone')->selected($enrolmentCheckYearGroup);
+                                    $column->addSelect($count."-reenrol-gibbonYearGroupID")->fromArray($yearGroups)->required()->setClass('shortWidth floatNone')->selected($enrolmentCheckYearGroup);
                                 $column = $row->addColumn();
-                                        $column->addSelect($count."-reenrol-gibbonRollGroupID")->fromArray($rollGroups)->isRequired()->setClass('shortWidth floatNone')->selected($enrolmentCheckRollGroup);
+                                        $column->addSelect($count."-reenrol-gibbonRollGroupID")->fromArray($rollGroups)->required()->setClass('shortWidth floatNone')->selected($enrolmentCheckRollGroup);
                         }
                         $form->addHiddenValue("reenrol-count", $count);
                     }
@@ -461,9 +460,9 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                         $row = $form->addRow();
                             $row->addColumn()->addContent(formatName('', $rowFinal['preferredName'], $rowFinal['surname'], 'Student', true));
                             $row->addColumn()->addContent(__($rowFinal['name']));
-                            $row->addColumn()->addContent(__('Expected'));
+                            $row->addColumn()->addContent(__('Full'));
                             $column = $row->addColumn();
-                                $column->addSelect($count."-final-status")->fromArray($statuses)->isRequired()->setClass('shortWidth floatNone')->selected('Left');
+                                $column->addSelect($count."-final-status")->fromArray($statuses)->required()->setClass('shortWidth floatNone')->selected('Left');
                     }
                     $form->addHiddenValue("final-count", $count);
                 }
@@ -500,7 +499,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                             $column = $row->addColumn();
                                 $column->addCheckbox($count."-register-enrol")->setValue('Y')->checked('Y');
                             $column = $row->addColumn();
-                                $column->addSelect($count."-register-type")->fromArray(array('Teaching' => __('Teaching'), 'Support' => __('Support')))->isRequired()->setClass('shortWidth floatNone');
+                                $column->addSelect($count."-register-type")->fromArray(array('Teaching' => __('Teaching'), 'Support' => __('Support')))->required()->setClass('shortWidth floatNone');
                             $column = $row->addColumn();
                                 $column->addtextField($count."-register-jobTitle")->setClass('shortWidth floatNone')->maxLength(100);
                     }
@@ -519,7 +518,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
         $nextYear = $_POST['nextYear'];
         if ($nextYear == '' or $nextYear != getNextSchoolYearID($_SESSION[$guid]['gibbonSchoolYearID'], $connection2)) {
             echo "<div class='error'>";
-            echo __($guid, 'The next school year cannot be determined, so this action cannot be performed.');
+            echo __('The next school year cannot be determined, so this action cannot be performed.');
             echo '</div>';
         } else {
             try {
@@ -537,18 +536,18 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
             $sequenceNext = $rowNext['sequenceNumber'];
             if ($nameNext == '' or $sequenceNext == '') {
                 echo "<div class='error'>";
-                echo __($guid, 'The next school year cannot be determined, so this action cannot be performed.');
+                echo __('The next school year cannot be determined, so this action cannot be performed.');
                 echo '</div>';
             } else {
                 echo '<h3>';
-                echo __($guid, 'Step 3');
+                echo __('Step 3');
                 echo '</h3>';
 
                 //ADD YEAR FOLLOWING NEXT
                 if (getNextSchoolYearID($nextYear, $connection2) == false) {
                     //ADD YEAR FOLLOWING NEXT
                     echo '<h4>';
-                    echo sprintf(__($guid, 'Add Year Following %1$s'), $nameNext);
+                    echo sprintf(__('Add Year Following %1$s'), $nameNext);
                     echo '</h4>';
 
                     $name = $_POST['nextname'];
@@ -559,7 +558,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
 
                     if ($name == '' or $status == '' or $sequenceNumber == '' or is_numeric($sequenceNumber) == false or $firstDay == '' or $lastDay == '') {
                         echo "<div class='error'>";
-                        echo __($guid, 'Your request failed because your inputs were invalid.');
+                        echo __('Your request failed because your inputs were invalid.');
                         echo '</div>';
                     } else {
                         //Check unique inputs for uniqueness
@@ -574,7 +573,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
 
                         if ($result->rowCount() > 0) {
                             echo "<div class='error'>";
-                            echo __($guid, 'Your request failed because your inputs were invalid.');
+                            echo __('Your request failed because your inputs were invalid.');
                             echo '</div>';
                         } else {
                             //Write to database
@@ -590,7 +589,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                             }
                             if ($fail == false) {
                                 echo "<div class='success'>";
-                                echo __($guid, 'Your request was completed successfully.');
+                                echo __('Your request was completed successfully.');
                                 echo '</div>';
                             }
                         }
@@ -602,7 +601,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
 
                 //ADVANCE SCHOOL YEAR
                 echo '<h4>';
-                echo __($guid, 'Advance School Year');
+                echo __('Advance School Year');
                 echo '</h4>';
 
                 //Write to database
@@ -614,7 +613,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                     $result->execute($data);
                 } catch (PDOException $e) {
                     echo "<div class='error'>";
-                    echo __($guid, 'Your request failed due to a database error.');
+                    echo __('Your request failed due to a database error.');
                     echo '</div>';
                     $advance = false;
                 }
@@ -627,7 +626,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                         $result->execute($data);
                     } catch (PDOException $e) {
                         echo "<div class='error'>";
-                        echo __($guid, 'Your request failed due to a database error.');
+                        echo __('Your request failed due to a database error.');
                         echo '</div>';
                         $advance2 = false;
                     }
@@ -638,12 +637,12 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                         $_SESSION[$guid]['gibbonSchoolYearSequenceNumberCurrent'] = $_SESSION[$guid]['gibbonSchoolYearSequenceNumber'];
 
                         echo "<div class='success'>";
-                        echo __($guid, 'Advance was successful, you are now in a new academic year!');
+                        echo __('Advance was successful, you are now in a new academic year!');
                         echo '</div>';
 
                         //SET EXPECTED USERS TO FULL
                         echo '<h4>';
-                        echo __($guid, 'Set Expected Users To Full');
+                        echo __('Set Expected Users To Full');
                         echo '</h4>';
 
                         $count = null;
@@ -652,7 +651,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                         }
                         if ($count == '') {
                             echo "<div class='warning'>";
-                            echo __($guid, 'No actions were selected in Step 2, and so no changes have been made.');
+                            echo __('No actions were selected in Step 2, and so no changes have been made.');
                             echo '</div>';
                         } else {
                             $success = 0;
@@ -683,22 +682,22 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                             //Feedback result!
                             if ($success == 0) {
                                 echo "<div class='error'>";
-                                echo __($guid, 'Your request failed.');
+                                echo __('Your request failed.');
                                 echo '</div>';
                             } elseif ($success < $count) {
                                 echo "<div class='warning'>";
-                                echo sprintf(__($guid, '%1$s updates failed.'), ($count - $success));
+                                echo sprintf(__('%1$s updates failed.'), ($count - $success));
                                 echo '</div>';
                             } else {
                                 echo "<div class='success'>";
-                                echo __($guid, 'Your request was completed successfully.');
+                                echo __('Your request was completed successfully.');
                                 echo '</div>';
                             }
                         }
 
                         //ENROL NEW STUDENTS
                         echo '<h4>';
-                        echo __($guid, 'Enrol New Students (Status Expected)');
+                        echo __('Enrol New Students (Status Expected)');
                         echo '</h4>';
 
                         $count = null;
@@ -707,7 +706,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                         }
                         if ($count == '') {
                             echo "<div class='warning'>";
-                            echo __($guid, 'No actions were selected in Step 2, and so no changes have been made.');
+                            echo __('No actions were selected in Step 2, and so no changes have been made.');
                             echo '</div>';
                         } else {
                             $success = 0;
@@ -779,22 +778,22 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                             //Feedback result!
                             if ($success == 0) {
                                 echo "<div class='error'>";
-                                echo __($guid, 'Your request failed.');
+                                echo __('Your request failed.');
                                 echo '</div>';
                             } elseif ($success < $count) {
                                 echo "<div class='warning'>";
-                                echo sprintf(__($guid, '%1$s adds failed.'), ($count - $success));
+                                echo sprintf(__('%1$s adds failed.'), ($count - $success));
                                 echo '</div>';
                             } else {
                                 echo "<div class='success'>";
-                                echo __($guid, 'Your request was completed successfully.');
+                                echo __('Your request was completed successfully.');
                                 echo '</div>';
                             }
                         }
 
                         //ENROL NEW STUDENTS
                         echo '<h4>';
-                        echo __($guid, 'Enrol New Students (Status Full)');
+                        echo __('Enrol New Students (Status Full)');
                         echo '</h4>';
 
                         $count = null;
@@ -803,7 +802,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                         }
                         if ($count == '') {
                             echo "<div class='warning'>";
-                            echo __($guid, 'No actions were selected in Step 2, and so no changes have been made.');
+                            echo __('No actions were selected in Step 2, and so no changes have been made.');
                             echo '</div>';
                         } else {
                             $success = 0;
@@ -900,22 +899,22 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                             //Feedback result!
                             if ($success == 0) {
                                 echo "<div class='error'>";
-                                echo __($guid, 'Your request failed.');
+                                echo __('Your request failed.');
                                 echo '</div>';
                             } elseif ($success < $count) {
                                 echo "<div class='warning'>";
-                                echo  sprintf(__($guid, '%1$s adds failed.'), ($count - $success));
+                                echo  sprintf(__('%1$s adds failed.'), ($count - $success));
                                 echo '</div>';
                             } else {
                                 echo "<div class='success'>";
-                                echo __($guid, 'Your request was completed successfully.');
+                                echo __('Your request was completed successfully.');
                                 echo '</div>';
                             }
                         }
 
                         //RE-ENROL OTHER STUDENTS
                         echo '<h4>';
-                        echo __($guid, 'Re-Enrol Other Students');
+                        echo __('Re-Enrol Other Students');
                         echo '</h4>';
 
                         $count = null;
@@ -924,7 +923,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                         }
                         if ($count == '') {
                             echo "<div class='warning'>";
-                            echo __($guid, 'No actions were selected in Step 2, and so no changes have been made.');
+                            echo __('No actions were selected in Step 2, and so no changes have been made.');
                             echo '</div>';
                         } else {
                             $success = 0;
@@ -999,22 +998,22 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                             //Feedback result!
                             if ($success == 0) {
                                 echo "<div class='error'>";
-                                echo __($guid, 'Your request failed.');
+                                echo __('Your request failed.');
                                 echo '</div>';
                             } elseif ($success < $count) {
                                 echo "<div class='warning'>";
-                                echo sprintf(__($guid, '%1$s adds failed.'), ($count - $success));
+                                echo sprintf(__('%1$s adds failed.'), ($count - $success));
                                 echo '</div>';
                             } else {
                                 echo "<div class='success'>";
-                                echo __($guid, 'Your request was completed successfully.');
+                                echo __('Your request was completed successfully.');
                                 echo '</div>';
                             }
                         }
 
                         //SET FINAL YEAR STUDENTS TO LEFT
                         echo '<h4>';
-                        echo __($guid, 'Set Final Year Students To Left');
+                        echo __('Set Final Year Students To Left');
                         echo '</h4>';
 
                         $count = null;
@@ -1023,7 +1022,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                         }
                         if ($count == '') {
                             echo "<div class='warning'>";
-                            echo __($guid, 'No actions were selected in Step 2, and so no changes have been made.');
+                            echo __('No actions were selected in Step 2, and so no changes have been made.');
                             echo '</div>';
                         } else {
                             $success = 0;
@@ -1050,22 +1049,22 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                             //Feedback result!
                             if ($success == 0) {
                                 echo "<div class='error'>";
-                                echo __($guid, 'Your request failed.');
+                                echo __('Your request failed.');
                                 echo '</div>';
                             } elseif ($success < $count) {
                                 echo "<div class='warning'>";
-                                echo sprintf(__($guid, '%1$s updates failed.'), ($count - $success));
+                                echo sprintf(__('%1$s updates failed.'), ($count - $success));
                                 echo '</div>';
                             } else {
                                 echo "<div class='success'>";
-                                echo __($guid, 'Your request was completed successfully.');
+                                echo __('Your request was completed successfully.');
                                 echo '</div>';
                             }
                         }
 
                         //REGISTER NEW STAFF
                         echo '<h4>';
-                        echo __($guid, 'Register New Staff');
+                        echo __('Register New Staff');
                         echo '</h4>';
 
                         $count = null;
@@ -1074,7 +1073,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                         }
                         if ($count == '') {
                             echo "<div class='warning'>";
-                            echo __($guid, 'No actions were selected in Step 2, and so no changes have been made.');
+                            echo __('No actions were selected in Step 2, and so no changes have been made.');
                             echo '</div>';
                         } else {
                             $success = 0;
@@ -1144,15 +1143,15 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                             //Feedback result!
                             if ($success == 0) {
                                 echo "<div class='error'>";
-                                echo __($guid, 'Your request failed.');
+                                echo __('Your request failed.');
                                 echo '</div>';
                             } elseif ($success < $count) {
                                 echo "<div class='warning'>";
-                                echo sprintf(__($guid, '%1$s adds failed.'), ($count - $success));
+                                echo sprintf(__('%1$s adds failed.'), ($count - $success));
                                 echo '</div>';
                             } else {
                                 echo "<div class='success'>";
-                                echo __($guid, 'Your request was completed successfully.');
+                                echo __('Your request was completed successfully.');
                                 echo '</div>';
                             }
                         }

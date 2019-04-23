@@ -18,50 +18,49 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 //Module includes
-include './modules/'.$_SESSION[$guid]['module'].'/moduleFunctions.php';
+require_once __DIR__ . '/moduleFunctions.php';
+
+// common variables
+$gibbonSchoolYearID = $_GET['gibbonSchoolYearID'] ?? '';
+$gibbonCourseID = $_GET['gibbonCourseID'] ?? '';
+$gibbonCourseClassID = $_GET['gibbonCourseClassID'] ?? '';
+$gibbonUnitID = $_GET['gibbonUnitID'] ?? '';
+$gibbonUnitClassID = $_GET['gibbonUnitClassID'] ?? '';
+
+$page->breadcrumbs
+    ->add(__('Unit Planner'), 'units.php', [
+        'gibbonSchoolYearID' => $gibbonSchoolYearID,
+        'gibbonCourseID' => $gibbonCourseID,
+    ])
+    ->add(__('Edit Unit'), 'units_edit.php', [
+        'gibbonSchoolYearID' => $gibbonSchoolYearID,
+        'gibbonCourseID' => $gibbonCourseID,
+        'gibbonUnitID' => $gibbonUnitID,
+    ])
+    ->add(__('Edit Working Copy'));
 
 if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit_working.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Get action with highest precendence
     $highestAction = getHighestGroupedAction($guid, $_GET['q'], $connection2);
     if ($highestAction == false) {
         echo "<div class='error'>";
-        echo __($guid, 'The highest grouped action cannot be determined.');
+        echo __('The highest grouped action cannot be determined.');
         echo '</div>';
     } else {
-        //IF UNIT DOES NOT CONTAIN HYPHEN, IT IS A GIBBON UNIT
-        $gibbonUnitID = $_GET['gibbonUnitID'];
-        if (strpos($gibbonUnitID, '-') == false) {
-            $hooked = false;
-        } else {
-            $hooked = true;
-            $gibbonHookIDToken = substr($gibbonUnitID, 11);
-            $gibbonUnitIDToken = substr($gibbonUnitID, 0, 10);
-        }
-
         //Proceed!
-        echo '<div class=\'trail\'>';
-        echo '<div class=\'trailHead\'>';
-        echo "<a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/units.php&gibbonSchoolYearID='.$_GET['gibbonSchoolYearID'].'&gibbonCourseID='.$_GET['gibbonCourseID']."'>".__($guid, 'Unit Planner')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/units_edit.php&gibbonSchoolYearID='.$_GET['gibbonSchoolYearID'].'&gibbonCourseID='.$_GET['gibbonCourseID'].'&gibbonUnitID='.$_GET['gibbonUnitID']."'>".__($guid, 'Edit Unit')."</a> > </div><div class='trailEnd'>".__($guid, 'Edit Working Copy').'</div>';
-        echo '</div>';
-
         if (isset($_GET['return'])) {
             returnProcess($guid, $_GET['return'], null, null);
         }
 
         //Check if courseschool year specified
-        $gibbonSchoolYearID = $_GET['gibbonSchoolYearID'];
-        $gibbonCourseID = $_GET['gibbonCourseID'];
-        $gibbonCourseClassID = $_GET['gibbonCourseClassID'];
-        $gibbonUnitID = $_GET['gibbonUnitID'];
-        $gibbonUnitClassID = $_GET['gibbonUnitClassID'];
         if ($gibbonCourseID == '' or $gibbonSchoolYearID == '' or $gibbonCourseClassID == '' or $gibbonUnitClassID == '') {
             echo "<div class='error'>";
-            echo __($guid, 'You have not specified one or more required parameters.');
+            echo __('You have not specified one or more required parameters.');
             echo '</div>';
         } else {
             try {
@@ -80,7 +79,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit_working
 
             if ($result->rowCount() != 1) {
                 echo "<div class='error'>";
-                echo __($guid, 'The selected record does not exist, or you do not have access to it.');
+                echo __('The selected record does not exist, or you do not have access to it.');
                 echo '</div>';
             } else {
                 $row = $result->fetch();
@@ -91,44 +90,21 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit_working
                 //Check if unit specified
                 if ($gibbonUnitID == '') {
                     echo "<div class='error'>";
-                    echo __($guid, 'You have not specified one or more required parameters.');
+                    echo __('You have not specified one or more required parameters.');
                     echo '</div>';
                 } else {
-                    if ($hooked == false) {
-                        try {
-                            $data = array('gibbonUnitID' => $gibbonUnitID, 'gibbonCourseID' => $gibbonCourseID);
-                            $sql = 'SELECT gibbonCourse.nameShort AS courseName, gibbonUnit.* FROM gibbonUnit JOIN gibbonCourse ON (gibbonUnit.gibbonCourseID=gibbonCourse.gibbonCourseID) WHERE gibbonUnitID=:gibbonUnitID AND gibbonUnit.gibbonCourseID=:gibbonCourseID';
-                            $result = $connection2->prepare($sql);
-                            $result->execute($data);
-                        } catch (PDOException $e) {
-                            echo "<div class='error'>".$e->getMessage().'</div>';
-                        }
-                    } else {
-                        try {
-                            $dataHooks = array('gibbonHookID' => $gibbonHookIDToken);
-                            $sqlHooks = "SELECT * FROM gibbonHook WHERE type='Unit' AND gibbonHookID=:gibbonHookID ORDER BY name";
-                            $resultHooks = $connection2->prepare($sqlHooks);
-                            $resultHooks->execute($dataHooks);
-                        } catch (PDOException $e) {
-                        }
-                        if ($resultHooks->rowCount() == 1) {
-                            $rowHooks = $resultHooks->fetch();
-                            $hookOptions = unserialize($rowHooks['options']);
-                            if ($hookOptions['unitTable'] != '' and $hookOptions['unitIDField'] != '' and $hookOptions['unitCourseIDField'] != '' and $hookOptions['unitNameField'] != '' and $hookOptions['unitDescriptionField'] != '' and $hookOptions['classLinkTable'] != '' and $hookOptions['classLinkJoinFieldUnit'] != '' and $hookOptions['classLinkJoinFieldClass'] != '' and $hookOptions['classLinkIDField'] != '') {
-                                try {
-                                    $data = array('unitIDField' => $gibbonUnitIDToken);
-                                    $sql = 'SELECT '.$hookOptions['unitTable'].'.*, gibbonCourse.nameShort FROM '.$hookOptions['unitTable'].' JOIN gibbonCourse ON ('.$hookOptions['unitTable'].'.'.$hookOptions['unitCourseIDField'].'=gibbonCourse.gibbonCourseID) WHERE '.$hookOptions['unitIDField'].'=:unitIDField';
-                                    $result = $connection2->prepare($sql);
-                                    $result->execute($data);
-                                } catch (PDOException $e) {
-                                }
-                            }
-                        }
+                    try {
+                        $data = array('gibbonUnitID' => $gibbonUnitID, 'gibbonCourseID' => $gibbonCourseID);
+                        $sql = 'SELECT gibbonCourse.nameShort AS courseName, gibbonUnit.* FROM gibbonUnit JOIN gibbonCourse ON (gibbonUnit.gibbonCourseID=gibbonCourse.gibbonCourseID) WHERE gibbonUnitID=:gibbonUnitID AND gibbonUnit.gibbonCourseID=:gibbonCourseID';
+                        $result = $connection2->prepare($sql);
+                        $result->execute($data);
+                    } catch (PDOException $e) {
+                        echo "<div class='error'>".$e->getMessage().'</div>';
                     }
 
                     if ($result->rowCount() != 1) {
                         echo "<div class='error'>";
-                        echo __($guid, 'The specified record cannot be found.');
+                        echo __('The specified record cannot be found.');
                         echo '</div>';
                     } else {
                         //Let's go!
@@ -137,37 +113,32 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit_working
                         echo "<table class='smallIntBorder' cellspacing='0' style='width: 100%'>";
                         echo '<tr>';
                         echo "<td style='width: 34%; vertical-align: top'>";
-                        echo "<span style='font-size: 115%; font-weight: bold'>".__($guid, 'School Year').'</span><br/>';
+                        echo "<span style='font-size: 115%; font-weight: bold'>".__('School Year').'</span><br/>';
                         echo '<i>'.$year.'</i>';
                         echo '</td>';
                         echo "<td style='width: 33%; vertical-align: top'>";
-                        echo "<span style='font-size: 115%; font-weight: bold'>".__($guid, 'Class').'</span><br/>';
+                        echo "<span style='font-size: 115%; font-weight: bold'>".__('Class').'</span><br/>';
                         echo '<i>'.$course.'.'.$class.'</i>';
                         echo '</td>';
                         echo "<td style='width: 34%; vertical-align: top'>";
-                        echo "<span style='font-size: 115%; font-weight: bold'>".__($guid, 'Unit').'</span><br/>';
+                        echo "<span style='font-size: 115%; font-weight: bold'>".__('Unit').'</span><br/>';
                         echo '<i>'.$row['name'].'</i>';
                         echo '</td>';
                         echo '</tr>';
                         echo '</table>';
 
                         echo '<h3>';
-                        echo __($guid, 'Lessons & Blocks');
+                        echo __('Lessons & Blocks');
                         echo '</h3>';
                         echo '<p>';
-                        echo __($guid, 'You can now add your unit blocks using the dropdown menu in each lesson. Blocks can be dragged from one lesson to another.');
+                        echo __('You can now add your unit blocks using the dropdown menu in each lesson. Blocks can be dragged from one lesson to another.');
                         echo '</p>';
 
                         //Store UNIT BLOCKS in array
                         $blocks = array();
                         try {
-                            if ($hooked == false) {
-                                $dataBlocks = array('gibbonUnitID' => $gibbonUnitID);
-                                $sqlBlocks = 'SELECT * FROM gibbonUnitBlock WHERE gibbonUnitID=:gibbonUnitID ORDER BY sequenceNumber';
-                            } else {
-                                $dataBlocks = array('classLinkJoinFieldUnit' => $gibbonUnitIDToken, 'classLinkJoinFieldClass' => $gibbonCourseClassID);
-                                $sqlBlocks = 'SELECT '.$hookOptions['unitSmartBlockTable'].'.* FROM '.$hookOptions['unitSmartBlockTable'].' JOIN '.$hookOptions['classLinkTable'].' ON ('.$hookOptions['unitSmartBlockTable'].'.'.$hookOptions['unitSmartBlockJoinField'].'='.$hookOptions['classLinkTable'].'.'.$hookOptions['classLinkJoinFieldUnit'].') JOIN '.$hookOptions['unitTable'].' ON ('.$hookOptions['classLinkTable'].'.'.$hookOptions['classLinkJoinFieldUnit'].'='.$hookOptions['unitTable'].'.'.$hookOptions['unitIDField'].') WHERE '.$hookOptions['classLinkTable'].'.'.$hookOptions['classLinkJoinFieldUnit'].'=:classLinkJoinFieldUnit AND '.$hookOptions['classLinkTable'].'.'.$hookOptions['classLinkJoinFieldClass'].'=:classLinkJoinFieldClass ORDER BY sequenceNumber';
-                            }
+                            $dataBlocks = array('gibbonUnitID' => $gibbonUnitID);
+                            $sqlBlocks = 'SELECT * FROM gibbonUnitBlock WHERE gibbonUnitID=:gibbonUnitID ORDER BY sequenceNumber';
                             $resultBlocks = $connection2->prepare($sqlBlocks);
                             $resultBlocks->execute($dataBlocks);
                             $resultLessonBlocks = $connection2->prepare($sqlBlocks);
@@ -177,51 +148,22 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit_working
                         }
                         $blockCount = 0;
                         while ($rowBlocks = $resultBlocks->fetch()) {
-                            if ($hooked == false) {
-                                $blocks[$blockCount][0] = $rowBlocks['gibbonUnitBlockID'];
-                                $blocks[$blockCount][1] = $rowBlocks['title'];
-                                $blocks[$blockCount][2] = $rowBlocks['type'];
-                                $blocks[$blockCount][3] = $rowBlocks['length'];
-                                $blocks[$blockCount][4] = $rowBlocks['contents'];
-                                $blocks[$blockCount][5] = $rowBlocks['teachersNotes'];
-                                $blocks[$blockCount][5] = $rowBlocks['teachersNotes'];
-                            } else {
-                                $blocks[$blockCount][0] = $rowBlocks[$hookOptions['unitSmartBlockIDField']];
-                                $blocks[$blockCount][1] = $rowBlocks[$hookOptions['unitSmartBlockTitleField']];
-                                $blocks[$blockCount][2] = $rowBlocks[$hookOptions['unitSmartBlockTypeField']];
-                                $blocks[$blockCount][3] = $rowBlocks[$hookOptions['unitSmartBlockLengthField']];
-                                $blocks[$blockCount][4] = $rowBlocks[$hookOptions['unitSmartBlockContentsField']];
-                                $blocks[$blockCount][5] = $rowBlocks[$hookOptions['unitSmartBlockTeachersNotesField']];
-                            }
+                            $blocks[$blockCount][0] = $rowBlocks['gibbonUnitBlockID'];
+                            $blocks[$blockCount][1] = $rowBlocks['title'];
+                            $blocks[$blockCount][2] = $rowBlocks['type'];
+                            $blocks[$blockCount][3] = $rowBlocks['length'];
+                            $blocks[$blockCount][4] = $rowBlocks['contents'];
+                            $blocks[$blockCount][5] = $rowBlocks['teachersNotes'];
+                            $blocks[$blockCount][5] = $rowBlocks['teachersNotes'];
                             ++$blockCount;
                         }
 
-                        //Store STAR BLOCKS in array
-                        $blocks2 = array();
-                        try {
-                            $dataBlocks2 = array('gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID']);
-                            $sqlBlocks2 = 'SELECT * FROM gibbonUnitBlockStar JOIN gibbonUnitBlock ON (gibbonUnitBlockStar.gibbonUnitBlockID=gibbonUnitBlock.gibbonUnitBlockID) WHERE gibbonPersonID=:gibbonPersonID ORDER BY title';
-                            $resultBlocks2 = $connection2->prepare($sqlBlocks2);
-                            $resultBlocks2->execute($dataBlocks2);
-                        } catch (PDOException $e) {
-                            echo "<div class='error'>".$e->getMessage().'</div>';
-                        }
-                        $blockCount2 = 0;
-                        while ($rowBlocks2 = $resultBlocks2->fetch()) {
-                            $blocks2[$blockCount2][0] = $rowBlocks2['gibbonUnitBlockID'];
-                            $blocks2[$blockCount2][1] = $rowBlocks2['title'];
-                            $blocks2[$blockCount2][2] = $rowBlocks2['type'];
-                            $blocks2[$blockCount2][3] = $rowBlocks2['length'];
-                            $blocks2[$blockCount2][4] = $rowBlocks2['contents'];
-                            $blocks2[$blockCount2][5] = $rowBlocks2['teachersNotes'];
-                            $blocks2[$blockCount2][6] = $rowBlocks2['gibbonOutcomeIDList'];
-                            ++$blockCount2;
-                        }
+
 
                         echo "<form method='post' action='".$_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/units_edit_workingProcess.php?gibbonUnitID=$gibbonUnitID&gibbonSchoolYearID=$gibbonSchoolYearID&gibbonCourseID=$gibbonCourseID&gibbonCourseClassID=$gibbonCourseClassID&address=".$_GET['q']."&gibbonUnitClassID=$gibbonUnitClassID'>";
-                            //LESSONS (SORTABLES)
-                            echo "<div class='linkTop'>";
-                        echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.$_SESSION[$guid]['module']."/units_edit_working_add.php&gibbonUnitID=$gibbonUnitID&gibbonSchoolYearID=$gibbonSchoolYearID&gibbonCourseID=$gibbonCourseID&gibbonCourseClassID=$gibbonCourseClassID&gibbonUnitClassID=$gibbonUnitClassID'>".__($guid, 'Add')."<img style='margin-left: 5px' title='".__($guid, 'Add')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/page_new.png'/></a>";
+                        //LESSONS (SORTABLES)
+                        echo "<div class='linkTop'>";
+                        echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.$_SESSION[$guid]['module']."/units_edit_working_add.php&gibbonUnitID=$gibbonUnitID&gibbonSchoolYearID=$gibbonSchoolYearID&gibbonCourseID=$gibbonCourseID&gibbonCourseClassID=$gibbonCourseClassID&gibbonUnitClassID=$gibbonUnitClassID'>".__('Add')."<img style='margin-left: 5px' title='".__('Add')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/page_new.png'/></a>";
                         echo '</div>';
                         echo "<div style='width: 100%; height: auto'>";
                         try {
@@ -235,7 +177,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit_working
 
                         if ($resultLessons->rowCount() < 1) {
                             echo "<div class='error'>";
-                            echo __($guid, 'There are no records to display.');
+                            echo __('There are no records to display.');
                             echo '</div>';
                         } else {
                             $i = 0;
@@ -245,7 +187,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit_working
                                 echo "<div class='sortable' id='sortable$i' style='height: auto!important; min-height: 60px; font-size: 120%; font-style: italic'>";
                                 echo "<div id='head$i' class='head' style='height: 54px; font-size: 85%; padding: 3px'>";
 
-                                echo "<a onclick='return confirm(\"Are you sure you want to jump to this lesson? Any unsaved changes will be lost.\")' style='font-weight: bold; font-style: normal; color: #333' href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Planner/planner_view_full.php&viewBy=class&gibbonCourseClassID='.$rowLessons['gibbonCourseClassID'].'&gibbonPlannerEntryID='.$rowLessons['gibbonPlannerEntryID']."'>".($i + 1).'. '.$rowLessons['name']."</a> <a onclick='return confirm(\"".__($guid, 'Are you sure you want to delete this record? Any unsaved changes will be lost.')."\")' href='".$_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/units_edit_working_lessonDelete.php?gibbonUnitID=$gibbonUnitID&gibbonSchoolYearID=$gibbonSchoolYearID&gibbonCourseID=$gibbonCourseID&gibbonCourseClassID=$gibbonCourseClassID&gibbonUnitClassID=$gibbonUnitClassID&address=".$_GET['q'].'&gibbonPlannerEntryID='.$rowLessons['gibbonPlannerEntryID']."'><img title='".__($guid, 'Delete')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/garbage.png'/ style='position: absolute; margin: -1px 0px 2px 10px'></a><br/>";
+                                echo "<a onclick='return confirm(\"Are you sure you want to jump to this lesson? Any unsaved changes will be lost.\")' style='font-weight: bold; font-style: normal; color: #333' href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Planner/planner_view_full.php&viewBy=class&gibbonCourseClassID='.$rowLessons['gibbonCourseClassID'].'&gibbonPlannerEntryID='.$rowLessons['gibbonPlannerEntryID']."'>".($i + 1).'. '.$rowLessons['name']."</a> <a onclick='return confirm(\"".__('Are you sure you want to delete this record? Any unsaved changes will be lost.')."\")' href='".$_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/units_edit_working_lessonDelete.php?gibbonUnitID=$gibbonUnitID&gibbonSchoolYearID=$gibbonSchoolYearID&gibbonCourseID=$gibbonCourseID&gibbonCourseClassID=$gibbonCourseClassID&gibbonUnitClassID=$gibbonUnitClassID&address=".$_GET['q'].'&gibbonPlannerEntryID='.$rowLessons['gibbonPlannerEntryID']."'><img title='".__('Delete')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/garbage.png'/ style='position: absolute; margin: -1px 0px 2px 10px'></a><br/>";
 
                                 try {
                                     $dataTT = array('date' => $rowLessons['date'], 'timeStart' => $rowLessons['timeStart'], 'timeEnd' => $rowLessons['timeEnd'], 'gibbonCourseClassID' => $gibbonCourseClassID);
@@ -276,7 +218,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit_working
                                 echo "<input type='hidden' name='timeEnd$i' value='".$rowLessons['timeEnd']."' >";
                                 echo "<input type='hidden' name='gibbonPlannerEntryID$i' value='".$rowLessons['gibbonPlannerEntryID']."' >";
                                 echo "<div style='text-align: right; float: right; margin-top: -33px; margin-right: 3px'>";
-                                echo "<span style='font-size: 80%'><i>".__($guid, 'Add Block:').'</i></span><br/>';
+                                echo "<span style='font-size: 80%'><i>".__('Add Block:').'</i></span><br/>';
                                 echo "<script type='text/javascript'>";
                                 echo '$(document).ready(function(){';
                                 echo "$(\"#blockAdd$i\").change(function(){";
@@ -290,31 +232,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit_working
                                 echo '</script>';
                                 echo "<select name='blockAdd$i' id='blockAdd$i' style='width: 150px'>";
                                 echo "<option value=''></option>";
-                                echo "<optgroup label='--".__($guid, 'Unit Blocks')."--'>";
                                 $blockSelectCount = 0;
                                 foreach ($blocks as $block) {
                                     echo "<option value='".$block[0]."'>".($blockSelectCount + 1).') '.htmlPrep($block[1]).'</option>';
                                     ++$blockSelectCount;
                                 }
-                                echo '</optgroup>';
-                                echo "<optgroup label='--".__($guid, 'Star Blocks')."--'>";
-                                foreach ($blocks2 as $block2) {
-                                    echo "<option value='".$block2[0]."'>".htmlPrep($block2[1]).'</option>';
-                                }
-                                echo '</optgroup>';
                                 echo '</select>';
                                 echo '</div>';
                                 echo '</div>';
 
 								//Get blocks
 								try {
-									if ($hooked == false) {
-										$dataLessonBlocks = array('gibbonPlannerEntryID' => $rowLessons['gibbonPlannerEntryID'], 'gibbonCourseClassID' => $gibbonCourseClassID);
-										$sqlLessonBlocks = 'SELECT * FROM gibbonUnitClassBlock JOIN gibbonUnitClass ON (gibbonUnitClassBlock.gibbonUnitClassID=gibbonUnitClass.gibbonUnitClassID) WHERE gibbonPlannerEntryID=:gibbonPlannerEntryID AND gibbonCourseClassID=:gibbonCourseClassID ORDER BY sequenceNumber';
-									} else {
-										$dataLessonBlocks = array('gibbonPlannerEntryID' => $rowLessons['gibbonPlannerEntryID'], 'gibbonCourseClassID' => $gibbonCourseClassID);
-										$sqlLessonBlocks = 'SELECT '.$hookOptions['classSmartBlockTable'].'.* FROM '.$hookOptions['classSmartBlockTable'].' JOIN '.$hookOptions['classLinkTable'].' ON ('.$hookOptions['classSmartBlockTable'].'.'.$hookOptions['classSmartBlockJoinField'].'='.$hookOptions['classLinkTable'].'.'.$hookOptions['classLinkIDField'].') WHERE '.$hookOptions['classSmartBlockTable'].'.'.$hookOptions['classSmartBlockPlannerJoin'].'=:gibbonPlannerEntryID AND '.$hookOptions['classLinkTable'].'.'.$hookOptions['classLinkJoinFieldClass'].'=:gibbonCourseClassID ORDER BY sequenceNumber';
-									}
+									$dataLessonBlocks = array('gibbonPlannerEntryID' => $rowLessons['gibbonPlannerEntryID'], 'gibbonCourseClassID' => $gibbonCourseClassID);
+									$sqlLessonBlocks = 'SELECT * FROM gibbonUnitClassBlock JOIN gibbonUnitClass ON (gibbonUnitClassBlock.gibbonUnitClassID=gibbonUnitClass.gibbonUnitClassID) WHERE gibbonPlannerEntryID=:gibbonPlannerEntryID AND gibbonCourseClassID=:gibbonCourseClassID ORDER BY sequenceNumber';
 									$resultLessonBlocks = $connection2->prepare($sqlLessonBlocks);
 									$resultLessonBlocks->execute($dataLessonBlocks);
 								} catch (PDOException $e) {
@@ -333,11 +263,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit_working
                                 $unitOutcomes = $resultOutcomes->fetchall();
 
                                 while ($rowLessonBlocks = $resultLessonBlocks->fetch()) {
-                                    if ($hooked == false) {
-                                        makeBlock($guid,  $connection2, $blockCount2, $mode = 'workingEdit', $rowLessonBlocks['title'], $rowLessonBlocks['type'], $rowLessonBlocks['length'], $rowLessonBlocks['contents'], $rowLessonBlocks['complete'], $rowLessonBlocks['gibbonUnitBlockID'], $rowLessonBlocks['gibbonUnitClassBlockID'], $rowLessonBlocks['teachersNotes'], true, $unitOutcomes, $rowLessonBlocks['gibbonOutcomeIDList']);
-                                    } else {
-                                        makeBlock($guid,  $connection2, $blockCount2, $mode = 'workingEdit', $rowLessonBlocks[$hookOptions['classSmartBlockTitleField']], $rowLessonBlocks[$hookOptions['classSmartBlockTypeField']], $rowLessonBlocks[$hookOptions['classSmartBlockLengthField']], $rowLessonBlocks[$hookOptions['classSmartBlockContentsField']], $rowLessonBlocks['complete'], $rowLessonBlocks['gibbonUnitBlockID'], $rowLessonBlocks['gibbonUnitClassBlockID'], $rowLessonBlocks[$hookOptions['classSmartBlockTeachersNotesField']], true);
-                                    }
+                                    makeBlock($guid,  $connection2, $blockCount2, $mode = 'workingEdit', $rowLessonBlocks['title'], $rowLessonBlocks['type'], $rowLessonBlocks['length'], $rowLessonBlocks['contents'], $rowLessonBlocks['complete'], $rowLessonBlocks['gibbonUnitBlockID'], $rowLessonBlocks['gibbonUnitClassBlockID'], $rowLessonBlocks['teachersNotes'], true);
                                     ++$blockCount2;
                                 }
                                 echo '</div>';
@@ -446,4 +372,3 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit_working
     //Print sidebar
     $_SESSION[$guid]['sidebarExtra'] = sidebarExtraUnits($guid, $connection2, $gibbonCourseID, $gibbonSchoolYearID);
 }
-?>

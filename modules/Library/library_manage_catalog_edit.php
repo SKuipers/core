@@ -21,19 +21,19 @@ use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 
 //Module includes
-include './modules/'.$_SESSION[$guid]['module'].'/moduleFunctions.php';
+require_once __DIR__ . '/moduleFunctions.php';
+
+$page->breadcrumbs
+    ->add(__('Manage Catalog'), 'library_manage_catalog.php')
+    ->add(__('Edit Item'));
 
 if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_catalog_edit.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/library_manage_catalog.php'>".__($guid, 'Manage Catalog')."</a> > </div><div class='trailEnd'>".__($guid, 'Edit Item').'</div>';
-    echo '</div>';
-
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, null);
     }
@@ -42,7 +42,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
     $gibbonLibraryItemID = $_GET['gibbonLibraryItemID'];
     if ($gibbonLibraryItemID == '') {
         echo "<div class='error'>";
-        echo __($guid, 'You have not specified one or more required parameters.');
+        echo __('You have not specified one or more required parameters.');
         echo '</div>';
     } else {
         try {
@@ -56,7 +56,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
 
         if ($result->rowCount() != 1) {
             echo "<div class='error'>";
-            echo __($guid, 'The specified record does not exist.');
+            echo __('The specified record does not exist.');
             echo '</div>';
         } else {
             //Let's go!
@@ -69,7 +69,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
 
             if ($_GET['name'] != '' or $_GET['gibbonLibraryTypeID'] != '' or $_GET['gibbonSpaceID'] != '' or $_GET['status'] != '' or $_GET['gibbonPersonIDOwnership'] != '' or $_GET['typeSpecificFields'] != '') {
                 echo "<div class='linkTop'>";
-                echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Library/library_manage_catalog.php&'.http_build_query($urlParams)."'>".__($guid, 'Back to Search Results').'</a>';
+                echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Library/library_manage_catalog.php&'.http_build_query($urlParams)."'>".__('Back to Search Results').'</a>';
                 echo '</div>';
 			}
 
@@ -85,7 +85,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
 			$sql = "SELECT gibbonLibraryTypeID AS value, name FROM gibbonLibraryType WHERE active='Y' ORDER BY name";
 			$row = $form->addRow();
 				$row->addLabel('type', __('Type'));
-				$row->addTextField('type')->isRequired()->readOnly();
+				$row->addTextField('type')->required()->readOnly();
 
 			$form->toggleVisibilityByClass('general')->onSelect('gibbonLibraryTypeID')->whenNot('Please select...');
 
@@ -93,18 +93,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
 
 			$row = $form->addRow();
 				$row->addLabel('name', __('Name'))->description(__('Volume or product name.'));
-				$row->addTextField('name')->isRequired()->maxLength(255);
+				$row->addTextField('name')->required()->maxLength(255);
 
 			$row = $form->addRow();
 				$row->addLabel('id', __('ID'));
 				$row->addTextField('id')
-					->isUnique('./modules/Library/library_manage_catalog_idCheckAjax.php', array('gibbonLibraryItemID' => $gibbonLibraryItemID))
-					->isRequired()
+					->uniqueField('./modules/Library/library_manage_catalog_idCheckAjax.php', array('gibbonLibraryItemID' => $gibbonLibraryItemID))
+					->required()
 					->maxLength(255);
 
 			$row = $form->addRow();
 				$row->addLabel('producer', __('Author/Brand'))->description(__('Who created the item?'));
-				$row->addTextField('producer')->isRequired()->maxLength(255);
+				$row->addTextField('producer')->required()->maxLength(255);
 
 			$row = $form->addRow();
 				$row->addLabel('vendor', __('Vendor'))->description(__('Who supplied the item?'));
@@ -130,14 +130,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
 				$row->addFileUpload('imageFile')
 					->accepts('.jpg,.jpeg,.gif,.png')
 					->setMaxUpload(false)
-					->isRequired();
+					->required();
 
 			$form->toggleVisibilityByClass('imageLink')->onSelect('imageType')->when('Link');
 
 			$row = $form->addRow()->addClass('general imageLink');
 				$row->addLabel('imageLink', __('Image Link'))
 					->description(__('240px x 240px or smaller.'));
-				$row->addURL('imageLink')->maxLength(255)->isRequired()->setValue($values['imageLocation']);
+				$row->addURL('imageLink')->maxLength(255)->required()->setValue($values['imageLocation']);
 
 			$row = $form->addRow();
 				$row->addLabel('gibbonSpaceID', __('Location'));
@@ -155,13 +155,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
 
 			$row = $form->addRow()->addClass('general ownershipSchool');
 				$row->addLabel('gibbonPersonIDOwnershipSchool', __('Main User'))->description(__('Person the device is assigned to.'));
-				$row->addSelectUsers('gibbonPersonIDOwnershipSchool')->placeholder();
+				$row->addSelectUsers('gibbonPersonIDOwnershipSchool')->placeholder()->selected($values['gibbonPersonIDOwnership']);
 
 			$form->toggleVisibilityByClass('ownershipIndividual')->onSelect('ownershipType')->when('Individual');
 
 			$row = $form->addRow()->addClass('general ownershipIndividual');
 				$row->addLabel('gibbonPersonIDOwnershipIndividual', __('Owner'));
-				$row->addSelectUsers('gibbonPersonIDOwnershipIndividual')->placeholder();
+				$row->addSelectUsers('gibbonPersonIDOwnershipIndividual')->placeholder()->selected($values['gibbonPersonIDOwnership']);
 
 			$sql = "SELECT gibbonDepartmentID AS value, name FROM gibbonDepartment ORDER BY name";
 			$row = $form->addRow();
@@ -190,15 +190,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
 			);
 			$row = $form->addRow()->addClass('statusBorrowable');
 				$row->addLabel('statusBorrowable', __('Status?'));
-				$row->addTextField('statusBorrowable')->isRequired()->readOnly()->setValue(__('Available'));
+				$row->addTextField('statusBorrowable')->required()->readOnly()->setValue(__('Available'));
 
 			$row = $form->addRow()->addClass('statusNotBorrowable');
 				$row->addLabel('statusNotBorrowable', __('Status?'));
-				$row->addSelect('statusNotBorrowable')->fromArray($statuses)->isRequired();
+				$row->addSelect('statusNotBorrowable')->fromArray($statuses)->required();
 
 			$row = $form->addRow();
 				$row->addLabel('replacement', __('Plan Replacement?'));
-				$row->addYesNo('replacement')->isRequired()->selected('N');
+				$row->addYesNo('replacement')->required()->selected('N');
 
 			$form->toggleVisibilityByClass('replacement')->onSelect('replacement')->when('Y');
 

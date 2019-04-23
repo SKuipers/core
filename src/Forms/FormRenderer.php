@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 namespace Gibbon\Forms;
 
-use Gibbon\Forms\FormRendererInterface;
+use Gibbon\Forms\View\FormRendererInterface;
 
 /**
  * FormRenderer
@@ -67,6 +67,10 @@ class FormRenderer implements FormRendererInterface
         $output = '';
 
         $totalColumns = $this->getColumnCount($form, $form->getRows());
+
+        if ($title = $form->getTitle()) {
+            $output .= '<h2>'.$title.'</h2>';
+        }
 
         $output .= '<form '.$form->getAttributeString().' onsubmit="gibbonFormSubmitted(this)">';
 

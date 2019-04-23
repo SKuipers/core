@@ -23,13 +23,13 @@ use Gibbon\Forms\DatabaseFormFactory;
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYearTerm_manage_add.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/schoolYearTerm_manage.php'>".__($guid, 'Manage Terms')."</a> > </div><div class='trailEnd'>".__($guid, 'Add Term').'</div>';
-    echo '</div>';
+    $page->breadcrumbs
+        ->add(__('Manage Terms'), 'schoolYearTerm_manage.php')
+        ->add(__('Add Term'));
 
     $editLink = '';
     if (isset($_GET['editID'])) {
@@ -46,27 +46,27 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYearTer
 
     $row = $form->addRow();
         $row->addLabel('gibbonSchoolYearID', __('School Year'));
-        $row->addSelectSchoolYear('gibbonSchoolYearID')->isRequired();
+        $row->addSelectSchoolYear('gibbonSchoolYearID')->required();
 
     $row = $form->addRow();
         $row->addLabel('sequenceNumber', __('Sequence Number'))->description(__('Must be unique. Controls chronological ordering.'));
-        $row->addSequenceNumber('sequenceNumber', 'gibbonSchoolYearTerm')->isRequired()->maxLength(3);
+        $row->addSequenceNumber('sequenceNumber', 'gibbonSchoolYearTerm')->required()->maxLength(3);
 
     $row = $form->addRow();
         $row->addLabel('name', __('Name'));
-        $row->addTextField('name')->isRequired()->maxLength(20);
+        $row->addTextField('name')->required()->maxLength(20);
 
     $row = $form->addRow();
         $row->addLabel('nameShort', __('Short Name'));
-        $row->addTextField('nameShort')->isRequired()->maxLength(4);
+        $row->addTextField('nameShort')->required()->maxLength(4);
 
     $row = $form->addRow();
         $row->addLabel('firstDay', __('First Day'));
-        $row->addDate('firstDay')->isRequired();
+        $row->addDate('firstDay')->required();
 
     $row = $form->addRow();
         $row->addLabel('lastDay', __('Last Day'));
-        $row->addDate('lastDay')->isRequired();
+        $row->addDate('lastDay')->required();
 
     $row = $form->addRow();
         $row->addFooter();

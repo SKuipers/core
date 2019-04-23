@@ -21,7 +21,7 @@ use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 
 //Module includes
-include './modules/'.$_SESSION[$guid]['module'].'/moduleFunctions.php';
+require_once __DIR__ . '/moduleFunctions.php';
 
 //Module includes from User Admin (for custom fields)
 include './modules/User Admin/moduleFunctions.php';
@@ -33,9 +33,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__('Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__(getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Students/applicationForm_manage.php&gibbonSchoolYearID='.$_GET['gibbonSchoolYearID']."'>".__('Manage Applications')."</a> > </div><div class='trailEnd'>".__('Add Form').'</div>';
-    echo '</div>';
+    $gibbonSchoolYearID = $_GET['gibbonSchoolYearID'] ?? '';
+
+    $page->breadcrumbs
+        ->add(__('Manage Applications'), 'applicationForm_manage.php', ['gibbonSchoolYearID' => $gibbonSchoolYearID])
+        ->add(__('Add Form'));
 
     $form = Form::create('addApplication', $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.$_SESSION[$guid]['module'].'/applicationForm.php');
 
@@ -49,7 +51,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
 
     $row = $form->addRow();
         $row->addLabel('applicationType', __('Type'));
-        $row->addSelect('applicationType')->fromArray($types)->isRequired();
+        $row->addSelect('applicationType')->fromArray($types)->required();
 
     $sql = "SELECT gibbonFamily.gibbonFamilyID as value, CONCAT(gibbonFamily.name, ' (', GROUP_CONCAT(DISTINCT CONCAT(gibbonPerson.preferredName, ' ', gibbonPerson.surname) SEPARATOR ', '), ')') as name FROM gibbonFamily
         JOIN gibbonFamilyAdult ON (gibbonFamilyAdult.gibbonFamilyID=gibbonFamily.gibbonFamilyID)
@@ -62,7 +64,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
 
     $row = $form->addRow()->addClass('typeFamily');
         $row->addLabel('gibbonFamilyID', __('Family'));
-        $row->addSelect('gibbonFamilyID')->fromQuery($pdo, $sql)->isRequired();
+        $row->addSelect('gibbonFamilyID')->fromQuery($pdo, $sql)->required();
 
     $sql = "SELECT gibbonPersonID as value, CONCAT(gibbonPerson.surname, ', ', gibbonPerson.preferredName, ' (', gibbonRole.category, ': ', gibbonPerson.username, ')') as name
             FROM gibbonPerson
@@ -75,7 +77,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
 
     $row = $form->addRow()->addClass('typePerson');
         $row->addLabel('gibbonPersonID', __('Person'));
-        $row->addSelect('gibbonPersonID')->fromQuery($pdo, $sql)->isRequired();
+        $row->addSelect('gibbonPersonID')->fromQuery($pdo, $sql)->required();
 
     $row = $form->addRow();
         $row->addFooter();
@@ -83,4 +85,3 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
 
     echo $form->getOutput();
 }
-?>

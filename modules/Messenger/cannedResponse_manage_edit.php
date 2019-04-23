@@ -19,17 +19,17 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Form;
 
+$page->breadcrumbs
+    ->add(__('Manage Canned Responses'), 'cannedResponse_manage.php')
+    ->add(__('Edit Canned Response'));
+
 if (isActionAccessible($guid, $connection2, '/modules/Messenger/cannedResponse_manage_edit.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Messenger/cannedResponse_manage.php'>".__($guid, 'Manage Canned Responses')."</a> > </div><div class='trailEnd'>".__($guid, 'Edit Canned Response').'</div>';
-    echo '</div>';
-
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, null);
     }
@@ -38,7 +38,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Messenger/cannedResponse_m
     $gibbonMessengerCannedResponseID = $_GET['gibbonMessengerCannedResponseID'];
     if ($gibbonMessengerCannedResponseID == '') {
         echo "<div class='error'>";
-        echo __($guid, 'You have not specified one or more required parameters.');
+        echo __('You have not specified one or more required parameters.');
         echo '</div>';
     } else {
         try {
@@ -52,7 +52,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Messenger/cannedResponse_m
 
         if ($result->rowCount() != 1) {
             echo "<div class='error'>";
-            echo __($guid, 'The specified record cannot be found.');
+            echo __('The specified record cannot be found.');
             echo '</div>';
         } else {
             //Let's go!
@@ -64,12 +64,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Messenger/cannedResponse_m
 
             $row = $form->addRow();
                 $row->addLabel('subject', __('Subject'))->description(__('Must be unique.'));
-                $row->addTextField('subject')->isRequired()->maxLength(20);
+                $row->addTextField('subject')->required()->maxLength(20);
 
             $row = $form->addRow();
                 $col = $row->addColumn('body');
                 $col->addLabel('body', __('Body'));
-                $col->addEditor('body', $guid)->isRequired()->setRows(20)->showMedia(true);
+                $col->addEditor('body', $guid)->required()->setRows(20)->showMedia(true);
 
             $row = $form->addRow();
                 $row->addFooter();

@@ -19,7 +19,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 namespace Gibbon\Comms;
 
-use Gibbon\session;
+use Gibbon\Contracts\Comms\Mailer;
+use Gibbon\Contracts\Services\Session;
 use Gibbon\Domain\System\NotificationGateway;
 
 /**
@@ -46,7 +47,7 @@ class NotificationSender
      * @param  NotificationGateway  $gateway
      * @param  session              $session
      */
-    public function __construct(NotificationGateway $gateway, session $session)
+    public function __construct(NotificationGateway $gateway, Session $session)
     {
         $this->gateway = $gateway;
         $this->session = $session;
@@ -114,10 +115,11 @@ class NotificationSender
 
             if ($result && $result->rowCount() > 0) {
                 $row = $result->fetch();
-                $this->gateway->updateNotificationCount($row['gibbonNotificationID'], $row['count']+1);
+                $gibbonNotificationID = $row['gibbonNotificationID'];
+                $this->gateway->updateNotificationCount($gibbonNotificationID, $row['count']+1);
                 $sendReport['updates']++;
             } else {
-                $this->gateway->insertNotification($notification);
+                $gibbonNotificationID = $this->gateway->insertNotification($notification);
                 $sendReport['inserts']++;
             }
 
@@ -126,13 +128,15 @@ class NotificationSender
 
             if (!empty($emailPreference) && $emailPreference['receiveNotificationEmails'] == 'Y') {
                 // Format the email content
-                $body = __('Notification').': '.$notification['text'].'<br/><br/>';
-                $body .= $this->getNotificationLink();
-                $body .= $this->getNotificationFooter();
+                $mail->renderBody('mail/notification.twig.html', [
+                    'title'  => __('Notification').' - '.$notification['moduleName'],
+                    'body'   => $notification['text'],
+                    'button' => [
+                        'url'  => 'notificationsActionProcess.php?gibbonNotificationID='.$gibbonNotificationID,
+                        'text' => __('View Details'),
+                    ],
+                ]);
 
-                $mail->Body = $body;
-                $mail->AltBody = emailBodyConvert($body);
-                
                 // Add the recipients
                 if ($bccMode == true) {
                     $mail->AddBcc($emailPreference['email']);
@@ -181,7 +185,8 @@ class NotificationSender
      */
     protected function setupEmail()
     {
-        $mail = new GibbonMailer($this->session);
+        global $container;
+        $mail = $container->get(Mailer::class);
 
         // Format the sender
         $organisationName = $this->session->get('organisationName');

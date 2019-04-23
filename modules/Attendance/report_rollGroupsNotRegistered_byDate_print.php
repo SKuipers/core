@@ -17,13 +17,15 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+
 //Module includes
-include './modules/'.$_SESSION[$guid]['module'].'/moduleFunctions.php';
+require_once __DIR__ . '/moduleFunctions.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/Attendance/report_rollGroupsNotRegistered_byDate_print.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
 
@@ -45,9 +47,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/report_rollGrou
     //Proceed!
     echo '<h2>';
     if ($dateStart != $dateEnd) {
-        echo __($guid, 'Roll Groups Not Registered').', '.dateConvertBack($guid, $dateStart).'-'.dateConvertBack($guid, $dateEnd);
+        echo __('Roll Groups Not Registered').', '.dateConvertBack($guid, $dateStart).'-'.dateConvertBack($guid, $dateEnd);
     } else {
-        echo __($guid, 'Roll Groups Not Registered').', '.dateConvertBack($guid, $dateStart);
+        echo __('Roll Groups Not Registered').', '.dateConvertBack($guid, $dateStart);
     }
     echo '</h2>';
 
@@ -76,44 +78,41 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/report_rollGrou
 
     if ( count($lastNSchoolDays) == 0 ) {
         echo "<div class='error'>";
-        echo __($guid, 'School is closed on the specified date, and so attendance information cannot be recorded.');
+        echo __('School is closed on the specified date, and so attendance information cannot be recorded.');
         echo '</div>';
     } else if ($result->rowCount() < 1) {
         echo "<div class='error'>";
-        echo __($guid, 'There are no records to display.');
+        echo __('There are no records to display.');
         echo '</div>';
     } else if ($dateStart > $today || $dateEnd > $today) {
         echo "<div class='error'>";
-        echo __($guid, 'The specified date is in the future: it must be today or earlier.');
+        echo __('The specified date is in the future: it must be today or earlier.');
         echo '</div>';
     } else {
         //Produce array of roll groups
         $rollGroups = $result->fetchAll();
 
         echo "<div class='linkTop'>";
-        echo "<a href='javascript:window.print()'>".__($guid, 'Print')."<img style='margin-left: 5px' title='".__($guid, 'Print')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/print.png'/></a>";
+        echo "<a href='javascript:window.print()'>".__('Print')."<img style='margin-left: 5px' title='".__('Print')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/print.png'/></a>";
         echo '</div>';
 
         echo "<table cellspacing='0' style='width: 100%'>";
         echo "<tr class='head'>";
         echo '<th>';
-        echo __($guid, 'Roll Group');
+        echo __('Roll Group');
         echo '</th>';
         echo '<th >';
-        echo __($guid, 'Date');
+        echo __('Date');
         echo '</th>';
         echo '<th width="164px">';
-        echo __($guid, 'History');
+        echo __('History');
         echo '</th>';
         echo '<th>';
-        echo __($guid, 'Tutor');
+        echo __('Tutor');
         echo '</th>';
         echo '</tr>';
 
         $count = 0;
-
-        $timestampStart = dateConvertToTimestamp($dateStart);
-        $timestampEnd = dateConvertToTimestamp($dateEnd);
 
         foreach ($rollGroups as $row) {
 
@@ -127,7 +126,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/report_rollGrou
                 echo $row['name'];
                 echo '</td>';
                 echo '<td>';
-                echo date('M j', $timestampStart).' - '. date('M j, Y', $timestampEnd);
+                echo Format::dateRangeReadable($dateStart, $dateEnd);
                 echo '</td>';
                 echo '<td style="padding: 0;">';
 
@@ -139,12 +138,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/report_rollGrou
                         $link = '';
                         if ($i > ( count($lastNSchoolDays) - 1)) {
                             echo "<td class='highlightNoData'>";
-                            echo '<i>'.__($guid, 'NA').'</i>';
+                            echo '<i>'.__('NA').'</i>';
                             echo '</td>';
                         } else {
-
-                            $currentDayTimestamp = dateConvertToTimestamp($lastNSchoolDays[$i]);
-
                             if (isset($log[$row['gibbonRollGroupID']][$lastNSchoolDays[$i]]) == false) {
                                 //$class = 'highlightNoData';
                                 $class = 'highlightAbsent';
@@ -156,12 +152,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/report_rollGrou
                             echo "<td class='$class' style='padding: 12px !important;'>";
                             if ($link != '') {
                                 echo "<a href='$link'>";
-                                echo date('d', $currentDayTimestamp).'<br/>';
-                                echo "<span>".date('M', $currentDayTimestamp).'</span>';
+                                echo Format::dateReadable($lastNSchoolDays[$i], '%d').'<br/>';
+                                echo "<span>".Format::dateReadable($lastNSchoolDays[$i], '%b').'</span>';
                                 echo '</a>';
                             } else {
-                                echo date('d', $currentDayTimestamp).'<br/>';
-                                echo "<span>".date('M', $currentDayTimestamp).'</span>';
+                                echo Format::dateReadable($lastNSchoolDays[$i], '%d').'<br/>';
+                                echo "<span>".Format::dateReadable($lastNSchoolDays[$i], '%b').'</span>';
                             }
                             echo '</td>';
                         }
@@ -203,7 +199,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/report_rollGrou
         if ($count == 0) {
             echo "<tr class=$rowNum>";
             echo '<td colspan=4>';
-            echo __($guid, 'All roll groups have been registered.');
+            echo __('All roll groups have been registered.');
             echo '</td>';
             echo '</tr>';
         }

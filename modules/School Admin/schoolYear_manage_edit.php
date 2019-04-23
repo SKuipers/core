@@ -23,13 +23,13 @@ use Gibbon\Forms\DatabaseFormFactory;
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYear_manage_edit.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/schoolYear_manage.php'>".__($guid, 'Manage School Years')."</a> > </div><div class='trailEnd'>".__($guid, 'Edit School Year').'</div>';
-    echo '</div>';
+    $page->breadcrumbs
+        ->add(__('Manage School Years'), 'schoolYear_manage.php')
+        ->add(__('Edit School Year'));
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, null);
@@ -39,7 +39,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYear_ma
     $gibbonSchoolYearID = $_GET['gibbonSchoolYearID'];
     if ($gibbonSchoolYearID == '') {
         echo "<div class='error'>";
-        echo __($guid, 'You have not specified one or more required parameters.');
+        echo __('You have not specified one or more required parameters.');
         echo '</div>';
     } else {
         try {
@@ -53,7 +53,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYear_ma
 
         if ($result->rowCount() != 1) {
             echo "<div class='error'>";
-            echo __($guid, 'The specified record cannot be found.');
+            echo __('The specified record cannot be found.');
             echo '</div>';
         } else {
             //Let's go!
@@ -72,7 +72,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYear_ma
 
             $row = $form->addRow();
                 $row->addLabel('name', __('Name'));
-                $row->addTextField('name')->isRequired()->maxLength(9)->setValue($values['name']);
+                $row->addTextField('name')->required()->maxLength(9)->setValue($values['name']);
 
             if ($values['status'] == 'Current') {
                 $form->addHiddenValue('status', $values['status']);
@@ -82,7 +82,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYear_ma
             } else {
                 $row = $form->addRow();
                     $row->addLabel('status', __('Status'));
-                    $row->addSelect('status')->fromArray($statuses)->isRequired()->selected($values['status']);
+                    $row->addSelect('status')->fromArray($statuses)->required()->selected($values['status']);
 
                     $form->toggleVisibilityByClass('statusChange')->onSelect('status')->when('Current');
                     $direction = ($values['sequenceNumber'] < $_SESSION[$guid]['gibbonSchoolYearSequenceNumberCurrent'])? __('Upcoming') : __('Past');
@@ -94,15 +94,15 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYear_ma
 
             $row = $form->addRow();
                 $row->addLabel('sequenceNumber', __('Sequence Number'))->description(__('Must be unique. Controls chronological ordering.'));
-                $row->addSequenceNumber('sequenceNumber', 'gibbonSchoolYear', $values['sequenceNumber'])->isRequired()->maxLength(3)->setValue($values['sequenceNumber']);
+                $row->addSequenceNumber('sequenceNumber', 'gibbonSchoolYear', $values['sequenceNumber'])->required()->maxLength(3)->setValue($values['sequenceNumber']);
 
             $row = $form->addRow();
                 $row->addLabel('firstDay', __('First Day'))->description($_SESSION[$guid]['i18n']['dateFormat'])->prepend(__('Format:'));
-                $row->addDate('firstDay')->isRequired()->setValue(dateConvertBack($guid, $values['firstDay']));
+                $row->addDate('firstDay')->required()->setValue(dateConvertBack($guid, $values['firstDay']));
 
             $row = $form->addRow();
                 $row->addLabel('lastDay', __('Last Day'))->description($_SESSION[$guid]['i18n']['dateFormat'])->prepend(__('Format:'));
-                $row->addDate('lastDay')->isRequired()->setValue(dateConvertBack($guid, $values['lastDay']));
+                $row->addDate('lastDay')->required()->setValue(dateConvertBack($guid, $values['lastDay']));
 
             $row = $form->addRow();
                 $row->addFooter();

@@ -22,13 +22,13 @@ use Gibbon\Forms\Form;
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/space_manage_add.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/space_manage.php'>".__($guid, 'Manage Facilities')."</a> > </div><div class='trailEnd'>".__($guid, 'Add Facility').'</div>';
-    echo '</div>';
+    $page->breadcrumbs
+        ->add(__('Manage Facilities'), 'space_manage.php')
+        ->add(__('Add Facility'));
 
     $editLink = '';
     if (isset($_GET['editID'])) {
@@ -44,13 +44,13 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/space_manage_
 
     $row = $form->addRow();
         $row->addLabel('name', __('Name'))->description(__('Must be unique.'));
-        $row->addTextField('name')->isRequired()->maxLength(30);
+        $row->addTextField('name')->required()->maxLength(30);
 
     $types = getSettingByScope($connection2, 'School Admin', 'facilityTypes');
 
     $row = $form->addRow();
         $row->addLabel('type', __('Type'));
-        $row->addSelect('type')->fromString($types)->isRequired()->placeholder();
+        $row->addSelect('type')->fromString($types)->required()->placeholder();
 
     $row = $form->addRow();
         $row->addLabel('capacity', __('Capacity'));

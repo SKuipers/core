@@ -21,18 +21,18 @@ use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 
 //Module includes
-include './modules/'.$_SESSION[$guid]['module'].'/moduleFunctions.php';
+require_once __DIR__ . '/moduleFunctions.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/Finance/budgets_manage_edit.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/budgets_manage.php'>".__($guid, 'Manage Budgets')."</a> > </div><div class='trailEnd'>".__($guid, 'Edit Budget').'</div>';
-    echo '</div>';
+    $page->breadcrumbs
+        ->add(__('Manage Budgets'),'budgets_manage.php')
+        ->add(__('Edit Budget'));
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, array('error3' => 'Your request failed because some inputs did not meet a requirement for uniqueness.', 'error4' => 'Your request failed due to an attachment error.'));
@@ -42,7 +42,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/budgets_manage_edi
     $gibbonFinanceBudgetID = $_GET['gibbonFinanceBudgetID'];
     if ($gibbonFinanceBudgetID == '') {
         echo "<div class='error'>";
-        echo __($guid, 'You have not specified one or more required parameters.');
+        echo __('You have not specified one or more required parameters.');
         echo '</div>';
     } else {
         try {
@@ -56,16 +56,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/budgets_manage_edi
 
         if ($result->rowCount() != 1) {
             echo "<div class='error'>";
-            echo __($guid, 'The specified record does not exist.');
+            echo __('The specified record does not exist.');
             echo '</div>';
         } else {
             //Let's go!
             $values = $result->fetch();
 
             $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/budgets_manage_editProcess.php?gibbonFinanceBudgetID=$gibbonFinanceBudgetID");
-
             $form->setFactory(DatabaseFormFactory::create($pdo));
-            $form->setClass('smallIntBorder fullWidth');
 
             $form->addHiddenValue('address', $_SESSION[$guid]['address']);
 
@@ -73,15 +71,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/budgets_manage_edi
 
             $row = $form->addRow();
                 $row->addLabel('name', __('Name'))->description(__('Must be unique.'));
-                $row->addTextField('name')->maxLength(100)->isRequired();
+                $row->addTextField('name')->maxLength(100)->required();
 
             $row = $form->addRow();
                 $row->addLabel('nameShort', __('Short Name'))->description(__('Must be unique.'));
-                $row->addTextField('nameShort')->maxLength(14)->isRequired();
+                $row->addTextField('nameShort')->maxLength(14)->required();
 
             $row = $form->addRow();
                 $row->addLabel('active', __('Active'));
-                $row->addYesNo('active')->isRequired();
+                $row->addYesNo('active')->required();
 
             $categories = getSettingByScope($connection2, 'Finance', 'budgetCategories');
             if (empty($categories)) {
@@ -89,7 +87,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/budgets_manage_edi
             }
             $row = $form->addRow();
                 $row->addLabel('category', __('Category'));
-                $row->addSelect('category')->fromString($categories)->placeholder()->isRequired();
+                $row->addSelect('category')->fromString($categories)->placeholder()->required();
 
             $form->addRow()->addHeading(__('Current Staff'));
 
@@ -114,7 +112,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/budgets_manage_edi
                     $row = $table->addRow();
                     $row->addContent(formatName('', $staff['preferredName'], $staff['surname'], 'Staff', true, true));
                     $row->addContent($staff['access']);
-                    $row->addContent("<a onclick='return confirm(\"".__($guid, 'Are you sure you wish to delete this record?')."\")' href='".$_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/budgets_manage_edit_staff_deleteProcess.php?address='.$_GET['q'].'&gibbonFinanceBudgetPersonID='.$staff['gibbonFinanceBudgetPersonID']."&gibbonFinanceBudgetID=$gibbonFinanceBudgetID'><img title='".__($guid, 'Delete')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/garbage.png'/></a>");
+                    $row->addContent("<a onclick='return confirm(\"".__('Are you sure you wish to delete this record?')."\")' href='".$_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/budgets_manage_edit_staff_deleteProcess.php?address='.$_GET['q'].'&gibbonFinanceBudgetPersonID='.$staff['gibbonFinanceBudgetPersonID']."&gibbonFinanceBudgetID=$gibbonFinanceBudgetID'><img title='".__('Delete')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/garbage.png'/></a>");
                 }
             }
 

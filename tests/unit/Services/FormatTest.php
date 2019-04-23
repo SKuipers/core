@@ -81,12 +81,12 @@ class FormatTest extends TestCase
 
     public function testFormatsUnixTimestamps()
     {
-        $this->assertEquals('1526572800', Format::timestamp('2018-05-18'));
+        $this->assertEquals(1526601600, Format::timestamp('2018-05-18', new \DateTimeZone('UTC')));
     }
 
     public function testFormatsUnixTimestampsFromMysqlTimestamps()
     {
-        $this->assertEquals('1526607015', Format::timestamp('2018-05-18 09:30:15'));
+        $this->assertEquals(1526635815, Format::timestamp('2018-05-18 09:30:15', new \DateTimeZone('UTC')));
     }
 
     public function testFormatsTimes()
@@ -111,7 +111,8 @@ class FormatTest extends TestCase
 
     public function testFormatsNumbers()
     {
-        $this->assertEquals('123.00', Format::number(123));
+        $this->assertEquals('123', Format::number(123));
+        $this->assertEquals('123.00', Format::number(123, 2));
     }
 
     public function testFormatsCurrency()
@@ -139,13 +140,13 @@ class FormatTest extends TestCase
 
     public function testFormatsAge()
     {
-        $date = date('Y-m-d', strtotime('-12 years -6 months -1 day'));
+        $date = date('Y-m-d', strtotime('-12 years -6 months -15 day'));
         $this->assertEquals('12 years, 6 months', Format::age($date));
     }
 
     public function testFormatsShortAge()
     {
-        $date = date('Y-m-d', strtotime('-24 years -0 months -1 day'));
+        $date = date('Y-m-d', strtotime('-24 years -0 months -15 day'));
         $this->assertEquals('24y, 0m', Format::age($date, true));
     }
 

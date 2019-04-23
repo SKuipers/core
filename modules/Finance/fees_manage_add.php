@@ -22,13 +22,18 @@ use Gibbon\Forms\Form;
 if (isActionAccessible($guid, $connection2, '/modules/Finance/fees_manage_add.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Finance/fees_manage.php&gibbonSchoolYearID='.$_GET['gibbonSchoolYearID']."'>Manage Fees</a> > </div><div class='trailEnd'>Add Fee</div>";
-    echo '</div>';
+    //Check if school year specified
+    $gibbonSchoolYearID = $_GET['gibbonSchoolYearID'];
+    
+    $urlParams = compact('gibbonSchoolYearID');
+    
+    $page->breadcrumbs
+        ->add(__('Manage Fees'),'fees_manage.php', $urlParams)
+        ->add(__('Add Fee'));     
 
     $editLink = '';
     if (isset($_GET['editID'])) {
@@ -38,23 +43,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/fees_manage_add.ph
         returnProcess($guid, $_GET['return'], $editLink, null);
     }
 
-    //Check if school year specified
-    $gibbonSchoolYearID = $_GET['gibbonSchoolYearID'];
     $search = $_GET['search'];
     if ($gibbonSchoolYearID == '') {
         echo "<div class='error'>";
-        echo __($guid, 'You have not specified one or more required parameters.');
+        echo __('You have not specified one or more required parameters.');
         echo '</div>';
     } else {
         if ($search != '') {
             echo "<div class='linkTop'>";
-            echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Finance/fees_manage.php&gibbonSchoolYearID=$gibbonSchoolYearID&search=$search'>".__($guid, 'Back to Search Results').'</a>';
+            echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Finance/fees_manage.php&gibbonSchoolYearID=$gibbonSchoolYearID&search=$search'>".__('Back to Search Results').'</a>';
             echo '</div>';
         }
 
         $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/fees_manage_addProcess.php?gibbonSchoolYearID=$gibbonSchoolYearID&search=$search");
-
-        $form->setClass('smallIntBorder fullWidth');
 
         $form->addHiddenValue('address', $_SESSION[$guid]['address']);
 
@@ -70,20 +71,20 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/fees_manage_add.ph
             $values = $resultYear->fetch();
             $row = $form->addRow();
                 $row->addLabel('schoolYear', __('School Year'));
-                $row->addTextField('schoolYear')->maxLength(20)->isRequired()->readonly()->setValue($values['schoolYear']);
+                $row->addTextField('schoolYear')->maxLength(20)->required()->readonly()->setValue($values['schoolYear']);
         }
 
         $row = $form->addRow();
             $row->addLabel('name', __('Name'));
-            $row->addTextField('name')->maxLength(100)->isRequired();
+            $row->addTextField('name')->maxLength(100)->required();
 
         $row = $form->addRow();
             $row->addLabel('nameShort', __('Short Name'));
-            $row->addTextField('nameShort')->maxLength(6)->isRequired();
+            $row->addTextField('nameShort')->maxLength(6)->required();
 
         $row = $form->addRow();
             $row->addLabel('active', __('Active'));
-            $row->addYesNo('active')->isRequired();
+            $row->addYesNo('active')->required();
 
         $row = $form->addRow();
             $row->addLabel('description', __('Description'));
@@ -93,12 +94,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/fees_manage_add.ph
         $sql = "SELECT gibbonFinanceFeeCategoryID AS value, name FROM gibbonFinanceFeeCategory WHERE active='Y' AND NOT gibbonFinanceFeeCategoryID=1 ORDER BY name";
         $row = $form->addRow();
             $row->addLabel('gibbonFinanceFeeCategoryID', __('Category'));
-            $row->addSelect('gibbonFinanceFeeCategoryID')->fromQuery($pdo, $sql, $data)->fromArray(array('1' => __('Other')))->isRequired()->placeholder();
+            $row->addSelect('gibbonFinanceFeeCategoryID')->fromQuery($pdo, $sql, $data)->fromArray(array('1' => __('Other')))->required()->placeholder();
 
         $row = $form->addRow();
             $row->addLabel('fee', __('Fee'))
                 ->description(__('Numeric value of the fee.'));
-            $row->addCurrency('fee')->isRequired();
+            $row->addCurrency('fee')->required();
 
         $row = $form->addRow();
         $row->addFooter();

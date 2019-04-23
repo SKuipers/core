@@ -33,17 +33,22 @@ class Column
 
     protected $label;
     protected $description;
+    protected $contexts = [];
     protected $width = 'auto';
+    protected $depth = 0;
     protected $sortable = false;
+    protected $translatable = false;
     protected $formatter;
 
+    protected $columns = array();
     protected $cellModifiers = [];
 
-    public function __construct($id, $label = '')
+    public function __construct($id, $label = '', $depth = 0)
     {
         $this->setID($id);
         $this->label = $label;
         $this->sortable = [$id];
+        $this->depth = $depth;
     }
 
     /**
@@ -77,6 +82,33 @@ class Column
     public function getWidth()
     {
         return $this->width;
+    }
+
+    /**
+     * Get the nested depth of the current column, counting from 0.
+     *
+     * @return int
+     */
+    public function getDepth()
+    {
+        return $this->depth;
+    }
+
+    public function context($context)
+    {
+        $this->contexts[] = $context;
+
+        return $this;
+    }
+
+    public function getContexts()
+    {
+        return $this->contexts;
+    }
+
+    public function hasContext($context)
+    {
+        return in_array($context, $this->contexts);
     }
 
     /**
@@ -161,6 +193,28 @@ class Column
     }
 
     /**
+     * Sets that this column of table must be translated
+     *
+     * @return self
+     */
+    public function translatable() 
+    {
+        $this->translatable = true;
+        
+        return $this;
+    }    
+
+    /**
+     * Gets if the column of table must be translated or not
+     *
+     * @return bool
+     */
+    public function getTranslatable()
+    {
+        return $this->translatable;
+    }    
+    
+    /**
      * Set a callable function that can modify each cell and/or row based on that row's data.
      *
      * @param callable $callable
@@ -184,6 +238,75 @@ class Column
     }
 
     /**
+     * Add a nested column, by name and optional label. Returns the created column.
+     *
+     * @param string $name
+     * @param string $label
+     * @return Column
+     */
+    public function addColumn($id, $label = '')
+    {
+        $this->columns[$id] = new Column($id, $label, $this->depth + 1);
+        $this->sortable = false;
+
+        return $this->columns[$id];
+    }
+
+    /**
+     * Get all nested columns under this column.
+     *
+     * @return array
+     */
+    public function getColumns()
+    {
+        return $this->columns;
+    }
+
+    /**
+     * Returns true if this column has other columns nested under it.
+     *
+     * @return bool
+     */
+    public function hasNestedColumns()
+    {
+        return count($this->columns) > 0;
+    }
+
+    /**
+     * Gets the total column depth of all nested columns.
+     *
+     * @return int
+     */
+    public function getTotalDepth()
+    {
+        if (!$this->hasNestedColumns()) return 1;
+
+        $depth = 1;
+        foreach ($this->getColumns() as $column) {
+            $depth = max($depth, $column->getTotalDepth());
+        }
+        
+        return $depth + 1;
+    }
+
+    /**
+     * Gets the total column span of all nested columns.
+     *
+     * @return int
+     */
+    public function getTotalSpan()
+    {
+        if (!$this->hasNestedColumns()) return 1;
+
+        $count = 0;
+        foreach ($this->getColumns() as $column) {
+            $count += $column->getTotalSpan();
+        }
+
+        return $count;
+    }
+
+    /**
      * Renders the column by either passing the row $data to a formatter, 
      * or grabbing the row data by key based on the column name.
      *
@@ -195,7 +318,8 @@ class Column
         if ($this->hasFormatter()) {
             return call_user_func($this->formatter, $data);
         } else {
-            return isset($data[$this->getID()])? $data[$this->getID()] : '';
+            $content = isset($data[$this->getID()])? $data[$this->getID()] : '';
+            return $this->getTranslatable() ? __($content) : $content;
         }
     }
 }

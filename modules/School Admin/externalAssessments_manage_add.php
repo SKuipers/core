@@ -20,18 +20,18 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Forms\Form;
 
 //Module includes
-include './modules/'.$_SESSION[$guid]['module'].'/moduleFunctions.php';
+require_once __DIR__ . '/moduleFunctions.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/externalAssessments_manage_add.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/externalAssessments_manage.php'>".__($guid, 'Manage External Assessments')."</a> > </div><div class='trailEnd'>".__($guid, 'Add External Assessment').'</div>';
-    echo '</div>';
+    $page->breadcrumbs
+        ->add(__('Manage External Assessments'), 'externalAssessments_manage.php')
+        ->add(__('Add External Assessment'));
 
     $editLink = '';
     if (isset($_GET['editID'])) {
@@ -47,23 +47,23 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/externalAsses
 
     $row = $form->addRow();
         $row->addLabel('name', __('Name'))->description(__('Must be unique.'));
-        $row->addTextField('name')->isRequired()->maxLength(50);
+        $row->addTextField('name')->required()->maxLength(50);
 
     $row = $form->addRow();
         $row->addLabel('nameShort', __('Short Name'))->description(__('Must be unique.'));
-        $row->addTextField('nameShort')->isRequired()->maxLength(10);
+        $row->addTextField('nameShort')->required()->maxLength(10);
 
     $row = $form->addRow();
         $row->addLabel('description', __('Description'))->description(__('Brief description of assessment and how it is used.'));
-        $row->addTextField('description')->isRequired()->maxLength(255);
+        $row->addTextField('description')->required()->maxLength(255);
 
     $row = $form->addRow();
         $row->addLabel('active', __('Active'));
-        $row->addYesNo('active')->isRequired();
+        $row->addYesNo('active')->required();
 
     $row = $form->addRow();
         $row->addLabel('allowFileUpload', __('Allow File Upload'))->description(__('Should the student record include the option of a file upload?'));
-        $row->addYesNo('allowFileUpload')->isRequired()->selected('N');
+        $row->addYesNo('allowFileUpload')->required()->selected('N');
 
     $row = $form->addRow();
         $row->addFooter();

@@ -17,13 +17,15 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+
 //Module includes
-include './modules/'.$_SESSION[$guid]['module'].'/moduleFunctions.php';
+require_once __DIR__ . '/moduleFunctions.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/Attendance/report_courseClassesNotRegistered_byDate_print.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
 
@@ -45,9 +47,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/report_courseCl
     //Proceed!
     echo '<h2>';
     if ($dateStart != $dateEnd) {
-        echo __($guid, 'Classes Not Registered').', '.dateConvertBack($guid, $dateStart).'-'.dateConvertBack($guid, $dateEnd);
+        echo __('Classes Not Registered').', '.dateConvertBack($guid, $dateStart).'-'.dateConvertBack($guid, $dateEnd);
     } else {
-        echo __($guid, 'Classes Not Registered').', '.dateConvertBack($guid, $dateStart);
+        echo __('Classes Not Registered').', '.dateConvertBack($guid, $dateStart);
     }
     echo '</h2>';
 
@@ -93,45 +95,42 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/report_courseCl
 
     if ( count($lastNSchoolDays) == 0 ) {
         echo "<div class='error'>";
-        echo __($guid, 'School is closed on the specified date, and so attendance information cannot be recorded.');
+        echo __('School is closed on the specified date, and so attendance information cannot be recorded.');
         echo '</div>';
     } else if ($result->rowCount() < 1) {
         echo "<div class='error'>";
-        echo __($guid, 'There are no records to display.');
+        echo __('There are no records to display.');
         echo '</div>';
     }
     else if ($dateEnd > $today) {
         echo "<div class='error'>";
-        echo __($guid, 'The specified date is in the future: it must be today or earlier.');
+        echo __('The specified date is in the future: it must be today or earlier.');
         echo '</div>';
     } else {
         //Produce array of roll groups
         $classes = $result->fetchAll();
 
         echo "<div class='linkTop'>";
-        echo "<a href='javascript:window.print()'>".__($guid, 'Print')."<img style='margin-left: 5px' title='".__($guid, 'Print')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/print.png'/></a>";
+        echo "<a href='javascript:window.print()'>".__('Print')."<img style='margin-left: 5px' title='".__('Print')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/print.png'/></a>";
         echo '</div>';
 
         echo "<table cellspacing='0' class='fullWidth colorOddEven'>";
         echo "<tr class='head'>";
         echo '<th width="140px">';
-        echo __($guid, 'Class');
+        echo __('Class');
         echo '</th>';
         echo '<th>';
-        echo __($guid, 'Date');
+        echo __('Date');
         echo '</th>';
         echo '<th width="164px">';
-        echo __($guid, 'History');
+        echo __('History');
         echo '</th>';
         echo '<th>';
-        echo __($guid, 'Tutor');
+        echo __('Tutor');
         echo '</th>';
         echo '</tr>';
 
         $count = 0;
-
-        $timestampStart = dateConvertToTimestamp($dateStart);
-        $timestampEnd = dateConvertToTimestamp($dateEnd);
 
         //Loop through each roll group
         foreach ($classes as $row) {
@@ -150,7 +149,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/report_courseCl
                 echo $row['courseShort'].'.'.$row['class'];
                 echo '</td>';
                 echo '<td>';
-                echo date('M j', $timestampStart).' - '. date('M j, Y', $timestampEnd);
+                echo Format::dateRangeReadable($dateStart, $dateEnd);
                 echo '</td>';
                 echo '<td style="padding: 0;">';
                 
@@ -161,12 +160,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/report_courseCl
                         $link = '';
                         if ($i > ( count($lastNSchoolDays) - 1)) {
                             echo "<td class='highlightNoData'>";
-                            echo '<i>'.__($guid, 'NA').'</i>';
+                            echo '<i>'.__('NA').'</i>';
                             echo '</td>';
                         } else {
-                            $currentDayTimestamp = dateConvertToTimestamp($lastNSchoolDays[$i]);
-                            
-                            $link = './index.php?q=/modules/Attendance/attendance_take_byCourseClass.php&gibbonCourseClassID='.$row['gibbonCourseClassID'].'&currentDate='.$lastNSchoolDays[$i];
 
                             if ( isset($log[$row['gibbonCourseClassID']][$lastNSchoolDays[$i]]) == true ) {
                                 $class = 'highlightPresent';
@@ -175,21 +171,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/report_courseCl
                                     $class = 'highlightAbsent';
                                 } else {
                                     $class = 'highlightNoData';
-                                    $link = '';
                                 }
                             }
 
                             echo "<td class='$class' style='padding: 12px !important;'>";
-                            if ($link != '') {
-                                echo "<a href='$link'>";
-                                echo date('d', $currentDayTimestamp).'<br/>';
-                                echo "<span>".date('M', $currentDayTimestamp).'</span>';
-                                echo '</a>';
-                            } else {
-                                echo date('d', $currentDayTimestamp).'<br/>';
-                                echo "<span>".date('M', $currentDayTimestamp).'</span>';
-                            }
-                            echo '</td>';
+                            echo Format::dateReadable($lastNSchoolDays[$i], '%d').'<br/>';
+                            echo "<span>".Format::dateReadable($lastNSchoolDays[$i], '%b').'</span>';
+                            echo '</td>';                            
 
                             // Wrap to a new line every 10 dates
                             if (  ($historyCount+1) % 10 == 0 ) {
@@ -231,7 +219,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/report_courseCl
         if ($count == 0) {
             echo "<tr";
             echo '<td colspan=3>';
-            echo __($guid, 'All classes have been registered.');
+            echo __('All classes have been registered.');
             echo '</td>';
             echo '</tr>';
         }

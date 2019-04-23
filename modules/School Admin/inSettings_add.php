@@ -23,13 +23,13 @@ use Gibbon\Forms\DatabaseFormFactory;
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/inSettings_add.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/inSettings.php'>".__($guid, 'Manage Individual Needs Settings')."</a> > </div><div class='trailEnd'>".__($guid, 'Add Descriptor').'</div>';
-    echo '</div>';
+    $page->breadcrumbs
+        ->add(__('Manage Individual Needs Settings'), 'inSettings.php')
+        ->add(__('Add Descriptor'));
 
     $editLink = '';
     if (isset($_GET['editID'])) {
@@ -46,15 +46,15 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/inSettings_ad
 
     $row = $form->addRow();
         $row->addLabel('name', __('Name'))->description(__('Must be unique.'));
-        $row->addTextField('name')->isRequired()->maxLength(50);
+        $row->addTextField('name')->required()->maxLength(50);
     
     $row = $form->addRow();
         $row->addLabel('nameShort', __('Short Name'))->description(__('Must be unique.'));
-        $row->addTextField('nameShort')->isRequired()->maxLength(5);
+        $row->addTextField('nameShort')->required()->maxLength(5);
 
     $row = $form->addRow();
         $row->addLabel('sequenceNumber', __('Sequence Number'));
-        $row->addSequenceNumber('sequenceNumber', 'gibbonINDescriptor')->isRequired()->maxLength(5);
+        $row->addSequenceNumber('sequenceNumber', 'gibbonINDescriptor')->required()->maxLength(5);
 
     $row = $form->addRow();
         $row->addLabel('description', __('Description'));

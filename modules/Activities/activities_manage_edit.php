@@ -21,19 +21,19 @@ use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 
 //Module includes
-include './modules/'.$_SESSION[$guid]['module'].'/moduleFunctions.php';
+require_once __DIR__ . '/moduleFunctions.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_manage_edit.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Activities/activities_manage.php'>".__($guid, 'Manage Activities')."</a> > </div><div class='trailEnd'>".__($guid, 'Edit Activity').'</div>';
-    echo '</div>';
-
+    $page->breadcrumbs
+        ->add(__('Manage Activities'), 'activities_manage.php')
+        ->add(__('Edit Activity'));
+    
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, array('error3' => 'Your request failed due to an attachment error.'));
     }
@@ -42,7 +42,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
     $gibbonActivityID = $_GET['gibbonActivityID'];
     if ($gibbonActivityID == 'Y') {
         echo "<div class='error'>";
-        echo __($guid, 'You have not specified one or more required parameters.');
+        echo __('You have not specified one or more required parameters.');
         echo '</div>';
     } else {
         try {
@@ -56,7 +56,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
 
         if ($result->rowCount() != 1) {
             echo "<div class='error'>";
-            echo __($guid, 'The selected record does not exist, or you do not have access to it.');
+            echo __('The selected record does not exist, or you do not have access to it.');
             echo '</div>';
         } else {
             //Let's go!
@@ -67,7 +67,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
 
             if ($search != '' || $gibbonSchoolYearTermID != '') {
                 echo "<div class='linkTop'>";
-                echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Activities/activities_manage.php&search='.$search."&gibbonSchoolYearTermID=".$gibbonSchoolYearTermID."'>".__($guid, 'Back to Search Results').'</a>';
+                echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Activities/activities_manage.php&search='.$search."&gibbonSchoolYearTermID=".$gibbonSchoolYearTermID."'>".__('Back to Search Results').'</a>';
                 echo '</div>';
 			}
 
@@ -80,11 +80,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
 
 			$row = $form->addRow();
 				$row->addLabel('name', __('Name'));
-				$row->addTextField('name')->isRequired()->maxLength(40);
+				$row->addTextField('name')->required()->maxLength(40);
 
 			$row = $form->addRow();
 				$row->addLabel('provider', __('Provider'));
-				$row->addSelect('provider')->isRequired()->fromArray(array('School' => $_SESSION[$guid]['organisationNameShort'], 'External' => __('External')));
+				$row->addSelect('provider')->required()->fromArray(array('School' => $_SESSION[$guid]['organisationNameShort'], 'External' => __('External')));
 
 			$activityTypes = getSettingByScope($connection2, 'Activities', 'activityTypes');
 			if (!empty($activityTypes)) {
@@ -95,11 +95,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
 
 			$row = $form->addRow();
 				$row->addLabel('active', __('Active'));
-				$row->addYesNo('active')->isRequired();
+				$row->addYesNo('active')->required();
 
 			$row = $form->addRow();
 				$row->addLabel('registration', __('Registration'))->description(__('Assuming system-wide registration is open, should this activity be open for registration?'));
-				$row->addYesNo('registration')->isRequired();
+				$row->addYesNo('registration')->required();
 
 			$dateType = getSettingByScope($connection2, 'Activities', 'dateType');
 			$form->addHiddenValue('dateType', $dateType);
@@ -110,19 +110,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
 			} else {
 				$row = $form->addRow();
 					$row->addLabel('listingStart', __('Listing Start Date'))->description(__('Default: 2 weeks before the end of the current term.'));
-					$row->addDate('listingStart')->isRequired()->setValue(dateConvertBack($guid, $values['listingStart']));
+					$row->addDate('listingStart')->required()->setValue(dateConvertBack($guid, $values['listingStart']));
 
 				$row = $form->addRow();
 					$row->addLabel('listingEnd', __('Listing End Date'))->description(__('Default: 2 weeks after the start of next term.'));
-					$row->addDate('listingEnd')->isRequired()->setValue(dateConvertBack($guid, $values['listingEnd']));
+					$row->addDate('listingEnd')->required()->setValue(dateConvertBack($guid, $values['listingEnd']));
 
 				$row = $form->addRow();
 					$row->addLabel('programStart', __('Program Start Date'))->description(__('Default: first day of next term.'));
-					$row->addDate('programStart')->isRequired()->setValue(dateConvertBack($guid, $values['programStart']));
+					$row->addDate('programStart')->required()->setValue(dateConvertBack($guid, $values['programStart']));
 
 				$row = $form->addRow();
 					$row->addLabel('programEnd', __('Program End Date'))->description(__('Default: last day of the next term.'));
-					$row->addDate('programEnd')->isRequired()->setValue(dateConvertBack($guid, $values['programEnd']));
+					$row->addDate('programEnd')->required()->setValue(dateConvertBack($guid, $values['programEnd']));
 			}
 
 			$row = $form->addRow();
@@ -131,7 +131,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
 
 			$row = $form->addRow();
 				$row->addLabel('maxParticipants', __('Max Participants'));
-				$row->addNumber('maxParticipants')->isRequired()->maxLength(4);
+				$row->addNumber('maxParticipants')->required()->maxLength(4);
 
 			$column = $form->addRow()->addColumn();
 				$column->addLabel('description', __('Description'));
@@ -143,7 +143,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
 
 				$row = $form->addRow();
 					$row->addLabel('payment', __('Cost'));
-					$row->addCurrency('payment')->isRequired()->maxLength(9);
+					$row->addCurrency('payment')->required()->maxLength(9);
 
 				$costTypes = array(
 					'Entire Programme' => __('Entire Programme'),
@@ -154,7 +154,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
 
 				$row = $form->addRow();
 					$row->addLabel('paymentType', __('Cost Type'));
-					$row->addSelect('paymentType')->isRequired()->fromArray($costTypes);
+					$row->addSelect('paymentType')->required()->fromArray($costTypes);
 
 				$costStatuses = array(
 					'Finalised' => __('Finalised'),
@@ -163,7 +163,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
 
 				$row = $form->addRow();
 					$row->addLabel('paymentFirmness', __('Cost Status'));
-					$row->addSelect('paymentFirmness')->isRequired()->fromArray($costStatuses);
+					$row->addSelect('paymentFirmness')->required()->fromArray($costStatuses);
 			}
 
 			$form->addRow()->addHeading(__('Current Time Slots'));
@@ -219,19 +219,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
 				$form->addRow()->addSubheading(__('Slot').' '.$i)->addClass("slotRow{$i}");
 
 				$row = $form->addRow()->addClass("slotRow{$i}");
-					$row->addLabel("gibbonDaysOfWeekID{$i}", sprintf(__($guid, 'Slot %1$s Day'), $i));
+					$row->addLabel("gibbonDaysOfWeekID{$i}", sprintf(__('Slot %1$d Day'), $i));
 					$row->addSelect("gibbonDaysOfWeekID{$i}")->fromQuery($pdo, $sqlWeekdays)->placeholder();
 
 				$row = $form->addRow()->addClass("slotRow{$i}");
-					$row->addLabel('timeStart'.$i, sprintf(__($guid, 'Slot %1$s Start Time'), $i));
+					$row->addLabel('timeStart'.$i, sprintf(__('Slot %1$d Start Time'), $i));
 					$row->addTime('timeStart'.$i);
 
 				$row = $form->addRow()->addClass("slotRow{$i}");
-					$row->addLabel("timeEnd{$i}", sprintf(__($guid, 'Slot %1$s End Time'), $i));
+					$row->addLabel("timeEnd{$i}", sprintf(__('Slot %1$d End Time'), $i));
 					$row->addTime("timeEnd{$i}")->chainedTo('timeStart'.$i);
 
 				$row = $form->addRow()->addClass("slotRow{$i}");
-					$row->addLabel("slot{$i}Location", sprintf(__($guid, 'Slot %1$s Location'), $i));
+					$row->addLabel("slot{$i}Location", sprintf(__('Slot %1$d Location'), $i));
 					$row->addRadio("slot{$i}Location")->fromArray($locations)->inline();
 
 				$form->toggleVisibilityByClass("slotRow{$i}Internal")->onRadio("slot{$i}Location")->when('Internal');
@@ -288,9 +288,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
             $form->addRow()->addHeading(__('New Staff'));
 
 			$row = $form->addRow();
-				$row->addLabel('staff', 'Staff');
-				$row->addSelectStaff('staff')->selectMultiple();
-
+				$row->addLabel('staff', __('Staff'));
+				$row->addSelectUsers('staff', $_SESSION[$guid]['gibbonSchoolYearID'], array('includeStaff' => true))->selectMultiple();
+			
 			$staffRoles = array(
 				'Organiser' => __('Organiser'),
 				'Coach'     => __('Coach'),

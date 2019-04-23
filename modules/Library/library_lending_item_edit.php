@@ -20,18 +20,24 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 
+$gibbonLibraryItemEventID = trim($_GET['gibbonLibraryItemEventID']) ?? '';
+$gibbonLibraryItemID = trim($_GET['gibbonLibraryItemID']) ?? '';
+
+$page->breadcrumbs
+    ->add(__('Lending & Activity Log'), 'library_lending.php')
+    ->add(__('View Item'), 'library_lending_item.php', ['gibbonLibraryItemID' => $gibbonLibraryItemID])
+    ->add(__('Edit Item'));
+
 if (isActionAccessible($guid, $connection2, '/modules/Library/library_lending_item_edit.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
-    //Check if school year specified
-    $gibbonLibraryItemEventID = $_GET['gibbonLibraryItemEventID'];
-    $gibbonLibraryItemID = $_GET['gibbonLibraryItemID'];
-    if ($gibbonLibraryItemEventID == '' or $gibbonLibraryItemID == '') {
+    // check if school year specified
+    if (empty($gibbonLibraryItemEventID) or empty($gibbonLibraryItemID)) {
         echo "<div class='error'>";
-        echo __($guid, 'You have not specified one or more required parameters.');
+        echo __('You have not specified one or more required parameters.');
         echo '</div>';
     } else {
         try {
@@ -50,15 +56,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_lending_it
 
         if ($result->rowCount() != 1) {
             echo "<div class='error'>";
-            echo __($guid, 'The specified record cannot be found.');
+            echo __('The specified record cannot be found.');
             echo '</div>';
         } else {
             //Let's go!
             $values = $result->fetch();
-
-            echo "<div class='trail'>";
-            echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/library_lending.php'>".__($guid, 'Lending & Activity Log')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/library_lending_item.php&gibbonLibraryItemID=$gibbonLibraryItemID'>".__($guid, 'View Item')."</a> > </div><div class='trailEnd'>".__($guid, 'Edit Item').'</div>';
-            echo '</div>';
 
             if (isset($_GET['return'])) {
                 returnProcess($guid, $_GET['return'], null, array('success0' => 'Your request was completed successfully.'));
@@ -66,14 +68,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_lending_it
 
             if ($_GET['name'] != '' or $_GET['gibbonLibraryTypeID'] != '' or $_GET['gibbonSpaceID'] != '' or $_GET['status'] != '') {
                 echo "<div class='linkTop'>";
-                echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Library/library_lending_item.php&name='.$_GET['name']."&gibbonLibraryItemEventID=$gibbonLibraryItemEventID&gibbonLibraryItemID=$gibbonLibraryItemID&gibbonLibraryTypeID=".$_GET['gibbonLibraryTypeID'].'&gibbonSpaceID='.$_GET['gibbonSpaceID'].'&status='.$_GET['status']."'>".__($guid, 'Back').'</a>';
+                echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Library/library_lending_item.php&name='.$_GET['name']."&gibbonLibraryItemEventID=$gibbonLibraryItemEventID&gibbonLibraryItemID=$gibbonLibraryItemID&gibbonLibraryTypeID=".$_GET['gibbonLibraryTypeID'].'&gibbonSpaceID='.$_GET['gibbonSpaceID'].'&status='.$_GET['status']."'>".__('Back').'</a>';
                 echo '</div>';
             }
 
             $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/library_lending_item_editProcess.php?gibbonLibraryItemEventID=$gibbonLibraryItemEventID&gibbonLibraryItemID=$gibbonLibraryItemID&name=".$_GET['name'].'&gibbonLibraryTypeID='.$_GET['gibbonLibraryTypeID'].'&gibbonSpaceID='.$_GET['gibbonSpaceID'].'&status='.$_GET['status']);
-
             $form->setFactory(DatabaseFormFactory::create($pdo));
-            $form->setClass('smallIntBorder fullWidth');
 
             $form->addHiddenValue('address', $_SESSION[$guid]['address']);
 
@@ -81,15 +81,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_lending_it
 
             $row = $form->addRow();
                 $row->addLabel('id', __('ID'));
-                $row->addTextField('id')->setValue($values['id'])->readonly()->isRequired();
+                $row->addTextField('id')->setValue($values['id'])->readonly()->required();
 
             $row = $form->addRow();
                 $row->addLabel('name', __('Name'));
-                $row->addTextField('name')->setValue($values['name'])->readonly()->isRequired();
+                $row->addTextField('name')->setValue($values['name'])->readonly()->required();
 
             $row = $form->addRow();
                 $row->addLabel('statusCurrent', __('Current Status'));
-                $row->addTextField('statusCurrent')->setValue($values['status'])->readonly()->isRequired();
+                $row->addTextField('statusCurrent')->setValue($values['status'])->readonly()->required();
 
             $form->addRow()->addHeading(__('This Event'));
 
@@ -102,16 +102,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_lending_it
             );
             $row = $form->addRow();
                 $row->addLabel('status', __('New Status'));
-                $row->addSelect('status')->fromArray($statuses)->isRequired()->selected($values['status'])->placeholder();
+                $row->addSelect('status')->fromArray($statuses)->required()->selected($values['status'])->placeholder();
 
             $form->addHiddenValue('gibbonPersonIDStatusResponsible', $values['gibbonPersonIDStatusResponsible']);
             $row = $form->addRow();
                 $row->addLabel('gibbonPersonIDStatusResponsiblename', __('Responsible User'));
-                $row->addTextField('gibbonPersonIDStatusResponsiblename')->setValue(formatName('', htmlPrep($values['preferredName']), htmlPrep($values['surname']), 'Student', true))->readonly()->isRequired();
+                $row->addTextField('gibbonPersonIDStatusResponsiblename')->setValue(formatName('', htmlPrep($values['preferredName']), htmlPrep($values['surname']), 'Student', true))->readonly()->required();
 
             $row = $form->addRow();
                 $row->addLabel('returnExpected', __('Expected Return Date'));
-                $row->addDate('returnExpected')->setValue(dateConvertBack($guid, $values['returnExpected']))->isRequired();
+                $row->addDate('returnExpected')->setValue(dateConvertBack($guid, $values['returnExpected']))->required();
 
 
             $row = $form->addRow()->addHeading(__('On Return'));
@@ -170,4 +170,3 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_lending_it
         }
     }
 }
-?>

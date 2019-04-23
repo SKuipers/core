@@ -17,19 +17,21 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Forms\Form;
+
 //Module includes
-include './modules/'.$_SESSION[$guid]['module'].'/moduleFunctions.php';
+require_once __DIR__ . '/moduleFunctions.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_duplicate.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     $highestAction = getHighestGroupedAction($guid, $_GET['q'], $connection2);
     if ($highestAction == false) {
         echo "<div class='error'>";
-        echo __($guid, 'The highest grouped action cannot be determined.');
+        echo __('The highest grouped action cannot be determined.');
         echo '</div>';
     } else {
         //Set variables
@@ -37,7 +39,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_duplicate.
 
         //Proceed!
         //Get viewBy, date and class variables
-        $params = '';
+        $params = [];
         $viewBy = null;
         if (isset($_GET['viewBy'])) {
             $viewBy = $_GET['viewBy'];
@@ -62,15 +64,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_duplicate.
             }
             list($dateYear, $dateMonth, $dateDay) = explode('-', $date);
             $dateStamp = mktime(0, 0, 0, $dateMonth, $dateDay, $dateYear);
-            $params = "&viewBy=date&date=$date";
+            $params += [
+                'viewBy' => 'date',
+                'date' => $date,
+            ];
         } elseif ($viewBy == 'class') {
             $class = null;
             if (isset($_GET['class'])) {
                 $class = $_GET['class'];
             }
             $gibbonCourseClassID = $_GET['gibbonCourseClassID'];
-            $params = "&viewBy=class&class=$class&gibbonCourseClassID=$gibbonCourseClassID&subView=$subView";
-        }
+            $params += [
+                'viewBy' => 'class',
+                'date' => $class,
+                'gibbonCourseClassID' => $gibbonCourseClassID,
+                'subView' => $subView,
+            ];
+		}
 
         list($todayYear, $todayMonth, $todayDay) = explode('-', $today);
         $todayStamp = mktime(0, 0, 0, $todayMonth, $todayDay, $todayYear);
@@ -80,7 +90,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_duplicate.
         $gibbonPlannerEntryID = $_GET['gibbonPlannerEntryID'];
         if ($gibbonPlannerEntryID == '' or ($viewBy == 'class' and $gibbonCourseClassID == 'Y')) {
             echo "<div class='error'>";
-            echo __($guid, 'You have not specified one or more required parameters.');
+            echo __('You have not specified one or more required parameters.');
             echo '</div>';
         } else {
             try {
@@ -101,28 +111,27 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_duplicate.
                 $otherYearDuplicateSuccess = false;
                 //Deal with duplicate to other year
                 $returns = array();
-                $returns['success0'] = __($guid, 'Your request was completed successfully, but the target class is in another year, so you cannot see the results here.');
+                $returns['success0'] = __('Your request was completed successfully, but the target class is in another year, so you cannot see the results here.');
                 if (isset($_GET['return'])) {
                     returnProcess($guid, $_GET['return'], null, $returns);
                 }
                 if ($otherYearDuplicateSuccess != true) {
                     echo "<div class='error'>";
-                    echo __($guid, 'The selected record does not exist, or you do not have access to it.');
+                    echo __('The selected record does not exist, or you do not have access to it.');
                     echo '</div>';
                 }
             } else {
                 //Let's go!
-                $row = $result->fetch();
+				$values = $result->fetch();
 
-                if ($viewBy == 'date') {
-                    $extra = dateConvertBack($guid, $date);
-                } else {
-                    $extra = $row['course'].'.'.$row['class'];
-                }
+				// target of the planner
+				$target = ($viewBy === 'class') ? $values['course'].'.'.$values['class'] : dateConvertBack($guid, $date);
 
-                echo "<div class='trail'>";
-                echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/planner.php$params'>".__($guid, 'Planner')." $extra</a> > </div><div class='trailEnd'>".__($guid, 'Duplicate Lesson Plan').'</div>';
-                echo '</div>';
+				$page->breadcrumbs
+					->add(__('Planner for {classDesc}', [
+						'classDesc' => $target,
+					]), 'planner.php', $params)
+					->add(__('Duplicate Lesson Plan'));
 
                 if (isset($_GET['return'])) {
                     returnProcess($guid, $_GET['return'], null, null);
@@ -137,123 +146,53 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_duplicate.
                 }
 
                 if ($step == 1) {
-                    ?>
-					<p>
-					<?php echo __($guid, 'This process will duplicate all aspects of the selected lesson. If a lesson is copied into another course, Smart Block content will be added into the lesson body, so it does not get left out.') ?>
-					</p>
-					<form method="post" action="<?php echo $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.$_SESSION[$guid]['module']."/planner_duplicate.php&gibbonPlannerEntryID=$gibbonPlannerEntryID&viewBy=$viewBy&gibbonCourseClassID=$gibbonCourseClassID&date=$date&step=2" ?>">
-						<table class='smallIntBorder fullWidth' cellspacing='0'>
-							<tr>
-								<td style='width: 275px'>
-									<b><?php echo __($guid, 'Target Year') ?> *</b><br/>
-								</td>
-								<td class="right">
-									<select name="gibbonSchoolYearID" id="gibbonSchoolYearID" class="standardWidth">
-										<?php
-                                        echo "<option value='Please select...'>".__($guid, 'Please select...').'</option>';
-										try {
-											$dataSelect = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID']);
-											$sqlSelect = 'SELECT * FROM gibbonSchoolYear WHERE sequenceNumber>=(SELECT sequenceNumber FROM gibbonSchoolYear WHERE gibbonSchoolYearID=:gibbonSchoolYearID) ORDER BY sequenceNumber';
-											$resultSelect = $connection2->prepare($sqlSelect);
-											$resultSelect->execute($dataSelect);
-										} catch (PDOException $e) {
-											echo $e->getMessage();
-										}
-										while ($rowSelect = $resultSelect->fetch()) {
-											$selected = '';
-											if ($rowSelect['gibbonSchoolYearID'] == $_SESSION[$guid]['gibbonSchoolYearID']) {
-												$selected = 'selected';
-											}
-											echo "<option $selected value='".$rowSelect['gibbonSchoolYearID']."'>".htmlPrep($rowSelect['name']).'</option>';
-										}
-										?>
-									</select>
-									<script type="text/javascript">
-										var gibbonCourseClassID=new LiveValidation('gibbonCourseClassID');
-										gibbonCourseClassID.add(Validate.Exclusion, { within: ['Please select...'], failureMessage: "<?php echo __($guid, 'Select something!') ?>"});
-									</script>
-								</td>
-							</tr>
-							<tr>
-								<td style='width: 275px'>
-									<b><?php echo __($guid, 'Target Class') ?> *</b><br/>
-								</td>
-								<td class="right">
-									<select name="gibbonCourseClassID" id="gibbonCourseClassID" class="standardWidth">
-										<?php
-                                        echo "<option value='Please select...'>".__($guid, 'Please select...').'</option>';
-										try {
-											if ($highestAction == 'Lesson Planner_viewEditAllClasses') {
-												$dataSelect = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID']);
-												$sqlSelect = 'SELECT gibbonCourseClass.gibbonCourseClassID, gibbonCourse.nameShort AS course, gibbonCourseClass.nameShort AS class, gibbonSchoolYear.gibbonSchoolYearID FROM gibbonCourseClass JOIN gibbonCourse ON (gibbonCourseClass.gibbonCourseID=gibbonCourse.gibbonCourseID) JOIN gibbonSchoolYear ON (gibbonCourse.gibbonSchoolYearID=gibbonSchoolYear.gibbonSchoolYearID) WHERE gibbonSchoolYear.sequenceNumber>=(SELECT sequenceNumber FROM gibbonSchoolYear WHERE gibbonSchoolYearID=:gibbonSchoolYearID) ORDER BY gibbonSchoolYear.gibbonSchoolYearID, course, class';
-											} else {
-												$dataSelect = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID']);
-												$sqlSelect = 'SELECT gibbonCourseClass.gibbonCourseClassID, gibbonCourse.nameShort AS course, gibbonCourseClass.nameShort AS class, gibbonSchoolYear.gibbonSchoolYearID FROM gibbonCourseClassPerson JOIN gibbonCourseClass ON (gibbonCourseClassPerson.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) JOIN gibbonCourse ON (gibbonCourseClass.gibbonCourseID=gibbonCourse.gibbonCourseID) JOIN gibbonSchoolYear ON (gibbonCourse.gibbonSchoolYearID=gibbonSchoolYear.gibbonSchoolYearID) WHERE gibbonSchoolYear.sequenceNumber>=(SELECT sequenceNumber FROM gibbonSchoolYear WHERE gibbonSchoolYearID=:gibbonSchoolYearID) AND gibbonPersonID=:gibbonPersonID ORDER BY course, class';
-											}
-											$resultSelect = $connection2->prepare($sqlSelect);
-											$resultSelect->execute($dataSelect);
-										} catch (PDOException $e) {
-											echo $e->getMessage();
-										}
-										while ($rowSelect = $resultSelect->fetch()) {
-											echo "<option class='".$rowSelect['gibbonSchoolYearID']."' value='".$rowSelect['gibbonCourseClassID']."'>".htmlPrep($rowSelect['course']).'.'.htmlPrep($rowSelect['class']).'</option>';
-										}
-										?>
-									</select>
-									<script type="text/javascript">
-										var gibbonCourseClassID=new LiveValidation('gibbonCourseClassID');
-										gibbonCourseClassID.add(Validate.Exclusion, { within: ['Please select...'], failureMessage: "<?php echo __($guid, 'Select something!') ?>"});
-									</script>
-									<script type="text/javascript">
-										$("#gibbonCourseClassID").chainedTo("#gibbonSchoolYearID");
-									</script>
-								</td>
-							</tr>
-							<?php
-                            //DUPLICATE MARKBOOK COLUMN?
-                            try {
-                                $dataMarkbook = array('gibbonCourseClassID' => $gibbonCourseClassID, 'gibbonPlannerEntryID' => $gibbonPlannerEntryID);
-                                $sqlMarkbook = 'SELECT * FROM gibbonMarkbookColumn WHERE gibbonCourseClassID=:gibbonCourseClassID AND gibbonPlannerEntryID=:gibbonPlannerEntryID';
-                                $resultMarkbook = $connection2->prepare($sqlMarkbook);
-                                $resultMarkbook->execute($dataMarkbook);
-                            } catch (PDOException $e) {
-                                echo "<div class='error'>".$e->getMessage().'</div>';
-                            }
+                    echo "<p>".__('This process will duplicate all aspects of the selected lesson. If a lesson is copied into another course, Smart Block content will be added into the lesson body, so it does not get left out.')."</p>";
 
-							if ($resultMarkbook->rowCount() >= 1) {
-								?>
-								<tr>
-									<td>
-										<b><?php echo __($guid, 'Duplicate Markbook Columns?') ?></b><br/>
-										<span class="emphasis small"><?php echo __($guid, 'Will duplicate any columns linked to this lesson.') ?><br/></span>
-									</td>
-									<td class="right">
-										<select name="duplicate" id="duplicate" class="standardWidth">
-											<option value='N'>N</option>
-											<option value='Y'>Y</option>
-										</select>
-									</td>
-								</tr>
-								<?php
+                    $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.$_SESSION[$guid]['module']."/planner_duplicate.php&gibbonPlannerEntryID=$gibbonPlannerEntryID&viewBy=$viewBy&gibbonCourseClassID=$gibbonCourseClassID&date=$date&step=2");
 
-							}
-							?>
+                    $form->addHiddenValue('viewBy', $viewBy);
+                    $form->addHiddenValue('gibbonPlannerEntryID_org',  $gibbonPlannerEntryID);
+                    $form->addHiddenValue('subView', $subView);
+                    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
 
-							<tr>
-								<td>
-									<span class="emphasis small">* <?php echo __($guid, 'denotes a required field'); ?></span>
-								</td>
-								<td class="right">
-									<input name="viewBy" id="viewBy" value="<?php echo $viewBy ?>" type="hidden">
-									<input name="gibbonPlannerEntryID_org" id="gibbonPlannerEntryID_org" value="<?php echo $gibbonPlannerEntryID ?>" type="hidden">
-									<input name="subView" id="subView" value="<?php echo $subView ?>" type="hidden">
-									<input type="hidden" name="address" value="<?php echo $_SESSION[$guid]['address'] ?>">
-									<input type="submit" value="<?php echo __($guid, 'Next') ?>">
-								</td>
-							</tr>
-						</table>
-					</form>
-					<?php
+                    $data = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID']);
+                    $sql = 'SELECT gibbonSchoolYearID AS value, name FROM gibbonSchoolYear WHERE sequenceNumber>=(SELECT sequenceNumber FROM gibbonSchoolYear WHERE gibbonSchoolYearID=:gibbonSchoolYearID) ORDER BY sequenceNumber';
+                    $row = $form->addRow();
+                        $row->addLabel('gibbonSchoolYearID', __('Target Year'));
+                        $row->addSelect('gibbonSchoolYearID')->fromQuery($pdo, $sql, $data)->required()->placeholder()->selected($_SESSION[$guid]['gibbonSchoolYearID']);
+
+
+                    if ($highestAction == 'Lesson Planner_viewEditAllClasses') {
+                        $data = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID']);
+                        $sql = 'SELECT gibbonSchoolYear.gibbonSchoolYearID AS chainedTo, gibbonCourseClass.gibbonCourseClassID AS value, CONCAT(gibbonCourse.nameShort,".",gibbonCourseClass.nameShort) AS name FROM gibbonCourseClass JOIN gibbonCourse ON (gibbonCourseClass.gibbonCourseID=gibbonCourse.gibbonCourseID) JOIN gibbonSchoolYear ON (gibbonCourse.gibbonSchoolYearID=gibbonSchoolYear.gibbonSchoolYearID) WHERE gibbonSchoolYear.sequenceNumber>=(SELECT sequenceNumber FROM gibbonSchoolYear WHERE gibbonSchoolYearID=:gibbonSchoolYearID) ORDER BY gibbonSchoolYear.gibbonSchoolYearID, name';
+                    } else {
+                        $data = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID']);
+                        $sql = 'SELECT gibbonSchoolYear.gibbonSchoolYearID AS chainedTo, gibbonCourseClass.gibbonCourseClassID AS value, CONCAT(gibbonCourse.nameShort,".",gibbonCourseClass.nameShort) AS name FROM gibbonCourseClassPerson JOIN gibbonCourseClass ON (gibbonCourseClassPerson.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) JOIN gibbonCourse ON (gibbonCourseClass.gibbonCourseID=gibbonCourse.gibbonCourseID) JOIN gibbonSchoolYear ON (gibbonCourse.gibbonSchoolYearID=gibbonSchoolYear.gibbonSchoolYearID) WHERE gibbonSchoolYear.sequenceNumber>=(SELECT sequenceNumber FROM gibbonSchoolYear WHERE gibbonSchoolYearID=:gibbonSchoolYearID) AND gibbonPersonID=:gibbonPersonID ORDER BY name';
+                    }
+                    $row = $form->addRow();
+                        $row->addLabel('gibbonCourseClassID', __('Target Class'));
+                        $row->addSelect('gibbonCourseClassID')->fromQueryChained($pdo, $sql, $data, 'gibbonSchoolYearID')->required()->placeholder();
+
+                    //DUPLICATE MARKBOOK COLUMN?
+                    try {
+                        $dataMarkbook = array('gibbonCourseClassID' => $gibbonCourseClassID, 'gibbonPlannerEntryID' => $gibbonPlannerEntryID);
+                        $sqlMarkbook = 'SELECT * FROM gibbonMarkbookColumn WHERE gibbonCourseClassID=:gibbonCourseClassID AND gibbonPlannerEntryID=:gibbonPlannerEntryID';
+                        $resultMarkbook = $connection2->prepare($sqlMarkbook);
+                        $resultMarkbook->execute($dataMarkbook);
+                    } catch (PDOException $e) {
+                        echo "<div class='error'>".$e->getMessage().'</div>';
+                    }
+                    if ($resultMarkbook->rowCount() >= 1) {
+                        $row = $form->addRow();
+                            $row->addLabel('duplicate', __('Duplicate Markbook Columns?'))->description(__('Will duplicate any columns linked to this lesson.'));
+                            $row->addYesNo('duplicate')->selected('N');
+                    }
+
+                    $row = $form->addRow();
+                        $row->addFooter();
+                        $row->addSubmit(__('Next'));
+
+                    echo $form->getOutput();
 
                 } elseif ($step == 2) {
                     $gibbonPlannerEntryID_org = $_POST['gibbonPlannerEntryID_org'];
@@ -265,236 +204,109 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_duplicate.
                     }
                     if ($gibbonCourseClassID == '' or $gibbonSchoolYearID == '') {
                         echo "<div class='error'>";
-                        echo __($guid, 'You have not specified one or more required parameters.');
+                        echo __('You have not specified one or more required parameters.');
                         echo '</div>';
                     } else {
-                        ?>
-						<form method="post" action="<?php echo $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/planner_duplicateProcess.php?gibbonPlannerEntryID=$gibbonPlannerEntryID" ?>">
-							<table class='smallIntBorder fullWidth' cellspacing='0'>
-								<tr>
-									<td style='width: 275px'>
-										<b><?php echo __($guid, 'Class') ?> *</b><br/>
-										<span class="emphasis small"><?php echo __($guid, 'This value cannot be changed.') ?></span>
-									</td>
-									<td class="right">
-										<?php
-                                        try {
-                                            if ($highestAction == 'Lesson Planner_viewEditAllClasses') {
-                                                $dataSelect = array('gibbonCourseClassID' => $gibbonCourseClassID, 'gibbonSchoolYearID' => $gibbonSchoolYearID);
-                                                $sqlSelect = 'SELECT gibbonCourseClass.gibbonCourseClassID, gibbonCourse.nameShort AS course, gibbonCourseClass.nameShort AS class FROM gibbonCourseClass JOIN gibbonCourse ON (gibbonCourseClass.gibbonCourseID=gibbonCourse.gibbonCourseID) WHERE gibbonCourse.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonCourseClass.gibbonCourseClassID=:gibbonCourseClassID ORDER BY course, class';
-                                            } else {
-                                                $dataSelect = array('gibbonCourseClassID' => $gibbonCourseClassID, 'gibbonSchoolYearID' => $gibbonSchoolYearID, 'gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID']);
-                                                $sqlSelect = 'SELECT gibbonCourseClass.gibbonCourseClassID, gibbonCourse.nameShort AS course, gibbonCourseClass.nameShort AS class FROM gibbonCourseClassPerson JOIN gibbonCourseClass ON (gibbonCourseClassPerson.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) JOIN gibbonCourse ON (gibbonCourseClass.gibbonCourseID=gibbonCourse.gibbonCourseID) WHERE gibbonCourse.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonPersonID=:gibbonPersonID AND gibbonCourseClass.gibbonCourseClassID=:gibbonCourseClassID ORDER BY course, class';
-                                            }
-                                            $resultSelect = $connection2->prepare($sqlSelect);
-                                            $resultSelect->execute($dataSelect);
-                                        } catch (PDOException $e) {
-                                            echo $e->getMEssage();
-                                        }
-										if ($resultSelect->rowCount() == 1) {
-											$rowSelect = $resultSelect->fetch()
-                                            ?>
-											<input readonly name="class" id="class" maxlength=50 value="<?php echo htmlPrep($rowSelect['course']).'.'.htmlPrep($rowSelect['class']) ?>" type="text" class="standardWidth">
-											<?php
+                        $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/planner_duplicateProcess.php?gibbonPlannerEntryID=$gibbonPlannerEntryID");
 
-										}
-										?>
-									</td>
-								</tr>
+                        $form->addHiddenValue('duplicate', $duplicate);
+                        $form->addHiddenValue('gibbonPlannerEntryID_org', $gibbonPlannerEntryID_org);
+                        $form->addHiddenValue('gibbonCourseClassID', $gibbonCourseClassID);
+                        $form->addHiddenValue('gibbonSchoolYearID', $gibbonSchoolYearID);
+                        $form->addHiddenValue('viewBy', $viewBy);
+                        $form->addHiddenValue('subView', $subView);
+                        $form->addHiddenValue('address', $_SESSION[$guid]['address']);
 
-								<?php
-                                if ($row['gibbonUnitID'] != '' and $gibbonSchoolYearID == $_SESSION[$guid]['gibbonSchoolYearID']) {
-                                    //KEEP IN UNIT
-                                    try {
-                                        $dataMarkbook = array('gibbonCourseClassID' => $gibbonCourseClassID, 'gibbonUnitID' => $row['gibbonUnitID']);
-                                        $sqlMarkbook = 'SELECT * FROM gibbonUnitClass WHERE gibbonCourseClassID=:gibbonCourseClassID AND gibbonUnitID=:gibbonUnitID';
-                                        $resultMarkbook = $connection2->prepare($sqlMarkbook);
-                                        $resultMarkbook->execute($dataMarkbook);
-                                    } catch (PDOException $e) {
-                                        echo "<div class='error'>".$e->getMessage().'</div>';
-                                    }
+                        $class='';
+                        try {
+                            if ($highestAction == 'Lesson Planner_viewEditAllClasses') {
+                                $dataSelect = array('gibbonCourseClassID' => $gibbonCourseClassID, 'gibbonSchoolYearID' => $gibbonSchoolYearID);
+                                $sqlSelect = 'SELECT gibbonCourseClass.gibbonCourseClassID, gibbonCourse.nameShort AS course, gibbonCourseClass.nameShort AS class FROM gibbonCourseClass JOIN gibbonCourse ON (gibbonCourseClass.gibbonCourseID=gibbonCourse.gibbonCourseID) WHERE gibbonCourse.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonCourseClass.gibbonCourseClassID=:gibbonCourseClassID ORDER BY course, class';
+                            } else {
+                                $dataSelect = array('gibbonCourseClassID' => $gibbonCourseClassID, 'gibbonSchoolYearID' => $gibbonSchoolYearID, 'gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID']);
+                                $sqlSelect = 'SELECT gibbonCourseClass.gibbonCourseClassID, gibbonCourse.nameShort AS course, gibbonCourseClass.nameShort AS class FROM gibbonCourseClassPerson JOIN gibbonCourseClass ON (gibbonCourseClassPerson.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) JOIN gibbonCourse ON (gibbonCourseClass.gibbonCourseID=gibbonCourse.gibbonCourseID) WHERE gibbonCourse.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonPersonID=:gibbonPersonID AND gibbonCourseClass.gibbonCourseClassID=:gibbonCourseClassID ORDER BY course, class';
+                            }
+                            $resultSelect = $connection2->prepare($sqlSelect);
+                            $resultSelect->execute($dataSelect);
+                        } catch (PDOException $e) {
+                            echo $e->getMEssage();
+                        }
+                        if ($resultSelect->rowCount() == 1) {
+                            $rowSelect = $resultSelect->fetch();
+                            $class = htmlPrep($rowSelect['course']).'.'.htmlPrep($rowSelect['class']);
+                        }
+                        $row = $form->addRow();
+                            $row->addLabel('class', __('Class'));
+                            $row->addTextField('class')->setValue($class)->readonly()->required();
 
-                                    if ($resultMarkbook->rowCount() == 1) {
-                                        $rowMarkbook = $resultMarkbook->fetch();
-                                        echo '<input name="gibbonUnitClassID" id="gibbonUnitClassID" value="'.$rowMarkbook['gibbonUnitClassID'].'" type="hidden">';
-                                        ?>
-										<tr>
-											<td>
-												<b><?php echo __($guid, 'Keep lesson in original unit?') ?></b><br/>
-												<span class="emphasis small"><?php echo __($guid, 'Only available if source and target classes are in the same course.') ?><br/></span>
-											</td>
-											<td class="right">
-												<select name="keepUnit" id="keepUnit" class="standardWidth">
-													<option value='Y'><?php echo __($guid, 'Yes') ?></option>
-													<option value='N'><?php echo __($guid, 'No') ?></option>
-												</select>
-											</td>
-										</tr>
-										<?php
+                        if ($values['gibbonUnitID'] != '' && $gibbonSchoolYearID == $_SESSION[$guid]['gibbonSchoolYearID']) {
+                            //KEEP IN UNIT
+                            try {
+                                $dataMarkbook = array('gibbonCourseClassID' => $gibbonCourseClassID, 'gibbonUnitID' => $values['gibbonUnitID']);
+                                $sqlMarkbook = 'SELECT * FROM gibbonUnitClass WHERE gibbonCourseClassID=:gibbonCourseClassID AND gibbonUnitID=:gibbonUnitID';
+                                $resultMarkbook = $connection2->prepare($sqlMarkbook);
+                                $resultMarkbook->execute($dataMarkbook);
+                            } catch (PDOException $e) {
+                                echo "<div class='error'>".$e->getMessage().'</div>';
+                            }
 
-                                    }
-                                }
-                        		?>
+                            if ($resultMarkbook->rowCount() == 1) {
+                                $rowMarkbook = $resultMarkbook->fetch();
+                                $form->addHiddenValue('gibbonUnitClassID', $rowMarkbook['gibbonUnitClassID']);
 
-								<tr>
-									<td>
-										<b><?php echo __($guid, 'Name') ?> *</b><br/>
-									</td>
-									<td class="right">
-										<input name="name" id="name" maxlength=20 value="<?php echo htmlPrep($row['name']) ?>" type="text" class="standardWidth">
-										<script type="text/javascript">
-											var name2=new LiveValidation('name');
-											name2.add(Validate.Presence);
-										</script>
-									</td>
-								</tr>
+                                $row = $form->addRow();
+                                    $row->addLabel('keepUnit', __('Keep lesson in original unit?'))->description(__('Only available if source and target classes are in the same course.'));
+                                    $row->addYesNo('keepUnit')->selected('Y')->required();
 
-								<?php
-                                //Try and find the next unplanned slot for this class.
-                                try {
-                                    $dataNext = array('gibbonCourseClassID' => $gibbonCourseClassID, 'date' => date('Y-m-d'));
-                                    $sqlNext = 'SELECT timeStart, timeEnd, date FROM gibbonTTDayRowClass JOIN gibbonTTColumnRow ON (gibbonTTDayRowClass.gibbonTTColumnRowID=gibbonTTColumnRow.gibbonTTColumnRowID) JOIN gibbonTTColumn ON (gibbonTTColumnRow.gibbonTTColumnID=gibbonTTColumn.gibbonTTColumnID) JOIN gibbonTTDay ON (gibbonTTDayRowClass.gibbonTTDayID=gibbonTTDay.gibbonTTDayID) JOIN gibbonTTDayDate ON (gibbonTTDayDate.gibbonTTDayID=gibbonTTDay.gibbonTTDayID) WHERE gibbonCourseClassID=:gibbonCourseClassID AND date>=:date ORDER BY date, timestart LIMIT 0, 10';
-                                    $resultNext = $connection2->prepare($sqlNext);
-                                    $resultNext->execute($dataNext);
-                                } catch (PDOException $e) {
-                                }
-								$nextDate = '';
-								$nextTimeStart = '';
-								$nextTimeEnd = '';
-								while ($rowNext = $resultNext->fetch()) {
-									try {
-										$dataPlanner = array('date' => $rowNext['date'], 'timeStart' => $rowNext['timeStart'], 'timeEnd' => $rowNext['timeEnd'], 'gibbonCourseClassID' => $gibbonCourseClassID);
-										$sqlPlanner = 'SELECT * FROM gibbonPlannerEntry WHERE date=:date AND timeStart=:timeStart AND timeEnd=:timeEnd AND gibbonCourseClassID=:gibbonCourseClassID';
-										$resultPlanner = $connection2->prepare($sqlPlanner);
-										$resultPlanner->execute($dataPlanner);
-									} catch (PDOException $e) {
-									}
-									if ($resultPlanner->rowCount() == 0) {
-										$nextDate = $rowNext['date'];
-										$nextTimeStart = $rowNext['timeStart'];
-										$nextTimeEnd = $rowNext['timeEnd'];
-										break;
-									}
-								}
-								?>
-								<tr>
-									<td>
-										<b><?php echo __($guid, 'Date') ?> *</b><br/>
-										<span class="emphasis small"><?php echo __($guid, 'Format:') ?> <?php if ($_SESSION[$guid]['i18n']['dateFormat'] == '') { echo 'dd/mm/yyyy';
-										} else {
-											echo $_SESSION[$guid]['i18n']['dateFormat'];
-										}
-                        				?><br/></span>
-									</td>
-									<td class="right">
-										<input name="date" id="date" maxlength=10 value="<?php echo dateConvertBack($guid, $nextDate) ?>" type="text" class="standardWidth">
-										<script type="text/javascript">
-											var date=new LiveValidation('date');
-											date.add(Validate.Presence);
-											date.add( Validate.Format, {pattern: <?php if ($_SESSION[$guid]['i18n']['dateFormatRegEx'] == '') {
-										echo "/^(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\d\d$/i";
-									} else {
-										echo $_SESSION[$guid]['i18n']['dateFormatRegEx'];
-									}
-															?>, failureMessage: "Use <?php if ($_SESSION[$guid]['i18n']['dateFormat'] == '') {
-										echo 'dd/mm/yyyy';
-									} else {
-										echo $_SESSION[$guid]['i18n']['dateFormat'];
-									}
-                       	 			?>." } );
-										</script>
-										 <script type="text/javascript">
-											$(function() {
-												$( "#date" ).datepicker();
-											});
-										</script>
-									</td>
-								</tr>
-								<tr>
-									<td>
-										<b><?php echo __($guid, 'Start Time') ?> *</b><br/>
-										<span class="emphasis small"><?php echo __($guid, 'Format: hh:mm (24hr)') ?><br/></span>
-									</td>
-									<td class="right">
-										<input name="timeStart" id="timeStart" maxlength=5 value="<?php echo substr($nextTimeStart, 0, 5) ?>" type="text" class="standardWidth">
-										<script type="text/javascript">
-											var timeStart=new LiveValidation('timeStart');
-											timeStart.add(Validate.Presence);
-											timeStart.add( Validate.Format, {pattern: /^(0[0-9]|[1][0-9]|2[0-3])[:](0[0-9]|[1-5][0-9])/i, failureMessage: "Use hh:mm" } );
-										</script>
-										<script type="text/javascript">
-											$(function() {
-												var availableTags=[
-													<?php
-                                                    try {
-                                                        $dataAuto = array();
-                                                        $sqlAuto = 'SELECT DISTINCT timeStart FROM gibbonPlannerEntry ORDER BY timeStart';
-                                                        $resultAuto = $connection2->prepare($sqlAuto);
-                                                        $resultAuto->execute($dataAuto);
-                                                    } catch (PDOException $e) {
-                                                    }
-													while ($rowAuto = $resultAuto->fetch()) {
-														echo '"'.substr($rowAuto['timeStart'], 0, 5).'", ';
-													}
-													?>
-												];
-												$( "#timeStart" ).autocomplete({source: availableTags});
-											});
-										</script>
-									</td>
-								</tr>
-								<tr>
-									<td>
-										<b><?php echo __($guid, 'End Time') ?> *</b><br/>
-										<span class="emphasis small"><?php echo __($guid, 'Format: hh:mm (24hr)') ?><br/></span>
-									</td>
-									<td class="right">
-										<input name="timeEnd" id="timeEnd" maxlength=5 value="<?php echo substr($nextTimeEnd, 0, 5) ?>" type="text" class="standardWidth">
-										<script type="text/javascript">
-											var timeEnd=new LiveValidation('timeEnd');
-											timeEnd.add(Validate.Presence);
-											timeEnd.add( Validate.Format, {pattern: /^(0[0-9]|[1][0-9]|2[0-3])[:](0[0-9]|[1-5][0-9])/i, failureMessage: "Use hh:mm" } );
-										</script>
-										<script type="text/javascript">
-											$(function() {
-												var availableTags=[
-													<?php
-                                                    try {
-                                                        $dataAuto = array();
-                                                        $sqlAuto = 'SELECT DISTINCT timeEnd FROM gibbonPlannerEntry ORDER BY timeEnd';
-                                                        $resultAuto = $connection2->prepare($sqlAuto);
-                                                        $resultAuto->execute($dataAuto);
-                                                    } catch (PDOException $e) {
-                                                    }
-													while ($rowAuto = $resultAuto->fetch()) {
-														echo '"'.substr($rowAuto['timeEnd'], 0, 5).'", ';
-													}
-													?>
-												];
-												$( "#timeEnd" ).autocomplete({source: availableTags});
-											});
-										</script>
-									</td>
-								</tr>
-								<tr>
-									<td>
-										<span class="emphasis small">* <?php echo __($guid, 'denotes a required field'); ?></span>
-									</td>
-									<td class="right">
-										<input name="duplicate" id="duplicate" value="<?php echo $duplicate ?>" type="hidden">
-										<input name="gibbonPlannerEntryID_org" id="gibbonPlannerEntryID_org" value="<?php echo $gibbonPlannerEntryID_org ?>" type="hidden">
-										<input name="gibbonCourseClassID" id="gibbonCourseClassID" value="<?php echo $gibbonCourseClassID ?>" type="hidden">
-										<input name="gibbonSchoolYearID" id="gibbonSchoolYearID" value="<?php echo $gibbonSchoolYearID ?>" type="hidden">
-										<input name="viewBy" id="viewBy" value="<?php echo $viewBy ?>" type="hidden">
-										<input name="subView" id="subView" value="<?php echo $subView ?>" type="hidden">
-										<input type="hidden" name="address" value="<?php echo $_SESSION[$guid]['address'] ?>">
-										<input type="submit" value="<?php echo __($guid, 'Submit'); ?>">
-									</td>
-								</tr>
-							</table>
-						</form>
-						<?php
+                            }
+                        }
 
+                        $row = $form->addRow();
+                            $row->addLabel('name', __('Name'));
+                            $row->addTextField('name')->setValue($values['name'])->maxLength(50)->required();
+
+                        //Try and find the next unplanned slot for this class.
+                        try {
+                            $dataNext = array('gibbonCourseClassID' => $gibbonCourseClassID, 'date' => date('Y-m-d'));
+                            $sqlNext = 'SELECT timeStart, timeEnd, date FROM gibbonTTDayRowClass JOIN gibbonTTColumnRow ON (gibbonTTDayRowClass.gibbonTTColumnRowID=gibbonTTColumnRow.gibbonTTColumnRowID) JOIN gibbonTTColumn ON (gibbonTTColumnRow.gibbonTTColumnID=gibbonTTColumn.gibbonTTColumnID) JOIN gibbonTTDay ON (gibbonTTDayRowClass.gibbonTTDayID=gibbonTTDay.gibbonTTDayID) JOIN gibbonTTDayDate ON (gibbonTTDayDate.gibbonTTDayID=gibbonTTDay.gibbonTTDayID) WHERE gibbonCourseClassID=:gibbonCourseClassID AND date>=:date ORDER BY date, timestart LIMIT 0, 10';
+                            $resultNext = $connection2->prepare($sqlNext);
+                            $resultNext->execute($dataNext);
+                        } catch (PDOException $e) {
+                        }
+                        $nextDate = '';
+                        $nextTimeStart = '';
+                        $nextTimeEnd = '';
+                        while ($rowNext = $resultNext->fetch()) {
+                            try {
+                                $dataPlanner = array('date' => $rowNext['date'], 'timeStart' => $rowNext['timeStart'], 'timeEnd' => $rowNext['timeEnd'], 'gibbonCourseClassID' => $gibbonCourseClassID);
+                                $sqlPlanner = 'SELECT * FROM gibbonPlannerEntry WHERE date=:date AND timeStart=:timeStart AND timeEnd=:timeEnd AND gibbonCourseClassID=:gibbonCourseClassID';
+                                $resultPlanner = $connection2->prepare($sqlPlanner);
+                                $resultPlanner->execute($dataPlanner);
+                            } catch (PDOException $e) {}
+                            if ($resultPlanner->rowCount() == 0) {
+                                $nextDate = $rowNext['date'];
+                                $nextTimeStart = $rowNext['timeStart'];
+                                $nextTimeEnd = $rowNext['timeEnd'];
+                                break;
+                            }
+                        }
+                        $row = $form->addRow();
+                            $row->addLabel('date', __('Date'));
+                            $row->addDate('date')->setValue(dateConvertBack($guid, $nextDate))->required();
+
+                        $row = $form->addRow();
+                            $row->addLabel('timeStart', __('Start Time'))->description("Format: hh:mm (24hr)");
+                            $row->addTime('timeStart')->setValue(substr($nextTimeStart, 0, 5))->required();
+
+                        $row = $form->addRow();
+                            $row->addLabel('timeEnd', __('End Time'))->description("Format: hh:mm (24hr)");
+                            $row->addTime('timeEnd')->setValue(substr($nextTimeEnd, 0, 5))->required();
+
+                        $row = $form->addRow();
+                            $row->addFooter();
+                            $row->addSubmit();
+
+                        echo $form->getOutput();
                     }
                 }
             }
@@ -503,4 +315,3 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_duplicate.
         $_SESSION[$guid]['sidebarExtra'] = sidebarExtra($guid, $connection2, $todayStamp, $_SESSION[$guid]['gibbonPersonID'], $dateStamp, $gibbonCourseClassID);
     }
 }
-?>

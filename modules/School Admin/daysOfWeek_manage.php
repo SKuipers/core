@@ -22,13 +22,11 @@ use Gibbon\Forms\Form;
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/daysOfWeek_manage.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > </div><div class='trailEnd'>".__($guid, 'Manage Days of the Week').'</div>';
-    echo '</div>';
+    $page->breadcrumbs->add(__('Manage Days of the Week'));
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, null);
@@ -45,7 +43,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/daysOfWeek_ma
 
     if ($result->rowCount() != 7) {
         echo "<div class='error'>";
-        echo __($guid, 'There is a problem with your database information for school days.');
+        echo __('There is a problem with your database information for school days.');
         echo '</div>';
     } else {
         //Let's go!
@@ -63,11 +61,11 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/daysOfWeek_ma
         while ($day = $result->fetch()) {
             $form->addHiddenValue($day['name'].'sequenceNumber', $day['sequenceNumber']);
 
-            $form->addRow()->addHeading(__($day['name'].' ('.$day['nameShort'].')'));
+            $form->addRow()->addHeading(__($day['name']).' ('.__($day['nameShort']).')');
 
             $row = $form->addRow();
                 $row->addLabel($day['name'].'schoolDay', __('School Day'));
-                $row->addYesNo($day['name'].'schoolDay')->isRequired()->selected($day['schoolDay']);
+                $row->addYesNo($day['name'].'schoolDay')->required()->selected($day['schoolDay']);
 
             $form->toggleVisibilityByClass($day['name'])->onSelect($day['name'].'schoolDay')->when('Y');
 
@@ -76,7 +74,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/daysOfWeek_ma
                 $col = $row->addColumn()->addClass('right inline');
                 $col->addSelect($day['name'].'schoolOpenH')
                     ->fromString($hours)
-                    ->isRequired()
+                    ->required()
                     ->setClass('shortWidth')
                     ->placeholder(__('Hours'))
                     ->selected(substr($day['schoolOpen'], 0, 2));
@@ -91,7 +89,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/daysOfWeek_ma
                 $col = $row->addColumn()->addClass('right inline');
                 $col->addSelect($day['name'].'schoolStartH')
                     ->fromString($hours)
-                    ->isRequired()
+                    ->required()
                     ->setClass('shortWidth')
                     ->placeholder(__('Hours'))
                     ->selected(substr($day['schoolStart'], 0, 2));
@@ -106,7 +104,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/daysOfWeek_ma
                 $col = $row->addColumn()->addClass('right inline');
                 $col->addSelect($day['name'].'schoolEndH')
                     ->fromString($hours)
-                    ->isRequired()
+                    ->required()
                     ->setClass('shortWidth')
                     ->placeholder(__('Hours'))
                     ->selected(substr($day['schoolEnd'], 0, 2));
@@ -121,7 +119,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/daysOfWeek_ma
                 $col = $row->addColumn()->addClass('right inline');
                 $col->addSelect($day['name'].'schoolCloseH')
                     ->fromString($hours)
-                    ->isRequired()
+                    ->required()
                     ->setClass('shortWidth')
                     ->placeholder(__('Hours'))
                     ->selected(substr($day['schoolClose'], 0, 2));

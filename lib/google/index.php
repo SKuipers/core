@@ -15,8 +15,6 @@ $_SESSION[$guid]["pageLoads"] = NULL;
 
 $URL = "index.php";
 
-require_once ('google-api-php-client/vendor/autoload.php');
-
 //Cleint ID and Secret
 $client_id = getSettingByScope($connection2, "System", "googleClientID" );
 $client_secret = getSettingByScope($connection2, "System", "googleClientSecret" );
@@ -35,8 +33,8 @@ $client->setClientId($client_id);
 $client->setClientSecret($client_secret);
 $client->setRedirectUri($redirect_uri);
 $client->setAccessType('offline');
-$client->setScopes(array('https://www.googleapis.com/auth/userinfo.email',
-    'https://www.googleapis.com/auth/plus.me',
+$client->setScopes(array('email',
+    'profile',
     'https://www.googleapis.com/auth/calendar')); // set scope during user login
 
 /************************************************
@@ -85,7 +83,12 @@ if (isset($authUrl)){
 	//show login url
     echo '<div>';
         $themeName = isset($_SESSION[$guid]['gibbonThemeName'])? $_SESSION[$guid]['gibbonThemeName'] : 'Default';
-		print '<a target=\'_top\' class="login" href="' . $authUrl . '" onclick="addGoogleLoginParams(this)"><img style=\'width: 260px; height: 55px; margin-left: -4px\' src="themes/' . $themeName . '/img/g_login_btn.png" /></a>';
+        echo '<a target=\'_top\' class="login" href="' . $authUrl . '" onclick="addGoogleLoginParams(this)">';
+            echo '<button class="w-full bg-white rounded shadow border border-gray-400 flex items-center px-2 py-1 mb-2 text-gray-600 hover:shadow-md hover:border-blue-600 hover:text-blue-600">';
+                echo '<img class="w-10 h-10" src="themes/'.$themeName.'/img/google-login.svg">';
+                echo '<span class="flex-grow text-lg">'.__('Sign in with Google').'</span>';
+            echo '</button>';
+        echo '</a>';
 
         $form = \Gibbon\Forms\Form::create('loginFormGoogle', '#');
         $form->setFactory(\Gibbon\Forms\DatabaseFormFactory::create($pdo));
@@ -102,8 +105,7 @@ if (isset($authUrl)){
 
         $row = $form->addRow()->setClass('loginOptionsGoogle');
             $row->addContent(sprintf($loginIcon, 'language', __('Language')));
-            $row->addSelect('gibboni18nIDGoogle')
-                ->fromQuery($pdo, "SELECT gibboni18nID as value, name FROM gibboni18n WHERE active='Y' ORDER BY name")
+            $row->addSelectI18n('gibboni18nIDGoogle')
                 ->setClass('fullWidth')
                 ->placeholder(null)
                 ->selected($_SESSION[$guid]['i18n']['gibboni18nID']);
@@ -190,10 +192,15 @@ if (isset($authUrl)){
         exit;
 	}
 	else {
-		$row = $result->fetch();
+        $row = $result->fetch();
+        
+        // Get primary role info
+        $data = array('gibbonRoleIDPrimary' => $row['gibbonRoleIDPrimary']);
+        $sql = "SELECT * FROM gibbonRole WHERE gibbonRoleID=:gibbonRoleIDPrimary";
+        $role = $pdo->selectOne($sql, $data);
 
         // Insufficient privileges to login
-        if ($row['canLogin'] != 'Y') {
+        if ($row['canLogin'] != 'Y' || (!empty($role['canLoginRole']) && $role['canLoginRole'] != 'Y')) {
             unset($_SESSION[$guid]['googleAPIAccessToken'] );
             unset($_SESSION[$guid]['gplusuer']);
             @session_destroy();
@@ -272,7 +279,7 @@ if (isset($authUrl)){
                     //Check number of rows returned.
                     //If it is not 1, show error
                     if (!($resultYear->rowCount() == 1)) {
-                        die(__($guid, 'Configuration Error: there is a problem accessing the current Academic Year from the database.'));
+                        die(__('Configuration Error: there is a problem accessing the current Academic Year from the database.'));
                     }
                     //Else get year details
                     else {
@@ -324,7 +331,7 @@ if (isset($authUrl)){
             }
             if ($resultLanguage->rowCount() == 1) {
                 $rowLanguage = $resultLanguage->fetch();
-                setLanguageSession($guid, $rowLanguage);
+                setLanguageSession($guid, $rowLanguage, false);
             }
         }
 

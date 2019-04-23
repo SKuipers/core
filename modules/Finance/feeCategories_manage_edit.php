@@ -20,18 +20,18 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Forms\Form;
 
 //Module includes
-include './modules/'.$_SESSION[$guid]['module'].'/moduleFunctions.php';
+require_once __DIR__ . '/moduleFunctions.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/Finance/feeCategories_manage_edit.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/feeCategories_manage.php'>".__($guid, 'Manage Fee Categories')."</a> > </div><div class='trailEnd'>".__($guid, 'Edit Category').'</div>';
-    echo '</div>';
+    $page->breadcrumbs
+        ->add(__('Manage Fee Categories'),'feeCategories_manage.php')
+        ->add(__('Edit Category'));
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, null);
@@ -41,7 +41,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/feeCategories_mana
     $gibbonFinanceFeeCategoryID = $_GET['gibbonFinanceFeeCategoryID'];
     if ($gibbonFinanceFeeCategoryID == '') {
         echo "<div class='error'>";
-        echo __($guid, 'You have not specified one or more required parameters.');
+        echo __('You have not specified one or more required parameters.');
         echo '</div>';
     } else {
         try {
@@ -55,7 +55,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/feeCategories_mana
 
         if ($result->rowCount() != 1) {
             echo "<div class='error'>";
-            echo __($guid, 'The specified record does not exist.');
+            echo __('The specified record does not exist.');
             echo '</div>';
         } else {
             //Let's go!
@@ -63,21 +63,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/feeCategories_mana
 
             $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/feeCategories_manage_editProcess.php?gibbonFinanceFeeCategoryID=$gibbonFinanceFeeCategoryID");
 
-            $form->setClass('smallIntBorder fullWidth');
-
             $form->addHiddenValue('address', $_SESSION[$guid]['address']);
 
             $row = $form->addRow();
                 $row->addLabel('name', __('Name'));
-                $row->addTextField('name')->maxLength(100)->isRequired();
+                $row->addTextField('name')->maxLength(100)->required();
 
             $row = $form->addRow();
                 $row->addLabel('nameShort', __('Short Name'));
-                $row->addTextField('nameShort')->maxLength(14)->isRequired();
+                $row->addTextField('nameShort')->maxLength(14)->required();
 
             $row = $form->addRow();
                 $row->addLabel('active', __('Active'));
-                $row->addYesNo('active')->isRequired();
+                $row->addYesNo('active')->required();
 
             $row = $form->addRow();
                 $row->addLabel('description', __('Description'));

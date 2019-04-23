@@ -17,11 +17,12 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
+use Gibbon\Forms\Form;
+use Gibbon\Services\Format;
 
 //Module includes
-include './modules/'.$_SESSION[$guid]['module'].'/moduleFunctions.php';
+require_once __DIR__ . '/moduleFunctions.php';
 
 //Get settings
 $enableEffort = getSettingByScope($connection2, 'Markbook', 'enableEffort');
@@ -37,20 +38,20 @@ $effortAlternativeNameAbrev = getSettingByScope($connection2, 'Markbook', 'effor
 if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_addMulti.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Get action with highest precendence
     $highestAction = getHighestGroupedAction($guid, $_GET['q'], $connection2);
     if ($highestAction == false or ($highestAction != 'Edit Markbook_multipleClassesAcrossSchool' and $highestAction != 'Edit Markbook_multipleClassesInDepartment' and $highestAction != 'Edit Markbook_everything')) {
         echo "<div class='error'>";
-        echo __($guid, 'The highest grouped action cannot be determined.');
+        echo __('The highest grouped action cannot be determined.');
         echo '</div>';
     } else {
-        $gibbonCourseClassID = $_GET['gibbonCourseClassID'];
+        $gibbonCourseClassID = $_GET['gibbonCourseClassID'] ?? '';
         if ($gibbonCourseClassID == '') {
             echo "<div class='error'>";
-            echo __($guid, 'You have not specified one or more required parameters.');
+            echo __('You have not specified one or more required parameters.');
             echo '</div>';
         } else {
             try {
@@ -64,15 +65,28 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_add
 
             if ($result->rowCount() != 1) {
                 echo "<div class='error'>";
-                echo __($guid, 'The selected record does not exist, or you do not have access to it.');
+                echo __('The selected record does not exist, or you do not have access to it.');
                 echo '</div>';
             } else {
                 $course = $result->fetch();
                 $date = date('Y-m-d');
 
-                echo "<div class='trail'>";
-                echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/markbook_view.php&gibbonCourseClassID='.$_GET['gibbonCourseClassID']."'>".__($guid, 'View').' '.$course['course'].'.'.$course['class'].' '.__($guid, 'Markbook')."</a> > </div><div class='trailEnd'>".__($guid, 'Add Multiple Columns').'</div>';
-                echo '</div>';
+                $page->breadcrumbs
+                    ->add(
+                        strtr(
+                            ':action :courseClass :property',
+                            [
+                                ':action' => __('View'),
+                                ':courseClass' => Format::courseClassName($course['course'], $course['class']),
+                                ':property' => __('Markbook'),
+                            ]
+                        ),
+                        'markbook_view.php',
+                        [
+                            'gibbonCourseClassID' => $gibbonCourseClassID,
+                        ]
+                    )
+                    ->add(__('Add Multiple Columns'));
 
                 if (isset($_GET['return'])) {
                     returnProcess($guid, $_GET['return'], null, null);
@@ -109,24 +123,24 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_add
                     $row->addLabel('gibbonCourseClassIDMulti', __('Class'))->append(sprintf(__('The current class (%1$s.%2$s) has already been selected.'), $course['course'], $course['class']));
                     $row->addSelect('gibbonCourseClassIDMulti')
                         ->fromQuery($pdo, $sql, $data)
-                        ->isRequired()
+                        ->required()
                         ->selectMultiple()
                         ->selected($course['gibbonCourseClassID']);
 
                 $row = $form->addRow();
                     $row->addLabel('name', __('Name'));
-                    $row->addTextField('name')->isRequired()->maxLength(20);
+                    $row->addTextField('name')->required()->maxLength(20);
 
                 $row = $form->addRow();
                     $row->addLabel('description', __('Description'));
-                    $row->addTextField('description')->isRequired()->maxLength(1000);
+                    $row->addTextField('description')->required()->maxLength(1000);
 
                 // TYPE
                 $types = getSettingByScope($connection2, 'Markbook', 'markbookType');
                 if (!empty($types)) {
                     $row = $form->addRow();
                         $row->addLabel('type', __('Type'));
-                        $typesSelect = $row->addSelect('type')->isRequired()->placeholder();
+                        $typesSelect = $row->addSelect('type')->required()->placeholder();
 
                     if ($enableColumnWeighting == 'Y') {
                         $data = array('gibbonCourseClassID' => $gibbonCourseClassID, 'perTerm' => __('Per Term'), 'wholeYear' => __('Whole Year'));
@@ -158,7 +172,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_add
 
                     $row = $form->addRow();
                         $row->addLabel('date', __('Date'));
-                        $row->addDate('date')->setValue(dateConvertBack($guid, $date))->isRequired();
+                        $row->addDate('date')->setValue(dateConvertBack($guid, $date))->required();
                 } else {
                     $form->addHiddenValue('date', dateConvertBack($guid, $date));
                 }
@@ -174,13 +188,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_add
 
                 $row = $form->addRow();
                     $row->addLabel('attainment', $attainmentLabel);
-                    $row->addYesNoRadio('attainment')->isRequired();
+                    $row->addYesNoRadio('attainment')->required();
 
                 $form->toggleVisibilityByClass('attainmentRow')->onRadio('attainment')->when('Y');
 
                 $row = $form->addRow()->addClass('attainmentRow');
                     $row->addLabel('gibbonScaleIDAttainment', $attainmentScaleLabel);
-                    $row->addSelectGradeScale('gibbonScaleIDAttainment')->isRequired()->selected($_SESSION[$guid]['defaultAssessmentScale']);
+                    $row->addSelectGradeScale('gibbonScaleIDAttainment')->required()->selected($_SESSION[$guid]['defaultAssessmentScale']);
 
                 if ($enableRawAttainment == 'Y') {
                     $row = $form->addRow()->addClass('attainmentRow');
@@ -208,13 +222,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_add
 
                     $row = $form->addRow();
                         $row->addLabel('effort', $effortLabel);
-                        $row->addYesNoRadio('effort')->isRequired();
+                        $row->addYesNoRadio('effort')->required();
 
                     $form->toggleVisibilityByClass('effortRow')->onRadio('effort')->when('Y');
 
                     $row = $form->addRow()->addClass('effortRow');
                         $row->addLabel('gibbonScaleIDEffort', $effortScaleLabel);
-                        $row->addSelectGradeScale('gibbonScaleIDEffort')->isRequired()->selected($_SESSION[$guid]['defaultAssessmentScale']);
+                        $row->addSelectGradeScale('gibbonScaleIDEffort')->required()->selected($_SESSION[$guid]['defaultAssessmentScale']);
 
                     if ($enableRubrics == 'Y') {
                         $row = $form->addRow()->addClass('effortRow');
@@ -225,21 +239,21 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_add
 
                 $row = $form->addRow();
                     $row->addLabel('comment', __('Include Comment?'));
-                    $row->addYesNoRadio('comment')->isRequired();
+                    $row->addYesNoRadio('comment')->required();
 
                 $row = $form->addRow();
                     $row->addLabel('uploadedResponse', __('Include Uploaded Response?'));
-                    $row->addYesNoRadio('uploadedResponse')->isRequired();
+                    $row->addYesNoRadio('uploadedResponse')->required();
 
                 $form->addRow()->addHeading(__('Access'));
 
                 $row = $form->addRow();
                     $row->addLabel('viewableStudents', __('Viewable to Students'));
-                    $row->addYesNo('viewableStudents')->isRequired();
+                    $row->addYesNo('viewableStudents')->required();
 
                 $row = $form->addRow();
                     $row->addLabel('viewableParents', __('Viewable to Parents'));
-                    $row->addYesNo('viewableParents')->isRequired();
+                    $row->addYesNo('viewableParents')->required();
 
                 $row = $form->addRow();
                     $row->addLabel('completeDate', __('Go Live Date'))->prepend('1. ')->append('<br/>'.__('2. Column is hidden until date is reached.'));

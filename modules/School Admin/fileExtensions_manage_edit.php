@@ -23,13 +23,13 @@ use Gibbon\FileUploader;
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/fileExtensions_manage_edit.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/fileExtensions_manage.php'>".__($guid, 'Manage File Extensions')."</a> > </div><div class='trailEnd'>".__($guid, 'Edit File Extensions').'</div>';
-    echo '</div>';
+    $page->breadcrumbs
+        ->add(__('Manage File Extensions'), 'fileExtensions_manage.php')
+        ->add(__('Edit File Extensions'));
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, null);
@@ -39,7 +39,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/fileExtension
     $gibbonFileExtensionID = $_GET['gibbonFileExtensionID'];
     if ($gibbonFileExtensionID == '') {
         echo "<div class='error'>";
-        echo __($guid, 'You have not specified one or more required parameters.');
+        echo __('You have not specified one or more required parameters.');
         echo '</div>';
     } else {
         try {
@@ -53,7 +53,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/fileExtension
 
         if ($result->rowCount() != 1) {
             echo "<div class='error'>";
-            echo __($guid, 'The specified record cannot be found.');
+            echo __('The specified record cannot be found.');
             echo '</div>';
         } else {
             //Let's go!
@@ -77,18 +77,18 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/fileExtension
 
             $row = $form->addRow();
                 $row->addLabel('extension', __('Extension'))->description(__('Must be unique.'));
-                $ext = $row->addTextField('extension')->isRequired()->maxLength(7)->setValue($values['extension']);
+                $ext = $row->addTextField('extension')->required()->maxLength(7)->setValue($values['extension']);
 
                 $within = implode(',', array_map(function ($str) { return sprintf("'%s'", $str); }, $illegalTypes));
                 $ext->addValidation('Validate.Exclusion', 'within: ['.$within.'], failureMessage: "Illegal file type!", partialMatch: true, caseSensitive: false');
 
             $row = $form->addRow();
                 $row->addLabel('name', __('Name'));
-                $row->addTextField('name')->isRequired()->maxLength(50)->setValue($values['name']);
+                $row->addTextField('name')->required()->maxLength(50)->setValue($values['name']);
 
             $row = $form->addRow();
                 $row->addLabel('type', __('Type'));
-                $row->addSelect('type')->fromArray($categories)->isRequired()->placeholder()->selected($values['type']);
+                $row->addSelect('type')->fromArray($categories)->required()->placeholder()->selected($values['type']);
 
             $row = $form->addRow();
                 $row->addFooter();

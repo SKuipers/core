@@ -22,13 +22,13 @@ use Gibbon\Forms\Form;
 if (isActionAccessible($guid, $connection2, '/modules/User Admin/role_manage_add.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/User Admin/role_manage.php'>".__($guid, 'Manage Roles')."</a> > </div><div class='trailEnd'>".__($guid, 'Add Role').'</div>';
-    echo '</div>';
+    $page->breadcrumbs
+        ->add(__('Manage Roles'),'role_manage.php')
+        ->add(__('Add Role'));
 
     $editLink = '';
     if (isset($_GET['editID'])) {
@@ -57,35 +57,40 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/role_manage_add
 
     $row = $form->addRow();
         $row->addLabel('category', __('Category'));
-        $row->addSelect('category')->fromArray($categories)->isRequired()->placeholder();
+        $row->addSelect('category')->fromArray($categories)->required()->placeholder();
 
     $row = $form->addRow();
         $row->addLabel('name', __('Name'));
-        $row->addTextField('name')->isRequired()->maxLength(20);
+        $row->addTextField('name')->required()->maxLength(20);
 
     $row = $form->addRow();
         $row->addLabel('nameShort', __('Short Name'));
-        $row->addTextField('nameShort')->isRequired()->maxLength(4);
+        $row->addTextField('nameShort')->required()->maxLength(4);
 
     $row = $form->addRow();
         $row->addLabel('description', __('Description'));
-        $row->addTextField('description')->isRequired()->maxLength(60);
+        $row->addTextField('description')->required()->maxLength(60);
 
     $row = $form->addRow();
         $row->addLabel('type', __('Type'));
-        $row->addTextField('type')->isRequired()->readonly()->setValue('Additional');
+        $row->addTextField('type')->required()->readonly()->setValue('Additional');
 
     $row = $form->addRow();
+        $row->addLabel('canLoginRole', __('Can Login?'))->description(__('Are users with this primary role able to login?'));
+        $row->addYesNo('canLoginRole')->required()->selected('Y');
+
+    $form->toggleVisibilityByClass('loginOptions')->onSelect('canLoginRole')->when('Y');
+    $row = $form->addRow()->addClass('loginOptions');
         $row->addLabel('pastYearsLogin', __('Login To Past Years'));
-        $row->addYesNo('pastYearsLogin')->isRequired();
+        $row->addYesNo('pastYearsLogin')->required();
 
-    $row = $form->addRow();
+    $row = $form->addRow()->addClass('loginOptions');
         $row->addLabel('futureYearsLogin', __('Login To Future Years'));
-        $row->addYesNo('futureYearsLogin')->isRequired();
+        $row->addYesNo('futureYearsLogin')->required();
 
     $row = $form->addRow();
         $row->addLabel('restriction', __('Restriction'))->description('Determines who can grant or remove this role in Manage Users.');
-        $row->addSelect('restriction')->fromArray($restrictions)->isRequired();
+        $row->addSelect('restriction')->fromArray($restrictions)->required();
 
     $row = $form->addRow();
         $row->addFooter();

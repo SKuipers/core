@@ -19,30 +19,31 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
+use Gibbon\Services\Format;
 
 //Module includes
-include './modules/'.$_SESSION[$guid]['module'].'/moduleFunctions.php';
+require_once __DIR__ . '/moduleFunctions.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/Students/firstAidRecord_add.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Get action with highest precendence
     $highestAction = getHighestGroupedAction($guid, $_GET['q'], $connection2);
     if ($highestAction == false) {
         echo "<div class='error'>";
-        echo __($guid, 'The highest grouped action cannot be determined.');
+        echo __('The highest grouped action cannot be determined.');
         echo '</div>';
     } else {
-        echo "<div class='trail'>";
-        echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Students/firstAidRecord.php'>".__($guid, 'Manage First Aid Records')."</a> > </div><div class='trailEnd'>".__($guid, 'Add').'</div>';
-        echo '</div>';
+        $page->breadcrumbs
+            ->add(__('First Aid Records'), 'firstAidRecord.php')
+            ->add(__('Add'));
 
-        $gibbonRollGroupID = isset($_GET['gibbonRollGroupID'])? $_GET['gibbonRollGroupID'] : null;
-        $gibbonYearGroupID = isset($_GET['gibbonYearGroupID'])? $_GET['gibbonYearGroupID'] : null;
-
+        $gibbonRollGroupID = $_GET['gibbonRollGroupID'] ?? '';
+        $gibbonYearGroupID = $_GET['gibbonYearGroupID'] ?? '';
+    
         $editLink = '';
         $editID = '';
         if (isset($_GET['editID'])) {
@@ -61,19 +62,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/firstAidRecord_ad
 
         $row = $form->addRow();
             $row->addLabel('gibbonPersonID', __('Patient'));
-            $row->addSelectStudent('gibbonPersonID', $_SESSION[$guid]['gibbonSchoolYearID'])->placeholder()->isRequired();
+            $row->addSelectStudent('gibbonPersonID', $_SESSION[$guid]['gibbonSchoolYearID'])->placeholder()->required();
 
         $row = $form->addRow();
             $row->addLabel('name', __('First Aider'));
-            $row->addTextField('name')->setValue(formatName('', $_SESSION[$guid]['preferredName'], $_SESSION[$guid]['surname'], 'Student'))->isRequired()->readonly();
+            $row->addTextField('name')->setValue(Format::name('', $_SESSION[$guid]['preferredName'], $_SESSION[$guid]['surname'], 'Student'))->required()->readonly();
 
         $row = $form->addRow();
             $row->addLabel('date', __('Date'))->description($_SESSION[$guid]['i18n']['dateFormat'])->prepend(__('Format:'));
-            $row->addDate('date')->setValue(date($_SESSION[$guid]['i18n']['dateFormatPHP']))->isRequired();
+            $row->addDate('date')->setValue(date($_SESSION[$guid]['i18n']['dateFormatPHP']))->required();
 
         $row = $form->addRow();
             $row->addLabel('timeIn', __('Time In'))->description("Format: hh:mm (24hr)");
-            $row->addTime('timeIn')->setValue(date("H:i"))->isRequired();
+            $row->addTime('timeIn')->setValue(date("H:i"))->required();
 
         $row = $form->addRow();
             $column = $row->addColumn();
@@ -97,4 +98,3 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/firstAidRecord_ad
         echo $form->getOutput();
     }
 }
-?>

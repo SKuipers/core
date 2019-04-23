@@ -22,13 +22,13 @@ use Gibbon\Forms\Form;
 if (isActionAccessible($guid, $connection2, '/modules/Staff/jobOpenings_manage_add.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Staff/jobOpenings_manage.php'>".__($guid, 'Manage Job Openings')."</a> > </div><div class='trailEnd'>".__($guid, 'Add Job Opening').'</div>';
-    echo '</div>';
+    $page->breadcrumbs
+        ->add(__('Job Openings'), 'jobOpenings_manage.php')
+        ->add(__('Add Job Opening'));
 
     $editLink = '';
     if (isset($_GET['editID'])) {
@@ -40,8 +40,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/jobOpenings_manage_a
 
     $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/jobOpenings_manage_addProcess.php');
 
-    $form->setClass('smallIntBorder fullWidth');
-
     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
 
     $types = array(__('Basic') => array ('Teaching' => __('Teaching'), 'Support' => __('Support')));
@@ -50,25 +48,25 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/jobOpenings_manage_a
     $types[__('System Roles')] = ($result->rowCount() > 0)? $result->fetchAll(\PDO::FETCH_KEY_PAIR) : array();
     $row = $form->addRow();
         $row->addLabel('type', __('Type'));
-        $row->addSelect('type')->fromArray($types)->placeholder()->isRequired();
+        $row->addSelect('type')->fromArray($types)->placeholder()->required();
 
     $row = $form->addRow();
         $row->addLabel('jobTitle', __('Job Title'));
-        $row->addTextField('jobTitle')->maxlength(100)->isRequired();
+        $row->addTextField('jobTitle')->maxlength(100)->required();
 
     $row = $form->addRow();
         $row->addLabel('dateOpen', __('Opening Date'));
-        $row->addDate('dateOpen')->isRequired();
+        $row->addDate('dateOpen')->required();
 
     $row = $form->addRow();
         $row->addLabel('active', __('Active'));
-        $row->addYesNo('active')->isRequired();
+        $row->addYesNo('active')->required();
 
     $jobOpeningDescriptionTemplate = getSettingByScope($connection2, 'Staff', 'jobOpeningDescriptionTemplate');
     $row = $form->addRow();
         $column = $row->addColumn();
         $column->addLabel('description', __('Description'));
-        $column->addEditor('description', $guid)->setRows(20)->showMedia()->setValue($jobOpeningDescriptionTemplate)->isRequired();
+        $column->addEditor('description', $guid)->setRows(20)->showMedia()->setValue($jobOpeningDescriptionTemplate)->required();
 
     $row = $form->addRow();
     $row->addFooter();
@@ -76,4 +74,3 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/jobOpenings_manage_a
 
     echo $form->getOutput();
 }
-?>

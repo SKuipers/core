@@ -21,20 +21,19 @@ use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 
 //Module includes
-include './modules/'.$_SESSION[$guid]['module'].'/moduleFunctions.php';
+require_once __DIR__ . '/moduleFunctions.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/courseEnrolment_sync_add.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
+    $gibbonSchoolYearID = $_REQUEST['gibbonSchoolYearID'] ?? '';
 
-    $gibbonSchoolYearID = isset($_REQUEST['gibbonSchoolYearID'])? $_REQUEST['gibbonSchoolYearID'] : '';
-
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/courseEnrolment_sync.php&gibbonSchoolYearID=".$gibbonSchoolYearID."'>".__($guid, 'Sync Course Enrolment')."</a> > </div><div class='trailEnd'>".__($guid, 'Map Classes').'</div>';
-    echo '</div>';
+    $page->breadcrumbs
+        ->add(__('Sync Course Enrolment'), 'courseEnrolment_sync.php', ['gibbonSchoolYearID' => $gibbonSchoolYearID])
+        ->add(__('Map Classes'));
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, null);
@@ -55,14 +54,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/courseEnro
 
     $row = $form->addRow();
         $row->addLabel('gibbonYearGroupID', __('Year Group'))->description(__('Determines the available courses and classes to map.'));
-        $row->addSelectYearGroup('gibbonYearGroupID')->isRequired();
+        $row->addSelectYearGroup('gibbonYearGroupID')->required();
 
     $row = $form->addRow();
         $column = $row->addColumn();
         $column->addLabel('courseClassMapping', __('Compare to Pattern'))->description(sprintf(__('Classes will be matched to Roll Groups that fit the specified pattern. Choose from %1$s. Must contain %2$s'), '[courseShortName] [yearGroupShortName] [rollGroupShortName]', '[classShortName]'));
 
         $row->addTextField('pattern')
-            ->isRequired()
+            ->required()
             ->setValue('[yearGroupShortName].[classShortName]')
             ->addValidation('Validate.Format', 'pattern: /(\[classShortName\])/');
 

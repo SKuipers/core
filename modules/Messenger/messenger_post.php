@@ -18,18 +18,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
+use Gibbon\Contracts\Comms\SMS;
 
-//Only include module include if it is not already included (which it may be been on the index page)
-$included=FALSE ;
-$includes=get_included_files() ;
-foreach ($includes AS $include) {
-	if (str_replace("\\","/",$include)==str_replace("\\","/",$_SESSION[$guid]["absolutePath"] . "/modules/" . $_SESSION[$guid]["module"] . "/moduleFunctions.php")) {
-		$included=TRUE ;
-	}
-}
-if ($included==FALSE) {
-	include_once "./modules/" . $_SESSION[$guid]["module"] . "/moduleFunctions.php" ;
-}
+require_once __DIR__ . '/moduleFunctions.php';
+
+$page->breadcrumbs->add(__('New Message'));
+
 if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php")==FALSE) {
 	//Acess denied
 	print "<div class='error'>" ;
@@ -44,10 +38,6 @@ else {
 	}
 	else {
 		//Proceed!
-		print "<div class='trail'>" ;
-		print "<div class='trailHead'><a href='" . $_SESSION[$guid]["absoluteURL"] . "'>" . __("Home") . "</a> > <a href='" . $_SESSION[$guid]["absoluteURL"] . "/index.php?q=/modules/" . getModuleName($_GET["q"]) . "/" . getModuleEntry($_GET["q"], $connection2, $guid) . "'>" . __(getModuleName($_GET["q"])) . "</a> > </div><div class='trailEnd'>" . __('New Message') . "</div>" ;
-		print "</div>" ;
-
 		if (isset($_GET["addReturn"])) { $addReturn=$_GET["addReturn"] ; } else { $addReturn="" ; }
 		$addReturnMessage="" ;
 		$class="error" ;
@@ -97,7 +87,7 @@ else {
 		if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_byEmail")) {
 			$row = $form->addRow();
 				$row->addLabel('email', __('Email'))->description(__('Deliver this message to user\'s primary email account?'));
-				$row->addYesNoRadio('email')->checked('Y')->isRequired();
+				$row->addYesNoRadio('email')->checked('Y')->required();
 
 			$form->toggleVisibilityByClass('email')->onRadio('email')->when('Y');
 
@@ -110,12 +100,12 @@ else {
 			}
 			$row = $form->addRow()->addClass('email');
 				$row->addLabel('from', __('Email From'));
-				$row->addSelect('from')->fromArray($from)->isRequired();
+				$row->addSelect('from')->fromArray($from)->required();
 
 			if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_fromSchool")) {
 				$row = $form->addRow()->addClass('email');
 					$row->addLabel('emailReplyTo', __('Reply To'));
-					$row->addEmail('emailReplyTo')->maxLength(50);
+					$row->addEmail('emailReplyTo');
 			}
 		}
 
@@ -123,45 +113,43 @@ else {
 		if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_byMessageWall")) {
 			$row = $form->addRow();
 				$row->addLabel('messageWall', __('Message Wall'))->description(__('Place this message on user\'s message wall?'));
-				$row->addYesNoRadio('messageWall')->checked('N')->isRequired();
+				$row->addYesNoRadio('messageWall')->checked('N')->required();
 
 			$form->toggleVisibilityByClass('messageWall')->onRadio('messageWall')->when('Y');
 
 			$row = $form->addRow()->addClass('messageWall');
 		        $row->addLabel('date1', __('Publication Dates'))->description(__('Select up to three individual dates.'));
 				$col = $row->addColumn('date1')->addClass('stacked');
-				$col->addDate('date1')->setValue(dateConvertBack($guid, date('Y-m-d')))->isRequired();
+				$col->addDate('date1')->setValue(dateConvertBack($guid, date('Y-m-d')))->required();
 				$col->addDate('date2');
 				$col->addDate('date3');
 		}
 
-		//Delivery by SMS
+        //Delivery by SMS
 		if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_bySMS")) {
-			$smsUsername=getSettingByScope( $connection2, "Messenger", "smsUsername" ) ;
-			$smsPassword=getSettingByScope( $connection2, "Messenger", "smsPassword" ) ;
-			$smsURL=getSettingByScope( $connection2, "Messenger", "smsURL" ) ;
-			$smsURLCredit=getSettingByScope( $connection2, "Messenger", "smsURLCredit" ) ;
-			if ($smsUsername == "" OR $smsPassword == "" OR $smsURL == "") {
-				$form->addRow()->addAlert(sprintf(__('SMS NOT CONFIGURED. Please contact %1$s for help.'), "<a href='mailto:" . $_SESSION[$guid]["organisationAdministratorEmail"] . "'>" . $_SESSION[$guid]["organisationAdministratorName"] . "</a>"), 'error');
+            $smsGateway = getSettingByScope($connection2, 'Messenger', 'smsGateway');
+			$smsUsername = getSettingByScope($connection2, 'Messenger', 'smsUsername');
+
+			if (empty($smsGateway) || empty($smsUsername)) {
+				$row = $form->addRow()->addClass('sms');
+					$row->addLabel('sms', __('SMS'))->description(__('Deliver this message to user\'s mobile phone?'));
+					$row->addAlert(sprintf(__('SMS NOT CONFIGURED. Please contact %1$s for help.'), "<a href='mailto:" . $_SESSION[$guid]["organisationAdministratorEmail"] . "'>" . $_SESSION[$guid]["organisationAdministratorName"] . "</a>"), 'message');
 			}
 			else {
 				$row = $form->addRow();
 					$row->addLabel('sms', __('SMS'))->description(__('Deliver this message to user\'s mobile phone?'));
-					$row->addYesNoRadio('sms')->checked('N')->isRequired();
+					$row->addYesNoRadio('sms')->checked('N')->required();
 
 				$form->toggleVisibilityByClass('sms')->onRadio('sms')->when('Y');
 
-				$smsAlert = __('SMS messages are sent to local and overseas numbers, but not all countries are supported. Please see the SMS Gateway provider\'s documentation or error log to see which countries are not supported. The subject does not get sent, and all HTML tags are removed. Each message, to each recipient, will incur a charge (dependent on your SMS gateway provider). Messages over 140 characters will get broken into smaller messages, and will cost more.').'<br/><br/>';
-				if ($smsURLCredit!="") {
-					$query="?apiusername=" . $smsUsername . "&apipassword=" . $smsPassword ;
-					$result=@implode('', file($smsURLCredit . $query)) ;
-					if (is_numeric($result)==FALSE) {
-						$result=0 ;
-					}
-					if ($result>=0) {
-						$smsAlert .= "<b>" . sprintf(__('Current balance: %1$s credit(s).'), $result) . "</u></b>" ;
-					}
-				}
+				$smsAlert = __('SMS messages are sent to local and overseas numbers, but not all countries are supported. Please see the SMS Gateway provider\'s documentation or error log to see which countries are not supported. The subject does not get sent, and all HTML tags are removed. Each message, to each recipient, will incur a charge (dependent on your SMS gateway provider). Messages over 140 characters will get broken into smaller messages, and will cost more.');
+                
+                $sms = $container->get(SMS::class);
+
+                if ($smsCredits = $sms->getCreditBalance()) {
+                    $smsAlert .= "<br/><br/><b>" . sprintf(__('Current balance: %1$s credit(s).'), $smsCredits) . "</u></b>" ;
+                }
+
 				$form->addRow()->addAlert($smsAlert, 'error')->addClass('sms');
 			}
 		}
@@ -228,12 +216,12 @@ else {
 
 		$row = $form->addRow();
 			$row->addLabel('subject', __('Subject'));
-			$row->addTextField('subject')->maxLength(60)->isRequired();
+			$row->addTextField('subject')->maxLength(60)->required();
 
 		$row = $form->addRow();
 	        $col = $row->addColumn('body');
 	        $col->addLabel('body', __('Body'));
-	        $col->addEditor('body', $guid)->isRequired()->setRows(20)->showMedia(true)->setValue($signature);
+	        $col->addEditor('body', $guid)->required()->setRows(20)->showMedia(true)->setValue($signature);
 
 
 		//READ RECEIPTS
@@ -246,13 +234,13 @@ else {
 
 			$row = $form->addRow();
 				$row->addLabel('emailReceipt', __('Enable Read Receipts'))->description(__('Each email recipient will receive a personalised confirmation link.'));
-				$row->addYesNoRadio('emailReceipt')->checked('N')->isRequired();
+				$row->addYesNoRadio('emailReceipt')->checked('N')->required();
 
 			$form->toggleVisibilityByClass('emailReceipt')->onRadio('emailReceipt')->when('Y');
 
 			$row = $form->addRow()->addClass('emailReceipt');
 				$row->addLabel('emailReceiptText', __('Link Text'))->description(__('Confirmation link text to display to recipient.'));
-				$row->addTextArea('emailReceiptText')->setRows(3)->isRequired()->setValue(__('By clicking on this link I agree that I have read, and agree to, the text contained within this email.'));
+				$row->addTextArea('emailReceiptText')->setRows(4)->required()->setValue(__('By clicking on this link I confirm that I have read, and agree to, the text contained within this email, and give consent for my child to participate.'));
 
 		}
 
@@ -264,7 +252,7 @@ else {
 		if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_role")) {
 			$row = $form->addRow();
 				$row->addLabel('role', __('Role'))->description(__('Users of a certain type.'));
-				$row->addYesNoRadio('role')->checked('N')->isRequired();
+				$row->addYesNoRadio('role')->checked('N')->required();
 
 			$form->toggleVisibilityByClass('role')->onRadio('role')->when('Y');
 
@@ -272,12 +260,12 @@ else {
 			$sql = 'SELECT gibbonRoleID AS value, CONCAT(name," (",category,")") AS name FROM gibbonRole ORDER BY name';
 			$row = $form->addRow()->addClass('role hiddenReveal');
 		        $row->addLabel('roles[]', __('Select Roles'));
-		        $row->addSelect('roles[]')->fromQuery($pdo, $sql, $data)->selectMultiple()->setSize(6)->isRequired()->placeholder();
+		        $row->addSelect('roles[]')->fromQuery($pdo, $sql, $data)->selectMultiple()->setSize(6)->required()->placeholder();
 
 			//Role Category
 			$row = $form->addRow();
 				$row->addLabel('roleCategory', __('Role Category'))->description(__('Users of a certain type.'));
-				$row->addYesNoRadio('roleCategory')->checked('N')->isRequired();
+				$row->addYesNoRadio('roleCategory')->checked('N')->required();
 
 			$form->toggleVisibilityByClass('roleCategory')->onRadio('roleCategory')->when('Y');
 
@@ -285,14 +273,14 @@ else {
 			$sql = 'SELECT DISTINCT category AS value, category AS name FROM gibbonRole ORDER BY category';
 			$row = $form->addRow()->addClass('roleCategory hiddenReveal');
 		        $row->addLabel('roleCategories[]', __('Select Role Categories'));
-		        $row->addSelect('roleCategories[]')->fromQuery($pdo, $sql, $data)->selectMultiple()->setSize(4)->isRequired()->placeholder();
+		        $row->addSelect('roleCategories[]')->fromQuery($pdo, $sql, $data)->selectMultiple()->setSize(4)->required()->placeholder();
 		}
 
 		//Year group
 		if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_yearGroups_any")) {
 			$row = $form->addRow();
-				$row->addLabel('yearGroup', __('Year Group'))->description(__('Students in year; all staff.'));
-				$row->addYesNoRadio('yearGroup')->checked('N')->isRequired();
+				$row->addLabel('yearGroup', __('Year Group'))->description(__('Students in year; staff by tutors and courses taught.'));
+				$row->addYesNoRadio('yearGroup')->checked('N')->required();
 
 			$form->toggleVisibilityByClass('yearGroup')->onRadio('yearGroup')->when('Y');
 
@@ -300,7 +288,7 @@ else {
 			$sql = 'SELECT gibbonYearGroupID AS value, name FROM gibbonYearGroup ORDER BY sequenceNumber';
 			$row = $form->addRow()->addClass('yearGroup hiddenReveal');
 				$row->addLabel('yearGroups[]', __('Select Year Groups'));
-				$row->addSelect('yearGroups[]')->fromQuery($pdo, $sql, $data)->selectMultiple()->setSize(6)->isRequired()->placeholder();
+				$row->addSelect('yearGroups[]')->fromQuery($pdo, $sql, $data)->selectMultiple()->setSize(6)->required()->placeholder();
 
 			$row = $form->addRow()->addClass('yearGroup hiddenReveal');
 		        $row->addLabel('yearGroupsStaff', __('Include Staff?'));
@@ -321,7 +309,7 @@ else {
 		if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_rollGroups_my") OR isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_rollGroups_any")) {
 			$row = $form->addRow();
 				$row->addLabel('rollGroup', __('Roll Group'))->description(__('Tutees and tutors.'));
-				$row->addYesNoRadio('rollGroup')->checked('N')->isRequired();
+				$row->addYesNoRadio('rollGroup')->checked('N')->required();
 
 			$form->toggleVisibilityByClass('rollGroup')->onRadio('rollGroup')->when('Y');
 
@@ -341,7 +329,7 @@ else {
 			}
 			$row = $form->addRow()->addClass('rollGroup hiddenReveal');
 				$row->addLabel('rollGroups[]', __('Select Roll Groups'));
-				$row->addSelect('rollGroups[]')->fromQuery($pdo, $sql, $data)->selectMultiple()->setSize(6)->isRequired()->placeholder();
+				$row->addSelect('rollGroups[]')->fromQuery($pdo, $sql, $data)->selectMultiple()->setSize(6)->required()->placeholder();
 
 			$row = $form->addRow()->addClass('rollGroup hiddenReveal');
 		        $row->addLabel('rollGroupsStaff', __('Include Staff?'));
@@ -362,7 +350,7 @@ else {
         if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_courses_my") OR isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_courses_any")) {
             $row = $form->addRow();
 				$row->addLabel('course', __('Course'))->description(__('Members of a course of study.'));
-				$row->addYesNoRadio('course')->checked('N')->isRequired();
+				$row->addYesNoRadio('course')->checked('N')->required();
 
 			$form->toggleVisibilityByClass('course')->onRadio('course')->when('Y');
 
@@ -376,7 +364,7 @@ else {
 
 			$row = $form->addRow()->addClass('course hiddenReveal');
 				$row->addLabel('courses[]', __('Select Courses'));
-				$row->addSelect('courses[]')->fromQuery($pdo, $sql, $data)->selectMultiple()->setSize(6)->isRequired();
+				$row->addSelect('courses[]')->fromQuery($pdo, $sql, $data)->selectMultiple()->setSize(6)->required();
 
 			$row = $form->addRow()->addClass('course hiddenReveal');
 		        $row->addLabel('coursesStaff', __('Include Staff?'));
@@ -397,7 +385,7 @@ else {
         if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_classes_my") OR isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_classes_any")) {
             $row = $form->addRow();
 				$row->addLabel('class', __('Class'))->description(__('Members of a class within a course.'));
-				$row->addYesNoRadio('class')->checked('N')->isRequired();
+				$row->addYesNoRadio('class')->checked('N')->required();
 
 			$form->toggleVisibilityByClass('class')->onRadio('class')->when('Y');
 
@@ -411,7 +399,7 @@ else {
 
 			$row = $form->addRow()->addClass('class hiddenReveal');
 				$row->addLabel('classes[]', __('Select Classes'));
-				$row->addSelect('classes[]')->fromQuery($pdo, $sql, $data)->selectMultiple()->setSize(6)->isRequired();
+				$row->addSelect('classes[]')->fromQuery($pdo, $sql, $data)->selectMultiple()->setSize(6)->required();
 
 			$row = $form->addRow()->addClass('class hiddenReveal');
 		        $row->addLabel('classesStaff', __('Include Staff?'));
@@ -433,7 +421,7 @@ else {
         if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_activities_my") OR isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_activities_any")) {
             $row = $form->addRow();
 				$row->addLabel('activity', __('Activity'))->description(__('Members of an activity.'));
-				$row->addYesNoRadio('activity')->checked('N')->isRequired();
+				$row->addYesNoRadio('activity')->checked('N')->required();
 
 			$form->toggleVisibilityByClass('activity')->onRadio('activity')->when('Y');
 
@@ -450,7 +438,7 @@ else {
             }
 			$row = $form->addRow()->addClass('activity hiddenReveal');
 				$row->addLabel('activities[]', __('Select Activities'));
-				$row->addSelect('activities[]')->fromQuery($pdo, $sql, $data)->selectMultiple()->setSize(6)->isRequired();
+				$row->addSelect('activities[]')->fromQuery($pdo, $sql, $data)->selectMultiple()->setSize(6)->required();
 
 			$row = $form->addRow()->addClass('activity hiddenReveal');
 		        $row->addLabel('activitiesStaff', __('Include Staff?'));
@@ -471,21 +459,21 @@ else {
         if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_applicants")) {
             $row = $form->addRow();
 				$row->addLabel('applicants', __('Applicants'))->description(__('Applicants from a given year.'))->description(__('Does not apply to the message wall.'));
-				$row->addYesNoRadio('applicants')->checked('N')->isRequired();
+				$row->addYesNoRadio('applicants')->checked('N')->required();
 
 			$form->toggleVisibilityByClass('applicants')->onRadio('applicants')->when('Y');
 
 			$sql = "SELECT gibbonSchoolYearID as value, name FROM gibbonSchoolYear ORDER BY sequenceNumber DESC";
 			$row = $form->addRow()->addClass('applicants hiddenReveal');
 				$row->addLabel('applicantList[]', __('Select Years'));
-				$row->addSelect('applicantList[]')->fromQuery($pdo, $sql)->selectMultiple()->setSize(6)->isRequired();
+				$row->addSelect('applicantList[]')->fromQuery($pdo, $sql)->selectMultiple()->setSize(6)->required();
         }
 
         // Houses
         if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_houses_all") OR isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_houses_my")) {
             $row = $form->addRow();
 				$row->addLabel('houses', __('Houses'))->description(__('Houses for competitions, etc.'));
-				$row->addYesNoRadio('houses')->checked('N')->isRequired();
+				$row->addYesNoRadio('houses')->checked('N')->required();
 
 			$form->toggleVisibilityByClass('houses')->onRadio('houses')->when('Y');
 
@@ -498,21 +486,21 @@ else {
             }
 			$row = $form->addRow()->addClass('houses hiddenReveal');
 				$row->addLabel('houseList[]', __('Select Houses'));
-				$row->addSelect('houseList[]')->fromQuery($pdo, $sql, $data)->selectMultiple()->setSize(6)->isRequired();
+				$row->addSelect('houseList[]')->fromQuery($pdo, $sql, $data)->selectMultiple()->setSize(6)->required();
         }
 
         // Transport
         if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_transport_any")) {
             $row = $form->addRow();
 				$row->addLabel('transport', __('Transport'))->description(__('Applies to all staff and students who have transport set.'));
-				$row->addYesNoRadio('transport')->checked('N')->isRequired();
+				$row->addYesNoRadio('transport')->checked('N')->required();
 
 			$form->toggleVisibilityByClass('transport')->onRadio('transport')->when('Y');
 
 			$sql = "SELECT DISTINCT transport as value, transport as name FROM gibbonPerson WHERE status='Full' AND NOT transport='' ORDER BY transport";
 			$row = $form->addRow()->addClass('transport hiddenReveal');
 				$row->addLabel('transports[]', __('Select Transport'));
-				$row->addSelect('transports[]')->fromQuery($pdo, $sql)->selectMultiple()->setSize(6)->isRequired();
+				$row->addSelect('transports[]')->fromQuery($pdo, $sql)->selectMultiple()->setSize(6)->required();
 
 			$row = $form->addRow()->addClass('transport hiddenReveal');
 		        $row->addLabel('transportStaff', __('Include Staff?'));
@@ -533,7 +521,7 @@ else {
         if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_attendance")) {
             $row = $form->addRow();
 				$row->addLabel('attendance', __('Attendance Status'))->description(__('Students matching the given attendance status.'));
-				$row->addYesNoRadio('attendance')->checked('N')->isRequired();
+				$row->addYesNoRadio('attendance')->checked('N')->required();
 
 			$form->toggleVisibilityByClass('attendance')->onRadio('attendance')->when('Y');
 
@@ -555,11 +543,11 @@ else {
 
 			$row = $form->addRow()->addClass('attendance hiddenReveal');
 				$row->addLabel('attendanceStatus[]', __('Select Attendance Status'));
-                $row->addSelect('attendanceStatus[]')->fromArray($attendanceCodes)->selectMultiple()->setSize(6)->isRequired()->selected('Absent');
+                $row->addSelect('attendanceStatus[]')->fromArray($attendanceCodes)->selectMultiple()->setSize(6)->required()->selected('Absent');
 
             $row = $form->addRow()->addClass('attendance hiddenReveal');
                 $row->addLabel('attendanceDate', __('Date'));
-                $row->addDate('attendanceDate')->isRequired()->setValue(date($_SESSION[$guid]['i18n']['dateFormatPHP']));
+                $row->addDate('attendanceDate')->required()->setValue(date($_SESSION[$guid]['i18n']['dateFormatPHP']));
 
 			$row = $form->addRow()->addClass('attendance hiddenReveal');
 		        $row->addLabel('attendanceStudents', __('Include Students?'));
@@ -574,9 +562,9 @@ else {
 		 if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_groups_my") OR isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_groups_any")) {
             $row = $form->addRow();
 				$row->addLabel('group', __('Group'))->description(__('Members of a Messenger module group.'));
-				$row->addYesNoRadio('group')->checked('N')->isRequired();
+				$row->addYesNoRadio('group')->checked('N')->required();
 
-			$form->toggleVisibilityByClass('group')->onRadio('group')->when('Y');
+			$form->toggleVisibilityByClass('messageGroup')->onRadio('group')->when('Y');
 
             if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_groups_any")) {
 				$data = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID']);
@@ -590,20 +578,20 @@ else {
 					";
             }
 
-			$row = $form->addRow()->addClass('group hiddenReveal');
+			$row = $form->addRow()->addClass('messageGroup hiddenReveal');
 				$row->addLabel('groups[]', __('Select Groups'));
-				$row->addSelect('groups[]')->fromQuery($pdo, $sql, $data)->selectMultiple()->setSize(6)->isRequired();
+				$row->addSelect('groups[]')->fromQuery($pdo, $sql, $data)->selectMultiple()->setSize(6)->required();
 
-			$row = $form->addRow()->addClass('group hiddenReveal');
+			$row = $form->addRow()->addClass('messageGroup hiddenReveal');
 		        $row->addLabel('groupsStaff', __('Include Staff?'));
 				$row->addYesNo('groupsStaff')->selected('Y');
 
-			$row = $form->addRow()->addClass('group hiddenReveal');
+			$row = $form->addRow()->addClass('messageGroup hiddenReveal');
 		        $row->addLabel('groupsStudents', __('Include Students?'));
 				$row->addYesNo('groupsStudents')->selected('Y');
 
 			if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_groups_parents")) {
-				$row = $form->addRow()->addClass('group hiddenReveal');
+				$row = $form->addRow()->addClass('messageGroup hiddenReveal');
 			        $row->addLabel('groupsParents', __('Include Parents?'))->description('Parents who are members, and parents of student members.');
 					$row->addYesNo('groupsParents')->selected('N');
 			}
@@ -613,7 +601,7 @@ else {
         if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_individuals")) {
             $row = $form->addRow();
 				$row->addLabel('individuals', __('Individuals'))->description(__('Individuals from the whole school.'));
-				$row->addYesNoRadio('individuals')->checked('N')->isRequired();
+				$row->addYesNoRadio('individuals')->checked('N')->required();
 
 			$form->toggleVisibilityByClass('individuals')->onRadio('individuals')->when('Y');
 
@@ -629,7 +617,7 @@ else {
 
 			$row = $form->addRow()->addClass('individuals hiddenReveal');
 				$row->addLabel('individualList[]', __('Select Individuals'));
-				$row->addSelect('individualList[]')->fromArray($individuals)->selectMultiple()->setSize(6)->isRequired();
+				$row->addSelect('individualList[]')->fromArray($individuals)->selectMultiple()->setSize(6)->required();
         }
 
 		$row = $form->addRow();

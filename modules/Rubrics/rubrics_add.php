@@ -21,7 +21,7 @@ use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 
 //Module includes
-include './modules/'.$_SESSION[$guid]['module'].'/moduleFunctions.php';
+require_once __DIR__ . '/moduleFunctions.php';
 
 //Search & Filters
 $search = null;
@@ -36,29 +36,29 @@ if (isset($_GET['filter2'])) {
 if (isActionAccessible($guid, $connection2, '/modules/Rubrics/rubrics_add.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Get action with highest precendence
     $highestAction = getHighestGroupedAction($guid, $_GET['q'], $connection2);
     if ($highestAction == false) {
         echo "<div class='error'>";
-        echo __($guid, 'The highest grouped action cannot be determined.');
+        echo __('The highest grouped action cannot be determined.');
         echo '</div>';
     } else {
         if ($highestAction != 'Manage Rubrics_viewEditAll' and $highestAction != 'Manage Rubrics_viewAllEditLearningArea') {
             echo "<div class='error'>";
-            echo __($guid, 'You do not have access to this action.');
+            echo __('You do not have access to this action.');
             echo '</div>';
         } else {
             //Proceed!
-            echo "<div class='trail'>";
-            echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/rubrics.php&search=$search&filter2=$filter2'>".__($guid, 'Manage Rubrics')."</a> > </div><div class='trailEnd'>".__($guid, 'Add Rubric').'</div>';
-            echo '</div>';
+            $page->breadcrumbs
+                ->add(__('Manage Rubrics'), 'rubrics.php', ['search' => $search, 'filter2' => $filter2])
+                ->add(__('Add Rubric'));
 
             if ($search != '' or $filter2 != '') {
                 echo "<div class='linkTop'>";
-                echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Rubrics/rubrics.php&search=$search&filter2=$filter2'>".__($guid, 'Back to Search Results').'</a>';
+                echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Rubrics/rubrics.php&search=$search&filter2=$filter2'>".__('Back to Search Results').'</a>';
                 echo '</div>';
             }
 
@@ -81,7 +81,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Rubrics/rubrics_add.php') 
             $row = $form->addRow();
                 $row->addLabel('scope', 'Scope');
             if ($highestAction == 'Manage Rubrics_viewEditAll') {
-                $row->addSelect('scope')->fromArray($scopes)->isRequired()->placeholder();
+                $row->addSelect('scope')->fromArray($scopes)->required()->placeholder();
                 $form->toggleVisibilityByClass('learningAreaRow')->onSelect('scope')->when('Learning Area');
             } else if ($highestAction == 'Manage Rubrics_viewAllEditLearningArea') {
                 $row->addTextField('scope')->readOnly()->setValue('Learning Area');
@@ -97,15 +97,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Rubrics/rubrics_add.php') 
 
             $row = $form->addRow()->addClass('learningAreaRow');
                 $row->addLabel('gibbonDepartmentID', __('Learning Area'));
-                $row->addSelect('gibbonDepartmentID')->fromQuery($pdo, $sql, $data)->isRequired()->placeholder();
+                $row->addSelect('gibbonDepartmentID')->fromQuery($pdo, $sql, $data)->required()->placeholder();
 
             $row = $form->addRow();
                 $row->addLabel('name', __('Name'));
-                $row->addTextField('name')->maxLength(50)->isRequired();
+                $row->addTextField('name')->maxLength(50)->required();
 
             $row = $form->addRow();
                 $row->addLabel('active', __('Active'));
-                $row->addYesNo('active')->isRequired();
+                $row->addYesNo('active')->required();
 
             $sql = "SELECT DISTINCT category FROM gibbonRubric ORDER BY category";
             $result = $pdo->executeQuery(array(), $sql);
@@ -132,11 +132,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Rubrics/rubrics_add.php') 
 
             $row = $form->addRow();
                 $row->addLabel('rows', __('Initial Rows'))->description(__('Rows store assessment strands.'));
-                $row->addSelect('rows')->fromArray(range(1, 10))->isRequired();
+                $row->addSelect('rows')->fromArray(range(1, 10))->required();
 
             $row = $form->addRow();
                 $row->addLabel('columns', __('Initial Columns'))->description(__('Columns store assessment levels.'));
-                $row->addSelect('columns')->fromArray(range(1, 10))->isRequired();
+                $row->addSelect('columns')->fromArray(range(1, 10))->required();
             
             $row = $form->addRow();
                 $row->addFooter();

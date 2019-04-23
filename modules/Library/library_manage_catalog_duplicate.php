@@ -20,19 +20,19 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Forms\Form;
 
 //Module includes
-include './modules/'.$_SESSION[$guid]['module'].'/moduleFunctions.php';
+require_once __DIR__ . '/moduleFunctions.php';
+
+$page->breadcrumbs
+    ->add(__('Manage Catalog'), 'library_manage_catalog.php')
+    ->add(__('Duplicate Item'));
 
 if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_catalog_duplicate.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/library_manage_catalog.php'>".__($guid, 'Manage Catalog')."</a> > </div><div class='trailEnd'>".__($guid, 'Duplicate Item').'</div>';
-    echo '</div>';
-
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, null);
     }
@@ -41,7 +41,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
     $gibbonLibraryItemID = $_GET['gibbonLibraryItemID'];
     if ($gibbonLibraryItemID == '') {
         echo "<div class='error'>";
-        echo __($guid, 'You have not specified one or more required parameters.');
+        echo __('You have not specified one or more required parameters.');
         echo '</div>';
     } else {
         try {
@@ -55,7 +55,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
 
         if ($result->rowCount() != 1) {
             echo "<div class='error'>";
-            echo __($guid, 'The specified record does not exist.');
+            echo __('The specified record does not exist.');
             echo '</div>';
         } else {
             //Let's go!
@@ -73,7 +73,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
             if ($step == 1) {
                 if ($_GET['name'] != '' or $_GET['gibbonLibraryTypeID'] != '' or $_GET['gibbonSpaceID'] != '' or $_GET['status'] != '' or $_GET['gibbonPersonIDOwnership'] != '' or $_GET['typeSpecificFields'] != '') {
                     echo "<div class='linkTop'>";
-                    echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Library/library_manage_catalog.php&name='.$_GET['name'].'&gibbonLibraryTypeID='.$_GET['gibbonLibraryTypeID'].'&gibbonSpaceID='.$_GET['gibbonSpaceID'].'&status='.$_GET['status'].'&gibbonPersonIDOwnership='.$_GET['gibbonPersonIDOwnership'].'&typeSpecificFields='.$_GET['typeSpecificFields']."'>".__($guid, 'Back to Search Results').'</a>';
+                    echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Library/library_manage_catalog.php&name='.$_GET['name'].'&gibbonLibraryTypeID='.$_GET['gibbonLibraryTypeID'].'&gibbonSpaceID='.$_GET['gibbonSpaceID'].'&status='.$_GET['status'].'&gibbonPersonIDOwnership='.$_GET['gibbonPersonIDOwnership'].'&typeSpecificFields='.$_GET['typeSpecificFields']."'>".__('Back to Search Results').'</a>';
                     echo '</div>';
                 }
 
@@ -86,19 +86,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
                 $form->addHiddenValue('gibbonLibraryTypeID', $values['gibbonLibraryTypeID']);
                 $row = $form->addRow();
                     $row->addLabel('type', __('Type'));
-                    $row->addTextField('type')->setValue($values['type'])->readonly()->isRequired();
+                    $row->addTextField('type')->setValue($values['type'])->readonly()->required();
 
                 $row = $form->addRow();
                     $row->addLabel('name', __('Name'));
-                    $row->addTextField('name')->setValue($values['name'])->readonly()->isRequired();
+                    $row->addTextField('name')->setValue($values['name'])->readonly()->required();
 
                 $row = $form->addRow();
                     $row->addLabel('id', __('ID'));
-                    $row->addTextField('id')->setValue($values['id'])->readonly()->isRequired();
+                    $row->addTextField('id')->setValue($values['id'])->readonly()->required();
 
                 $row = $form->addRow();
                     $row->addLabel('producer', __('Author/Brand'));
-                    $row->addTextField('producer')->setValue($values['producer'])->readonly()->isRequired();
+                    $row->addTextField('producer')->setValue($values['producer'])->readonly()->required();
 
                 $options = array();
                 for ($i = 1; $i < 21; ++$i) {
@@ -106,7 +106,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
                 }
                 $row = $form->addRow();
                     $row->addLabel('number', __('Number of Copies'))->description('How many copies do you want to make of this item?');
-                    $row->addSelect('number')->fromArray($options)->isRequired();
+                    $row->addSelect('number')->fromArray($options)->required();
 
                 $row = $form->addRow();
                     $row->addFooter();
@@ -118,7 +118,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
             elseif ($step == 2) {
                 if ($_GET['name'] != '' or $_GET['gibbonLibraryTypeID'] != '' or $_GET['gibbonSpaceID'] != '' or $_GET['status'] != '' or $_GET['gibbonPersonIDOwnership'] != '' or $_GET['typeSpecificFields'] != '') {
                     echo "<div class='linkTop'>";
-                    echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Library/library_manage_catalog.php&name='.$_GET['name'].'&gibbonLibraryTypeID='.$_GET['gibbonLibraryTypeID'].'&gibbonSpaceID='.$_GET['gibbonSpaceID'].'&status='.$_GET['status'].'&gibbonPersonIDOwnership='.$_GET['gibbonPersonIDOwnership'].'&typeSpecificFields='.$_GET['typeSpecificFields']."'>".__($guid, 'Back to Search Results').'</a>';
+                    echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Library/library_manage_catalog.php&name='.$_GET['name'].'&gibbonLibraryTypeID='.$_GET['gibbonLibraryTypeID'].'&gibbonSpaceID='.$_GET['gibbonSpaceID'].'&status='.$_GET['status'].'&gibbonPersonIDOwnership='.$_GET['gibbonPersonIDOwnership'].'&typeSpecificFields='.$_GET['typeSpecificFields']."'>".__('Back to Search Results').'</a>';
                     echo '</div>';
                 }
 
@@ -137,8 +137,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
                     $row = $form->addRow();
                         $row->addLabel('id'.$i, sprintf(__('Copy %1$s ID'), $i));
                         $row->addTextField('id'.$i)
-                            ->isUnique('./modules/Library/library_manage_catalog_idCheckAjax.php', array('fieldName' => 'id'))
-                            ->isRequired()
+                            ->uniqueField('./modules/Library/library_manage_catalog_idCheckAjax.php', array('fieldName' => 'id'))
+                            ->required()
                             ->maxLength(255);
                 }
 

@@ -20,18 +20,22 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Forms\Form;
 
 //Module includes
-include './modules/'.$_SESSION[$guid]['module'].'/moduleFunctions.php';
+require_once __DIR__ . '/moduleFunctions.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/Finance/expenseRequest_manage_reimburse.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Finance/expenseRequest_manage.php&gibbonFinanceBudgetCycleID='.$_GET['gibbonFinanceBudgetCycleID']."'>".__($guid, 'My Expense Requests')."</a> > </div><div class='trailEnd'>".__($guid, 'Request Reimbursement').'</div>';
-    echo '</div>';
+    $gibbonFinanceBudgetCycleID = $_GET['gibbonFinanceBudgetCycleID'];
+    
+    $urlParams = compact('gibbonFinanceBudgetCycleID');        
+        
+    $page->breadcrumbs
+        ->add(__('My Expense Requests'), 'expenseRequest_manage.php',  $urlParams)
+        ->add(__('Request Reimbursement'));    
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, null);
@@ -39,12 +43,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenseRequest_man
 
     //Check if params are specified
     $gibbonFinanceExpenseID = $_GET['gibbonFinanceExpenseID'];
-    $gibbonFinanceBudgetCycleID = $_GET['gibbonFinanceBudgetCycleID'];
     $status2 = $_GET['status2'];
     $gibbonFinanceBudgetID2 = $_GET['gibbonFinanceBudgetID2'];
     if ($gibbonFinanceExpenseID == '' or $gibbonFinanceBudgetCycleID == '') {
         echo "<div class='error'>";
-        echo __($guid, 'You have not specified one or more required parameters.');
+        echo __('You have not specified one or more required parameters.');
         echo '</div>';
     } else {
         //Get and check settings
@@ -53,7 +56,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenseRequest_man
         $expenseRequestTemplate = getSettingByScope($connection2, 'Finance', 'expenseRequestTemplate');
         if ($expenseApprovalType == '' or $budgetLevelExpenseApproval == '') {
             echo "<div class='error'>";
-            echo __($guid, 'An error has occurred with your expense and budget settings.');
+            echo __('An error has occurred with your expense and budget settings.');
             echo '</div>';
         } else {
             //Check if there are approvers
@@ -68,7 +71,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenseRequest_man
 
             if ($result->rowCount() < 1) {
                 echo "<div class='error'>";
-                echo __($guid, 'An error has occurred with your expense and budget settings.');
+                echo __('An error has occurred with your expense and budget settings.');
                 echo '</div>';
             } else {
                 //Ready to go! Just check record exists and we have access, and load it ready to use...
@@ -88,7 +91,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenseRequest_man
 
                 if ($result->rowCount() != 1) {
                     echo "<div class='error'>";
-                    echo __($guid, 'The specified record cannot be found.');
+                    echo __('The specified record cannot be found.');
                     echo '</div>';
                 } else {
                     //Let's go!
@@ -96,14 +99,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenseRequest_man
 
                     if ($status2 != '' or $gibbonFinanceBudgetID2 != '') {
                         echo "<div class='linkTop'>";
-                        echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Finance/expenseRequest_manage.php&gibbonFinanceBudgetCycleID=$gibbonFinanceBudgetCycleID&status2=$status2&gibbonFinanceBudgetID2=$gibbonFinanceBudgetID2'>".__($guid, 'Back to Search Results').'</a>';
+                        echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Finance/expenseRequest_manage.php&gibbonFinanceBudgetCycleID=$gibbonFinanceBudgetCycleID&status2=$status2&gibbonFinanceBudgetID2=$gibbonFinanceBudgetID2'>".__('Back to Search Results').'</a>';
                         echo '</div>';
                     }
 
 
                     $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/expenseRequest_manage_reimburseProcess.php');
-
-                    $form->setClass('smallIntBorder fullWidth');
 
                     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
                     $form->addHiddenValue('status2', $status2);
@@ -118,16 +119,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenseRequest_man
                     $cycleName = getBudgetCycleName($gibbonFinanceBudgetCycleID, $connection2);
                     $row = $form->addRow();
                         $row->addLabel('nameBudget', __('Budget Cycle'));
-                        $row->addTextField('nameBudget')->setValue($cycleName)->maxLength(20)->isRequired()->readonly();
+                        $row->addTextField('nameBudget')->setValue($cycleName)->maxLength(20)->required()->readonly();
 
                     $form->addHiddenValue('gibbonFinanceBudgetID', $values['gibbonFinanceBudgetID']);
                     $row = $form->addRow();
                         $row->addLabel('budget', __('Budget'));
-                        $row->addTextField('budget')->setValue($values['budget'])->maxLength(20)->isRequired()->readonly();
+                        $row->addTextField('budget')->setValue($values['budget'])->maxLength(20)->required()->readonly();
 
                     $row = $form->addRow();
                         $row->addLabel('title', __('Title'));
-                        $row->addTextField('title')->maxLength(60)->isRequired()->readonly()->setValue($values['title']);
+                        $row->addTextField('title')->maxLength(60)->required()->readonly()->setValue($values['title']);
 
                     $row = $form->addRow();
                         $row->addLabel('status', __('Status'));
@@ -136,9 +137,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenseRequest_man
                             if ($values['status'] == 'Approved') {
                                 $statuses['Paid'] = __('Paid');
                             }
-                            $row->addSelect('status')->fromArray($statuses)->selected('Paid')->isRequired();
+                            $row->addSelect('status')->fromArray($statuses)->selected('Paid')->required();
                         } else {
-                            $row->addTextField('status')->maxLength(60)->isRequired()->readonly()->setValue($values['status']);
+                            $row->addTextField('status')->maxLength(60)->required()->readonly()->setValue($values['status']);
                         }
 
                     $row = $form->addRow();
@@ -148,15 +149,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenseRequest_man
 
                     $row = $form->addRow();
                         $row->addLabel('cost', __('Total Cost'));
-                        $row->addCurrency('cost')->isRequired()->maxLength(15)->readonly()->setValue($values['cost']);
+                        $row->addCurrency('cost')->required()->maxLength(15)->readonly()->setValue($values['cost']);
 
                     $row = $form->addRow();
                         $row->addLabel('countAgainstBudget', __('Count Against Budget'));
-                        $row->addTextField('countAgainstBudget')->maxLength(3)->isRequired()->readonly()->setValue(ynExpander($guid, $values['countAgainstBudget']));
+                        $row->addTextField('countAgainstBudget')->maxLength(3)->required()->readonly()->setValue(ynExpander($guid, $values['countAgainstBudget']));
 
                     $row = $form->addRow();
                         $row->addLabel('purchaseBy', __('Purchase By'));
-                        $row->addTextField('purchaseBy')->isRequired()->readonly()->setValue($values['purchaseBy']);
+                        $row->addTextField('purchaseBy')->required()->readonly()->setValue($values['purchaseBy']);
 
                     $row = $form->addRow();
                         $column = $row->addColumn();
@@ -180,16 +181,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenseRequest_man
 
                     $row = $form->addRow()->addClass('payment');
                         $row->addLabel('paymentDate', __('Date Paid'))->description(__('Date of payment, not entry to system.'));
-                        $row->addDate('paymentDate')->isRequired();
+                        $row->addDate('paymentDate')->required();
 
                     $row = $form->addRow()->addClass('payment');
                     	$row->addLabel('paymentAmount', __('Amount paid'))->description(__('Final amount paid.'));
-            			$row->addCurrency('paymentAmount')->isRequired()->maxLength(15);
+            			$row->addCurrency('paymentAmount')->required()->maxLength(15);
 
                     $form->addHiddenValue('gibbonPersonIDPayment', $_SESSION[$guid]['gibbonPersonID']);
                     $row = $form->addRow()->addClass('payment');
                         $row->addLabel('name', __('Payee'))->description(__('Staff who made, or arranged, the payment.'));
-                        $row->addTextField('name')->isRequired()->readonly()->setValue(formatName('', ($_SESSION[$guid]['preferredName']), htmlPrep($_SESSION[$guid]['surname']), 'Staff', true, true));
+                        $row->addTextField('name')->required()->readonly()->setValue(formatName('', ($_SESSION[$guid]['preferredName']), htmlPrep($_SESSION[$guid]['surname']), 'Staff', true, true));
 
                     $methods = array(
                         'Bank Transfer' => __('Bank Transfer'),
@@ -200,13 +201,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenseRequest_man
                     );
                     $row = $form->addRow()->addClass('payment');
                         $row->addLabel('paymentMethod', __('Payment Method'));
-                        $row->addSelect('paymentMethod')->fromArray($methods)->placeholder()->isRequired();
+                        $row->addSelect('paymentMethod')->fromArray($methods)->placeholder()->required();
 
                     $row = $form->addRow()->addClass('payment');;
                         $row->addLabel('file', __('Payment Receipt'))->description(__('Digital copy of the receipt for this payment.'));
                         $row->addFileUpload('file')
                             ->accepts('.jpg,.jpeg,.gif,.png,.pdf')
-                            ->isRequired();
+                            ->required();
 
                     $row = $form->addRow();
                         $row->addFooter();

@@ -23,14 +23,14 @@ use Gibbon\Forms\DatabaseFormFactory;
 if (isActionAccessible($guid, $connection2, '/modules/Finance/expenseApprovers_manage_add.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/expenseApprovers_manage.php'>".__($guid, 'Manage Expense Approvers')."</a> > </div><div class='trailEnd'>".__($guid, 'Add Expense Approver').'</div>';
-    echo '</div>';
-
+    $page->breadcrumbs
+        ->add(__('Manage Expense Approvers'),'expenseApprovers_manage.php')
+        ->add(__('Add Expense Approver'));
+    
     $editLink = '';
     if (isset($_GET['editID'])) {
         $editLink = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Finance/expenseApprovers_manage_edit.php&gibbonFinanceExpenseApproverID='.$_GET['editID'];
@@ -40,21 +40,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenseApprovers_m
     }
 
     $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/expenseApprovers_manage_addProcess.php');
-
     $form->setFactory(DatabaseFormFactory::create($pdo));
-    $form->setClass('smallIntBorder fullWidth');
 
     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
 
     $row = $form->addRow();
         $row->addLabel('gibbonPersonID', __('Staff'));
-        $row->addSelectStaff('gibbonPersonID')->isRequired()->placeholder();
+        $row->addSelectStaff('gibbonPersonID')->required()->placeholder();
 
     $expenseApprovalType = getSettingByScope($connection2, 'Finance', 'expenseApprovalType');
     if ($expenseApprovalType == 'Chain Of All') {
         $row = $form->addRow();
             $row->addLabel('sequenceNumber', __('Sequence Number'))->description(__('Must be unique.'));
-            $row->addSequenceNumber('sequenceNumber', 'gibbonFinanceExpenseApprover')->isRequired()->maxLength(3);
+            $row->addSequenceNumber('sequenceNumber', 'gibbonFinanceExpenseApprover')->required()->maxLength(3);
     }
 
     $row = $form->addRow();

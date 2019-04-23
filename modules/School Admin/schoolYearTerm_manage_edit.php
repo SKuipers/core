@@ -23,12 +23,12 @@ use Gibbon\Forms\DatabaseFormFactory;
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYearTerm_manage_edit.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/schoolYearTerm_manage.php'>".__($guid, 'Manage Terms')."</a> > </div><div class='trailEnd'>".__($guid, 'Edit Term').'</div>';
-    echo '</div>';
+    $page->breadcrumbs
+        ->add(__('Manage Terms'), 'schoolYearTerm_manage.php')
+        ->add(__('Edit Term'));
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, null);
@@ -38,7 +38,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYearTer
     $gibbonSchoolYearTermID = $_GET['gibbonSchoolYearTermID'];
     if ($gibbonSchoolYearTermID == '') {
         echo "<div class='error'>";
-        echo __($guid, 'You have not specified one or more required parameters.');
+        echo __('You have not specified one or more required parameters.');
         echo '</div>';
     } else {
         try {
@@ -52,7 +52,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYearTer
 
         if ($result->rowCount() != 1) {
             echo "<div class='error'>";
-            echo __($guid, 'The specified record cannot be found.');
+            echo __('The specified record cannot be found.');
             echo '</div>';
         } else {
             //Let's go!
@@ -65,30 +65,30 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYearTer
 
 		    $row = $form->addRow();
 		        $row->addLabel('gibbonSchoolYearID', __('School Year'));
-		        $row->addSelectSchoolYear('gibbonSchoolYearID')->isRequired()->selected($values['gibbonSchoolYearID']);
+		        $row->addSelectSchoolYear('gibbonSchoolYearID')->required()->selected($values['gibbonSchoolYearID']);
 
 		    $row = $form->addRow();
 		        $row->addLabel('sequenceNumber', __('Sequence Number'))->description(__('Must be unique. Controls chronological ordering.'));
 		        $row->addSequenceNumber('sequenceNumber', 'gibbonSchoolYearTerm', $values['sequenceNumber'])
-		        	->isRequired()
+		        	->required()
 		        	->maxLength(3)
 		        	->setValue($values['sequenceNumber']);
 
 		    $row = $form->addRow();
 		        $row->addLabel('name', __('Name'));
-		        $row->addTextField('name')->isRequired()->maxLength(20)->setValue($values['name']);
+		        $row->addTextField('name')->required()->maxLength(20)->setValue($values['name']);
 
 		    $row = $form->addRow();
 		        $row->addLabel('nameShort', __('Short Name'));
-		        $row->addTextField('nameShort')->isRequired()->maxLength(4)->setValue($values['nameShort']);
+		        $row->addTextField('nameShort')->required()->maxLength(4)->setValue($values['nameShort']);
 
 		    $row = $form->addRow();
 		        $row->addLabel('firstDay', __('First Day'));
-		        $row->addDate('firstDay')->isRequired()->setValue(dateConvertBack($guid, $values['firstDay']));
+		        $row->addDate('firstDay')->required()->setValue(dateConvertBack($guid, $values['firstDay']));
 
 		    $row = $form->addRow();
 		        $row->addLabel('lastDay', __('Last Day'));
-		        $row->addDate('lastDay')->isRequired()->setValue(dateConvertBack($guid, $values['lastDay']));
+		        $row->addDate('lastDay')->required()->setValue(dateConvertBack($guid, $values['lastDay']));
 
 		    $row = $form->addRow();
 		        $row->addFooter();

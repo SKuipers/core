@@ -21,6 +21,7 @@ namespace Gibbon\Forms;
 
 use Gibbon\Forms\FormFactory;
 use Gibbon\Contracts\Database\Connection;
+use Gibbon\Services\Format;
 
 /**
  * DatabaseFormFactory
@@ -199,6 +200,29 @@ class DatabaseFormFactory extends FormFactory
         return $this->createSelect($name)->fromResults($results)->placeholder();
     }
 
+    public function createSelectTheme($name)
+    {
+        $sql = "SELECT gibbonThemeID as value, (CASE WHEN active='Y' THEN CONCAT(name, ' (', '".__('System Default')."', ')') ELSE name END) AS name FROM gibbonTheme ORDER BY name";
+        $results = $this->pdo->executeQuery(array(), $sql);
+
+        return $this->createSelect($name)->fromResults($results)->placeholder();
+    }
+
+    public function createSelectI18n($name)
+    {
+        $sql = "SELECT * FROM gibboni18n WHERE active='Y' ORDER BY code";
+        $results = $this->pdo->select($sql);
+
+        $values = array_reduce($results->fetchAll(), function ($group, $item) {
+            if (isset($item['installed']) && $item['installed'] == 'Y') {
+                $group[$item['gibboni18nID']] = $item['systemDefault'] == 'Y'? $item['name'].' ('.__('System Default').')' : $item['name'];
+            }
+            return $group;
+        }, []);
+
+        return $this->createSelect($name)->fromArray($values)->placeholder();
+    }
+
     public function createSelectLanguage($name)
     {
         $sql = "SELECT name as value, name FROM gibbonLanguage ORDER BY name";
@@ -244,38 +268,53 @@ class DatabaseFormFactory extends FormFactory
                 FROM gibbonPerson JOIN gibbonStaff ON (gibbonPerson.gibbonPersonID=gibbonStaff.gibbonPersonID)
                 WHERE status='Full' ORDER BY surname, preferredName";
 
-        $results = $this->pdo->executeQuery(array(), $sql);
+        $staff = $this->pdo->select($sql)->fetchGroupedUnique();
 
-        $values = array();
-        if ($results && $results->rowCount() > 0) {
-            while ($row = $results->fetch()) {
-                $values[$row['gibbonPersonID']] = formatName(htmlPrep($row['title']), ($row['preferredName']), htmlPrep($row['surname']), 'Staff', true, true);
-            }
-        }
+        $staff = array_map(function ($person) {
+            return Format::name($person['title'], $person['preferredName'], $person['surname'], 'Staff', true, true);
+        }, $staff);
 
-        return $this->createSelect($name)->fromArray($values);
+        return $this->createSelectPerson($name)->fromArray($staff);
+    }
+
+    public function createSelectUsersFromList($name, $people = [])
+    {
+        $data = ['gibbonPersonIDList' => implode(',', $people)];
+        $sql = "SELECT gibbonPerson.gibbonPersonID, title, surname, preferredName
+                FROM gibbonPerson
+                WHERE status='Full' 
+                AND FIND_IN_SET(gibbonPersonID, :gibbonPersonIDList)
+                ORDER BY surname, preferredName";
+
+        $people = $this->pdo->select($sql, $data)->fetchGroupedUnique();
+
+        $people = array_map(function ($person) {
+            return Format::name($person['title'], $person['preferredName'], $person['surname'], 'Staff', true, true);
+        }, $people);
+
+        return $this->createSelectPerson($name)->fromArray($people);
     }
 
     public function createSelectUsers($name, $gibbonSchoolYearID = false, $params = array())
     {
-        $params = array_replace(['includeStudents' => false], $params);
+        $params = array_replace(['includeStudents' => false, 'includeStaff' => false], $params);
 
         $users = array();
-        $allUsers = array();
 
-        $sql = "SELECT gibbonPerson.gibbonPersonID, title, surname, preferredName, username, gibbonRole.category
-                FROM gibbonPerson
-                JOIN gibbonRole ON (gibbonRole.gibbonRoleID=gibbonPerson.gibbonRoleIDPrimary)
-                WHERE status='Full' OR status='Expected' 
-                ORDER BY surname, preferredName";
-
-        $result = $this->pdo->executeQuery(array(), $sql);
-
-        if ($result->rowCount() > 0) {
-            $allUsers = array_reduce($result->fetchAll(), function ($group, $item) {
-                $group[$item['gibbonPersonID']] = formatName('', $item['preferredName'], $item['surname'], 'Student', true).' ('.$item['username'].', '.$item['category'].')';
-                return $group;
-            }, array());
+        if ($params['includeStaff'] == true) {
+            $data = array('gibbonSchoolYearID' => $gibbonSchoolYearID, 'date' => date('Y-m-d'));
+            $sql = "SELECT gibbonPerson.gibbonPersonID, preferredName, surname 
+                    FROM gibbonPerson 
+                    JOIN gibbonStaff ON (gibbonPerson.gibbonPersonID=gibbonStaff.gibbonPersonID) 
+                    WHERE gibbonPerson.status='Full' 
+                    ORDER BY gibbonPerson.surname, gibbonPerson.preferredName";
+            $result = $this->pdo->executeQuery($data, $sql);
+            if ($result->rowCount() > 0) {
+                $users[__('Staff')] = array_reduce($result->fetchAll(), function ($group, $item) {
+                    $group[$item['gibbonPersonID']] = formatName('', htmlPrep($item['preferredName']), htmlPrep($item['surname']), 'Staff', true, true);
+                    return $group;
+                }, array());
+            }
         }
 
         if ($params['includeStudents'] == true) {
@@ -297,13 +336,23 @@ class DatabaseFormFactory extends FormFactory
                     return $group;
                 }, array());
             }
-
-            $users[__('All Users')] = $allUsers;
-        } else {
-            $users = $allUsers;
         }
 
-        return $this->createSelect($name)->fromArray($users);
+        $sql = "SELECT gibbonPerson.gibbonPersonID, title, surname, preferredName, username, gibbonRole.category
+                FROM gibbonPerson
+                JOIN gibbonRole ON (gibbonRole.gibbonRoleID=gibbonPerson.gibbonRoleIDPrimary)
+                WHERE status='Full' OR status='Expected' 
+                ORDER BY surname, preferredName";
+        $result = $this->pdo->executeQuery(array(), $sql);
+
+        if ($result->rowCount() > 0) {
+            $users[__('All Users')] = array_reduce($result->fetchAll(), function ($group, $item) {
+                $group[$item['gibbonPersonID']] = formatName('', $item['preferredName'], $item['surname'], 'Student', true).' ('.$item['username'].', '.$item['category'].')';
+                return $group;
+            }, array());
+        }
+
+        return $this->createSelectPerson($name)->fromArray($users);
     }
 
     /*
@@ -409,7 +458,7 @@ class DatabaseFormFactory extends FormFactory
             }
         }
 
-        return $this->createSelect($name)->fromArray($values);
+        return $this->createSelectPerson($name)->fromArray($values);
     }
 
     public function createSelectGradeScale($name)
@@ -423,14 +472,16 @@ class DatabaseFormFactory extends FormFactory
     {
         // Check params and set defaults if not defined
         $params = array_replace(array(
-            'honourDefault' => true, 
-            'valueMode' => 'value'
+            'honourDefault' => true,
+            'valueMode' => 'value',
+            'labelMode' => 'value',
         ), $params);
 
         $valueQuery = ($params['valueMode'] == 'id')? 'gibbonScaleGradeID as value' : 'value';
+        $labelQuery = ($params['labelMode'] == 'descriptor')? 'descriptor' : 'value';
 
         $data = array('gibbonScaleID' => $gibbonScaleID);
-        $sql = "SELECT {$valueQuery}, value as name, isDefault FROM gibbonScaleGrade WHERE gibbonScaleID=:gibbonScaleID ORDER BY sequenceNumber";
+        $sql = "SELECT {$valueQuery}, {$labelQuery} as name, isDefault FROM gibbonScaleGrade WHERE gibbonScaleID=:gibbonScaleID ORDER BY sequenceNumber";
         $results = $this->pdo->executeQuery($data, $sql);
 
         $grades = ($results->rowCount() > 0)? $results->fetchAll() : array();

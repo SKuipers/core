@@ -22,13 +22,11 @@ use Gibbon\Forms\Form;
 if (isActionAccessible($guid, $connection2, '/modules/User Admin/dataUpdaterSettings.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > </div><div class='trailEnd'>".__($guid, 'Data Updater Settings').'</div>';
-    echo '</div>';
+    $page->breadcrumbs->add(__('Data Updater Settings'));
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, null);
@@ -56,12 +54,12 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/dataUpdaterSett
     $setting = getSettingByScope($connection2, 'Data Updater', 'requiredUpdatesByType', true);
     $row = $form->addRow()->addClass('requiredUpdates');
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description($setting['description']);
-        $row->addSelect($setting['name'])->fromArray($updateTypes)->isRequired()->selectMultiple()->selected(explode(',', $setting['value']));
+        $row->addSelect($setting['name'])->fromArray($updateTypes)->required()->selectMultiple()->selected(explode(',', $setting['value']));
 
     $setting = getSettingByScope($connection2, 'Data Updater', 'cutoffDate', true);
     $row = $form->addRow()->addClass('requiredUpdates');
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description($setting['description']);
-        $row->addDate($setting['name'])->isRequired()->setValue(dateConvertBack($guid, $setting['value']));
+        $row->addDate($setting['name'])->required()->setValue(dateConvertBack($guid, $setting['value']));
 
     $sql = "SELECT DISTINCT category as value, category as name FROM gibbonRole ORDER BY category";
     $setting = getSettingByScope($connection2, 'Data Updater', 'redirectByRoleCategory', true);
@@ -76,8 +74,8 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/dataUpdaterSett
     echo $form->getOutput();
     
 
-    echo '<h2>'.__($guid, 'Required Fields for Personal Updates').'</h2>';
-	echo '<p>'.__($guid, 'These required field settings apply to all users, except those who hold the ability to submit a data update request for all users in the system (generally just admins).').'</p>';
+    echo '<h2>'.__('Required Fields for Personal Updates').'</h2>';
+	echo '<p>'.__('These required field settings apply to all users, except those who hold the ability to submit a data update request for all users in the system (generally just admins).').'</p>';
 
     $form = Form::create('dataUpdaterSettingsFields', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/dataUpdaterSettingsFieldsProcess.php');
     

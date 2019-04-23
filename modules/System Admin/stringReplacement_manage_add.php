@@ -22,7 +22,7 @@ use Gibbon\Forms\Form;
 if (isActionAccessible($guid, $connection2, '/modules/System Admin/stringReplacement_manage_add.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     $search = '';
@@ -31,9 +31,9 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/stringReplace
     }
 
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/System Admin/stringReplacement_manage.php&search=$search'>".__($guid, 'Manage String Replacements')."</a> > </div><div class='trailEnd'>".__($guid, 'Add String').'</div>';
-    echo '</div>';
+    $page->breadcrumbs
+        ->add(__('Manage String Replacements'), 'stringReplacement_manage.php')
+        ->add(__('Add String'));
 
     $editLink = '';
     if (isset($_GET['editID'])) {
@@ -45,7 +45,7 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/stringReplace
 
     if ($search != '') {
         echo "<div class='linkTop'>";
-        echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/System Admin/stringReplacement_manage.php&search=$search'>".__($guid, 'Back to Search Results').'</a>';
+        echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/System Admin/stringReplacement_manage.php&search=$search'>".__('Back to Search Results').'</a>';
         echo '</div>';
     }
 
@@ -55,11 +55,11 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/stringReplace
 
     $row = $form->addRow();
         $row->addLabel('original', __('Original String'));
-        $row->addTextField('original')->isRequired()->maxLength(100);
+        $row->addTextField('original')->required()->maxLength(100);
 
     $row = $form->addRow();
         $row->addLabel('replacement', __('Replacement String'));
-        $row->addTextField('replacement')->isRequired()->maxLength(100);
+        $row->addTextField('replacement')->required()->maxLength(100);
 
     $row = $form->addRow();
         $row->addLabel('mode', __('Mode'));
@@ -67,11 +67,11 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/stringReplace
 
     $row = $form->addRow();
         $row->addLabel('caseSensitive', __('Case Sensitive'));
-        $row->addYesNo('caseSensitive')->selected('N')->isRequired();
+        $row->addYesNo('caseSensitive')->selected('N')->required();
 
     $row = $form->addRow();
         $row->addLabel('priority', __('Priority'))->description(__('Higher priorities are substituted first.'));
-        $row->addNumber('priority')->isRequired()->maxLength(2)->setValue('0');
+        $row->addNumber('priority')->required()->maxLength(2)->setValue('0');
 
     $row = $form->addRow();
         $row->addFooter();

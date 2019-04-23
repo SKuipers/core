@@ -21,44 +21,36 @@ use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 
 //Module includes
-include './modules/'.$_SESSION[$guid]['module'].'/moduleFunctions.php';
+require_once __DIR__ . '/moduleFunctions.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/courseEnrolment_sync_edit.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
+    $gibbonYearGroupID = $_REQUEST['gibbonYearGroupID'] ?? '';
+    $gibbonSchoolYearID = $_REQUEST['gibbonSchoolYearID'] ?? '';
+    $pattern = $_POST['pattern'] ?? '';
 
-    $gibbonYearGroupID = (isset($_REQUEST['gibbonYearGroupID']))? $_REQUEST['gibbonYearGroupID'] : null;
-    $gibbonSchoolYearID = (isset($_REQUEST['gibbonSchoolYearID']))? $_REQUEST['gibbonSchoolYearID'] : null;
-
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/courseEnrolment_sync.php&gibbonSchoolYearID=".$gibbonSchoolYearID."'>".__($guid, 'Sync Course Enrolment')."</a> > </div><div class='trailEnd'>".__($guid, 'Map Classes').'</div>';
-    echo '</div>';
+    $page->breadcrumbs
+        ->add(__('Sync Course Enrolment'), 'courseEnrolment_sync.php', ['gibbonSchoolYearID' => $gibbonSchoolYearID])
+        ->add(__('Map Classes'));
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, null);
     }
 
-    
-
-    $pattern = (isset($_POST['pattern']))? $_POST['pattern'] : null;
-
     if (empty($gibbonYearGroupID) || empty($gibbonSchoolYearID)) {
         echo "<div class='error'>";
-        echo __($guid, 'Your request failed because your inputs were invalid.');
+        echo __('Your request failed because your inputs were invalid.');
         echo '</div>';
         return;
     }
 
     $form = Form::create('courseEnrolmentSyncEdit', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/courseEnrolment_sync_addEditProcess.php');
+    $form->setClass('w-full blank');
     $form->setFactory(DatabaseFormFactory::create($pdo));
-
-    // To render the form as miltiple tables
-    $form->getRenderer()->setWrapper('form', 'div');
-    $form->getRenderer()->setWrapper('row', 'div');
-    $form->getRenderer()->setWrapper('cell', 'div');
 
     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
     $form->addHiddenValue('gibbonYearGroupID', $gibbonYearGroupID);

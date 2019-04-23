@@ -271,6 +271,9 @@ function getStudents($guid, $connection2, $role, $gibbonCourseClassID, $homework
     } elseif (($role == 'Student' and $homeworkCrowdAssessOtherStudentsRead == 'Y') or ($role == 'Student - In Class' and $homeworkCrowdAssessClassmatesRead == 'Y')) {
         $data = array('gibbonCourseClassID' => $gibbonCourseClassID);
         $sqlList = "SELECT * FROM gibbonCourseClassPerson JOIN gibbonPerson ON (gibbonPerson.gibbonPersonID=gibbonCourseClassPerson.gibbonPersonID) WHERE gibbonCourseClassID=:gibbonCourseClassID AND role='Student' AND status='Full' AND (dateStart IS NULL OR dateStart<='".date('Y-m-d')."') AND (dateEnd IS NULL  OR dateEnd>='".date('Y-m-d')."') $and ORDER BY surname, preferredName";
+    } elseif ($role == 'Student - In Class') {
+        $data = array('gibbonCourseClassID' => $gibbonCourseClassID,'gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID']);
+        $sqlList = "SELECT * FROM gibbonCourseClassPerson JOIN gibbonPerson ON (gibbonPerson.gibbonPersonID=gibbonCourseClassPerson.gibbonPersonID) WHERE gibbonCourseClassID=:gibbonCourseClassID AND gibbonCourseClassPerson.gibbonPersonID=:gibbonPersonID AND role='Student' AND status='Full' AND (dateStart IS NULL OR dateStart<='".date('Y-m-d')."') AND (dateEnd IS NULL  OR dateEnd>='".date('Y-m-d')."') $and ORDER BY surname, preferredName";
     }
 
     return array($data, $sqlList);
@@ -296,29 +299,35 @@ function getThread($guid, $connection2, $gibbonPlannerEntryHomeworkID, $parent, 
 
     if ($level == 0 and $resultDiscuss->rowCount() == 0) {
         $output .= "<div class='error'>";
-        $output .= __($guid, 'This conversation has not yet begun!');
+        $output .= __('This conversation has not yet begun!');
         $output .= '</div>';
     } else {
         while ($rowDiscuss = $resultDiscuss->fetch()) {
             $classExtra = '';
+            $namePerson = __('{name} said', [
+                'name' => formatName($rowDiscuss['title'], $rowDiscuss['preferredName'], $rowDiscuss['surname'], $rowDiscuss['category'])
+            ]);
+            $datetimePosted = __('Posted at {hourPosted} on {datePosted}', [
+                'hourPosted' => '<b>'.substr($rowDiscuss['timestamp'], 11, 5).'</b>', 
+                'datePosted' => '<b>'.dateConvertBack($guid, substr($rowDiscuss['timestamp'], 0, 10)).'</b>'
+            ]);
             if ($level == 0) {
                 $classExtra = 'chatBoxFirst';
             }
 
             $output .= "<a name='".$rowDiscuss['gibbonCrowdAssessDiscussID']."'></a>";
             $output .= "<table class='noIntBorder chatBox $classExtra' cellspacing='0' style='width: ".(755 - ($level * 15)).'px; margin-left: '.($level * 15)."px'>";
-            $output .= '<tr>';
-            $output .= '<td><i>'.formatName($rowDiscuss['title'], $rowDiscuss['preferredName'], $rowDiscuss['surname'], $rowDiscuss['category']).' said</i>:</td>';
-            $output .= "<td style='text-align: right'><i>Posted at <b>".substr($rowDiscuss['timestamp'], 11, 5).'</b> on <b>'.dateConvertBack($guid, substr($rowDiscuss['timestamp'], 0, 10)).'</b></i></td>';
-            $output .= '</tr>';
-            $output .= '<tr>';
+            $output .= "<tr>";
+            $output .= "<td><i>".$namePerson.'</i>:</td>';
+            $output .= "<td style='text-align: right'><i>".$datetimePosted."</i></td>";         
+            $output .= "</tr>";
+            $output .= "<tr>";
             $output .= "<td style='padding: 1px 4px' colspan=2><b>".$rowDiscuss['comment'].'</b></td>';
-            $output .= '</tr>';
-            $output .= '<tr>';
+            $output .= "</tr>";
+            $output .= "<tr>";
             $output .= "<td style='text-align: right' colspan=2><a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.$_SESSION[$guid]['module']."/crowdAssess_view_discuss_post.php&gibbonPersonID=$gibbonPersonID&gibbonPlannerEntryID=$gibbonPlannerEntryID&gibbonPlannerEntryHomeworkID=$gibbonPlannerEntryHomeworkID&replyTo=".$rowDiscuss['gibbonCrowdAssessDiscussID']."'>Reply</a></td>";
-            $output .= '</tr>';
-
-            $output .= '</table>';
+            $output .= "</tr>";
+            $output .= "</table>";
 
             //Get any replies
             try {

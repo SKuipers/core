@@ -68,7 +68,10 @@ class PaginatedRenderer extends SimpleRenderer implements RendererInterface
 
         $output .= parent::renderTable($table, $dataSet);
 
-        $output .= '</div></div><br/>';
+        $output .= '</div></div>';
+
+        // Persist the bulk actions outside the AJAX-reloaded data table div
+        $output .= $this->renderBulkActions($table);
 
         $postData = $table->getMetaData('post');
         $jsonData = !empty($postData) 
@@ -79,7 +82,7 @@ class PaginatedRenderer extends SimpleRenderer implements RendererInterface
         $output .="
         <script>
         $(function(){
-            $('#".$table->getID()."').gibbonDataTable('.".str_replace(' ', '%20', $this->path)."', ".$jsonData.");
+            $('#".$table->getID()."').gibbonDataTable('.".str_replace(' ', '%20', $this->path)."', ".$jsonData.", '".$this->criteria->getIdentifier()."');
         });
         </script>";
 
@@ -95,6 +98,10 @@ class PaginatedRenderer extends SimpleRenderer implements RendererInterface
      */
     protected function renderHeader(DataTable $table, DataSet $dataSet) 
     {
+        if ($table->getMetaData('hidePagination') == true) {
+            return parent::renderHeader($table, $dataSet);
+        }
+        
         $filterOptions = $table->getMetaData('filterOptions', []);
 
         $output = '<div class="flexRow">';
@@ -109,7 +116,6 @@ class PaginatedRenderer extends SimpleRenderer implements RendererInterface
         $output .= $this->renderFilterOptions($dataSet, $filterOptions);
         $output .= $this->renderPageSize($dataSet);
         $output .= $this->renderPagination($dataSet);
-        $output .= $this->renderBulkActions($table);
 
         return $output;
     }
@@ -124,6 +130,8 @@ class PaginatedRenderer extends SimpleRenderer implements RendererInterface
     protected function renderFooter(DataTable $table, DataSet $dataSet)
     {
         $output = parent::renderFooter($table, $dataSet);
+
+        if ($table->getMetaData('hidePagination') == true) return $output;
 
         if ($dataSet->getPageCount() > 1) {
             $output .= $this->renderPageCount($dataSet);
@@ -241,6 +249,7 @@ class PaginatedRenderer extends SimpleRenderer implements RendererInterface
 
         return $this->factory->createSelect('limit')
             ->fromArray(array(10, 25, 50, 100))
+            ->fromArray(array($dataSet->getResultCount() => __('All')))
             ->setClass('limit floatNone')
             ->selected($dataSet->getPageSize())
             ->append('<small style="line-height: 30px;margin-left:5px;">'.__('Per Page').'</small>')
@@ -259,7 +268,7 @@ class PaginatedRenderer extends SimpleRenderer implements RendererInterface
 
         $pageNumber = $dataSet->getPage();
 
-        $output = '<div class="floatRight">';
+        $output = '<div class="pagination floatRight">';
             $output .= '<input type="button" class="paginate" data-page="'.$dataSet->getPrevPageNumber().'" '.($dataSet->isFirstPage()? 'disabled' : '').' value="'.__('Prev').'">';
 
             foreach ($dataSet->getPaginatedRange() as $page) {
@@ -289,8 +298,8 @@ class PaginatedRenderer extends SimpleRenderer implements RendererInterface
 
         if (empty($bulkActions)) return '';
 
-        $output = '<div class="column bulkActionPanel inline right displayNone">';
-        $output .= '<div class="bulkActionCount"><span>0</span> '.__('Selected').'</div>';
+        $output = '<div class="bulkActionPanel hidden absolute top-0 right-0 w-full flex items-center justify-between px-1 pt-1 bg-purple-600 rounded-t">';
+        $output .= '<div class="bulkActionCount flex-grow text-white text-sm text-right pr-3"><span>0</span> '.__('Selected').'</div>';
         $output .= $bulkActions->getOutput();
         $output .= '<script>';
         $output .= $bulkActions->getValidationOutput();

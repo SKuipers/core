@@ -21,17 +21,17 @@ use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 
 //Module includes
-include './modules/'.$_SESSION[$guid]['module'].'/moduleFunctions.php';
+require_once __DIR__ . '/moduleFunctions.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/department_manage_add.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/department_manage.php'>".__($guid, 'Manage Departments')."</a> > </div><div class='trailEnd'>".__($guid, 'Add Learning Area').'</div>';
-    echo '</div>';
+    $page->breadcrumbs
+        ->add(__('Manage Departments'), 'department_manage.php')
+        ->add(__('Add Department'));
 
     $editLink = '';
     if (isset($_GET['editID'])) {
@@ -68,15 +68,15 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/department_ma
 
     $row = $form->addRow();
         $row->addLabel('type', 'Type');
-        $row->addSelect('type')->fromArray($types)->isRequired();
+        $row->addSelect('type')->fromArray($types)->required();
 
     $row = $form->addRow();
         $row->addLabel('name', __('Name'));
-        $row->addTextField('name')->maxLength(40)->isRequired();
+        $row->addTextField('name')->maxLength(40)->required();
 
     $row = $form->addRow();
         $row->addLabel('nameShort', __('Short Name'));
-        $row->addTextField('nameShort')->maxLength(4)->isRequired();
+        $row->addTextField('nameShort')->maxLength(4)->required();
 
     $row = $form->addRow();
         $row->addLabel('subjectListing', __('Subject Listing'));

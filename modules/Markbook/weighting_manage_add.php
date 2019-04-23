@@ -18,27 +18,28 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
+use Gibbon\Services\Format;
 
 //Module includes
-include './modules/'.$_SESSION[$guid]['module'].'/moduleFunctions.php';
+require_once __DIR__ . '/moduleFunctions.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/Markbook/weighting_manage_add.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'Your request failed because you do not have access to this action.');
+    echo __('Your request failed because you do not have access to this action.');
     echo '</div>';
 } else {
     $highestAction = getHighestGroupedAction($guid, $_GET['q'], $connection2);
     if ($highestAction == false) {
         echo "<div class='error'>";
-        echo __($guid, 'The highest grouped action cannot be determined.');
+        echo __('The highest grouped action cannot be determined.');
         echo '</div>';
     } else {
 
         if (getSettingByScope($connection2, 'Markbook', 'enableColumnWeighting') != 'Y') {
             //Acess denied
             echo "<div class='error'>";
-            echo __($guid, 'Your request failed because you do not have access to this action.');
+            echo __('Your request failed because you do not have access to this action.');
             echo '</div>';
         }
 
@@ -47,17 +48,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/weighting_manage_
         }
 
         //Get class variable
-        $gibbonCourseClassID = null;
-        if (isset($_GET['gibbonCourseClassID'])) {
-            $gibbonCourseClassID = $_GET['gibbonCourseClassID'];
-        }
+        $gibbonCourseClassID = $_GET['gibbonCourseClassID'] ?? '';
 
         if ($gibbonCourseClassID == '') {
             echo '<h1>';
-            echo __($guid, 'Add Markbook Weighting');
+            echo __('Add Markbook Weighting');
             echo '</h1>';
             echo "<div class='warning'>";
-            echo __($guid, 'The selected record does not exist, or you do not have access to it.');
+            echo __('The selected record does not exist, or you do not have access to it.');
             echo '</div>';
 
             return;
@@ -79,17 +77,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/weighting_manage_
 
             if ($result->rowCount() != 1) {
                 echo '<h1>';
-                echo __($guid, 'Add Markbook Weighting');
+                echo __('Add Markbook Weighting');
                 echo '</h1>';
                 echo "<div class='error'>";
-                echo __($guid, 'The selected record does not exist, or you do not have access to it.');
+                echo __('The selected record does not exist, or you do not have access to it.');
                 echo '</div>';
             } else {
                 $row = $result->fetch();
-                echo "<div class='trail'>";
-                echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > </div><div class='trailEnd'>".__($guid, 'Add').' '.$row['course'].'.'.$row['class'].' '.__($guid, ' Weighting').'</div>';
-                echo '</div>';
 
+                $page->breadcrumbs
+                    ->add(
+                        __('Manage {courseClass} Weightings', [
+                            'courseClass' => Format::courseClassName($row['course'], $row['class']),
+                        ]),
+                        'weighting_manage.php',
+                        ['gibbonCourseClassID' => $gibbonCourseClassID]
+                    )
+                    ->add(__('Add Weighting'));
                 // Show add weighting form
                 $form = Form::create('manageWeighting', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/weighting_manage_addProcess.php?gibbonCourseClassID=$gibbonCourseClassID");
                 
@@ -112,15 +116,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/weighting_manage_
 
                 $row = $form->addRow();
                     $row->addLabel('type', __('Type'));
-                    $row->addSelect('type')->fromArray(array_values($types))->isRequired()->placeholder();
+                    $row->addSelect('type')->fromArray(array_values($types))->required()->placeholder();
 
                 $row = $form->addRow();
                     $row->addLabel('description', __('Description'));
-                    $row->addTextField('description')->isRequired()->maxLength(50);
+                    $row->addTextField('description')->required()->maxLength(50);
 
                 $row = $form->addRow();
                     $row->addLabel('weighting', __('Weighting'))->description(__('Percent: 0 to 100'));
-                    $row->addNumber('weighting')->isRequired()->maxLength(6)->minimum(0)->maximum(100);
+                    $row->addNumber('weighting')->required()->maxLength(6)->minimum(0)->maximum(100);
 
                 $percentOptions = array(
                     'term' => __('Cumulative Average'),
