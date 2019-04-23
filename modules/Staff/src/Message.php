@@ -19,6 +19,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 namespace Gibbon\Module\Staff;
 
+use Gibbon\Services\Format;
+
 /**
  * Message
  *
@@ -30,6 +32,12 @@ abstract class Message
     abstract public function getTitle() : string;
     abstract public function getText() : string;
     abstract public function getModule() : string;
+
+    public function getSubject() : string
+    {
+        $currentDate = Format::date(date('Y-m-d'));
+        return $this->getTitle()." ({$currentDate})";
+    }
 
     public function getAction() : string
     {
@@ -59,7 +67,7 @@ abstract class Message
     public function toMail() : array
     {
         return [
-            'subject' => $this->getTitle(),
+            'subject' => $this->getSubject(),
             'title'   => $this->getTitle(),
             'body'    => $this->getText(),
             'details' => array_filter($this->getDetails()),
