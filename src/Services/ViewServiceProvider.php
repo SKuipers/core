@@ -28,6 +28,7 @@ use Gibbon\Tables\DataTable;
 use Gibbon\Tables\View\DataTableView;
 use Gibbon\Tables\View\PaginatedView;
 use League\Container\ServiceProvider\AbstractServiceProvider;
+use Gibbon\Tables\View\DetailsView;
 
 /**
  * DI Container Services for rendering Views
@@ -52,6 +53,7 @@ class ViewServiceProvider extends AbstractServiceProvider
         DataTable::class,
         DataTableView::class,
         PaginatedView::class,
+        DetailsView::class,
     ];
 
     /**
@@ -91,6 +93,10 @@ class ViewServiceProvider extends AbstractServiceProvider
 
         $container->add(PaginatedView::class, function () use ($container) {
             return new PaginatedView($container->get('twig'));
+        });
+
+        $container->add(DetailsView::class, function () use ($container) {
+            return new DetailsView($container->get('twig'));
         });
     }
 }
