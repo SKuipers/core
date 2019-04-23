@@ -73,7 +73,7 @@ class StaffCoverageGateway extends QueryableGateway
         return $this->runQuery($query, $criteria);
     }
 
-    public function queryCoverageByPersonCovering(QueryCriteria $criteria, $gibbonPersonID)
+    public function queryCoverageByPersonCovering(QueryCriteria $criteria, $gibbonPersonID, $grouped = true)
     {
         $query = $this
             ->newQuery()
@@ -92,7 +92,7 @@ class StaffCoverageGateway extends QueryableGateway
             ->leftJoin('gibbonStaff AS absenceStaff', 'absence.gibbonPersonID=absenceStaff.gibbonPersonID')
             ->where('gibbonStaffCoverage.gibbonPersonIDCoverage = :gibbonPersonID')
             ->bindValue('gibbonPersonID', $gibbonPersonID)
-            ->groupBy(['gibbonStaffCoverage.gibbonStaffCoverageID'])
+            ->groupBy($grouped ? ['gibbonStaffCoverage.gibbonStaffCoverageID'] : ['gibbonStaffAbsenceDate.gibbonStaffAbsenceDateID'])
             ->orderBy(["gibbonStaffCoverage.status = 'Requested' DESC"]);
 
         $criteria->addFilterRules($this->getSharedFilterRules());

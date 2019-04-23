@@ -109,7 +109,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php') ==
 
         $criteria = $staffCoverageGateway->newQueryCriteria()->pageSize(0);
 
-        $coverage = $staffCoverageGateway->queryCoverageByPersonCovering($criteria, $gibbonPersonID);
+        $coverage = $staffCoverageGateway->queryCoverageByPersonCovering($criteria, $gibbonPersonID, false);
         $exceptions = $substituteGateway->queryUnavailableDatesBySub($criteria, $gibbonPersonID);
         $schoolYear = $schoolYearGateway->getSchoolYearByID($_SESSION[$guid]['gibbonSchoolYearID']);
 
