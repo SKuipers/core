@@ -60,7 +60,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_approval_ac
     $page->writeFromTemplate('users/staffCard.twig.html', $staffCard->compose($absence['gibbonPersonID']));
 
     // Absence Dates
-    $table = $container->get(AbsenceDates::class)->compose($absence);
+    $table = $container->get(AbsenceDates::class)->create($gibbonStaffAbsenceID, true);
     $page->write($table->getOutput());
 
     // Absence Request

@@ -21,8 +21,11 @@ namespace Gibbon\Module\Staff\Tables;
 
 use Gibbon\Services\Format;
 use Gibbon\Tables\DataTable;
+use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Module\Staff\Tables\AbsenceFormats;
+use Gibbon\Contracts\Services\Session;
+use Gibbon\Contracts\Database\Connection;
 
 /**
  * AbsenceDates
@@ -32,23 +35,64 @@ use Gibbon\Module\Staff\Tables\AbsenceFormats;
  */
 class AbsenceDates
 {
-    protected $staffDateAbsenceGateway;
+    protected $session;
+    protected $db;
+    protected $staffAbsenceGateway;
+    protected $staffAbsenceDateGateway;
 
-    public function __construct(StaffAbsenceDateGateway $staffDateAbsenceGateway)
+    public function __construct(Session $session, Connection $db, StaffAbsenceGateway $staffAbsenceGateway, StaffAbsenceDateGateway $staffAbsenceDateGateway)
     {
-        $this->staffDateAbsenceGateway = $staffDateAbsenceGateway;
+        $this->session = $session;
+        $this->db = $db;
+        $this->staffAbsenceGateway = $staffAbsenceGateway;
+        $this->staffAbsenceDateGateway = $staffAbsenceDateGateway;
     }
 
-    public function compose($absence)
+    public function create($gibbonStaffAbsenceID, $includeDetails = false)
     {
-        $absenceDates = $this->staffDateAbsenceGateway->selectDatesByAbsence($absence['gibbonStaffAbsenceID'])->toDataSet();
-        $table = DataTable::create('staffAbsenceDates')->withData($absenceDates);
+        $guid = $this->session->get('guid');
+        $connection2 = $this->db->getConnection();
 
-        $table->addColumn('date', __($absence['type']).' '.__($absence['reason']))
+        $absence = $this->staffAbsenceGateway->getAbsenceDetailsByID($gibbonStaffAbsenceID);
+        $dates = $this->staffAbsenceDateGateway->selectDatesByAbsence($gibbonStaffAbsenceID)->toDataSet();
+
+        $table = DataTable::create('staffAbsenceDates')->withData($dates);
+
+        if ($includeDetails) {
+            $dateLabel = __($absence['type']).' '.__($absence['reason']);
+            $timeLabel = __n('{count} Day', '{count} Days', $absence['value'], ['count' => $absence['value']]);
+        } else {
+            $dateLabel = __('Date');
+            $timeLabel = __('Time');
+        }
+
+        $table->addColumn('date', $dateLabel)
             ->format(Format::using('dateReadable', 'date'));
 
-        $table->addColumn('timeStart', __n('{count} Day', '{count} Days', $absence['value'], ['count' => $absence['value']]))
+        $table->addColumn('timeStart', $timeLabel)
             ->format([AbsenceFormats::class, 'timeDetails']);
+
+        if (!empty($absence['coverage'])) {
+            $table->addColumn('coverage', __('Coverage'))
+                ->width('30%')
+                ->format([AbsenceFormats::class, 'coverage']);
+        }
+
+        $canManage = isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php') || $absence['gibbonPersonID'] == $_SESSION[$guid]['gibbonPersonID'];
+        $canRequest = isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php');
+
+        if ($canManage && $canRequest && $absence['status'] == 'Approved') {
+            $table->addActionColumn()
+                ->addParam('gibbonStaffAbsenceID')
+                ->format(function ($values, $actions) {
+                    if (!empty($values['gibbonStaffCoverageID'])) return;
+                    if ($values['date'] < date('Y-m-d')) return;
+
+                    $actions->addAction('coverage', __('Request Coverage'))
+                        ->setIcon('attendance')
+                        ->setURL('/modules/Staff/coverage_request.php');
+                });
+        }
 
         return $table;
     }

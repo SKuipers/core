@@ -23,17 +23,18 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
             <div class="absolute top-0 left-0 border-transparent" style="margin: 15px 0 0 -18px; border-width: 9px; border-right-color: #d7d6d6;"></div>
             <div class="absolute top-0 left-0 border-8 border-transparent" style="margin: 16px 0 0 -16px; border-width: 8px; border-right-color: #fafafa;"></div>
 
-            <div class="px-4 py-2 text-gray-700 text-sm font-sans">
-                <span class="inline-block font-semibold py-2">{{ name }}</span> {{ action|lower }} <span class="whitespace-no-wrap">{{ date|raw }}</span>
+            <div class="px-4 py-3 text-gray-700 text-sm font-sans leading-relaxed">
+                
+                <span class="inline-block font-semibold">{{ name }}</span> {{ action|lower }} <span class="whitespace-no-wrap">{{ date|raw }}</span>
 
                 {% if status %}
-                    <span class="ml-2 my-1 tag {{ tag }}">{{ status }}</span>
+                    <span class="ml-2 tag {{ tag }}">{{ status }}</span>
                 {% endif %}
             </div>
 
             {% if comment %}
             <div class="p-4 bg-white border-t border-gray-400 rounded-b">
-                {{ comment }}
+                {{ comment|nl2br }}
             </div>
             {% endif %}
         </div>
