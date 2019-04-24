@@ -23,6 +23,7 @@ use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Module\Staff\Forms\StaffCard;
 use Gibbon\Domain\User\UserGateway;
+use Gibbon\Module\Staff\Tables\CoverageDates;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_decline.php') == false) {
     // Access denied
@@ -67,6 +68,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_declin
     $gibbonPersonIDStatus = !empty($coverage['gibbonPersonID'])? $coverage['gibbonPersonID'] : $coverage['gibbonPersonIDStatus'];
     $page->writeFromTemplate('users/staffCard.twig.html', $container->get(StaffCard::class)->compose($gibbonPersonIDStatus));
 
+    // Coverage Dates
+    $table = $container->get(CoverageDates::class)->create($gibbonStaffCoverageID);
+    $page->write($table->getOutput());
+    
     // Coverage Request
     $requester = $container->get(UserGateway::class)->getByID($coverage['gibbonPersonIDStatus']);
     $page->writeFromTemplate('users/statusComment.twig.html', [

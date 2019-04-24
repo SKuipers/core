@@ -17,12 +17,12 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Module\Staff\Forms\ViewCoverageForm;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Module\Staff\Forms\StaffCard;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\User\UserGateway;
 use Gibbon\Services\Format;
+use Gibbon\Module\Staff\Tables\CoverageDates;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_details.php') == false) {
     // Access denied
@@ -37,11 +37,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_detail
     $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
     $coverage = $container->get(StaffCoverageGateway::class)->getByID($gibbonStaffCoverageID);
     
-    
     if (!empty($coverage['gibbonStaffAbsenceID'])) {
+        // Absence Coverage
         $absence = $container->get(StaffAbsenceGateway::class)->getByID($coverage['gibbonStaffAbsenceID']);
         $gibbonPersonID = $absence['gibbonPersonID'];
-        // Absence Coverage
     } else {
         // General Coverage
         $gibbonPersonID = $coverage['gibbonPersonIDStatus'];
@@ -50,6 +49,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_detail
     // Staff Card
     $staffCard = $container->get(StaffCard::class);
     $page->writeFromTemplate('users/staffCard.twig.html', $staffCard->compose($gibbonPersonID));
+
+    // Coverage Dates
+    $table = $container->get(CoverageDates::class)->create($gibbonStaffCoverageID);
+    $page->write($table->getOutput());
 
     // Coverage Request
     $requester = $container->get(UserGateway::class)->getByID($coverage['gibbonPersonIDStatus']);
