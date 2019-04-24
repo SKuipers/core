@@ -55,9 +55,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_week
 	$nextWeek = $date->modify('+1 week')->format($dateFormat);
 
 	$col = $row->addColumn()->addClass('flex items-center ');
-		$col->addButton(__('Last Week'))->addClass('buttonLink')->onClick("window.location.href='{$link}&dateStart={$lastWeek}'");
-		$col->addButton(__('This Week'))->addClass('buttonLink')->onClick("window.location.href='{$link}&dateStart={$thisWeek}'");
-		$col->addButton(__('Next Week'))->addClass('buttonLink')->onClick("window.location.href='{$link}&dateStart={$nextWeek}'");
+		$col->addButton(__('Last Week'))->addClass('')->onClick("window.location.href='{$link}&dateStart={$lastWeek}'");
+		$col->addButton(__('This Week'))->addClass('ml-px')->onClick("window.location.href='{$link}&dateStart={$thisWeek}'");
+		$col->addButton(__('Next Week'))->addClass('ml-px')->onClick("window.location.href='{$link}&dateStart={$nextWeek}'");
 
 	$col = $row->addColumn()->addClass('flex items-center justify-end');
 		$col->addDate('dateStart')->setValue($date->format($dateFormat))->setClass('shortWidth');
