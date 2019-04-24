@@ -230,11 +230,11 @@ table td {
 }
 
 .odd,
-table.colorOddEven tr {
+table.colorOddEven tr:not([class]) {
     background-color: #fefefe;
 }
 .even,
-table.colorOddEven tr:nth-of-type(odd) {
+table.colorOddEven tr:nth-of-type(odd):not([class]) {
     background-color: #f9f9f9;
 }
 
@@ -256,14 +256,11 @@ table tr:first-child th:first-child {
     -moz-border-radius-topleft: 3px;
     -webkit-border-top-left-radius: 3px;
     border-top-left-radius: 3px;
-    text-align: left;
-    padding-left: 15px;
 }
 table tr:first-child th:last-child {
     -moz-border-radius-topright: 3px;
     -webkit-border-top-right-radius: 3px;
     border-top-right-radius: 3px;
-    padding-left: 5px;
 }
 table tr:last-child td:first-child {
     -moz-border-radius-bottomleft: 3px;
@@ -291,6 +288,7 @@ table.noIntBorder td:last-child {
 table.smallIntBorder {
     background-color: #fafafa;
     margin: 5px 0px;
+    position: relative;
 }
 table.smallIntBorder td {
     border-left: none !important ;
@@ -355,11 +353,11 @@ input[type="password"] {
     padding-left: 4px;
 }
 
-input[readonly], textarea[readonly], select[readonly] {
-	border: none;
+input[readonly],
+textarea[readonly],
+select[readonly] {
+    border: none;
     background: none;
-    padding-left: 0;
-    padding-right: 0;
 }
 
 textarea[readonly] {
@@ -896,12 +894,6 @@ h6.bigTop {
     margin-top: 50px !important;
 }
 
-
-/* Forms - ignore the colorOddEven stripe on footer */
-form table.colorOddEven tr:last-of-type {
-    background-color: #fbfbfb;
-}
-
 /* v13 NEW CLASSES */
 td.wordWrap {
     overflow-wrap: break-word;
@@ -939,21 +931,6 @@ table tr.heading td {
     );
     background: -moz-linear-gradient(top, #ebebeb, #dfdfdf);
     text-align: left;
-}
-
-table tr.heading:first-child td:first-child {
-    -moz-border-radius-topleft: 3px;
-    -webkit-border-top-left-radius: 3px;
-    border-top-left-radius: 3px;
-    text-align: left;
-    padding-left: 15px;
-}
-
-table tr.heading:first-child td:last-child {
-    -moz-border-radius-topright: 3px;
-    -webkit-border-top-right-radius: 3px;
-    border-top-right-radius: 3px;
-    padding-left: 5px;
 }
 
 /* Usability tweak to make large data tables like User Permissions easier to read */
@@ -1061,12 +1038,6 @@ input[type="reset"] {
     padding: 0px 6px;
 }
 
-input[type="button"].alignRight {
-    position: absolute;
-    right: 5px;
-    margin: 0;
-}
-
 .displayInlineBlock {
     display: inline-block;
 }
@@ -1103,7 +1074,7 @@ table.smallIntBorder td.noPadding {
 
 .customBlocks .sortHandle {
     width: 2px;
-    height: 70px;
+    height: 64px;
     margin: 5px;
     border-color: #c7dae9;
     border-style: dotted;
@@ -1125,37 +1096,19 @@ table.smallIntBorder td.noPadding {
 }
 
 .blockTemplate.ui-sortable-helper {
-    max-height: 80px !important;
-}
-
-.blockSidebar {
-    width: 8%;
-}
-
-.blockInputs {
-    width: 88%;
-    padding: 5px;
-    box-sizing: border-box;
+    max-height: 74px !important;
 }
 
 .blockInputs input,
-.blockInputs textarea,
-.blockInputs select {
-    border: 1px solid #bfbfbf;
-    font-style: italic;
+.blockInputs select,
+.blockInputs textarea:not(.tinymce) {
+    background: transparent;
 }
 
-.blockInputs .readonly {
-    color: #222222;
-    border: 1px dotted #aaa;
-    background: none;
+.blockInputs input:not([readonly]) {
+    border: 1px solid #d2e4f2;
 }
 
-.blockInputs select.readonly {
-    pointer-events: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-}
 
 .blockInputs .title {
     font-style: normal;

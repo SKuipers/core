@@ -20,9 +20,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 include '../../gibbon.php';
 include './moduleFunctions.php';
 
+$page = $container->get('page');
+
 $id = $_POST['id'];
 $value = $_POST['value'];
+$showMedia = $_POST['showMedia'] ?? false;
+$rows = $_POST['rows'] ?? 10;
 
-echo '<div style="margin-left: -25px; width: 740px; overflow: visible;">';
-echo getEditor($guid, true, $id, $value, 10, false, false, false, false, '', false);
-echo '</div>';
+echo getEditor($guid, false, $id, $value, $rows, $showMedia, false, false, $showMedia, '', false);
