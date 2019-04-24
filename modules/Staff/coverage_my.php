@@ -73,9 +73,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php') ==
             });
 
         $table->addColumn('date', __('Date'))
+            ->context('primary')
             ->format([AbsenceFormats::class, 'dateDetails']);
 
         $table->addColumn('requested', __('Substitute'))
+            ->context('primary')
             ->width('30%')
             ->sortable(['surnameCoverage', 'preferredNameCoverage'])
             ->format([AbsenceFormats::class, 'substituteDetails']);
@@ -158,9 +160,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php') ==
             });
 
         $table->addColumn('date', __('Date'))
+            ->context('primary')
             ->format([AbsenceFormats::class, 'dateDetails']);
 
         $table->addColumn('requested', __('Person'))
+            ->context('primary')
             ->width('30%')
             ->sortable(['surname', 'preferredName'])
             ->format([AbsenceFormats::class, 'personDetails']);

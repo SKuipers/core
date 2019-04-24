@@ -127,7 +127,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_week
 
     $barGraph->addDataset('absent', __('Absent'))->setData($chartData);
 
-    echo '<div style="height: 175px;overflow: visible;">'.$barGraph->render().'</div>';
+    echo '<div style="overflow: visible;">'.$barGraph->render().'</div>';
 
     if (empty($listData)) {
         echo Format::alert(__('There are no absences for this time period.'), 'message');

@@ -94,7 +94,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
     $table = DataTable::create('staffAbsenceTypes');
 
     foreach ($types as $name => $count) {
-        $table->addColumn($name, $name)->width((100 / count($types)).'%');
+        $table->addColumn($name, $name)->context('primary')->width((100 / count($types)).'%');
     }
 
     echo $table->render(new DataSet([$types]));
@@ -128,7 +128,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
 
     // COLUMNS
     $table->addColumn('date', __('Date'))
-        ->width('22%')
         ->format([AbsenceFormats::class, 'dateDetails']);
     
     $table->addColumn('type', __('Type'))

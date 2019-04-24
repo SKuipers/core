@@ -84,13 +84,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view.php') 
             return AbsenceFormats::coverageStatus($coverage, $urgencyThreshold);
         });
 
+    $table->addColumn('date', __('Date'))
+        ->context('primary')
+        ->format([AbsenceFormats::class, 'dateDetails']);
+
     $table->addColumn('requested', __('Person'))
-        ->width('30%')
+        ->context('primary')
         ->sortable(['surname', 'preferredName'])
         ->format([AbsenceFormats::class, 'personDetails']);
-
-    $table->addColumn('date', __('Date'))
-        ->format([AbsenceFormats::class, 'dateDetails']);
 
     // Only display the Accept / Decline options for people who are substitutes
     $substitute = $container->get(SubstituteGateway::class)->getSubstituteByPerson($gibbonPersonID);
