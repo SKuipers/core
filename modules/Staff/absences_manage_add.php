@@ -217,15 +217,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
         $form->addRow()->addHeading(__('Coverage'))->addClass('approvalNotRequired');
 
         $row = $form->addRow()->addClass('approvalNotRequired');
-            $row->addLabel('coverage', __('Substitute Required?'));
-            $row->addYesNo('coverage')->isRequired()->selected('N');
+            $row->addLabel('coverageRequired', __('Substitute Required'));
+            $row->addYesNo('coverageRequired')->isRequired()->selected('N');
     
-        $form->toggleVisibilityByClass('coverageOptions')->onSelect('coverage')->whenNot('N');
+        $form->toggleVisibilityByClass('coverageOptions')->onSelect('coverageRequired')->whenNot('N');
             
         $row = $form->addRow()->addClass('coverageOptions approvalNotRequired');
             $row->addAlert(__("You'll have the option to send a coverage request after submitting this form."), 'success');
     } else {
-        $form->addHiddenValue('coverage', 'N');
+        $form->addHiddenValue('coverageRequired', 'N');
     }
 
     $row = $form->addRow();

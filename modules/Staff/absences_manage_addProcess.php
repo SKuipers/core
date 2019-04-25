@@ -54,6 +54,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
         'comment'                  => $_POST['comment'] ?? '',
         'commentConfidential'      => $_POST['commentConfidential'] ?? '',
         'status'                   => 'Approved',
+        'coverageRequired'         => $_POST['coverageRequired'] ?? 'N',
         'gibbonPersonIDCreator'    => $gibbon->session->get('gibbonPersonID'),
         'notificationSent'         => 'N',
         'notificationList'         => json_encode($notificationList),
@@ -163,10 +164,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
     }
 
     // Redirect to coverage request
-    $coverage = $_POST['coverage'] ?? 'N';
-
-    if ($coverage != 'N') {
-        $URL = $_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Staff/coverage_request.php&coverage=$coverage&gibbonStaffAbsenceID=$gibbonStaffAbsenceID";
+    if ($data['coverageRequired'] != 'N') {
+        $URL = $_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Staff/coverage_request.php&coverage=Y&gibbonStaffAbsenceID=$gibbonStaffAbsenceID";
         $URL .= '&return=success1';
         header("Location: {$URL}");
         exit;
