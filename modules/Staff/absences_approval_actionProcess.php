@@ -38,17 +38,21 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_approval_ac
 } else {
     // Proceed!
     $staffAbsenceGateway = $container->get(StaffAbsenceGateway::class);
-    $values = $staffAbsenceGateway->getByID($gibbonStaffAbsenceID);
+    $absence = $staffAbsenceGateway->getByID($gibbonStaffAbsenceID);
 
-    if (empty($values)) {
+    if (empty($absence)) {
         $URL .= '&return=error2';
         header("Location: {$URL}");
         exit;
     }
 
-    $status = '';
-    if ($_POST['action'] == 'Approve') $status = 'Approved';
-    if ($_POST['action'] == 'Decline') $status = 'Declined';
+    if ($absence['gibbonPersonIDApproval'] != $_SESSION[$guid]['gibbonPersonID']) {
+        $URL .= '&return=error1';
+        header("Location: {$URL}");
+        exit;
+    }
+
+    $status = $_POST['status'] ?? '';
 
     if (empty($status)) {
         $URL .= '&return=error2';

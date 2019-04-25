@@ -79,7 +79,7 @@ class AbsenceDates
         }
 
         $canManage = isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php') || $absence['gibbonPersonID'] == $_SESSION[$guid]['gibbonPersonID'];
-        $canRequest = isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php');
+        $canRequest = isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php') && $absence['dateEnd'] >= date('Y-m-d');
 
         if ($canManage && $canRequest && $absence['status'] == 'Approved') {
             $table->addActionColumn()

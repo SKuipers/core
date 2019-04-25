@@ -17,12 +17,13 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-namespace Gibbon\Module\Staff\Forms;
+namespace Gibbon\Module\Staff\View;
 
 use Gibbon\Domain\Staff\StaffGateway;
 use Gibbon\Domain\RollGroups\RollGroupGateway;
 use Gibbon\Contracts\Services\Session;
 use Gibbon\Contracts\Database\Connection;
+use Gibbon\View\Page;
 
 /**
  * StaffCard
@@ -45,18 +46,25 @@ class StaffCard
         $this->rollGroupGateway = $rollGroupGateway;
     }
 
-    public function compose($gibbonPersonID) : array
+    public function setPerson($gibbonPersonID)
+    {
+        $this->gibbonPersonID = $gibbonPersonID;
+
+        return $this;
+    }
+
+    public function compose(Page $page)
     {
         $guid = $this->session->get('guid');
         $connection2 = $this->db->getConnection();
 
-        return [
-            'staff' => $this->staffGateway->selectStaffByID($gibbonPersonID ?? '')->fetch(),
-            'rollGroup' => $this->rollGroupGateway->selectRollGroupsByTutor($gibbonPersonID ?? '')->fetch(),
+        $page->writeFromTemplate('staffCard.twig.html', [
+            'staff' => $this->staffGateway->selectStaffByID($this->gibbonPersonID ?? '')->fetch(),
+            'rollGroup' => $this->rollGroupGateway->selectRollGroupsByTutor($this->gibbonPersonID ?? '')->fetch(),
             'canViewProfile' => isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.php'),
             'canViewAbsences' => isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPerson.php', 'View Absences_any'),
             'canViewTimetable' => isActionAccessible($guid, $connection2, '/modules/Timetable/tt_view.php'),
             'canViewRollGroups' => isActionAccessible($guid, $connection2, '/modules/Roll Groups/rollGroups.php'),
-        ];
+        ]);
     }
 }

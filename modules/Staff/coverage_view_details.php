@@ -18,11 +18,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Domain\Staff\StaffCoverageGateway;
-use Gibbon\Module\Staff\Forms\StaffCard;
+use Gibbon\Module\Staff\View\StaffCard;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\User\UserGateway;
 use Gibbon\Services\Format;
 use Gibbon\Module\Staff\Tables\CoverageDates;
+use Gibbon\Module\Staff\View\CoverageView;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_details.php') == false) {
     // Access denied
@@ -48,34 +49,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_detail
 
     // Staff Card
     $staffCard = $container->get(StaffCard::class);
-    $page->writeFromTemplate('users/staffCard.twig.html', $staffCard->compose($gibbonPersonID));
+    $staffCard->setPerson($gibbonPersonID)->compose($page);
 
     // Coverage Dates
     $table = $container->get(CoverageDates::class)->create($gibbonStaffCoverageID);
     $page->write($table->getOutput());
 
-    // Coverage Request
-    $requester = $container->get(UserGateway::class)->getByID($coverage['gibbonPersonIDStatus']);
-    $page->writeFromTemplate('users/statusComment.twig.html', [
-        'name'    => Format::name($requester['title'], $requester['preferredName'], $requester['surname'], 'Staff', false, true),
-        'action'   => __('Requested'),
-        'photo'   => $_SESSION[$guid]['absoluteURL'].'/'.$requester['image_240'],
-        'date'    => Format::relativeTime($coverage['timestampStatus']),
-        'status'  => $coverage['status'] == 'Requested' ? __('Pending') : '',
-        'tag'     => 'message',
-        'comment' => $coverage['notesStatus'],
-    ]);
-
-    if ($coverage['status'] != 'Requested') {
-        $substitute = $container->get(UserGateway::class)->getByID($coverage['gibbonPersonIDCoverage']);
-        $page->writeFromTemplate('users/statusComment.twig.html', [
-            'name'    => Format::name($substitute['title'], $substitute['preferredName'], $substitute['surname'] ,'Staff', false, true),
-            'action'   => __($coverage['status']),
-            'photo'   => $_SESSION[$guid]['absoluteURL'].'/'.$substitute['image_240'],
-            'date'    => Format::relativeTime($coverage['timestampCoverage']),
-            'status'  => __($coverage['status']),
-            'tag'     => $coverage['status'] == 'Accepted' ? 'success' : 'error',
-            'comment' => $coverage['notesCoverage'],
-        ]);
-    }
+    // Coverage View Composer
+    $coverageView = $container->get(CoverageView::class);
+    $coverageView->setCoverage($gibbonStaffCoverageID)->compose($page);
 }

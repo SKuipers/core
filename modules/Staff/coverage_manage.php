@@ -42,7 +42,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage.php'
 
     $urgencyThreshold = getSettingByScope($connection2, 'Staff', 'urgencyThreshold');
     $StaffCoverageGateway = $container->get(StaffCoverageGateway::class);
-
     
     $form = Form::create('filter', $_SESSION[$guid]['absoluteURL'].'/index.php', 'get');
     $form->setTitle(__('Filter'));
@@ -131,14 +130,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage.php'
         ->addParam('search', $criteria->getSearchText(true))
         ->addParam('gibbonStaffCoverageID')
         ->format(function ($coverage, $actions) {
-            $viewURL = !empty($coverage['gibbonStaffAbsenceID'])
-                ? '/modules/Staff/absences_view_details.php'
-                : '/modules/Staff/coverage_view_details.php';
-
             $actions->addAction('view', __('View Details'))
                 ->addParam('gibbonStaffAbsenceID', $coverage['gibbonStaffAbsenceID'] ?? '')
-                ->isModal(800, 650)
-                ->setURL($viewURL);
+                ->isModal(800, 550)
+                ->setURL('/modules/Staff/coverage_view_details.php');
                 
             $actions->addAction('edit', __('Edit'))
                 ->setURL('/modules/Staff/coverage_manage_edit.php');

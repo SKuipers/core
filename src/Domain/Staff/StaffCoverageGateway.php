@@ -171,7 +171,7 @@ class StaffCoverageGateway extends QueryableGateway
     public function selectCoverageByAbsenceID($gibbonStaffAbsenceID)
     {
         $data = ['gibbonStaffAbsenceID' => $gibbonStaffAbsenceID];
-        $sql = "SELECT *
+        $sql = "SELECT gibbonStaffCoverageID
                 FROM gibbonStaffCoverage
                 WHERE gibbonStaffCoverage.gibbonStaffAbsenceID = :gibbonStaffAbsenceID
                 ORDER BY gibbonStaffCoverage.timestampStatus ASC";
