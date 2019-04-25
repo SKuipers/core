@@ -44,7 +44,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
         $editLink = isset($_GET['editID'])
             ? $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/absences_manage_edit.php&gibbonStaffAbsenceID='.$_GET['editID']
             : '';
-        returnProcess($guid, $_GET['return'], $editLink, null);
+        returnProcess($guid, $_GET['return'], $editLink, [
+            'error8' => __('Your request failed.') .' '. __('The specified date is not in the future, or is not a school day.'),
+        ]);
     }
 
     $absoluteURL = $gibbon->session->get('absoluteURL');
@@ -140,6 +142,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
             ->setClass('shortWidth')
             ->isRequired();
 
+    $col = $form->addRow()->addClass('schoolClosedOverride hidden')->addColumn();
+        $col->addAlert(__('One or more selected dates are not a school day. Check here to confirm if you would like to continue submitting this form.'), 'warning');
+        $col->addCheckbox('schoolClosedOverride')
+            ->description(__('Confirm'))
+            ->setClass('text-right pr-1')
+            ->setValue('Y');
+
     if (!empty($typesRequiringApproval)) {
         $form->toggleVisibilityByClass('approvalRequired')->onSelect('gibbonStaffAbsenceTypeID')->when($typesRequiringApproval);
         $form->toggleVisibilityByClass('approvalNotRequired')->onSelect('gibbonStaffAbsenceTypeID')->whenNot(array_merge($typesRequiringApproval, ['Please select...']));
@@ -163,7 +172,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
     $form->addRow()->addHeading(__('Notifications'));
 
     $row = $form->addRow()->addClass('approvalRequired displayNone');
-        $row->addAlert(__("The following people will only be notified if this absence is approved."), 'message');
+        $row->addAlert(__('The following people will only be notified if this absence is approved.'), 'message');
 
     // Notification Groups
 
@@ -225,3 +234,28 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
 
     echo $form->getOutput();
 }
+?>
+
+<script>
+$(document).ready(function() {
+    $('#dateStart, #dateEnd').on('change', function() {
+        $.ajax({
+            url: "./modules/Staff/absences_manage_addAjax.php",
+            data: {
+                'dateStart': $('#dateStart').val(),
+                'dateEnd': $('#dateEnd').val(),
+            },
+            type: 'POST',
+            success: function(data) {
+                if (data === '0') {
+                    $('.schoolClosedOverride').removeClass('hidden');
+                    $('#schoolClosedOverride').prop('disabled', false);
+                } else {
+                    $('.schoolClosedOverride').addClass('hidden');
+                    $('#schoolClosedOverride').prop('disabled', true);
+                }
+            }
+        });
+    });
+}) ;
+</script>

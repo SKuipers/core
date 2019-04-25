@@ -44,6 +44,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
     $dateStart = $_POST['dateStart'] ?? '';
     $dateEnd = $_POST['dateEnd'] ?? '';
     $notificationList = !empty($_POST['notificationList'])? explode(',', $_POST['notificationList']) : [];
+    $schoolClosedOverride = $_POST['schoolClosedOverride'] ?? '';
 
     $data = [
         'gibbonSchoolYearID'       => $gibbon->session->get('gibbonSchoolYearID'),
@@ -90,6 +91,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
 
     // Create the absence
     $gibbonStaffAbsenceID = $staffAbsenceGateway->insert($data);
+    $gibbonStaffAbsenceID = str_pad($gibbonStaffAbsenceID, 14, '0', STR_PAD_LEFT);
 
     if (!$gibbonStaffAbsenceID) {
         $URL .= '&return=error2';
@@ -132,7 +134,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
             }
         }
 
-        if (!isSchoolOpen($guid, $dateData['date'], $connection2)) {
+        if (!isSchoolOpen($guid, $dateData['date'], $connection2) && $schoolClosedOverride != 'Y') {
             continue;
         }
 
@@ -145,7 +147,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
     }
 
     if ($absenceCount == 0) {
-        $URL .= '&return=error1';
+        $URL .= '&return=error8';
         header("Location: {$URL}");
         exit;
     }
@@ -164,9 +166,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_add.
     $coverage = $_POST['coverage'] ?? 'N';
 
     if ($coverage != 'N') {
-        $gibbonStaffAbsenceID = str_pad($gibbonStaffAbsenceID, 14, '0', STR_PAD_LEFT);
         $URL = $_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Staff/coverage_request.php&coverage=$coverage&gibbonStaffAbsenceID=$gibbonStaffAbsenceID";
-
         $URL .= '&return=success1';
         header("Location: {$URL}");
         exit;
