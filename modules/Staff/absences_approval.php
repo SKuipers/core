@@ -105,12 +105,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_approval.ph
             if ($absence['status'] == 'Pending Approval') {
                 $actions->addAction('approve', __('Approve'))
                     ->setIcon('iconTick')
-                    ->addParam('action', 'Approve')
+                    ->addParam('status', 'Approved')
                     ->setURL('/modules/Staff/absences_approval_action.php');
 
                 $actions->addAction('decline', __('Decline'))
                     ->setIcon('iconCross')
-                    ->addParam('action', 'Decline')
+                    ->addParam('status', 'Declined')
                     ->setURL('/modules/Staff/absences_approval_action.php');
             }
         });

@@ -29,7 +29,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_approval_ac
 } else {
     //Proceed!
     $gibbonStaffAbsenceID = $_GET['gibbonStaffAbsenceID'] ?? '';
-    $action = $_GET['action'] ?? '';
+    $status = $_GET['status'] ?? '';
 
     $page->breadcrumbs
         ->add(__('Approve Staff Absences'), 'absences_approval.php')
@@ -70,12 +70,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_approval_ac
     $form->addHiddenValue('gibbonStaffAbsenceID', $gibbonStaffAbsenceID);
 
     $options = [
-        'Approved' => __('Approve'),
-        'Declined' => __('Decline'),
+        'Approved' => __('Approved'),
+        'Declined' => __('Declined'),
     ];
     $row = $form->addRow();
-        $row->addLabel('status', __('Action'));
-        $row->addSelect('status')->fromArray($options)->selected($action)->required();
+        $row->addLabel('status', __('Status'));
+        $row->addSelect('status')->fromArray($options)->selected($status)->required();
 
     $row = $form->addRow();
         $row->addLabel('notesApproval', __('Reply'));
