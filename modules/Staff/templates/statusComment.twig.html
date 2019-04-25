@@ -11,7 +11,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
     
     {% if photo %}
     <div class="w-12 sm:w-16 mr-4 flex flex-col items-center">
-        <div class="flex-none overflow-hidden w-12 sm:w-16 h-12 sm:h-16 rounded-full bg-gray-200 border border-solid border-gray-400 bg-no-repeat">
+        <div class="flex-none overflow-hidden w-12 sm:w-16 h-12 sm:h-16 rounded-full bg-gray-200 border border-solid bg-no-repeat">
             <img class="w-full" src="{{ absoluteURL }}/{{ photo }}" />
         </div>
     </div>
@@ -19,8 +19,8 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
     <div class="flex-1">
         
-        <div class="relative bg-gray-100 rounded text-gray-800 text-sm leading-snug border border-gray-400 ">
-            <div class="absolute top-0 left-0 border-transparent" style="margin: 15px 0 0 -18px; border-width: 9px; border-right-color: #d7d6d6;"></div>
+        <div class="relative bg-gray-100 rounded text-gray-800 text-sm leading-snug border ">
+            <div class="absolute top-0 left-0 border-transparent" style="margin: 15px 0 0 -18px; border-width: 9px; border-right-color: #d2d0d0;"></div>
             <div class="absolute top-0 left-0 border-8 border-transparent" style="margin: 16px 0 0 -16px; border-width: 8px; border-right-color: #fafafa;"></div>
 
             <div class="px-4 py-3 text-gray-700 text-sm font-sans leading-relaxed">
@@ -32,13 +32,13 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
             </div>
 
             {% if comment %}
-            <div class="p-4 bg-white border-t border-gray-400 rounded-b">
+            <div class="p-4 bg-white border-t rounded-b">
                 {{ comment|nl2br }}
             </div>
             {% endif %}
 
             {% if message %}
-            <div class="px-4 py-2 bg-white border-t border-gray-400 rounded-b text-xs italic text-gray-500">
+            <div class="px-4 py-2 bg-white border-t rounded-b text-xs italic text-gray-500">
                 {{ message|nl2br }}
             </div>
             {% endif %}
