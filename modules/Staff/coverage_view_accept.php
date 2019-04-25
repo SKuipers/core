@@ -24,8 +24,10 @@ use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Domain\Staff\SubstituteGateway;
-use Gibbon\Module\Staff\Forms\StaffCard;
+use Gibbon\Module\Staff\View\StaffCard;
 use Gibbon\Domain\User\UserGateway;
+use Gibbon\Module\Staff\Tables\CoverageDates;
+use Gibbon\Module\Staff\View\CoverageView;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept.php') == false) {
     // Access denied
@@ -63,51 +65,22 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
         return;
     }
 
-    
-
     // Staff Card
     $gibbonPersonIDStatus = !empty($coverage['gibbonPersonID'])? $coverage['gibbonPersonID'] : $coverage['gibbonPersonIDStatus'];
-    $page->writeFromTemplate('users/staffCard.twig.html', $container->get(StaffCard::class)->compose($gibbonPersonIDStatus));
+    $staffCard = $container->get(StaffCard::class);
+    $staffCard->setPerson($gibbonPersonIDStatus)->compose($page);
 
-    // Coverage Request
-    $requester = $container->get(UserGateway::class)->getByID($coverage['gibbonPersonIDStatus']);
-    $page->writeFromTemplate('users/statusComment.twig.html', [
-        'name'    => Format::name($requester['title'], $requester['preferredName'], $requester['surname'], 'Staff', false, true),
-        'action'   => __('Requested'),
-        'photo'   => $_SESSION[$guid]['absoluteURL'].'/'.$requester['image_240'],
-        'date'    => Format::relativeTime($coverage['timestampStatus']),
-        'comment' => $coverage['notesStatus'],
-    ]);
+    // Coverage View Composer
+    $coverageView = $container->get(CoverageView::class);
+    $coverageView->setCoverage($gibbonStaffCoverageID)->compose($page);
 
-    // FORM
-    $form = Form::create('staffCoverage', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/coverage_view_acceptProcess.php');
+    // Coverage Dates
+    $table = $container->get(CoverageDates::class)->create($gibbonStaffCoverageID);
+    $table->getRenderer()->addData('class', 'bulkActionForm');
 
-    $form->setFactory(DatabaseFormFactory::create($pdo));
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
-    $form->addHiddenValue('gibbonStaffCoverageID', $gibbonStaffCoverageID);
-
-    $form->addRow()->addHeading(__('Accept Coverage Request'));
-
-    // DATA TABLE
-    $coverageDates = $container->get(StaffAbsenceDateGateway::class)->selectDatesByCoverage($gibbonStaffCoverageID);
-
+    // Checkbox options
     $gibbonPersonID = !empty($coverage['gibbonPersonIDCoverage']) ? $coverage['gibbonPersonIDCoverage'] : $_SESSION[$guid]['gibbonPersonID'];
     $unavailable = $container->get(SubstituteGateway::class)->selectUnavailableDatesBySub($gibbonPersonID, $gibbonStaffCoverageID)->fetchGrouped();
-
-    $table = DataTable::create('staffCoverageDates');
-    $table->getRenderer()->addData('class', 'bulkActionForm datesTable');
-
-    $table->addColumn('date', __('Date'))
-        ->format(Format::using('dateReadable', 'date'));
-
-    $table->addColumn('timeStart', __('Time'))
-        ->format(function ($coverage) {
-            if ($coverage['allDay'] == 'N') {
-                return Format::small(Format::timeRange($coverage['timeStart'], $coverage['timeEnd']));
-            } else {
-                return Format::small(__('All Day'));
-            }
-        });
 
     $datesAvailableToRequest = 0;
     $table->addCheckboxColumn('coverageDates', 'date')
@@ -134,21 +107,30 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
             }
 
             $datesAvailableToRequest++;
+        })
+        ->modifyCells(function ($coverage, $cell) {
+            return $cell->addClass('h-10');
         });
 
-    $row = $form->addRow()->addContent($table->render($coverageDates->toDataSet()));
-    
+    // FORM
+    $form = Form::create('staffCoverage', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/coverage_view_acceptProcess.php');
+    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+    $form->addHiddenValue('gibbonStaffCoverageID', $gibbonStaffCoverageID);
+
+    $form->addRow()->addHeading(__('Accept Coverage Request'));
+
+    $row = $form->addRow()->addContent($table->getOutput());
+
     if ($datesAvailableToRequest > 0) {
         $row = $form->addRow();
             $row->addLabel('notesCoverage', __('Reply'));
-            $row->addTextArea('notesCoverage')->setRows(3);
+            $row->addTextArea('notesCoverage')->setRows(3)->setClass('w-full sm:max-w-xs');
 
         $row = $form->addRow();
-            $row->addFooter();
+            $row->addContent();
             $row->addSubmit();
     } else {
-        $row = $form->addRow();
-            $row->addAlert(__('Not Available'), 'warning');
+        $row = $form->addRow()->addAlert(__('Not Available'), 'warning');
     }
 
     echo $form->getOutput();

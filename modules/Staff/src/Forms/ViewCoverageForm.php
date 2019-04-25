@@ -179,7 +179,7 @@ class ViewCoverageForm
         $staff = $container->get(StaffGateway::class)->selectStaffByID($gibbonPersonID ?? '')->fetch();
         $rollGroup = $container->get(RollGroupGateway::class)->selectRollGroupsByTutor($gibbonPersonID ?? '')->fetch();
 
-        return $container->get('page')->fetchFromTemplate('users/staffCard.twig.html', [
+        return $container->get('page')->fetchFromTemplate('staffCard.twig.html', [
             'staff' => $staff,
             'rollGroup' => $rollGroup,
             'canViewProfile' => isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.php'),

@@ -29,12 +29,17 @@ class AbsenceFormats
 {
     public static function personDetails($absence)
     {
-        $fullName = Format::name($absence['titleAbsence'], $absence['preferredNameAbsence'], $absence['surnameAbsence'], 'Staff', false, true);
-        if (empty($fullName)) {
-            $fullName = Format::name($absence['titleStatus'], $absence['preferredNameStatus'], $absence['surnameStatus'], 'Staff', false, true);
+        $output = Format::name($absence['titleAbsence'], $absence['preferredNameAbsence'], $absence['surnameAbsence'], 'Staff', false, true);
+        if (empty($output)) {
+            $output = Format::name($absence['titleStatus'], $absence['preferredNameStatus'], $absence['surnameStatus'], 'Staff', false, true);
         }
         
-        return $fullName.'<br/>'.Format::small($absence['type'].' '.$absence['reason']);
+        return $output;
+    }
+
+    public static function personAndTypeDetails($absence)
+    {
+        return static::personDetails($absence).'<br/>'.Format::small($absence['type'].' '.$absence['reason']);
     }
 
     public static function substituteDetails($coverage)

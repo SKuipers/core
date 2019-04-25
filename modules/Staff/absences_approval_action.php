@@ -17,15 +17,11 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Domain\Staff\StaffAbsenceGateway;
-use Gibbon\Module\Staff\Forms\ViewAbsenceForm;
 use Gibbon\Forms\Form;
-use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
-use Gibbon\Tables\DataTable;
-use Gibbon\Services\Format;
-use Gibbon\Module\Staff\Tables\AbsenceFormats;
-use Gibbon\Domain\User\UserGateway;
-use Gibbon\Module\Staff\Forms\StaffCard;
+use Gibbon\Domain\Staff\StaffAbsenceGateway;
+use Gibbon\Module\Staff\View\StaffCard;
+use Gibbon\Module\Staff\View\AbsenceView;
+use Gibbon\Module\Staff\Tables\AbsenceDates;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_approval_action.php') == false) {
     // Access denied
@@ -37,61 +33,49 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_approval_ac
 
     $page->breadcrumbs
         ->add(__('Approve Staff Absences'), 'absences_approval.php')
-        ->add(__($action));
+        ->add(__('Approval'));
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], $editLink, null);
     }
 
-    $absence = $container->get(StaffAbsenceGateway::class)->getByID($gibbonStaffAbsenceID);
+    $absence = $container->get(StaffAbsenceGateway::class)->getAbsenceDetailsByID($gibbonStaffAbsenceID);
 
     if (empty($absence)) {
         $page->addError(__('The specified record cannot be found.'));
         return;
     }
 
+    if ($absence['gibbonPersonIDApproval'] != $_SESSION[$guid]['gibbonPersonID']) {
+        $page->addError(__('You do not have access to this action.'));
+        return;
+    }
+    
     // Staff Card
     $staffCard = $container->get(StaffCard::class);
-    $page->writeFromTemplate('users/staffCard.twig.html', $staffCard->compose($absence['gibbonPersonID']));
-
-    // Absence Request
-    $person = $container->get(UserGateway::class)->getByID($absence['gibbonPersonID']);
-    $page->writeFromTemplate('users/statusComment.twig.html', [
-        'name'    => Format::name($person['title'], $person['preferredName'], $person['surname'] ,'Staff', false, true),
-        'action'   => 'Requested',
-        'photo'   => $_SESSION[$guid]['absoluteURL'].'/'.$person['image_240'],
-        'date'    => Format::relativeTime($absence['timestampCreator']),
-        'status'  => $absence['status'],
-        'tag'     => 'message',
-        'comment' => !empty($absence['commentConfidential']) ? $absence['commentConfidential'] : $absence['comment'],
-    ]);
+    $staffCard->setPerson($absence['gibbonPersonID'])->compose($page);
 
     // Absence Dates
-    $absenceDates = $container->get(StaffAbsenceDateGateway::class)->selectDatesByAbsence($absence['gibbonStaffAbsenceID']);
+    $table = $container->get(AbsenceDates::class)->create($gibbonStaffAbsenceID, true);
+    $page->write($table->getOutput());
 
-    $table = DataTable::create('staffAbsenceDates')->withData($absenceDates->toDataSet());
-
-    $table->setTitle(__('Dates'));
-
-    $table->addColumn('date', __('Date'))
-            ->format(Format::using('dateReadable', 'date'));
-
-    $table->addColumn('timeStart', __('Time'))
-            ->format([AbsenceFormats::class, 'timeDetails']);
-
-    echo $table->getOutput();
-    echo '<br/>';
-
+    // Absence View Composer
+    $absenceView = $container->get(AbsenceView::class);
+    $absenceView->setAbsence($gibbonStaffAbsenceID, $_SESSION[$guid]['gibbonPersonID'])->compose($page);
+    
     // Approval Form
     $form = Form::create('staffAbsenceApproval', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/absences_approval_actionProcess.php');
 
     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
     $form->addHiddenValue('gibbonStaffAbsenceID', $gibbonStaffAbsenceID);
-    $form->addHiddenValue('action', $action);
 
+    $options = [
+        'Approved' => __('Approve'),
+        'Declined' => __('Decline'),
+    ];
     $row = $form->addRow();
-        $row->addLabel('actionLabel', __('Action'));
-        $row->addTextField('actionValue')->readonly()->setValue($action);
+        $row->addLabel('status', __('Action'));
+        $row->addSelect('status')->fromArray($options)->selected($action)->required();
 
     $row = $form->addRow();
         $row->addLabel('notesApproval', __('Reply'));

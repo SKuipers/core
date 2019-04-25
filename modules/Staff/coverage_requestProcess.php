@@ -41,14 +41,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     $staffAbsenceDateGateway = $container->get(StaffAbsenceDateGateway::class);
 
     $requestDates = $_POST['requestDates'] ?? [];
+    $substituteTypes = $_POST['substituteTypes'] ?? [];
 
     $data = [
         'gibbonStaffAbsenceID'   => $gibbonStaffAbsenceID,
         'gibbonSchoolYearID'     => $gibbon->session->get('gibbonSchoolYearID'),
         'gibbonPersonIDStatus'   => $gibbon->session->get('gibbonPersonID'),
         'gibbonPersonIDCoverage' => $_POST['gibbonPersonIDCoverage'] ?? null,
-        'notesStatus'            => $_POST['notesStatus'],
-        'requestType'            => $_POST['requestType'],
+        'notesStatus'            => $_POST['notesStatus'] ?? '',
+        'requestType'            => $_POST['requestType'] ?? '',
+        'substituteTypes'        => implode(',', $substituteTypes),
         'status'                 => 'Requested',
         'notificationSent'       => 'N',
     ];

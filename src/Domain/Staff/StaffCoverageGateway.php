@@ -50,7 +50,7 @@ class StaffCoverageGateway extends QueryableGateway
             ->newQuery()
             ->from($this->getTableName())
             ->cols([
-                'gibbonStaffCoverage.gibbonStaffCoverageID', 'gibbonStaffCoverage.status',  'gibbonStaffAbsenceType.name as type', 'reason', 'date', 'COUNT(*) as days', 'MIN(date) as dateStart', 'MAX(date) as dateEnd', 'allDay', 'timeStart', 'timeEnd', 'timestampStatus', 'timestampCoverage',  
+                'gibbonStaffCoverage.gibbonStaffCoverageID', 'gibbonStaffCoverage.status',  'gibbonStaffAbsenceType.name as type', 'reason', 'date', 'COUNT(*) as days', 'MIN(date) as dateStart', 'MAX(date) as dateEnd', 'allDay', 'timeStart', 'timeEnd', 'timestampStatus', 'timestampCoverage', 'gibbonStaffCoverage.gibbonStaffAbsenceID',
                 'gibbonStaffAbsence.gibbonPersonID', 'absence.title AS titleAbsence', 'absence.preferredName AS preferredNameAbsence', 'absence.surname AS surnameAbsence', 
                 'gibbonStaffCoverage.gibbonPersonIDCoverage', 'coverage.title as titleCoverage', 'coverage.preferredName as preferredNameCoverage', 'coverage.surname as surnameCoverage',
                 'gibbonStaffCoverage.gibbonPersonIDStatus', 'status.title as titleStatus', 'status.preferredName as preferredNameStatus', 'status.surname as surnameStatus',
@@ -73,7 +73,7 @@ class StaffCoverageGateway extends QueryableGateway
         return $this->runQuery($query, $criteria);
     }
 
-    public function queryCoverageByPersonCovering(QueryCriteria $criteria, $gibbonPersonID)
+    public function queryCoverageByPersonCovering(QueryCriteria $criteria, $gibbonPersonID, $grouped = true)
     {
         $query = $this
             ->newQuery()
@@ -92,7 +92,7 @@ class StaffCoverageGateway extends QueryableGateway
             ->leftJoin('gibbonStaff AS absenceStaff', 'absence.gibbonPersonID=absenceStaff.gibbonPersonID')
             ->where('gibbonStaffCoverage.gibbonPersonIDCoverage = :gibbonPersonID')
             ->bindValue('gibbonPersonID', $gibbonPersonID)
-            ->groupBy(['gibbonStaffCoverage.gibbonStaffCoverageID'])
+            ->groupBy($grouped ? ['gibbonStaffCoverage.gibbonStaffCoverageID'] : ['gibbonStaffAbsenceDate.gibbonStaffAbsenceDateID'])
             ->orderBy(["gibbonStaffCoverage.status = 'Requested' DESC"]);
 
         $criteria->addFilterRules($this->getSharedFilterRules());
@@ -148,7 +148,7 @@ class StaffCoverageGateway extends QueryableGateway
     public function getCoverageDetailsByID($gibbonStaffCoverageID)
     {
         $data = ['gibbonStaffCoverageID' => $gibbonStaffCoverageID];
-        $sql = "SELECT gibbonStaffCoverage.gibbonStaffCoverageID, gibbonStaffCoverage.status, gibbonStaffAbsence.gibbonStaffAbsenceID, gibbonStaffAbsenceType.name as type, reason, 
+        $sql = "SELECT gibbonStaffCoverage.gibbonStaffCoverageID, gibbonStaffCoverage.status, gibbonStaffAbsence.gibbonStaffAbsenceID, gibbonStaffAbsenceType.name as type, reason, substituteTypes,
                 MIN(date) as date, COUNT(*) as days, MIN(date) as dateStart, MAX(date) as dateEnd, MAX(allDay) as allDay, MIN(timeStart) as timeStart, MAX(timeEnd) as timeEnd, timestampStatus, timestampCoverage, gibbonStaffCoverage.requestType,
                 gibbonStaffCoverage.notesCoverage, gibbonStaffCoverage.notesStatus, 0 as urgent, gibbonStaffAbsence.notificationSent, gibbonStaffAbsence.gibbonGroupID, gibbonStaffCoverage.notificationList as notificationListCoverage, gibbonStaffAbsence.notificationList as notificationListAbsence, 
                 gibbonStaffAbsence.gibbonPersonID, absence.title AS titleAbsence, absence.preferredName AS preferredNameAbsence, absence.surname AS surnameAbsence, 
@@ -166,6 +166,17 @@ class StaffCoverageGateway extends QueryableGateway
             ";
 
         return $this->db()->selectOne($sql, $data);
+    }
+
+    public function selectCoverageByAbsenceID($gibbonStaffAbsenceID)
+    {
+        $data = ['gibbonStaffAbsenceID' => $gibbonStaffAbsenceID];
+        $sql = "SELECT gibbonStaffCoverageID
+                FROM gibbonStaffCoverage
+                WHERE gibbonStaffCoverage.gibbonStaffAbsenceID = :gibbonStaffAbsenceID
+                ORDER BY gibbonStaffCoverage.timestampStatus ASC";
+
+        return $this->db()->select($sql, $data);
     }
 
     protected function getSharedFilterRules()

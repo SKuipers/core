@@ -180,7 +180,7 @@ switch ($action) {
             // Get available subs
             $availableSubs = [];
             foreach ($absenceDates as $date) {
-                $criteria = $substituteGateway->newQueryCriteria();
+                $criteria = $substituteGateway->newQueryCriteria()->filterBy('substituteTypes', $coverage['substituteTypes']);
                 $availableByDate = $substituteGateway->queryAvailableSubsByDate($criteria, $date['date'])->toArray();
                 $availableSubs = array_merge($availableSubs, $availableByDate);
             }

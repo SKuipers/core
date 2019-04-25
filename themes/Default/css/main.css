@@ -353,11 +353,11 @@ input[type="password"] {
     padding-left: 4px;
 }
 
-input[readonly], textarea[readonly], select[readonly] {
-	border: none;
+input[readonly],
+textarea[readonly],
+select[readonly] {
+    border: none;
     background: none;
-    padding-left: 0;
-    padding-right: 0;
 }
 
 textarea[readonly] {

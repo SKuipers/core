@@ -178,8 +178,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
 
     // ACTIONS
     $table->addActionColumn()
+        ->addParam('search', $criteria->getSearchText(true))
         ->addParam('gibbonStaffAbsenceID')
-        ->format(function ($person, $actions) use ($guid) {
+        ->format(function ($absence, $actions) use ($guid) {
             $actions->addAction('view', __('View Details'))
                 ->isModal(800, 550)
                 ->setURL('/modules/Staff/absences_view_details.php');

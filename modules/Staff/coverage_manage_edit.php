@@ -22,11 +22,9 @@ use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
-use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
-use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
 use Gibbon\Domain\User\UserGateway;
-use Gibbon\Module\Staff\Forms\ViewCoverageForm;
+use Gibbon\Module\Staff\View\StaffCard;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_edit.php') == false) {
     // Access denied
@@ -70,7 +68,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_edit
 
     $gibbonPersonIDStatus = !empty($coverage['gibbonPersonID'])? $coverage['gibbonPersonID'] : $coverage['gibbonPersonIDStatus'];
     if (!empty($gibbonPersonIDStatus)) {
-        $form->addRow()->addContent(ViewCoverageForm::getStaffCard($container, $gibbonPersonIDStatus));
+        $staffCard = $container->get(StaffCard::class);
+        $staffCard->setPerson($gibbonPersonIDStatus)->compose($page);
     }
 
     if (!empty($coverage['gibbonStaffAbsenceID'])) {
@@ -93,8 +92,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_edit
     
     
     $form->addRow()->addHeading(__('Substitute'));
-
-    
 
     if ($coverage['requestType'] == 'Individual') {
         $row = $form->addRow();

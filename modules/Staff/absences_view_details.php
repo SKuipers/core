@@ -18,13 +18,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
-use Gibbon\Module\Staff\Forms\ViewAbsenceForm;
+use Gibbon\Domain\Staff\StaffCoverageGateway;
+use Gibbon\Module\Staff\View\StaffCard;
+use Gibbon\Module\Staff\View\AbsenceView;
+use Gibbon\Module\Staff\Tables\AbsenceDates;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_details.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
-
     $page->breadcrumbs
         ->add(__('View Absences'), 'absences_view_byPerson.php')
         ->add(__('View Details'));
@@ -42,26 +44,34 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_detail
     $gibbonStaffAbsenceID = $_GET['gibbonStaffAbsenceID'] ?? '';
 
     $staffAbsenceGateway = $container->get(StaffAbsenceGateway::class);
+    $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
 
     if (empty($gibbonStaffAbsenceID)) {
         $page->addError(__('You have not specified one or more required parameters.'));
         return;
     }
 
-    $values = $staffAbsenceGateway->getByID($gibbonStaffAbsenceID);
+    $absence = $staffAbsenceGateway->getByID($gibbonStaffAbsenceID);
 
-    if (empty($values)) {
+    if (empty($absence)) {
         $page->addError(__('The specified record cannot be found.'));
         return;
     }
 
-    if ($highestAction == 'View Absences_my' && $values['gibbonPersonID'] != $_SESSION[$guid]['gibbonPersonID']) {
+    if ($highestAction == 'View Absences_my' && $absence['gibbonPersonID'] != $_SESSION[$guid]['gibbonPersonID']) {
         $page->addError(__('You do not have access to this action.'));
         return;
     }
 
-    $form = ViewAbsenceForm::create($container, $gibbonStaffAbsenceID);
-    $form->loadAllValuesFrom($values);
+    // Staff Card
+    $staffCard = $container->get(StaffCard::class);
+    $staffCard->setPerson($absence['gibbonPersonID'])->compose($page);
 
-    echo $form->getOutput();
+    // Absence Dates
+    $table = $container->get(AbsenceDates::class)->create($gibbonStaffAbsenceID, true);
+    $page->write($table->getOutput());
+
+    // Absence View Composer
+    $absenceView = $container->get(AbsenceView::class);
+    $absenceView->setAbsence($gibbonStaffAbsenceID, $_SESSION[$guid]['gibbonPersonID'])->compose($page);
 }

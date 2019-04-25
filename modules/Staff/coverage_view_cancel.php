@@ -21,8 +21,10 @@ use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
-use Gibbon\Module\Staff\Forms\StaffCard;
+use Gibbon\Module\Staff\View\StaffCard;
 use Gibbon\Domain\User\UserGateway;
+use Gibbon\Module\Staff\Tables\CoverageDates;
+use Gibbon\Module\Staff\View\CoverageView;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_cancel.php') == false) {
     // Access denied
@@ -65,19 +67,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_cancel
 
     // Staff Card
     $gibbonPersonIDStatus = !empty($coverage['gibbonPersonID'])? $coverage['gibbonPersonID'] : $coverage['gibbonPersonIDStatus'];
-    $page->writeFromTemplate('users/staffCard.twig.html', $container->get(StaffCard::class)->compose($gibbonPersonIDStatus));
+    $staffCard = $container->get(StaffCard::class);
+    $staffCard->setPerson($gibbonPersonIDStatus)->compose($page);
 
-    // Coverage Request
-    $requester = $container->get(UserGateway::class)->getByID($coverage['gibbonPersonIDStatus']);
-    $page->writeFromTemplate('users/statusComment.twig.html', [
-        'name'    => Format::name($requester['title'], $requester['preferredName'], $requester['surname'], 'Staff', false, true),
-        'action'   => __('Requested'),
-        'photo'   => $_SESSION[$guid]['absoluteURL'].'/'.$requester['image_240'],
-        'date'    => Format::relativeTime($coverage['timestampStatus']),
-        'status'  => $coverage['status'] == 'Requested' ? __('Pending') : '',
-        'tag'     => 'message',
-        'comment' => $coverage['notesStatus'],
-    ]);
+    // Coverage Dates
+    $table = $container->get(CoverageDates::class)->create($gibbonStaffCoverageID);
+    $page->write($table->getOutput());
+    
+    // Coverage View Composer
+    $coverageView = $container->get(CoverageView::class);
+    $coverageView->setCoverage($gibbonStaffCoverageID)->compose($page);
 
     $row = $form->addRow();
         $row->addLabel('notesStatus', __('Reply'));
