@@ -79,8 +79,12 @@ class CoverageCalendar
         $table = DataTable::create('staffAbsenceCalendar')
             ->setTitle(__('Calendar'));
 
-        $table->getRenderer()->addData('class', 'calendarTable calendarTableSmall');
-    
+        $table->getRenderer()->addData('class', 'calendarTable border-collapse bg-transparent border-r-0');
+        $table->addMetaData('hidePagination', true);
+        $table->modifyRows(function ($values, $row) {
+            return $row->setClass('bg-transparent');
+        });
+
         $table->addColumn('name', '')->notSortable()->context('primary');
     
         for ($dayCount = 1; $dayCount <= 31; $dayCount++) {
@@ -123,18 +127,18 @@ class CoverageCalendar
                     $day = $month['days'][$dayCount] ?? null;
                     if (empty($day)) return '';
     
-                    if ($day['date']->format('Y-m-d') == date('Y-m-d')) $cell->addClass('today');
+                    $cell->addClass($day['date']->format('Y-m-d') == date('Y-m-d') ? 'border-2 border-gray-700' : 'border');
                     
                     switch ($day['coverage']['status']) {
                         case 'Requested': $cellColor = 'bg-color2'; break;
                         case 'Accepted':  $cellColor = 'bg-color0'; break;
-                        default:          $cellColor = 'bg-grey';
+                        default:          $cellColor = 'bg-gray-500';
                     }
                     
                     if ($day['count'] > 0) $cell->addClass($cellColor);
-                    elseif ($day['exception']) $cell->addClass('bg-grey');
-                    elseif ($day['weekend']) $cell->addClass('weekend');
-                    else $cell->addClass('day');
+                    elseif ($day['exception']) $cell->addClass('bg-gray-500');
+                    elseif ($day['weekend']) $cell->addClass('bg-gray-200');
+                    else $cell->addClass('bg-white');
 
                     $cell->addClass('h-3 sm:h-6');
     

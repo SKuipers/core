@@ -143,9 +143,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_summ
         $table = DataTable::createPaginated('staffAbsenceCalendar', $criteria);
         $table->setTitle(__('Staff Absence Summary'));
         $table->setDescription(__n('{count} Absence', '{count} Absences', $totalAbsence));
-        $table->getRenderer()->addData('class', 'calendarTable calendarTableSmall');
-
+        $table->getRenderer()->addData('class', 'calendarTable border-collapse bg-transparent border-r-0');
         $table->addMetaData('hidePagination', true);
+        $table->modifyRows(function ($values, $row) {
+            return $row->setClass('bg-transparent');
+        });
 
         $table->addColumn('name', '')->notSortable();
 
@@ -155,6 +157,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_summ
 
         for ($dayCount = 1; $dayCount <= 31; $dayCount++) {
             $table->addColumn($dayCount, '')
+                ->context('primary')
                 ->notSortable()
                 ->format(function ($month) use ($baseURL, $dayCount, $gibbonStaffAbsenceTypeID, $dateFormat) {
                     $day = $month['days'][$dayCount] ?? null;
@@ -175,14 +178,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_summ
 
                     $count = $day['count'] ?? 0;
 
-                    if ($day['date']->format('Y-m-d') == date('Y-m-d')) $cell->addClass('today');
+                    $cell->addClass($day['date']->format('Y-m-d') == date('Y-m-d') ? 'border-2 border-gray-700' : 'border');
                     
-                    if ($count > ceil($maxAbsence * 0.8)) $cell->addClass('bg-purple4');
-                    elseif ($count > ceil($maxAbsence * 0.5)) $cell->addClass('bg-purple3');
-                    elseif ($count > ceil($maxAbsence * 0.2)) $cell->addClass('bg-purple2');
-                    elseif ($count > 0) $cell->addClass('bg-purple1');
-                    elseif ($day['weekend']) $cell->addClass('weekend');
-                    else $cell->addClass('day');
+                    if ($count > ceil($maxAbsence * 0.8)) $cell->addClass('bg-purple-800');
+                    elseif ($count > ceil($maxAbsence * 0.5)) $cell->addClass('bg-purple-600');
+                    elseif ($count > ceil($maxAbsence * 0.2)) $cell->addClass('bg-purple-400');
+                    elseif ($count > 0) $cell->addClass('bg-purple-200');
+                    elseif ($day['weekend']) $cell->addClass('bg-gray-200');
+                    else $cell->addClass('bg-white');
 
                     $cell->addClass('h-3 sm:h-6');
 
