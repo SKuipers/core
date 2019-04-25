@@ -23,6 +23,7 @@ use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\SubstituteGateway;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
+use Gibbon\Domain\System\SettingGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php') == false) {
     // Access denied
@@ -73,18 +74,31 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
         return array_merge($group, $availableByDate);
     }, []);
 
-    // Group by person
+    // Group subs by person
     $availableSubs = array_reduce($availableSubs, function ($group, $item) {
-        $count = $group[$item['gibbonPersonID']]['count'] ?? 0;
         $group[$item['gibbonPersonID']] = $item;
-        $group[$item['gibbonPersonID']]['count'] = $count++;
         return $group;
     }, []);
 
-    // Map names for Select list
-    $availableSubs = array_map(function ($person) {
+    // Re-sort the grouped results by priority and surname
+    uasort($availableSubs, function ($a, $b) {
+        return $b['priority'] != $a['priority']
+            ? $b['priority'] <=> $a['priority']
+            : $a['surname'] <=> $b['surname'];
+    });
+
+    // Map sub names for Select list
+    $availableSubsOptions = array_map(function ($person) {
         return Format::name($person['title'], $person['preferredName'], $person['surname'], 'Staff', true, true);
     }, $availableSubs);
+
+    // Build a list of available subs by type
+    $countTypes = [];
+    $availableSubsByType = array_reduce($availableSubs, function ($group, $item) use (&$countTypes) {
+        $countTypes[$item['type']] = isset($countTypes[$item['type']])? $countTypes[$item['type']] + 1 : 1;
+        $group[$item['type']] = $item['type']." ({$countTypes[$item['type']]})";
+        return $group;
+    }, []);
 
     $form = Form::create('staffAbsenceEdit', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/coverage_requestProcess.php');
 
@@ -112,7 +126,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
         $row->addTextField('date')->readonly()->setValue($dateRange.' '.$timeRange);
 
     $row = $form->addRow();
-        $row->addLabel('requestType', __('Substitute Required?'));
+        $row->addLabel('requestType', __('Substitute Required'));
         $row->addSelect('requestType')->isRequired()->fromArray($requestTypes)->selected('Broadcast');
 
     $form->toggleVisibilityByClass('individualOptions')->onSelect('requestType')->when('Individual');
@@ -122,6 +136,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     $row = $form->addRow()->addClass('broadcastOptions');
     if (!empty($availableSubs)) {
         $row->addAlert(__("This option sends a request out to all available substitutes. There are currently {count} substitutes with availability for this time period. You'll receive a notification once your request is accepted.", ['count' => '<b>'.count($availableSubs).'</b>']), 'message');
+
+        // If there's more than one sub type, allow users to direct their broadcast request to a specific type.
+        // All substitute types are selected by default.
+        $allSubsTypes = $container->get(SettingGateway::class)->getSettingByScope('Staff', 'substituteTypes');
+        $allSubsTypes = array_filter(array_map('trim', explode(',', $allSubsTypes)));
+        if (count($allSubsTypes) > 1) {
+            $row = $form->addRow()->addClass('broadcastOptions');
+            $row->addLabel('substituteTypes', __('Substitute Types'));
+            $row->addCheckbox('substituteTypes')->fromArray($availableSubsByType)->checkAll();
+        }
     } else {
         $row->addAlert(__("There are no substitutes currently available for this time period. You should still send a request, as sub availability may change, but you cannot select a specific sub at this time. A notification will be sent to admin."), 'warning');
     }
@@ -133,7 +157,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     $row = $form->addRow()->addClass('individualOptions');
         $row->addLabel('gibbonPersonIDCoverage', __('Substitute'))->description(__('Only available substitutes are listed here.'));
         $row->addSelectPerson('gibbonPersonIDCoverage')
-            ->fromArray($availableSubs)
+            ->fromArray($availableSubsOptions)
             ->placeholder()
             ->selected($gibbonPersonIDCoverage)
             ->isRequired();

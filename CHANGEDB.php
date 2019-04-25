@@ -897,6 +897,7 @@ CREATE TABLE `gibbonStaffCoverage` (
     `gibbonSchoolYearID` INT(3) UNSIGNED ZEROFILL NOT NULL,
     `status` ENUM('Requested','Accepted','Declined','Cancelled') DEFAULT 'Requested',
     `requestType` ENUM('Individual','Broadcast','Assigned') DEFAULT 'Broadcast',
+    `substituteTypes` VARCHAR(255) NULL,
     `gibbonPersonIDStatus` int(10) UNSIGNED ZEROFILL NOT NULL,
     `timestampStatus` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `notesStatus` TEXT NULL,
