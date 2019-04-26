@@ -29,7 +29,7 @@ require_once '../../gibbon.php';
 $gibbonStaffAbsenceID = $_POST['gibbonStaffAbsenceID'] ?? '';
 
 $URL = $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Staff/coverage_request.php&gibbonStaffAbsenceID='.$gibbonStaffAbsenceID;
-$URLSuccess = $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Staff/absences_view_details.php&gibbonStaffAbsenceID='.$gibbonStaffAbsenceID;
+$URLSuccess = $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Staff/coverage_view_edit.php&gibbonStaffAbsenceID='.$gibbonStaffAbsenceID;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php') == false) {
     $URL .= '&return=error0';
@@ -90,6 +90,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
 
     // Create the coverage request
     $gibbonStaffCoverageID = $staffCoverageGateway->insert($data);
+    $gibbonStaffCoverageID = str_pad($gibbonStaffCoverageID, 14, '0', STR_PAD_LEFT);
 
     if (!$gibbonStaffCoverageID) {
         $URL .= '&return=error2';
@@ -121,6 +122,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
         ? "&return=warning1"
         : "&return=success0";
 
-    header("Location: {$URLSuccess}");
+    header("Location: {$URLSuccess}&gibbonStaffCoverageID={$gibbonStaffCoverageID}");
     exit;
 }
