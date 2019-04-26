@@ -30,11 +30,13 @@ class AbsenceFormats
     public static function personDetails($absence)
     {
         $output = Format::name($absence['titleAbsence'], $absence['preferredNameAbsence'], $absence['surnameAbsence'], 'Staff', false, true);
+        $gibbonPersonID = !empty($absence['gibbonPersonID']) ? $absence['gibbonPersonID'] : $absence['gibbonPersonIDStatus'];
+
         if (empty($output)) {
             $output = Format::name($absence['titleStatus'], $absence['preferredNameStatus'], $absence['surnameStatus'], 'Staff', false, true);
         }
         
-        return $output;
+        return Format::link('./index.php?q=/modules/Staff/staff_view_details.php&gibbonPersonID='.$gibbonPersonID, $output);
     }
 
     public static function personAndTypeDetails($absence)
