@@ -97,21 +97,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_declin
     $coverageDates = $staffCoverageDateGateway->selectDatesByCoverage($gibbonStaffCoverageID);
 
     // Unlink any absence dates from the coverage request so they can be re-requested
-    foreach ($coverageDates as $date) {
-        if (!empty($date['gibbonStaffAbsenceDateID'])) {
-            $partialFail &= !$staffCoverageDateGateway->update($date['gibbonStaffCoverageDateID'], [
-                'gibbonStaffAbsenceDateID' => null,
-            ]);
-        }
+    foreach ($coverageDates as $dateData) {
+        $dateData['gibbonStaffAbsenceDateID'] = null;
 
         if ($markAsUnavailable) {
-            $substituteGateway->insertUnavailability([
-                'gibbonPersonID' => $coverage['gibbonPersonIDCoverage'],
-                'date'           => $date['date'],
-                'allDay'         => 'Y',
-                'reason'         => 'Not Available',
-            ]);
+            $dateData['gibbonPersonIDUnavailable'] = $coverage['gibbonPersonIDCoverage'];
         }
+
+        $partialFail &= !$staffCoverageDateGateway->update($date['gibbonStaffCoverageDateID'], $dateData);
     }
 
     // Send messages (Mail, SMS) to relevant users

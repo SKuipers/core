@@ -23,6 +23,7 @@ use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Data\BackgroundProcess;
+use Gibbon\Domain\Staff\StaffCoverageDateGateway;
 
 require_once '../../gibbon.php';
 
@@ -38,6 +39,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
 } else {
     // Proceed!
     $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
+    $staffCoverageDateGateway = $container->get(StaffCoverageDateGateway::class);
     $staffAbsenceDateGateway = $container->get(StaffAbsenceDateGateway::class);
 
     $requestDates = $_POST['requestDates'] ?? [];
@@ -102,13 +104,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
 
     $absenceDates = $staffAbsenceDateGateway->selectDatesByAbsence($data['gibbonStaffAbsenceID']);
 
-    // Link each absence date to the coverage request
-    foreach ($absenceDates as $date) {
-        if ($data['requestType'] == 'Broadcast' || in_array($date['date'], $requestDates)) {
-            $updated = $staffAbsenceDateGateway->update($date['gibbonStaffAbsenceDateID'], [
-                'gibbonStaffCoverageID' => $gibbonStaffCoverageID,
-            ]);
-            $partialFail &= !$updated;
+    // Create a coverage date for each absence date
+    foreach ($absenceDates as $dateData) {
+        $dateData['gibbonStaffCoverageID'] = $gibbonStaffCoverageID;
+
+        if ($staffCoverageDateGateway->unique($dateData, ['gibbonStaffCoverageID', 'date'])) {
+            $partialFail &= !$staffCoverageDateGateway->insert($dateData);
+        } else {
+            $partialFail = true;
         }
     }
 

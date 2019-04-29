@@ -21,7 +21,7 @@ use Gibbon\Services\Format;
 use Gibbon\Data\BackgroundProcess;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Domain\Staff\SubstituteGateway;
-use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
+use Gibbon\Domain\Staff\StaffCoverageDateGateway;
 
 require_once '../../gibbon.php';
 
@@ -34,7 +34,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_add.
 } else {
     // Proceed!
     $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
-    $staffAbsenceDateGateway = $container->get(StaffAbsenceDateGateway::class);
+    $staffCoverageDateGateway = $container->get(StaffCoverageDateGateway::class);
     
     $requestDates = $_POST['requestDates'] ?? [];
 
@@ -89,8 +89,26 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_add.
             'timeEnd'               => $_POST['timeEnd'] ?? null,
         ];
 
-        if ($staffAbsenceDateGateway->unique($dateData, ['gibbonStaffCoverageID', 'date'])) {
-            $partialFail &= !$staffAbsenceDateGateway->insert($dateData);
+        if ($dateData['allDay'] == 'Y') {
+            $dateData['value'] = 1.0;
+        } else {
+            $start = new DateTime($date.' '.$dateData['timeStart']);
+            $end = new DateTime($date.' '.$dateData['timeEnd']);
+
+            $timeDiff = $end->getTimestamp() - $start->getTimestamp();
+            $hoursAbsent = abs($timeDiff / 3600);
+            
+            if ($hoursAbsent < $halfDayThreshold) {
+                $dateData['value'] = 0.0;
+            } elseif ($hoursAbsent < $fullDayThreshold) {
+                $dateData['value'] = 0.5;
+            } else {
+                $dateData['value'] = 1.0;
+            }
+        }
+
+        if ($staffCoverageDateGateway->unique($dateData, ['gibbonStaffCoverageID', 'date'])) {
+            $partialFail &= !$staffCoverageDateGateway->insert($dateData);
             $dateCount++;
         } else {
             $partialFail = true;

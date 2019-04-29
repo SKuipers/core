@@ -17,31 +17,31 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Domain\Staff\SubstituteGateway;
+use Gibbon\Domain\Staff\StaffCoverageDateGateway;
 
 require_once '../../gibbon.php';
 
 $gibbonPersonID = $_REQUEST['gibbonPersonID'] ?? '';
-$gibbonSubstituteUnavailableID = $_REQUEST['gibbonSubstituteUnavailableID'] ?? '';
+$gibbonStaffCoverageDateID = $_REQUEST['gibbonStaffCoverageDateID'] ?? '';
 
 $URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/coverage_availability.php&gibbonPersonID='.$gibbonPersonID;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availability.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
-} elseif (empty($gibbonPersonID) || empty($gibbonSubstituteUnavailableID)) {
+} elseif (empty($gibbonPersonID) || empty($gibbonStaffCoverageDateID)) {
     $URL .= '&return=error1';
     header("Location: {$URL}");
     exit;
 } else {
     // Proceed!
-    $substituteGateway = $container->get(SubstituteGateway::class);
+    $staffCoverageDateGateway = $container->get(StaffCoverageDateGateway::class);
 
-    $exceptionList = is_array($gibbonSubstituteUnavailableID)? $gibbonSubstituteUnavailableID : [$gibbonSubstituteUnavailableID];
+    $exceptionList = is_array($gibbonStaffCoverageDateID)? $gibbonStaffCoverageDateID : [$gibbonStaffCoverageDateID];
     $partialFail = false;
 
     foreach ($exceptionList as $exceptionID) {
-        $deleted = $substituteGateway->deleteUnavailability($exceptionID);
+        $deleted = $staffCoverageDateGateway->delete($exceptionID);
         $partialFail &= !$deleted;
     }
 

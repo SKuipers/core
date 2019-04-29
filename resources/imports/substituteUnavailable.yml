@@ -2,17 +2,17 @@ details:
     type: substituteUnavailable
     category: Substitute
     name: Substitute Unavailability
-    table: gibbonSubstituteUnavailable
+    table: gibbonStaffCoverageDate
     modes: { update: true, insert: true, export: true }
 access:
     module: Staff
     action: Manage Substitutes
 primaryKey:
-    gibbonSubstituteUnavailableID
+    gibbonStaffCoverageDateID
 uniqueKeys:
     - [ gibbonPersonID, date ]
 table:
-    gibbonPersonID:
+    gibbonPersonIDUnavailable:
         name: "Substitute User"
         desc: "Username"
         args: { filter: nospaces, required: true }
