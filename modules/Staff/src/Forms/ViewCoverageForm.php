@@ -25,7 +25,7 @@ use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
 use Gibbon\Domain\User\UserGateway;
 use Gibbon\Domain\Staff\StaffGateway;
-use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
+use Gibbon\Domain\Staff\StaffCoverageDateGateway;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Domain\RollGroups\RollGroupGateway;
 use Psr\Container\ContainerInterface;
@@ -140,7 +140,7 @@ class ViewCoverageForm
     public static function createViewDatesTable(ContainerInterface $container, $gibbonStaffCoverageID)
     {
         // DATA TABLE
-        $absenceDates = $container->get(StaffAbsenceDateGateway::class)->selectDatesByCoverage($gibbonStaffCoverageID);
+        $absenceDates = $container->get(StaffCoverageDateGateway::class)->selectDatesByCoverage($gibbonStaffCoverageID);
         
         $table = DataTable::create('staffCoverageDates')->withData($absenceDates->toDataSet());
         $table->setTitle(__('Dates'));

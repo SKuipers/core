@@ -54,20 +54,6 @@ class StaffAbsenceDateGateway extends QueryableGateway
         return $this->db()->select($sql, $data);
     }
 
-    public function selectDatesByCoverage($gibbonStaffCoverageID)
-    {
-        $gibbonStaffCoverageIDList = is_array($gibbonStaffCoverageID)? $gibbonStaffCoverageID : [$gibbonStaffCoverageID];
-        $data = ['gibbonStaffCoverageIDList' => implode(',', $gibbonStaffCoverageIDList) ];
-        $sql = "SELECT gibbonStaffAbsenceDate.gibbonStaffCoverageID as groupBy, gibbonStaffAbsenceDate.*, gibbonStaffCoverage.status as coverage, coverage.title as titleCoverage, coverage.preferredName as preferredNameCoverage, coverage.surname as surnameCoverage, coverage.gibbonPersonID as gibbonPersonIDCoverage
-                FROM gibbonStaffAbsenceDate
-                LEFT JOIN gibbonStaffCoverage ON (gibbonStaffCoverage.gibbonStaffCoverageID=gibbonStaffAbsenceDate.gibbonStaffCoverageID)
-                LEFT JOIN gibbonPerson AS coverage ON (gibbonStaffCoverage.gibbonPersonIDCoverage=coverage.gibbonPersonID)
-                WHERE FIND_IN_SET(gibbonStaffAbsenceDate.gibbonStaffCoverageID, :gibbonStaffCoverageIDList)
-                ORDER BY gibbonStaffAbsenceDate.date";
-
-        return $this->db()->select($sql, $data);
-    }
-
     public function selectAbsenceDatesByPerson($gibbonPersonID)
     {
         $data = ['gibbonPersonID' => $gibbonPersonID];

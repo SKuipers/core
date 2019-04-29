@@ -18,7 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Domain\Staff\StaffCoverageGateway;
-use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
+use Gibbon\Domain\Staff\StaffCoverageDateGateway;
 
 require_once '../../gibbon.php';
 
@@ -37,7 +37,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_dele
 } else {
     // Proceed!
     $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
-    $staffAbsenceDateGateway = $container->get(StaffAbsenceDateGateway::class);
+    $staffCoverageDateGateway = $container->get(StaffCoverageDateGateway::class);
     $values = $staffCoverageGateway->getByID($gibbonStaffCoverageID);
 
     if (empty($values)) {
@@ -46,22 +46,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_dele
         exit;
     }
 
-    $absenceDates = $staffAbsenceDateGateway->selectDatesByCoverage($gibbonStaffCoverageID)->fetchAll();
+    $coverageDates = $staffCoverageDateGateway->selectDatesByCoverage($gibbonStaffCoverageID)->fetchAll();
     $partialFail = false;
 
-    
-    foreach ($absenceDates as $date) {
-        if (!empty($date['gibbonStaffAbsenceID'])) {
-            // Unlink any absence dates from the coverage request
-            $updated = $staffAbsenceDateGateway->update($date['gibbonStaffAbsenceDateID'], [
-                'gibbonStaffCoverageID' => null,
-            ]);
-        } else {
-            // Otherwise remove the date (it's not linked to an absence)
-            $updated = $staffAbsenceDateGateway->delete($date['gibbonStaffAbsenceDateID']);
-        }
-        
-        $partialFail &= !$updated;
+    foreach ($coverageDates as $date) {
+        $partialFail &= !$staffCoverageDateGateway->delete($date['gibbonStaffCoverageDateID']);
     }
 
     // Then delete the coverage itself

@@ -18,7 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
-use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
+use Gibbon\Domain\Staff\StaffCoverageDateGateway;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Data\BackgroundProcess;
 
@@ -36,7 +36,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_cancel
 } else {
     // Proceed!
     $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
-    $staffAbsenceDateGateway = $container->get(StaffAbsenceDateGateway::class);
+    $staffCoverageDateGateway = $container->get(StaffCoverageDateGateway::class);
 
     $data = [
         'timestampStatus' => date('Y-m-d H:i:s'),
@@ -89,23 +89,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_cancel
     $partialFail = false;
 
     $coverage = $staffCoverageGateway->getCoverageDetailsByID($gibbonStaffCoverageID);
-    $coverageDates = $staffAbsenceDateGateway->selectDatesByCoverage($gibbonStaffCoverageID);
+    $coverageDates = $staffCoverageDateGateway->selectDatesByCoverage($gibbonStaffCoverageID);
 
-    // Unlink any absence dates from the coverage request so they can be re-requested
+    // Unlink any absecne dates from the coverage request so they can be re-requested
     foreach ($coverageDates as $date) {
-        if (!empty($date['gibbonStaffAbsenceID'])) {
-            $updated = $staffAbsenceDateGateway->update($date['gibbonStaffAbsenceDateID'], [
-                'gibbonStaffCoverageID' => null,
+        if (!empty($date['gibbonStaffAbsenceDateID'])) {
+            $partialFail &= !$staffCoverageDateGateway->update($date['gibbonStaffCoverageDateID'], [
+                'gibbonStaffAbsenceDateID' => null,
             ]);
-            $inserted = $staffAbsenceDateGateway->insert([
-                'gibbonStaffCoverageID' => $gibbonStaffCoverageID,
-                'date'                  => $date['date'],
-                'allDay'                => $date['allDay'],
-                'timeStart'             => $date['timeStart'],
-                'timeEnd'               => $date['timeEnd'],
-                'value'                 => $date['value'],
-            ]);
-            $partialFail &= !$updated || !$inserted;
         }
     }
 

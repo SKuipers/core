@@ -872,7 +872,6 @@ CREATE TABLE `gibbonStaffAbsence` (
 CREATE TABLE `gibbonStaffAbsenceDate` (
     `gibbonStaffAbsenceDateID` INT(14) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
     `gibbonStaffAbsenceID` INT(14) UNSIGNED ZEROFILL NULL,
-    `gibbonStaffCoverageID` INT(14) UNSIGNED ZEROFILL NULL,
     `date` DATE NULL,
     `allDay` ENUM('N','Y') DEFAULT 'Y',
     `timeStart` time NULL DEFAULT NULL,
@@ -909,6 +908,19 @@ CREATE TABLE `gibbonStaffCoverage` (
     `notificationSent` ENUM('N','Y') DEFAULT 'N',
     `notificationList` TEXT NULL,
     PRIMARY KEY (`gibbonStaffCoverageID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;end
+CREATE TABLE `gibbonStaffCoverageDate` (
+    `gibbonStaffCoverageDateID` INT(14) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
+    `gibbonStaffCoverageID` INT(14) UNSIGNED ZEROFILL NULL,
+    `gibbonStaffAbsenceDateID` INT(14) UNSIGNED ZEROFILL NULL,
+    `date` DATE NULL,
+    `allDay` ENUM('N','Y') DEFAULT 'Y',
+    `timeStart` time NULL DEFAULT NULL,
+    `timeEnd` time NULL DEFAULT NULL,
+    `value` DECIMAL(2,1) NOT NULL DEFAULT '1.0',
+    `gibbonPersonIDUnavailable` INT(10) UNSIGNED ZEROFILL NULL,
+    `reason` VARCHAR(255) NULL,
+    PRIMARY KEY (`gibbonStaffCoverageDateID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;end
 CREATE TABLE `gibbonSubstitute` (
     `gibbonSubstituteID` INT(10) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
@@ -970,7 +982,15 @@ INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`val
 INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Staff', 'absenceNotificationGroups', 'Notification Groups', 'Which messenger groups can staff members send absence notifications to?', '');end
 INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Staff', 'absenceGoogleCalendarID', 'Google Calendar Sync', 'Enter a Google Calendar ID to automatically update the calendar with staff absences.', '');end
 
-UPDATE `gibbonAction` SET `URLList`='coverage_my.php,coverage_view_details.php,coverage_availability.php,coverage_view_cancel.php,coverage_view_edit.php' WHERE `name` = 'My Coverage' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Staff');end
-ALTER TABLE `gibbonStaffCoverage` ADD `attachmentType` enum('File','Link','Text') NULL AFTER `notesCoverage`, ADD `attachmentContent` TEXT NULL AFTER `attachmentType`;end
+INSERT INTO `gibbonStaffCoverageDate` 
+(`gibbonStaffCoverageID`, `gibbonStaffAbsenceDateID`, `date`, `allDay`, `timeStart`, `timeEnd`, `value`) 
+SELECT gibbonStaffCoverageID, gibbonStaffAbsenceDateID, date, allDay, timeStart, timeEnd, value
+FROM gibbonStaffAbsenceDate
+WHERE gibbonStaffCoverageID IS NOT NULL;end
+INSERT INTO `gibbonStaffCoverageDate` 
+(`date`, `allDay`, `timeStart`, `timeEnd`, `gibbonPersonIDUnavailable`, `reason`) 
+SELECT date, allDay, timeStart, timeEnd, gibbonPersonID, reason
+FROM gibbonSubstituteUnavailable;end
+ALTER TABLE `gibbonStaffAbsenceDate` DROP `gibbonStaffCoverageID`;end
 
 ";

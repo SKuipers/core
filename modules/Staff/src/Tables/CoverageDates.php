@@ -21,7 +21,7 @@ namespace Gibbon\Module\Staff\Tables;
 
 use Gibbon\Services\Format;
 use Gibbon\Tables\DataTable;
-use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
+use Gibbon\Domain\Staff\StaffCoverageDateGateway;
 use Gibbon\Module\Staff\Tables\AbsenceFormats;
 use Gibbon\Contracts\Services\Session;
 use Gibbon\Contracts\Database\Connection;
@@ -36,13 +36,13 @@ class CoverageDates
 {
     protected $session;
     protected $db;
-    protected $staffAbsenceDateGateway;
+    protected $staffCoverageDateGateway;
 
-    public function __construct(Session $session, Connection $db, StaffAbsenceDateGateway $staffAbsenceDateGateway)
+    public function __construct(Session $session, Connection $db, StaffCoverageDateGateway $staffCoverageDateGateway)
     {
         $this->session = $session;
         $this->db = $db;
-        $this->staffAbsenceDateGateway = $staffAbsenceDateGateway;
+        $this->staffCoverageDateGateway = $staffCoverageDateGateway;
     }
 
     public function create($gibbonStaffCoverageID)
@@ -50,7 +50,7 @@ class CoverageDates
         $guid = $this->session->get('guid');
         $connection2 = $this->db->getConnection();
 
-        $dates = $this->staffAbsenceDateGateway->selectDatesByCoverage($gibbonStaffCoverageID)->toDataSet();
+        $dates = $this->staffCoverageDateGateway->selectDatesByCoverage($gibbonStaffCoverageID)->toDataSet();
         $table = DataTable::create('staffCoverageDates')->withData($dates);
 
         $table->addColumn('date', __('Date'))
