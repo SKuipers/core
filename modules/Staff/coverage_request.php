@@ -119,7 +119,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     $dateEnd = $absenceDates[count($absenceDates) -1] ?? '';
     $dateRange = Format::dateRangeReadable($dateStart['date'], $dateEnd['date']);
     $timeRange = $dateStart['allDay'] == 'N'
-        ? Format::timeRange($dateStart['timeStart'], $dateEnd['timeEnd'])
+        ? Format::timeRange($dateStart['timeStart'], $dateStart['timeEnd'])
         : '';
 
     $row = $form->addRow();
@@ -132,6 +132,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
 
     $form->toggleVisibilityByClass('individualOptions')->onSelect('requestType')->when('Individual');
     $form->toggleVisibilityByClass('broadcastOptions')->onSelect('requestType')->when('Broadcast');
+
         
     // Broadcast
     $row = $form->addRow()->addClass('broadcastOptions');
@@ -145,7 +146,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
         if (count($allSubsTypes) > 1) {
             $row = $form->addRow()->addClass('broadcastOptions');
             $row->addLabel('substituteTypes', __('Substitute Types'));
-            $row->addCheckbox('substituteTypes')->fromArray($availableSubsByType)->checkAll();
+            $row->addCheckbox('substituteTypes')->fromArray($availableSubsByType)->checkAll()->wrap('<div class="standardWidth floatRight">', '</div>');
         }
     } else {
         $row->addAlert(__("There are no substitutes currently available for this time period. You should still send a request, as sub availability may change, but you cannot select a specific sub at this time. A notification will be sent to admin."), 'warning');
@@ -162,6 +163,36 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
             ->placeholder()
             ->selected($gibbonPersonIDCoverage)
             ->isRequired();
+
+    $sql = "SELECT DATE_FORMAT(schoolStart, '%H:%i') as schoolStart, DATE_FORMAT(schoolEnd, '%H:%i') as schoolEnd FROM gibbonDaysOfWeek WHERE name=DATE_FORMAT(CURRENT_DATE, '%W') AND schoolDay='Y'";
+    $weekday = $pdo->selectOne($sql);
+
+    // Time Options
+    if ($dateStart['allDay'] == 'Y') {
+        $row = $form->addRow();
+        $row->addLabel('allDay', __('When'));
+        $row->addCheckbox('allDay')
+            ->description(__('All Day'))
+            ->setValue('Y')
+            ->checked($dateStart['allDay']);
+    } else {
+        $form->addHiddenValue('allDay', 'N');
+    }
+
+    $form->toggleVisibilityByClass('timeOptions')->onCheckbox('allDay')->whenNot('Y');
+
+    $row = $form->addRow()->addClass('timeOptions');
+        $row->addLabel('timeStart', __('Time'));
+        $col = $row->addColumn('timeStart')->addClass('right inline');
+        $col->addTime('timeStart')
+            ->setClass('shortWidth')
+            ->isRequired()
+            ->setValue($dateStart['timeStart'] ?? $weekday['schoolStart']);
+        $col->addTime('timeEnd')
+            ->chainedTo('timeStart')
+            ->setClass('shortWidth')
+            ->isRequired()
+            ->setValue($dateStart['timeEnd'] ?? $weekday['schoolEnd']);
 
     // Loaded via AJAX
     $row = $form->addRow()->addClass('individualOptions');
@@ -181,10 +212,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
 
 <script>
 $(document).ready(function() {
-    $('#gibbonPersonIDCoverage').on('input', function() {
+    $('#gibbonPersonIDCoverage, #allDay, #timeStart, #timeEnd').on('change', function() {
+        if ($('#gibbonPersonIDCoverage').val() == '') return;
+
         $('.datesTable').load('./modules/Staff/coverage_requestAjax.php', {
             'gibbonStaffAbsenceID': '<?php echo $gibbonStaffAbsenceID ?? ''; ?>',
-            'gibbonPersonIDCoverage': $(this).val(),
+            'gibbonPersonIDCoverage': $('#gibbonPersonIDCoverage').val(),
+            'allDay': $('input[name=allDay]:checked').val(),
+            'timeStart': $('#timeStart').val(),
+            'timeEnd': $('#timeEnd').val(),
         }, function() {
             // Pre-highlight selected rows
             $('.bulkActionForm').find('.bulkCheckbox :checkbox').each(function () {
@@ -192,5 +228,6 @@ $(document).ready(function() {
             });
         });
     });
+
 }) ;
 </script>

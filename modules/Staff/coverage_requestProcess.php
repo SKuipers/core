@@ -104,9 +104,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
 
     $absenceDates = $staffAbsenceDateGateway->selectDatesByAbsence($data['gibbonStaffAbsenceID']);
 
-    // Create a coverage date for each absence date
+    // Create a coverage date for each absence date, allow coverage request form to override absence times
     foreach ($absenceDates as $dateData) {
         $dateData['gibbonStaffCoverageID'] = $gibbonStaffCoverageID;
+        $dateData['allDay'] = $_POST['allDay'] ?? $dateData['allDay'] ?? 'N';
+        $dateData['timeStart'] = $_POST['timeStart'] ?? $dateData['timeStart'];
+        $dateData['timeEnd'] = $_POST['timeEnd'] ?? $dateData['timeEnd'];
 
         if ($staffCoverageDateGateway->unique($dateData, ['gibbonStaffCoverageID', 'date'])) {
             $partialFail &= !$staffCoverageDateGateway->insert($dateData);
