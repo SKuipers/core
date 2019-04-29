@@ -30,6 +30,8 @@ namespace Gibbon\Forms\Input;
 class Time extends TextField
 {
     protected $format = 'H:i'; // Default to 24 hour clock
+    protected $min;
+    protected $max;
     protected $chained;
     protected $showDuration;
 
@@ -40,6 +42,28 @@ class Time extends TextField
     public function setFormat($format)
     {
         $this->format = $format;
+        return $this;
+    }
+
+    /**
+     * Define a minimum for this time value.
+     * @param   string  $value
+     * @return  self
+     */
+    public function minimum($value)
+    {
+        $this->min = $value;
+        return $this;
+    }
+
+    /**
+     * Define a maximum for this time value.
+     * @param   string  $value
+     * @return  self
+     */
+    public function maximum($value)
+    {
+        $this->max = $value;
         return $this;
     }
 
@@ -80,12 +104,22 @@ class Time extends TextField
             'pattern: /^(0[0-9]|[1][0-9]|2[0-3])[:](0[0-9]|[1-5][0-9])/i, failureMessage: "Use hh:mm"'
         );
 
-        $output = '';
+        $jsonData = [
+            'scrollDefault' => 'now',
+            'timeFormat' => $this->format,
+            'minTime' => $this->min,
+            'maxTime' => $this->max,
+        ];
 
+        // if (!empty($this->min)) {
+        //     $jsonData['minTime'] = $this->min;
+        // }
+
+        $output = '';
         $output = '<input type="text" '.$this->getAttributeString().' maxlength="5">';
 
         $output .= '<script type="text/javascript">';
-        $output .= '$("#'.$this->getID().'").timepicker({ "scrollDefault": "now", "timeFormat" : "'.$this->format.'"});';
+        $output .= '$("#'.$this->getID().'").timepicker('.json_encode($jsonData).');';
         if (!empty($this->chained)) {
             // On change, update this time and set duration
             $output .= '$("#'.$this->chained.'").on("changeTime", function() {';
