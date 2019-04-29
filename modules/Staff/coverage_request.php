@@ -88,9 +88,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     });
 
     // Map sub names for Select list
-    $availableSubsOptions = array_map(function ($person) {
-        return Format::name($person['title'], $person['preferredName'], $person['surname'], 'Staff', true, true);
-    }, $availableSubs);
+    $availableSubsOptions = array_reduce($availableSubs, function ($group, $item) {
+        $group[$item['type']][$item['gibbonPersonID']] = Format::name($item['title'], $item['preferredName'], $item['surname'], 'Staff', true, true);
+        return $group;
+    }, []);
 
     // Build a list of available subs by type
     $countTypes = [];

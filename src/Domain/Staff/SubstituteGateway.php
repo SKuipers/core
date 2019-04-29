@@ -119,9 +119,9 @@ class SubstituteGateway extends QueryableGateway
             // Already covering?
             $query->joinSubSelect(
                 'LEFT',
-                "SELECT gibbonStaffAbsenceDateID as ID, (CASE WHEN absence.gibbonPersonID IS NOT NULL THEN CONCAT(absence.preferredName, ' ', absence.surname) ELSE CONCAT(status.preferredName, ' ', status.surname) END) as status, gibbonStaffCoverage.gibbonPersonIDCoverage, gibbonStaffAbsenceDate.date, allDay, timeStart, timeEnd
+                "SELECT gibbonStaffCoverageDateID as ID, (CASE WHEN absence.gibbonPersonID IS NOT NULL THEN CONCAT(absence.preferredName, ' ', absence.surname) ELSE CONCAT(status.preferredName, ' ', status.surname) END) as status, gibbonStaffCoverage.gibbonPersonIDCoverage, gibbonStaffCoverageDate.date, allDay, timeStart, timeEnd
                     FROM gibbonStaffCoverage 
-                    JOIN gibbonStaffAbsenceDate ON (gibbonStaffAbsenceDate.gibbonStaffCoverageID=gibbonStaffCoverage.gibbonStaffCoverageID)
+                    JOIN gibbonStaffCoverageDate ON (gibbonStaffCoverageDate.gibbonStaffCoverageID=gibbonStaffCoverage.gibbonStaffCoverageID)
                     LEFT JOIN gibbonStaffAbsence ON (gibbonStaffAbsence.gibbonStaffAbsenceID=gibbonStaffCoverage.gibbonStaffAbsenceID)
                     LEFT JOIN gibbonPerson as absence ON (absence.gibbonPersonID=gibbonStaffAbsence.gibbonPersonID)
                     LEFT JOIN gibbonPerson as status ON (status.gibbonPersonID=gibbonStaffCoverage.gibbonPersonIDStatus)",
@@ -162,15 +162,15 @@ class SubstituteGateway extends QueryableGateway
             );
         } else {
             // Not available?
-            $query->leftJoin('gibbonSubstituteUnavailable as unavailable', 'unavailable.date = :date 
-                AND unavailable.gibbonPersonID=gibbonPerson.gibbonPersonID');
+            $query->leftJoin('gibbonStaffCoverageDate as unavailable', 'unavailable.date = :date 
+                AND unavailable.gibbonPersonIDUnavailable=gibbonPerson.gibbonPersonID');
 
             // Already covering?
             $query->joinSubSelect(
                 'LEFT',
-                "SELECT gibbonStaffAbsenceDateID as ID, (CASE WHEN absence.gibbonPersonID IS NOT NULL THEN CONCAT(absence.preferredName, ' ', absence.surname) ELSE CONCAT(status.preferredName, ' ', status.surname) END) as status, gibbonStaffCoverage.gibbonPersonIDCoverage, gibbonStaffAbsenceDate.date
+                "SELECT gibbonStaffCoverageDateID as ID, (CASE WHEN absence.gibbonPersonID IS NOT NULL THEN CONCAT(absence.preferredName, ' ', absence.surname) ELSE CONCAT(status.preferredName, ' ', status.surname) END) as status, gibbonStaffCoverage.gibbonPersonIDCoverage, gibbonStaffCoverageDate.date
                     FROM gibbonStaffCoverage 
-                    JOIN gibbonStaffAbsenceDate ON (gibbonStaffAbsenceDate.gibbonStaffCoverageID=gibbonStaffCoverage.gibbonStaffCoverageID)
+                    JOIN gibbonStaffCoverageDate ON (gibbonStaffCoverageDate.gibbonStaffCoverageID=gibbonStaffCoverage.gibbonStaffCoverageID)
                     LEFT JOIN gibbonStaffAbsence ON (gibbonStaffAbsence.gibbonStaffAbsenceID=gibbonStaffCoverage.gibbonStaffAbsenceID)
                     LEFT JOIN gibbonPerson as absence ON (absence.gibbonPersonID=gibbonStaffAbsence.gibbonPersonID)
                     LEFT JOIN gibbonPerson as status ON (status.gibbonPersonID=gibbonStaffCoverage.gibbonPersonIDStatus)
@@ -227,7 +227,7 @@ class SubstituteGateway extends QueryableGateway
             $query->where('absence.ID IS NULL')
                   ->where('coverage.ID IS NULL')
                   ->where('timetable.ID IS NULL')
-                  ->where('unavailable.gibbonSubstituteUnavailableID IS NULL');
+                  ->where('unavailable.gibbonStaffCoverageDateID IS NULL');
         } else {
             $query->groupBy(['gibbonPerson.gibbonPersonID']);
             $query->orderBy(['available DESC']);

@@ -35,10 +35,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_add.
     // Proceed!
     $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
     $staffCoverageDateGateway = $container->get(StaffCoverageDateGateway::class);
+    $fullDayThreshold =  floatval(getSettingByScope($connection2, 'Staff', 'absenceFullDayThreshold'));
+    $halfDayThreshold = floatval(getSettingByScope($connection2, 'Staff', 'absenceHalfDayThreshold'));
     
     $requestDates = $_POST['requestDates'] ?? [];
 
     $data = [
+        'gibbonSchoolYearID'     => $gibbon->session->get('gibbonSchoolYearID'),
         'gibbonPersonIDCoverage' => $_POST['gibbonPersonIDCoverage'] ?? null,
         'gibbonPersonIDStatus'   => $_POST['gibbonPersonIDStatus'] ?? '',
         'notesStatus'            => $_POST['notesStatus'] ?? '',

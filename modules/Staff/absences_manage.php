@@ -145,19 +145,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
         'status:pending approval' => __('Status').': '.__('Pending Approval'),
         'status:approved'         => __('Status').': '.__('Approved'),
         'status:declined'         => __('Status').': '.__('Declined'),
-
-        'coverage:requested' => __('Coverage').': '.__('Requested'),
-        'coverage:accepted'  => __('Coverage').': '.__('Accepted'),
-        'coverage:declined'  => __('Coverage').': '.__('Declined'),
-        'coverage:cancelled' => __('Coverage').': '.__('Cancelled'),
+        'coverage:requested'      => __('Coverage').': '.__('Requested'),
+        'coverage:accepted'       => __('Coverage').': '.__('Accepted'),
     ]);
 
     // COLUMNS
     $table->addColumn('fullName', __('Name'))
         ->sortable(['surname', 'preferredName'])
-        ->format(function ($absence) use ($guid) {
+        ->format(function ($absence) {
             $text = Format::name($absence['title'], $absence['preferredName'], $absence['surname'], 'Staff', false, true);
-            $url = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/absences_view_byPerson.php&gibbonPersonID='.$absence['gibbonPersonID'];
+            $url = './index.php?q=/modules/Staff/absences_view_byPerson.php&gibbonPersonID='.$absence['gibbonPersonID'];
 
             return Format::link($url, $text);
         });
@@ -180,7 +177,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
     $table->addActionColumn()
         ->addParam('search', $criteria->getSearchText(true))
         ->addParam('gibbonStaffAbsenceID')
-        ->format(function ($absence, $actions) use ($guid) {
+        ->format(function ($absence, $actions) {
             $actions->addAction('view', __('View Details'))
                 ->isModal(800, 550)
                 ->setURL('/modules/Staff/absences_view_details.php');

@@ -118,7 +118,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_add.
 
     $statusOptions = [
         'Requested' => __('Request'),
-        'Approved'  => __('Assign'),
+        'Accepted'  => __('Assign'),
     ];
     $row = $form->addRow()->addClass('subSelected');
         $row->addLabel('status', __('Type'));

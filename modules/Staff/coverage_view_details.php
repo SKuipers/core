@@ -41,7 +41,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_detail
     if (!empty($coverage['gibbonStaffAbsenceID'])) {
         // Absence Coverage
         $absence = $container->get(StaffAbsenceGateway::class)->getByID($coverage['gibbonStaffAbsenceID']);
-        $gibbonPersonID = $absence['gibbonPersonID'];
+        $gibbonPersonID = !empty($absence) ? $absence['gibbonPersonID'] : $coverage['gibbonPersonIDStatus'];
     } else {
         // General Coverage
         $gibbonPersonID = $coverage['gibbonPersonIDStatus'];
