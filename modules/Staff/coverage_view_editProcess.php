@@ -58,7 +58,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_edit.p
         exit;
     }
 
-    if ($coverage['gibbonPersonIDStatus'] != $_SESSION[$guid]['gibbonPersonID']) {
+    if ($coverage['gibbonPersonID'] != $_SESSION[$guid]['gibbonPersonID'] && $coverage['gibbonPersonIDStatus'] != $_SESSION[$guid]['gibbonPersonID']) {
         $URL .= '&return=error0';
         header("Location: {$URL}");
         return;

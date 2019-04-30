@@ -49,10 +49,20 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     $requestDates = $_POST['requestDates'] ?? [];
     $substituteTypes = $_POST['substituteTypes'] ?? [];
 
+    // Validate the database relationships exist
+    $absence = $container->get(StaffAbsenceGateway::class)->getByID($gibbonStaffAbsenceID);
+
+    if (empty($absence)) {
+        $URL .= '&return=error2';
+        header("Location: {$URL}");
+        exit;
+    }
+
     $data = [
         'gibbonStaffAbsenceID'   => $gibbonStaffAbsenceID,
         'gibbonSchoolYearID'     => $gibbon->session->get('gibbonSchoolYearID'),
         'gibbonPersonIDStatus'   => $gibbon->session->get('gibbonPersonID'),
+        'gibbonPersonID'         => $absence['gibbonPersonID'],
         'gibbonPersonIDCoverage' => $_POST['gibbonPersonIDCoverage'] ?? null,
         'notesStatus'            => $_POST['notesStatus'] ?? '',
         'requestType'            => $_POST['requestType'] ?? '',
@@ -68,14 +78,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
         exit;
     }
 
-    // Validate the database relationships exist
-    $absence = $container->get(StaffAbsenceGateway::class)->getByID($data['gibbonStaffAbsenceID']);
-
-    if (empty($absence)) {
-        $URL .= '&return=error2';
-        header("Location: {$URL}");
-        exit;
-    }
+    
     
     if ($data['requestType'] == 'Individual') {
         // Return a custom error message if no dates have been selected
@@ -149,7 +152,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     $processType = 'Coverage'.$data['requestType'];
     $process = new BackgroundProcess($gibbon->session->get('absolutePath').'/uploads/background');
     $process->startProcess('staffNotification', __DIR__.'/notification_backgroundProcess.php', [$processType, $gibbonStaffCoverageID]);
-
     
     $URLSuccess .= $partialFail
         ? "&return=warning1"

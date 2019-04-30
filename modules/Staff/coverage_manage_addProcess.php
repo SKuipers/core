@@ -42,8 +42,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_add.
 
     $data = [
         'gibbonSchoolYearID'     => $gibbon->session->get('gibbonSchoolYearID'),
+        'gibbonPersonIDStatus'   => $gibbon->session->get('gibbonPersonID'),
         'gibbonPersonIDCoverage' => $_POST['gibbonPersonIDCoverage'] ?? null,
-        'gibbonPersonIDStatus'   => $_POST['gibbonPersonIDStatus'] ?? '',
+        'gibbonPersonID'         => $_POST['gibbonPersonID'] ?? '',
         'notesStatus'            => $_POST['notesStatus'] ?? '',
         'status'                 => $_POST['status'] ?? '',
         'requestType'            => 'Individual',

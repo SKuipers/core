@@ -56,7 +56,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php') ==
         $page->write('<h2>'.__("Today's Coverage").'</h2>');
 
         foreach ($todaysCoverage as $coverage) {
-            $gibbonPersonIDStatus = $coverage['gibbonPersonID'] ?? $coverage['gibbonPersonIDStatus'];
             $status = Format::dateRangeReadable($coverage['dateStart'], $coverage['dateEnd']).' - ';
             $status .= $coverage['allDay'] == 'Y'
                 ? __('All Day')
@@ -64,13 +63,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php') ==
 
             // Staff Card
             $container->get(StaffCard::class)
-                ->setPerson($gibbonPersonIDStatus)
+                ->setPerson($coverage['gibbonPersonID'])
                 ->setStatus($status)
                 ->compose($page);
 
             // Today's Coverage View Composer
             $container->get(CoverageTodayView::class)
-                ->setCoverage($coverage['gibbonStaffCoverageID'], $gibbonPersonIDStatus)
+                ->setCoverage($coverage['gibbonStaffCoverageID'], $coverage['gibbonPersonID'])
                 ->compose($page);
         }
     }

@@ -53,9 +53,8 @@ class ViewCoverageForm
     
         $form->addRow()->addHeading(__('Coverage Request'));
 
-        $gibbonPersonIDStatus = !empty($coverage['gibbonPersonID'])? $coverage['gibbonPersonID'] : $coverage['gibbonPersonIDStatus'];
-        if (!empty($gibbonPersonIDStatus)) {
-            $form->addRow()->addContent(static::getStaffCard($container, $gibbonPersonIDStatus));
+        if (!empty($coverage['gibbonPersonID'])) {
+            $form->addRow()->addContent(static::getStaffCard($container, $coverage['gibbonPersonID']));
         }
 
         if (!empty($coverage['gibbonStaffAbsenceID'])) {

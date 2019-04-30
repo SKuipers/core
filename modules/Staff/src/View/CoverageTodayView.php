@@ -41,7 +41,6 @@ class CoverageTodayView
     protected $rollGroupGateway;
     protected $userGateway;
     protected $gibbonStaffCoverageID;
-    protected $gibbonPersonIDStatus;
 
     public function __construct(StaffCoverageGateway $staffCoverageGateway, RollGroupGateway $rollGroupGateway, UserGateway $userGateway)
     {
@@ -50,10 +49,9 @@ class CoverageTodayView
         $this->userGateway = $userGateway;
     }
 
-    public function setCoverage($gibbonStaffCoverageID, $gibbonPersonIDStatus)
+    public function setCoverage($gibbonStaffCoverageID)
     {
         $this->gibbonStaffCoverageID = $gibbonStaffCoverageID;
-        $this->gibbonPersonIDStatus = $gibbonPersonIDStatus;
 
         return $this;
     }
@@ -89,7 +87,7 @@ class CoverageTodayView
 
         // Roll Group Info
 
-        $rollGroups = $this->rollGroupGateway->selectRollGroupsByTutor($this->gibbonPersonIDStatus)->toDataSet();
+        $rollGroups = $this->rollGroupGateway->selectRollGroupsByTutor($coverage['gibbonPersonID'])->toDataSet();
 
         if (count($rollGroups) > 0) {
             $table = DataTable::create('todaysCoverageTimetable');
@@ -114,7 +112,7 @@ class CoverageTodayView
         }
 
         // Timetable Info
-        $timetable = $this->staffCoverageGateway->selectTimetableRowsByCoverageDate($this->gibbonStaffCoverageID, $this->gibbonPersonIDStatus, date('Y-m-d'))->toDataSet();
+        $timetable = $this->staffCoverageGateway->selectTimetableRowsByCoverageDate($this->gibbonStaffCoverageID, date('Y-m-d'))->toDataSet();
 
         if (count($timetable) > 0) {
             $table = DataTable::create('todaysCoverageTimetable');

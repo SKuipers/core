@@ -38,18 +38,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_detail
     $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
     $coverage = $container->get(StaffCoverageGateway::class)->getByID($gibbonStaffCoverageID);
     
-    if (!empty($coverage['gibbonStaffAbsenceID'])) {
-        // Absence Coverage
-        $absence = $container->get(StaffAbsenceGateway::class)->getByID($coverage['gibbonStaffAbsenceID']);
-        $gibbonPersonID = !empty($absence) ? $absence['gibbonPersonID'] : $coverage['gibbonPersonIDStatus'];
-    } else {
-        // General Coverage
-        $gibbonPersonID = $coverage['gibbonPersonIDStatus'];
-    }
-
     // Staff Card
     $staffCard = $container->get(StaffCard::class);
-    $staffCard->setPerson($gibbonPersonID)->compose($page);
+    $staffCard->setPerson($coverage['gibbonPersonID'])->compose($page);
 
     // Coverage Dates
     $table = $container->get(CoverageDates::class)->create($gibbonStaffCoverageID);

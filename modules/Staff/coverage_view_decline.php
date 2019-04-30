@@ -66,9 +66,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_declin
     $form->addRow()->addHeading(__('Decline Coverage Request'));
     
     // Staff Card
-    $gibbonPersonIDStatus = !empty($coverage['gibbonPersonID'])? $coverage['gibbonPersonID'] : $coverage['gibbonPersonIDStatus'];
     $staffCard = $container->get(StaffCard::class);
-    $staffCard->setPerson($gibbonPersonIDStatus)->compose($page);
+    $staffCard->setPerson($coverage['gibbonPersonID'])->compose($page);
 
     // Coverage Dates
     $table = $container->get(CoverageDates::class)->create($gibbonStaffCoverageID);

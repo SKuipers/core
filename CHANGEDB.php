@@ -894,6 +894,7 @@ CREATE TABLE `gibbonStaffCoverage` (
     `gibbonStaffCoverageID` INT(14) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
     `gibbonStaffAbsenceID` INT(14) UNSIGNED ZEROFILL NULL,
     `gibbonSchoolYearID` INT(3) UNSIGNED ZEROFILL NOT NULL,
+    `gibbonPersonID` int(10) UNSIGNED ZEROFILL NOT NULL,
     `status` ENUM('Requested','Accepted','Declined','Cancelled') DEFAULT 'Requested',
     `requestType` ENUM('Individual','Broadcast','Assigned') DEFAULT 'Broadcast',
     `substituteTypes` VARCHAR(255) NULL,
@@ -980,6 +981,11 @@ INSERT INTO `gibbonStaffCoverageDate`
 (`date`, `allDay`, `timeStart`, `timeEnd`, `gibbonPersonIDUnavailable`, `reason`) 
 SELECT date, allDay, timeStart, timeEnd, gibbonPersonID, reason
 FROM gibbonSubstituteUnavailable;end
-ALTER TABLE `gibbonStaffAbsenceDate` DROP `gibbonStaffCoverageID`;end
 
+ALTER TABLE `gibbonStaffCoverage` ADD `gibbonPersonID` int(10) UNSIGNED ZEROFILL NOT NULL AFTER `gibbonSchoolYearID`;end
+
+UPDATE `gibbonStaffCoverage` LEFT JOIN `gibbonStaffAbsence` ON (gibbonStaffCoverage.gibbonStaffAbsenceID=gibbonStaffAbsence.gibbonStaffAbsenceID) SET gibbonStaffCoverage.gibbonPersonID=(CASE WHEN gibbonStaffAbsence.gibbonStaffAbsenceID IS NOT NULL THEN gibbonStaffAbsence.gibbonPersonID ELSE gibbonStaffCoverage.gibbonPersonIDStatus END);end
+
+
+ALTER TABLE `gibbonStaffAbsenceDate` DROP `gibbonStaffCoverageID`;end
 ";

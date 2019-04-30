@@ -66,9 +66,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
     }
 
     // Staff Card
-    $gibbonPersonIDStatus = !empty($coverage['gibbonPersonID'])? $coverage['gibbonPersonID'] : $coverage['gibbonPersonIDStatus'];
     $staffCard = $container->get(StaffCard::class);
-    $staffCard->setPerson($gibbonPersonIDStatus)->compose($page);
+    $staffCard->setPerson($coverage['gibbonPersonID'])->compose($page);
 
     // Coverage View Composer
     $coverageView = $container->get(CoverageView::class);
