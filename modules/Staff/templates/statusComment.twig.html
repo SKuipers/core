@@ -33,11 +33,11 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
                 <span class="inline-block font-semibold">{{ name }}</span> {{ action|lower }} <span class="whitespace-no-wrap">{{ date|raw }}</span>
 
                 {% if status %}
-                    <span class="ml-2 tag {{ tag }}">{{ status }}</span>
+                    <span class="mx-2 tag {{ tag }}">{{ status }}</span>
                 {% endif %}
 
                 {% if attachment %}
-                    <span class="ml-2 tag">{{ attachment|raw }}</span>
+                    <span class="tag px-0 break-all">{{ attachment|raw }}</span>
                 {% endif %}
             </div>
 

@@ -168,6 +168,33 @@ class StaffCoverageGateway extends QueryableGateway
         return $this->db()->selectOne($sql, $data);
     }
 
+    public function selectTimetableRowsByCoverageDate($gibbonStaffCoverageID, $gibbonPersonID, $date)
+    {
+        $data = ['gibbonStaffCoverageID' => $gibbonStaffCoverageID, 'gibbonPersonID' => $gibbonPersonID, 'date' => $date];
+        $sql = "SELECT gibbonCourseClass.gibbonCourseClassID, gibbonTTColumnRow.name as period, gibbonTTColumnRow.timeStart, gibbonTTColumnRow.timeEnd, gibbonCourse.name as courseName, gibbonCourse.nameShort as courseNameShort, gibbonCourseClass.nameShort as className, gibbonCourseClass.attendance, gibbonSpace.name as spaceName
+                FROM gibbonStaffCoverage
+                JOIN gibbonStaffCoverageDate ON (gibbonStaffCoverage.gibbonStaffCoverageID=gibbonStaffCoverageDate.gibbonStaffCoverageID)
+                JOIN gibbonCourseClassPerson ON (gibbonCourseClassPerson.gibbonPersonID=:gibbonPersonID)
+                JOIN gibbonCourseClass ON (gibbonCourseClass.gibbonCourseClassID=gibbonCourseClassPerson.gibbonCourseClassID)
+                JOIN gibbonCourse ON (gibbonCourse.gibbonCourseID=gibbonCourseClass.gibbonCourseID)
+                JOIN gibbonTTDayRowClass ON (gibbonTTDayRowClass.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID)
+                JOIN gibbonTTDayDate ON (gibbonTTDayDate.gibbonTTDayID=gibbonTTDayRowClass.gibbonTTDayID AND gibbonTTDayDate.date=gibbonStaffCoverageDate.date)
+                JOIN gibbonTTColumnRow ON (gibbonTTColumnRow.gibbonTTColumnRowID=gibbonTTDayRowClass.gibbonTTColumnRowID)
+                LEFT JOIN gibbonSpace ON (gibbonSpace.gibbonSpaceID=gibbonTTDayRowClass.gibbonSpaceID)
+                WHERE gibbonStaffCoverage.gibbonStaffCoverageID=:gibbonStaffCoverageID 
+                AND (gibbonCourseClassPerson.role = 'Teacher' OR gibbonCourseClassPerson.role = 'Assistant')
+                AND gibbonStaffCoverageDate.date=:date
+                AND gibbonCourse.gibbonSchoolYearID=gibbonStaffCoverage.gibbonSchoolYearID
+                AND (gibbonStaffCoverageDate.allDay='Y' 
+                    OR (gibbonStaffCoverageDate.allDay='N' AND gibbonTTColumnRow.timeStart <= gibbonStaffCoverageDate.timeEnd AND gibbonTTColumnRow.timeEnd >= gibbonStaffCoverageDate.timeStart)
+                )
+                GROUP BY gibbonTTColumnRow.gibbonTTColumnRowID, gibbonCourse.gibbonCourseID, gibbonCourseClass.gibbonCourseClassID, gibbonSpace.gibbonSpaceID
+                ORDER BY gibbonTTColumnRow.timeStart
+        ";
+
+        return $this->db()->select($sql, $data);
+    }
+
     public function selectCoverageByAbsenceID($gibbonStaffAbsenceID)
     {
         $data = ['gibbonStaffAbsenceID' => $gibbonStaffAbsenceID];
@@ -196,7 +223,7 @@ class StaffCoverageGateway extends QueryableGateway
                              ->bindValue('dateStart', $dateStart);
             },
             'dateEnd' => function ($query, $dateEnd) {
-                return $query->where("gibbonStaffCoverageDate.gibbonStaffCoverageDate.date <= :dateEnd")
+                return $query->where("gibbonStaffCoverageDate.date <= :dateEnd")
                              ->bindValue('dateEnd', $dateEnd);
             },
             'date' => function ($query, $date) {

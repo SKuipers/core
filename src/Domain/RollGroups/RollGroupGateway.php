@@ -96,8 +96,9 @@ class RollGroupGateway extends QueryableGateway
     public function selectRollGroupsByTutor($gibbonPersonID)
     {
         $data = array('gibbonPersonID' => $gibbonPersonID);
-        $sql = "SELECT gibbonRollGroup.*
+        $sql = "SELECT gibbonRollGroup.*, gibbonSpace.name as spaceName
                 FROM gibbonRollGroup 
+                LEFT JOIN gibbonSpace ON (gibbonSpace.gibbonSpaceID=gibbonRollGroup.gibbonSpaceID)
                 WHERE (gibbonRollGroup.gibbonPersonIDTutor = :gibbonPersonID
                     OR gibbonRollGroup.gibbonPersonIDTutor2 = :gibbonPersonID
                     OR gibbonRollGroup.gibbonPersonIDTutor3 = :gibbonPersonID)
