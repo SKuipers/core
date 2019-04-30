@@ -22,7 +22,7 @@ use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
-use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
+use Gibbon\Domain\Staff\StaffCoverageDateGateway;
 use Gibbon\Domain\User\UserGateway;
 use Gibbon\Module\Staff\View\StaffCard;
 
@@ -66,10 +66,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_edit
 
     $form->addRow()->addHeading(__('Coverage Request'));
 
-    $gibbonPersonIDStatus = !empty($coverage['gibbonPersonID'])? $coverage['gibbonPersonID'] : $coverage['gibbonPersonIDStatus'];
-    if (!empty($gibbonPersonIDStatus)) {
+    if (!empty($coverage['gibbonPersonID'])) {
         $staffCard = $container->get(StaffCard::class);
-        $staffCard->setPerson($gibbonPersonIDStatus)->compose($page);
+        $staffCard->setPerson($coverage['gibbonPersonID'])->compose($page);
     }
 
     if (!empty($coverage['gibbonStaffAbsenceID'])) {
@@ -135,7 +134,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_edit
     }
 
     // DATA TABLE
-    $coverageDates = $container->get(StaffAbsenceDateGateway::class)->selectDatesByCoverage($gibbonStaffCoverageID);
+    $coverageDates = $container->get(StaffCoverageDateGateway::class)->selectDatesByCoverage($gibbonStaffCoverageID);
     
     $table = DataTable::create('staffCoverageDates');
     $table->setTitle(__('Dates'));

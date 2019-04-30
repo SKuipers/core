@@ -358,6 +358,7 @@ class Format
 
     /**
      * Formats a link from a url. Automatically adds target _blank to external links.
+     * Automatically resolves relative URLs starting with ./ into absolute URLs.
      * 
      * @param string $url
      * @param string $text
@@ -369,6 +370,10 @@ class Format
         if (empty($url)) return $text;
         if (!$text) $text = $url;
         if (!is_array($attr)) $attr = ['title' => $attr];
+
+        if (substr($url, 0, 2) == './') {
+            $url = static::$settings['absoluteURL'].substr($url, 1);
+        }
 
         if (stripos($url, static::$settings['absoluteURL']) === false) {
             return '<a href="'.$url.'" '.self::attributes($attr).' target="_blank">'.$text.'</a>';
@@ -519,15 +524,16 @@ class Format
      *
      * @param string $path
      * @param int|string $size
+     * @param string $class
      * @return string
      */
-    public static function userPhoto($path, $size = 75)
+    public static function userPhoto($path, $size = 75, $class = '')
     {
-        $class = 'block shadow bg-white border border-gray-600 ';
+        $class .= ' inline-block shadow bg-white border border-gray-600 ';
 
         switch ($size) {
             case 240:
-            case 'lg':  $class .= 'w-48 sm:w-64 max-w-full p-1'; break;
+            case 'lg':  $class .= 'w-48 sm:w-64 max-w-full p-1 mx-auto'; break;
             case 75:
             case 'md':  $class .= 'w-20 lg:w-24 p-1'; break;
 
@@ -541,7 +547,7 @@ class Format
             $path = '/themes/'.static::$settings['gibbonThemeName'].'/img/anonymous_'.$imageSize.'.jpg';
         }
 
-        return sprintf('<img class="mx-auto %1$s" src="%2$s">', $class, static::$settings['absoluteURL'].'/'.$path);
+        return sprintf('<img class="%1$s" src="%2$s">', $class, static::$settings['absoluteURL'].'/'.$path);
     }
 
     public static function userStatusInfo($person = [])

@@ -18,7 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
-use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
+use Gibbon\Domain\Staff\StaffCoverageDateGateway;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Domain\Staff\SubstituteGateway;
 use Gibbon\Data\BackgroundProcess;
@@ -37,7 +37,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_declin
 } else {
     // Proceed!
     $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
-    $staffAbsenceDateGateway = $container->get(StaffAbsenceDateGateway::class);
+    $staffCoverageDateGateway = $container->get(StaffCoverageDateGateway::class);
     $substituteGateway = $container->get(SubstituteGateway::class);
 
     $markAsUnavailable = $_POST['markAsUnavailable'] ?? false;
@@ -94,33 +94,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_declin
     $partialFail = false;
 
     $coverage = $staffCoverageGateway->getCoverageDetailsByID($gibbonStaffCoverageID);
-    $coverageDates = $staffAbsenceDateGateway->selectDatesByCoverage($gibbonStaffCoverageID);
+    $coverageDates = $staffCoverageDateGateway->selectDatesByCoverage($gibbonStaffCoverageID);
 
     // Unlink any absence dates from the coverage request so they can be re-requested
-    foreach ($coverageDates as $date) {
-        if (!empty($date['gibbonStaffAbsenceID'])) {
-            $updated = $staffAbsenceDateGateway->update($date['gibbonStaffAbsenceDateID'], [
-                'gibbonStaffCoverageID' => null,
-            ]);
-                $inserted = $staffAbsenceDateGateway->insert([
-                'gibbonStaffCoverageID' => $gibbonStaffCoverageID,
-                'date'                  => $date['date'],
-                'allDay'                => $date['allDay'],
-                'timeStart'             => $date['timeStart'],
-                'timeEnd'               => $date['timeEnd'],
-                'value'                 => $date['value'],
-            ]);
-            $partialFail &= !$updated || !$inserted;
-        }
+    foreach ($coverageDates as $coverageDate) {
+        $dateData = [
+            'gibbonStaffAbsenceDateID' => $coverageDate['gibbonStaffAbsenceDateID'] ?? '',
+            'gibbonPersonIDUnavailable' => $markAsUnavailable ? $coverage['gibbonPersonIDCoverage'] : '',
+        ];
 
-        if ($markAsUnavailable) {
-            $substituteGateway->insertUnavailability([
-                'gibbonPersonID' => $coverage['gibbonPersonIDCoverage'],
-                'date'           => $date['date'],
-                'allDay'         => 'Y',
-                'reason'         => 'Not Available',
-            ]);
-        }
+        $partialFail &= !$staffCoverageDateGateway->update($coverageDate['gibbonStaffCoverageDateID'], $dateData);
     }
 
     // Send messages (Mail, SMS) to relevant users

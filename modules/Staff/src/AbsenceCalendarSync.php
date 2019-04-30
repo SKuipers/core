@@ -24,6 +24,7 @@ use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Domain\System\SettingGateway;
 use Google_Service_Calendar_Event;
 use Google_Service_Calendar;
+use Google_Service_Exception;
 use Gibbon\Services\Format;
 use DateInterval;
 use DateTimeImmutable;
@@ -59,15 +60,20 @@ class AbsenceCalendarSync
         }
 
         $absence = $this->staffAbsenceGateway->getAbsenceDetailsByID($gibbonStaffAbsenceID);
-        $event = new Google_Service_Calendar_Event($this->getEventData($absence));
+        
+        try {
+            $event = new Google_Service_Calendar_Event($this->getEventData($absence));
 
-        if ($event = $this->calendarService->events->insert($this->googleCalendarID, $event)) {
-            $this->staffAbsenceGateway->update($gibbonStaffAbsenceID, [
-                'googleCalendarEventID' => $event->id,
-            ]);
+            if ($event = $this->calendarService->events->insert($this->googleCalendarID, $event)) {
+                $this->staffAbsenceGateway->update($gibbonStaffAbsenceID, [
+                    'googleCalendarEventID' => $event->id,
+                ]);
+            }
+        } catch (Google_Service_Exception $e) {
+            return false;
         }
 
-        !empty($event);
+        return !empty($event);
     }
 
     public function updateCalendarAbsence($gibbonStaffAbsenceID)
@@ -79,8 +85,12 @@ class AbsenceCalendarSync
         $absence = $this->staffAbsenceGateway->getAbsenceDetailsByID($gibbonStaffAbsenceID);
 
         if (!empty($absence['googleCalendarEventID'])) {
-            $event = new Google_Service_Calendar_Event($this->getEventData($absence));
-            $event = $this->calendarService->events->update($this->googleCalendarID, $absence['googleCalendarEventID'], $event);
+            try {
+                $event = new Google_Service_Calendar_Event($this->getEventData($absence));
+                $event = $this->calendarService->events->update($this->googleCalendarID, $absence['googleCalendarEventID'], $event);
+            } catch (Google_Service_Exception $e) {
+                return false;
+            }
 
             return !empty($event);
         }
@@ -110,6 +120,7 @@ class AbsenceCalendarSync
             'start'       => ['timeZone' => $this->timezone],
             'end'         => ['timeZone' => $this->timezone],
             'reminders'   => ['useDefault' => false],
+            //'colorId'     => $this->getColorID($absence['sequenceNumber']),
         ];
 
         $dateStart = new DateTimeImmutable($absence['dateStart'].' '.$absence['timeStart'], new DateTimeZone($this->timezone));
@@ -145,5 +156,34 @@ class AbsenceCalendarSync
         }
 
         return $eventData;
+    }
+
+    protected function getColorID($number)
+    {
+        $number = $number % 10;
+
+        switch ($number) {
+            case 0: return 3;
+            case 1: return 4;
+            case 2: return 5;
+            case 3: return 1;
+            case 4: return 7;
+            case 5: return 6;
+            case 6: return 4;
+            case 7: return 2;
+            case 8: return 3;
+            case 9: return 9;
+        }
+
+        // bg-color0 rgba(153, 102, 255, 1.0) => 3 #dbadff
+        // bg-color1 rgba(255, 99, 132, 1.0)  => 4 #ff887c
+        // bg-color2 rgba(255, 206, 86, 1.0)  => 5 #fbd75b
+        // bg-color3 rgba(54, 162, 235, 1.0)  => 1 #a4bdfc
+        // bg-color4 rgba(133, 233, 194, 1.0) => 7 #46d6db
+        // bg-color5 rgba(255, 159, 64, 1.0)  => 6 #ffb878
+        // bg-color6 rgba(237, 85, 88, 1.0)   => 4 #ff887c
+        // bg-color7 rgba(75, 192, 192, 1.0)  => 2 #7ae7bf
+        // bg-color8 rgba(161, 89, 173, 1.0)  => 3 #dbadff
+        // bg-color9 rgba(29, 109, 163, 1.0)  => 9 #5484ed
     }
 }

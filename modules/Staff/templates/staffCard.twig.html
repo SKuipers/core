@@ -8,15 +8,13 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
 <div class="border rounded bg-gray-100 my-4">
     <div class="p-4 flex flex-wrap items-center">
-        <div class="w-full sm:w-1/2">
+        <div class="w-full sm:w-1/2 text-center sm:text-left">
             <div class="text-lg text-gray-800 leading-none mb-2 p-0">{{ formatUsing('name', staff.title, staff.preferredName, staff.surname, 'Staff', false, true) }}</div>
 
-            {% if staff.jobTitle %}
-                <div class="text-sm text-gray-600 mb-0">{{ staff.jobTitle }}</div>
-            {% endif %}
+            <div class="text-sm text-gray-600 mb-0">{{ [staff.jobTitle, rollGroup.name]|join(", ")|trim(", ") }}</div>
 
-            {% if rollGroup %}
-                <div class="text-sm text-gray-600 mb-0">{{ rollGroup.name }}</div>
+            {% if status %}
+                <span class="tag {{ tag|default('success') }} mt-2 mb-0">{{ status }}</span>
             {% endif %}
         </div>
 

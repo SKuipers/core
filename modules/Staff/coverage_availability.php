@@ -125,7 +125,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
 
     $table->addActionColumn()
         ->addParam('gibbonPersonID', $gibbonPersonID)
-        ->addParam('gibbonSubstituteUnavailableID')
+        ->addParam('gibbonStaffCoverageDateID')
         ->format(function ($date, $actions) {
             $actions->addAction('deleteInstant', __('Delete'))
                     ->setIcon('garbage')
@@ -134,7 +134,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
                     ->addConfirmation(__('Are you sure you wish to delete this record?'));
         });
 
-    $table->addCheckboxColumn('gibbonSubstituteUnavailableID');
+    $table->addCheckboxColumn('gibbonStaffCoverageDateID');
 
     echo $form->getOutput();
 

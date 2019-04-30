@@ -22,6 +22,7 @@ use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Domain\Staff\SubstituteGateway;
 use Gibbon\Domain\User\UserGateway;
+use Gibbon\Forms\FormFactoryInterface;
 
 require_once '../../gibbon.php';
 
@@ -40,12 +41,45 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     // DATA TABLE
     $substitute = $substituteGateway->selectBy('gibbonPersonID', $gibbonPersonIDCoverage)->fetch();
     $person = $container->get(UserGateway::class)->getByID($gibbonPersonIDCoverage);
-    $absenceDates = $staffAbsenceDateGateway->selectDatesByAbsence($gibbonStaffAbsenceID);
+    $absenceDates = $staffAbsenceDateGateway->selectDatesByAbsence($gibbonStaffAbsenceID)->toDataSet();
     $unavailable = $substituteGateway->selectUnavailableDatesBySub($gibbonPersonIDCoverage)->fetchGrouped();
 
     if (empty($absenceDates) || empty($substitute) || empty($person)) {
         die();
     }
+
+    if (empty($_POST['allDay']) && (empty($_POST['timeStart']) || empty($_POST['timeEnd']))) {
+        die();
+    }
+
+    $absenceDates->transform(function (&$absence) use (&$unavailable) {
+        // Has this date already been requested?
+        if (!empty($absence['gibbonStaffCoverageID'])) {
+            $absence['unavailable'] = __('Requested');
+        }
+
+        // Allow coverage request form to override absence times
+        $absence['allDay'] = $_POST['allDay'] ?? 'N';
+        $absence['timeStart'] = $_POST['timeStart'] ?? $absence['timeStart'];
+        $absence['timeEnd'] = $_POST['timeEnd'] ?? $absence['timeEnd'];
+
+        // Is this date unavailable: absent, already booked, or has an availability exception
+        if (isset($unavailable[$absence['date']])) {
+            $times = $unavailable[$absence['date']];
+
+            foreach ($times as $time) {
+            
+                // Handle full day and partial day unavailability
+                if ($time['allDay'] == 'Y' 
+                || ($time['allDay'] == 'N' && $absence['allDay'] == 'Y')
+                || ($time['allDay'] == 'N' && $absence['allDay'] == 'N'
+                    && $time['timeStart'] <= $absence['timeEnd']
+                    && $time['timeEnd'] >= $absence['timeStart'])) {
+                    $absence['unavailable'] = Format::small(__($time['status'] ?? 'Not Available'));
+                }
+            }
+        }
+    });
 
     $fullName = Format::name('', $person['preferredName'], $person['surname'], 'Staff', false, true);
 
@@ -54,42 +88,29 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     $table->setDescription('<strong>'.$fullName.'</strong><br/><br/>'.$substitute['details']);
     $table->getRenderer()->addData('class', 'bulkActionForm');
 
+    $table->modifyRows(function ($values, $row) {
+        return $row->addClass('h-10');
+    });
+
     $table->addColumn('dateLabel', __('Date'))
         ->format(Format::using('dateReadable', 'date'));
 
     $table->addColumn('timeStart', __('Time'))
+        ->width('50%')
         ->format(function ($absence) {
-            if ($absence['allDay'] == 'N') {
-                return Format::small(Format::timeRange($absence['timeStart'], $absence['timeEnd']));
-            } else {
-                return Format::small(__('All Day'));
-            }
+            return $absence['allDay'] == 'N'
+                ? Format::small(Format::timeRange($absence['timeStart'], $absence['timeEnd']))
+                : Format::small(__('All Day'));
         });
 
     $table->addCheckboxColumn('requestDates', 'date')
         ->width('15%')
         ->checked(true)
-        ->format(function ($absence) use ( &$unavailable) {
-            // Has this date already been requested?
-            if (!empty($absence['gibbonStaffCoverageID'])) return __('Requested');
-
-            // Is this date unavailable: absent, already booked, or has an availability exception
-            if (isset($unavailable[$absence['date']])) {
-                $times = $unavailable[$absence['date']];
-
-                foreach ($times as $time) {
-                
-                    // Handle full day and partial day unavailability
-                    if ($time['allDay'] == 'Y' 
-                    || ($time['allDay'] == 'N' && $absence['allDay'] == 'Y')
-                    || ($time['allDay'] == 'N' && $absence['allDay'] == 'N'
-                        && $time['timeStart'] <= $absence['timeEnd']
-                        && $time['timeEnd'] >= $absence['timeStart'])) {
-                        return Format::small(__($time['status'] ?? 'Not Available'));
-                    }
-                }
+        ->format(function ($absence) {
+            if (!empty($absence['unavailable'])) {
+                return $absence['unavailable'];
             }
         });
 
-    echo $table->render($absenceDates->toDataSet());
+    echo $table->render($absenceDates);
 }

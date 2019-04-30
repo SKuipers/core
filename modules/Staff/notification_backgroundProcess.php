@@ -215,7 +215,7 @@ switch ($action) {
             $relativeSeconds = strtotime($coverage['dateStart']) - time();
             $coverage['urgent'] = $relativeSeconds <= $urgencyThreshold;
 
-            // Send the coverage accepted message to the absent staff member
+            // Send the coverage accepted message to the requesting staff member
             $recipients = [$coverage['gibbonPersonIDStatus']];
             $message = !empty($uncoveredDates)
                 ? new CoveragePartial($coverage, $uncoveredDates)
@@ -273,7 +273,7 @@ switch ($action) {
             $relativeSeconds = strtotime($coverage['dateStart']) - time();
             $coverage['urgent'] = $relativeSeconds <= $urgencyThreshold;
 
-            $recipients = [$coverage['gibbonPersonIDStatus']];
+            $recipients = [$coverage['gibbonPersonIDCoverage']];
             $message = new CoverageCancelled($coverage);
 
             if ($sent = $messageSender->send($message, $recipients, $coverage['gibbonPersonID'])) {

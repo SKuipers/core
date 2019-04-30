@@ -47,7 +47,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_approval_ac
     }
 
     if ($absence['gibbonPersonIDApproval'] != $_SESSION[$guid]['gibbonPersonID']) {
-        $URL .= '&return=error1';
+        $URL .= '&return=error0';
         header("Location: {$URL}");
         exit;
     }

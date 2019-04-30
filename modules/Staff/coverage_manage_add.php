@@ -110,15 +110,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_add.
     $form->toggleVisibilityByClass('subSelected')->onSelect('gibbonPersonIDCoverage')->whenNot('Please select...');
 
     $row = $form->addRow()->addClass('subSelected');
-        $row->addLabel('gibbonPersonIDStatus', __('Created By'));
-        $row->addSelectStaff('gibbonPersonIDStatus')
+        $row->addLabel('gibbonPersonID', __('Created For'));
+        $row->addSelectStaff('gibbonPersonID')
             ->placeholder()
             ->selected($_SESSION[$guid]['gibbonPersonID'])
             ->isRequired();
 
     $statusOptions = [
         'Requested' => __('Request'),
-        'Approved'  => __('Assign'),
+        'Accepted'  => __('Assign'),
     ];
     $row = $form->addRow()->addClass('subSelected');
         $row->addLabel('status', __('Type'));

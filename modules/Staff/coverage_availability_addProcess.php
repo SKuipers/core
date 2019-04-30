@@ -18,8 +18,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Services\Format;
-use Gibbon\Domain\User\UserGateway;
 use Gibbon\Domain\Staff\SubstituteGateway;
+use Gibbon\Domain\Staff\StaffCoverageDateGateway;
 
 require_once '../../gibbon.php';
 
@@ -37,10 +37,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
 } else {
     // Proceed!
     $substituteGateway = $container->get(SubstituteGateway::class);
+    $staffCoverageDateGateway = $container->get(StaffCoverageDateGateway::class);
     
-    $person = $container->get(UserGateway::class)->getByID($gibbonPersonID);
+    $substitute = $substituteGateway->selectBy('gibbonPersonID', $gibbonPersonID)->fetch();
 
-    if (empty($person)) {
+    if (empty($substitute)) {
         $URL .= '&return=error2';
         header("Location: {$URL}");
         exit;
@@ -57,8 +58,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
 
     // Create separate exception dates within the time span
     foreach ($dateRange as $date) {
-        $data = [
-            'gibbonPersonID' => $gibbonPersonID,
+        $dateData = [
+            'gibbonPersonIDUnavailable' => $gibbonPersonID,
             'reason'         => $_POST['reason'] ?? null,
             'date'           => $date->format('Y-m-d'),
             'allDay'         => $_POST['allDay'] ?? '',
@@ -66,12 +67,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
             'timeEnd'        => $_POST['timeEnd'] ?? null,
         ];
 
-        if (!isSchoolOpen($guid, $data['date'], $connection2)) {
+        if (!isSchoolOpen($guid, $dateData['date'], $connection2)) {
             continue;
         }
 
-        $inserted = $substituteGateway->insertUnavailability($data);
-        $partialFail &= !$inserted;
+        $partialFail &= !$staffCoverageDateGateway->insert($dateData);
     }
 
     $URL .= $partialFail

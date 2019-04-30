@@ -79,11 +79,11 @@ class SubstituteGateway extends QueryableGateway
     {
         $query = $this
             ->newQuery()
-            ->from('gibbonSubstituteUnavailable')
+            ->from('gibbonStaffCoverageDate')
             ->cols([
-                'date as groupBy', 'gibbonSubstituteUnavailable.*',
+                'date as groupBy', 'gibbonStaffCoverageDate.*', 'gibbonStaffCoverageDate.gibbonPersonIDUnavailable as gibbonPersonID'
             ])
-            ->where('gibbonSubstituteUnavailable.gibbonPersonID = :gibbonPersonIDCoverage')
+            ->where('gibbonStaffCoverageDate.gibbonPersonIDUnavailable = :gibbonPersonIDCoverage')
             ->bindValue('gibbonPersonIDCoverage', $gibbonPersonIDCoverage);
 
         return $this->runQuery($query, $criteria);
@@ -96,7 +96,7 @@ class SubstituteGateway extends QueryableGateway
             ->from('gibbonPerson')
             ->cols([
                 'gibbonPerson.gibbonPersonID as groupBy', 'gibbonPerson.gibbonPersonID', 'gibbonSubstitute.details', 'gibbonSubstitute.type', 'gibbonSubstitute.contactCall', 'gibbonSubstitute.contactEmail', 'gibbonSubstitute.contactSMS', 'gibbonSubstitute.priority', 'gibbonPerson.title', 'gibbonPerson.preferredName', 'gibbonPerson.surname', 'gibbonPerson.status', 'gibbonPerson.image_240', 'gibbonPerson.email', 'gibbonPerson.phone1', 'gibbonPerson.phone1Type', 'gibbonPerson.phone1CountryCode', 'gibbonStaff.gibbonStaffID',
-                '(absence.ID IS NULL AND coverage.ID IS NULL AND timetable.ID IS NULL AND unavailable.gibbonSubstituteUnavailableID IS NULL) as available',
+                '(absence.ID IS NULL AND coverage.ID IS NULL AND timetable.ID IS NULL AND unavailable.gibbonStaffCoverageDateID IS NULL) as available',
                 'absence.status as absence', 'coverage.status as coverage', 'timetable.status as timetable', 'unavailable.reason as unavailable',
             ])
             ->leftJoin('gibbonSubstitute', 'gibbonSubstitute.gibbonPersonID=gibbonPerson.gibbonPersonID');
@@ -113,18 +113,19 @@ class SubstituteGateway extends QueryableGateway
                   ->bindValue('timeEnd', $timeEnd);
 
             // Not available?
-            $query->leftJoin('gibbonSubstituteUnavailable as unavailable', "unavailable.gibbonPersonID=gibbonPerson.gibbonPersonID AND unavailable.date = :date 
+            $query->leftJoin('gibbonStaffCoverageDate as unavailable', "unavailable.gibbonPersonIDUnavailable=gibbonPerson.gibbonPersonID AND unavailable.date = :date 
                     AND (unavailable.allDay='Y' OR (unavailable.allDay='N' AND unavailable.timeStart <= :timeEnd AND unavailable.timeEnd >= :timeStart))");
 
             // Already covering?
             $query->joinSubSelect(
                 'LEFT',
-                "SELECT gibbonStaffAbsenceDateID as ID, (CASE WHEN absence.gibbonPersonID IS NOT NULL THEN CONCAT(absence.preferredName, ' ', absence.surname) ELSE CONCAT(status.preferredName, ' ', status.surname) END) as status, gibbonStaffCoverage.gibbonPersonIDCoverage, gibbonStaffAbsenceDate.date, allDay, timeStart, timeEnd
+                "SELECT gibbonStaffCoverageDateID as ID, (CASE WHEN absence.gibbonPersonID IS NOT NULL THEN CONCAT(absence.preferredName, ' ', absence.surname) ELSE CONCAT(status.preferredName, ' ', status.surname) END) as status, gibbonStaffCoverage.gibbonPersonIDCoverage, gibbonStaffCoverageDate.date, allDay, timeStart, timeEnd
                     FROM gibbonStaffCoverage 
-                    JOIN gibbonStaffAbsenceDate ON (gibbonStaffAbsenceDate.gibbonStaffCoverageID=gibbonStaffCoverage.gibbonStaffCoverageID)
+                    JOIN gibbonStaffCoverageDate ON (gibbonStaffCoverageDate.gibbonStaffCoverageID=gibbonStaffCoverage.gibbonStaffCoverageID)
                     LEFT JOIN gibbonStaffAbsence ON (gibbonStaffAbsence.gibbonStaffAbsenceID=gibbonStaffCoverage.gibbonStaffAbsenceID)
                     LEFT JOIN gibbonPerson as absence ON (absence.gibbonPersonID=gibbonStaffAbsence.gibbonPersonID)
-                    LEFT JOIN gibbonPerson as status ON (status.gibbonPersonID=gibbonStaffCoverage.gibbonPersonIDStatus)",
+                    LEFT JOIN gibbonPerson as status ON (status.gibbonPersonID=gibbonStaffCoverage.gibbonPersonID)
+                    WHERE gibbonStaffCoverage.status <> 'Declined' AND gibbonStaffCoverage.status <> 'Cancelled'",
                 'coverage',
                 "coverage.gibbonPersonIDCoverage=gibbonPerson.gibbonPersonID AND coverage.date = :date 
                     AND (coverage.allDay='Y' OR (coverage.allDay='N' AND coverage.timeStart <= :timeEnd AND coverage.timeEnd >= :timeStart))"
@@ -162,18 +163,19 @@ class SubstituteGateway extends QueryableGateway
             );
         } else {
             // Not available?
-            $query->leftJoin('gibbonSubstituteUnavailable as unavailable', 'unavailable.date = :date 
-                AND unavailable.gibbonPersonID=gibbonPerson.gibbonPersonID');
+            $query->leftJoin('gibbonStaffCoverageDate as unavailable', 'unavailable.date = :date 
+                AND unavailable.gibbonPersonIDUnavailable=gibbonPerson.gibbonPersonID');
 
             // Already covering?
             $query->joinSubSelect(
                 'LEFT',
-                "SELECT gibbonStaffAbsenceDateID as ID, (CASE WHEN absence.gibbonPersonID IS NOT NULL THEN CONCAT(absence.preferredName, ' ', absence.surname) ELSE CONCAT(status.preferredName, ' ', status.surname) END) as status, gibbonStaffCoverage.gibbonPersonIDCoverage, gibbonStaffAbsenceDate.date
+                "SELECT gibbonStaffCoverageDateID as ID, (CASE WHEN absence.gibbonPersonID IS NOT NULL THEN CONCAT(absence.preferredName, ' ', absence.surname) ELSE CONCAT(status.preferredName, ' ', status.surname) END) as status, gibbonStaffCoverage.gibbonPersonIDCoverage, gibbonStaffCoverageDate.date
                     FROM gibbonStaffCoverage 
-                    JOIN gibbonStaffAbsenceDate ON (gibbonStaffAbsenceDate.gibbonStaffCoverageID=gibbonStaffCoverage.gibbonStaffCoverageID)
+                    JOIN gibbonStaffCoverageDate ON (gibbonStaffCoverageDate.gibbonStaffCoverageID=gibbonStaffCoverage.gibbonStaffCoverageID)
                     LEFT JOIN gibbonStaffAbsence ON (gibbonStaffAbsence.gibbonStaffAbsenceID=gibbonStaffCoverage.gibbonStaffAbsenceID)
                     LEFT JOIN gibbonPerson as absence ON (absence.gibbonPersonID=gibbonStaffAbsence.gibbonPersonID)
-                    LEFT JOIN gibbonPerson as status ON (status.gibbonPersonID=gibbonStaffCoverage.gibbonPersonIDStatus)
+                    LEFT JOIN gibbonPerson as status ON (status.gibbonPersonID=gibbonStaffCoverage.gibbonPersonID)
+                    WHERE gibbonStaffCoverage.status <> 'Declined' AND gibbonStaffCoverage.status <> 'Cancelled'
                     ",
                 'coverage',
                 'coverage.gibbonPersonIDCoverage=gibbonPerson.gibbonPersonID AND coverage.date = :date'
@@ -227,7 +229,7 @@ class SubstituteGateway extends QueryableGateway
             $query->where('absence.ID IS NULL')
                   ->where('coverage.ID IS NULL')
                   ->where('timetable.ID IS NULL')
-                  ->where('unavailable.gibbonSubstituteUnavailableID IS NULL');
+                  ->where('unavailable.gibbonStaffCoverageDateID IS NULL');
         } else {
             $query->groupBy(['gibbonPerson.gibbonPersonID']);
             $query->orderBy(['available DESC']);
@@ -252,15 +254,15 @@ class SubstituteGateway extends QueryableGateway
         $data = ['gibbonPersonID' => $gibbonPersonID, 'gibbonStaffCoverageIDExclude' => $gibbonStaffCoverageIDExclude];
         $sql = "(
                 SELECT date as groupBy, 'Not Available' as status, allDay, timeStart, timeEnd
-                FROM gibbonSubstituteUnavailable 
-                WHERE gibbonSubstituteUnavailable.gibbonPersonID=:gibbonPersonID 
+                FROM gibbonStaffCoverageDate 
+                WHERE gibbonStaffCoverageDate.gibbonPersonIDUnavailable=:gibbonPersonID 
                 ORDER BY DATE
             ) UNION ALL (
                 SELECT date as groupBy, 'Covering' as status, allDay, timeStart, timeEnd
                 FROM gibbonStaffCoverage
-                JOIN gibbonStaffAbsenceDate ON (gibbonStaffAbsenceDate.gibbonStaffCoverageID=gibbonStaffCoverage.gibbonStaffCoverageID)
+                JOIN gibbonStaffCoverageDate ON (gibbonStaffCoverageDate.gibbonStaffCoverageID=gibbonStaffCoverage.gibbonStaffCoverageID)
                 WHERE gibbonStaffCoverage.gibbonPersonIDCoverage=:gibbonPersonID 
-                AND (gibbonStaffCoverage.status='Accepted' OR gibbonStaffCoverage.status='Requested')
+                AND (gibbonStaffCoverage.status='Accepted')
                 AND gibbonStaffCoverage.gibbonStaffCoverageID <> :gibbonStaffCoverageIDExclude
             ) UNION ALL (
                 SELECT date as groupBy, 'Absent' as status, allDay, timeStart, timeEnd
@@ -288,26 +290,5 @@ class SubstituteGateway extends QueryableGateway
         $sql = "SELECT * FROM gibbonSubstitute WHERE gibbonPersonID=:gibbonPersonID";
 
         return $this->db()->selectOne($sql, $data);
-    }
-
-    public function insertUnavailability($data)
-    {
-        $query = $this
-            ->newInsert()
-            ->into('gibbonSubstituteUnavailable')
-            ->cols($data);
-
-        return $this->runInsert($query);
-    }
-
-    public function deleteUnavailability($gibbonSubstituteUnavailableID)
-    {
-        $query = $this
-            ->newDelete()
-            ->from('gibbonSubstituteUnavailable')
-            ->where('gibbonSubstituteUnavailableID=:gibbonSubstituteUnavailableID')
-            ->bindValue('gibbonSubstituteUnavailableID', $gibbonSubstituteUnavailableID);
-
-        return $this->runDelete($query);
     }
 }

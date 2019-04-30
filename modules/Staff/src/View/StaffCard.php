@@ -37,6 +37,9 @@ class StaffCard
     protected $db;
     protected $staffGateway;
     protected $rollGroupGateway;
+    protected $gibbonPersonID;
+    protected $status;
+    protected $tag;
 
     public function __construct(Session $session, Connection $db, StaffGateway $staffGateway, RollGroupGateway $rollGroupGateway)
     {
@@ -53,6 +56,14 @@ class StaffCard
         return $this;
     }
 
+    public function setStatus($status, $tag = '')
+    {
+        $this->status = $status;
+        $this->tag = $tag;
+
+        return $this;
+    }
+
     public function compose(Page $page)
     {
         $guid = $this->session->get('guid');
@@ -65,6 +76,8 @@ class StaffCard
             'canViewAbsences' => isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPerson.php', 'View Absences_any'),
             'canViewTimetable' => isActionAccessible($guid, $connection2, '/modules/Timetable/tt_view.php'),
             'canViewRollGroups' => isActionAccessible($guid, $connection2, '/modules/Roll Groups/rollGroups.php'),
+            'status' => $this->status,
+            'tag' => $this->tag,
         ]);
     }
 }

@@ -53,15 +53,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_edit.p
         return;
     }
 
-    if ($coverage['gibbonPersonIDStatus'] != $_SESSION[$guid]['gibbonPersonID']) {
+    if ($coverage['gibbonPersonID'] != $_SESSION[$guid]['gibbonPersonID'] && $coverage['gibbonPersonIDStatus'] != $_SESSION[$guid]['gibbonPersonID']) {
         $page->addError(__('You do not have access to this action.'));
         return;
     }
 
     // Staff Card
-    $gibbonPersonIDStatus = !empty($coverage['gibbonPersonID'])? $coverage['gibbonPersonID'] : $coverage['gibbonPersonIDStatus'];
     $staffCard = $container->get(StaffCard::class);
-    $staffCard->setPerson($gibbonPersonIDStatus)->compose($page);
+    $staffCard->setPerson($coverage['gibbonPersonID'])->compose($page);
 
     // Coverage Dates
     $table = $container->get(CoverageDates::class)->create($gibbonStaffCoverageID);

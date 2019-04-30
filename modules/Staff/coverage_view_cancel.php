@@ -52,23 +52,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_cancel
 
     $coverage = $staffCoverageGateway->getCoverageDetailsByID($gibbonStaffCoverageID);
 
-    if (empty($coverage) || $coverage['status'] != 'Requested') {
+    if (empty($coverage) || ($coverage['status'] != 'Requested' && $coverage['status'] != 'Accepted')) {
         $page->addError(__('The specified record cannot be found.'));
         return;
     }
 
-    $form = Form::create('staffCoverage', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/coverage_view_cancelProcess.php');
-
-    $form->setFactory(DatabaseFormFactory::create($pdo));
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
-    $form->addHiddenValue('gibbonStaffCoverageID', $gibbonStaffCoverageID);
-
-    $form->addRow()->addHeading(__('Cancel Coverage Request'));
+    if ($coverage['status'] == 'Accepted' && $coverage['dateEnd'] <= date('Y-m-d')) {
+        $page->addError(__('Your request failed because the selected date is not in the future.'));
+        return;
+    }
 
     // Staff Card
-    $gibbonPersonIDStatus = !empty($coverage['gibbonPersonID'])? $coverage['gibbonPersonID'] : $coverage['gibbonPersonIDStatus'];
     $staffCard = $container->get(StaffCard::class);
-    $staffCard->setPerson($gibbonPersonIDStatus)->compose($page);
+    $staffCard->setPerson($coverage['gibbonPersonID'])->compose($page);
 
     // Coverage Dates
     $table = $container->get(CoverageDates::class)->create($gibbonStaffCoverageID);
@@ -78,12 +74,22 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_cancel
     $coverageView = $container->get(CoverageView::class);
     $coverageView->setCoverage($gibbonStaffCoverageID)->compose($page);
 
-    $row = $form->addRow();
-        $row->addLabel('notesStatus', __('Reply'));
-        $row->addTextArea('notesStatus')->setRows(3);
+    // Form
+    $form = Form::create('staffCoverage', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/coverage_view_cancelProcess.php');
+
+    $form->setFactory(DatabaseFormFactory::create($pdo));
+    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+    $form->addHiddenValue('gibbonStaffCoverageID', $gibbonStaffCoverageID);
+
+    $form->addRow()->addHeading(__('Cancel Coverage Request'));
+
+    if ($coverage['type'] == 'Individual') {
+        $row = $form->addRow();
+            $row->addLabel('notesStatus', __('Reply'));
+            $row->addTextArea('notesStatus')->setRows(3);
+    }
 
     $row = $form->addRow();
-        $row->addFooter();
         $row->addSubmit();
     
     echo $form->getOutput();
