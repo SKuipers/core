@@ -40,7 +40,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_cancel
 
     $data = [
         'timestampStatus' => date('Y-m-d H:i:s'),
-        'notesStatus'     => $_POST['notesStatus'],
+        'notesStatus'     => $_POST['notesStatus'] ?? '',
         'status'          => 'Cancelled',
     ];
 
@@ -71,7 +71,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_cancel
     }
 
     // Prevent two people cancelling at the same time (?)
-    if ($coverage['status'] != 'Requested') {
+    if ($coverage['status'] != 'Requested' && $coverage['status'] != 'Accepted') {
         $URL .= '&return=error1';
         header("Location: {$URL}");
         exit;
@@ -92,14 +92,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_cancel
     $coverageDates = $staffCoverageDateGateway->selectDatesByCoverage($gibbonStaffCoverageID);
 
     // Unlink any absence dates from the coverage request so they can be re-requested
-    foreach ($coverageDates as $dateData) {
-        $dateData['gibbonStaffAbsenceDateID'] = null;
-        $partialFail &= !$staffCoverageDateGateway->update($date['gibbonStaffCoverageDateID'], $dateData);
+    foreach ($coverageDates as $coverageDate) {
+        $dateData = ['gibbonStaffAbsenceDateID' => null];
+        $partialFail &= !$staffCoverageDateGateway->update($coverageDate['gibbonStaffCoverageDateID'], $dateData);
     }
 
     // Send messages (Mail, SMS) to relevant users
-    $process = new BackgroundProcess($gibbon->session->get('absolutePath').'/uploads/background');
-    $process->startProcess('staffNotification', __DIR__.'/notification_backgroundProcess.php', ['CoverageCancelled', $gibbonStaffCoverageID]);
+    if ($coverage['type'] == 'Individual') {
+        $process = new BackgroundProcess($gibbon->session->get('absolutePath').'/uploads/background');
+        $process->startProcess('staffNotification', __DIR__.'/notification_backgroundProcess.php', ['CoverageCancelled', $gibbonStaffCoverageID]);
+    }
 
     $URLSuccess .= $partialFail
         ? "&return=warning1"

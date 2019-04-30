@@ -62,14 +62,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_cancel
         return;
     }
 
-    $form = Form::create('staffCoverage', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/coverage_view_cancelProcess.php');
-
-    $form->setFactory(DatabaseFormFactory::create($pdo));
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
-    $form->addHiddenValue('gibbonStaffCoverageID', $gibbonStaffCoverageID);
-
-    $form->addRow()->addHeading(__('Cancel Coverage Request'));
-
     // Staff Card
     $staffCard = $container->get(StaffCard::class);
     $staffCard->setPerson($coverage['gibbonPersonID'])->compose($page);
@@ -82,12 +74,22 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_cancel
     $coverageView = $container->get(CoverageView::class);
     $coverageView->setCoverage($gibbonStaffCoverageID)->compose($page);
 
-    $row = $form->addRow();
-        $row->addLabel('notesStatus', __('Reply'));
-        $row->addTextArea('notesStatus')->setRows(3);
+    // Form
+    $form = Form::create('staffCoverage', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/coverage_view_cancelProcess.php');
+
+    $form->setFactory(DatabaseFormFactory::create($pdo));
+    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+    $form->addHiddenValue('gibbonStaffCoverageID', $gibbonStaffCoverageID);
+
+    $form->addRow()->addHeading(__('Cancel Coverage Request'));
+
+    if ($coverage['type'] == 'Individual') {
+        $row = $form->addRow();
+            $row->addLabel('notesStatus', __('Reply'));
+            $row->addTextArea('notesStatus')->setRows(3);
+    }
 
     $row = $form->addRow();
-        $row->addFooter();
         $row->addSubmit();
     
     echo $form->getOutput();

@@ -185,7 +185,7 @@ class StaffAbsenceGateway extends QueryableGateway
             JOIN gibbonStaffAbsenceType ON (gibbonStaffAbsence.gibbonStaffAbsenceTypeID=gibbonStaffAbsenceType.gibbonStaffAbsenceTypeID)
             LEFT JOIN gibbonStaffAbsenceDate ON (gibbonStaffAbsenceDate.gibbonStaffAbsenceID=gibbonStaffAbsence.gibbonStaffAbsenceID)
             LEFT JOIN gibbonStaffCoverage ON (gibbonStaffCoverage.gibbonStaffAbsenceID=gibbonStaffAbsence.gibbonStaffAbsenceID)
-            LEFT JOIN gibbonPerson AS absence ON (gibbonStaffCoverage.gibbonPersonID=absence.gibbonPersonID)
+            LEFT JOIN gibbonPerson AS absence ON (gibbonStaffAbsence.gibbonPersonID=absence.gibbonPersonID)
             LEFT JOIN gibbonPerson AS coverage ON (gibbonStaffCoverage.gibbonPersonIDCoverage=coverage.gibbonPersonID)
             LEFT JOIN gibbonPerson AS approval ON (gibbonStaffAbsence.gibbonPersonIDApproval=approval.gibbonPersonID)
             WHERE gibbonStaffAbsence.gibbonStaffAbsenceID=:gibbonStaffAbsenceID
