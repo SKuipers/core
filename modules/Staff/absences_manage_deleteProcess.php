@@ -52,6 +52,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_dele
     $absenceDates = $staffAbsenceDateGateway->selectDatesByAbsence($gibbonStaffAbsenceID)->fetchAll();
     $partialFail = false;
 
+    // Delete the Google Calendar event, if one exists
+    if ($calendarSync = $container->get(AbsenceCalendarSync::class)) {
+        $calendarSync->deleteCalendarAbsence($gibbonStaffAbsenceID);
+    }
+
     // Delete each date first
     foreach ($absenceDates as $log) {
         $partialFail &= $staffAbsenceDateGateway->delete($log['gibbonStaffAbsenceDateID']);
@@ -59,11 +64,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_dele
 
     // Then delete the absence itself
     $partialFail &= $staffAbsenceGateway->delete($gibbonStaffAbsenceID);
-
-    // Delete the Google Calendar event, if one exists
-    if ($calendarSync = $container->get(AbsenceCalendarSync::class)) {
-        $calendarSync->deleteCalendarAbsence($gibbonStaffAbsenceID);
-    }
 
     $URL .= $partialFail
         ? '&return=warning1'

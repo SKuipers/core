@@ -173,7 +173,7 @@ class StaffAbsenceGateway extends QueryableGateway
     public function getAbsenceDetailsByID($gibbonStaffAbsenceID)
     {
         $data = ['gibbonStaffAbsenceID' => $gibbonStaffAbsenceID];
-        $sql = "SELECT gibbonStaffAbsence.gibbonStaffAbsenceID, gibbonStaffAbsence.gibbonStaffAbsenceID, gibbonStaffAbsenceType.name as type, gibbonStaffAbsence.gibbonStaffAbsenceTypeID, gibbonStaffAbsence.reason, gibbonStaffAbsence.comment, gibbonStaffAbsence.commentConfidential, 
+        $sql = "SELECT gibbonStaffAbsence.gibbonStaffAbsenceID, gibbonStaffAbsence.gibbonStaffAbsenceID, gibbonStaffAbsenceType.name as type, gibbonStaffAbsenceType.sequenceNumber, gibbonStaffAbsence.gibbonStaffAbsenceTypeID, gibbonStaffAbsence.reason, gibbonStaffAbsence.comment, gibbonStaffAbsence.commentConfidential, 
                 MIN(gibbonStaffAbsenceDate.date) as date, COUNT(DISTINCT gibbonStaffAbsenceDateID) as days, MIN(gibbonStaffAbsenceDate.date) as dateStart, MAX(gibbonStaffAbsenceDate.date) as dateEnd, MAX(gibbonStaffAbsenceDate.allDay) as allDay, MIN(gibbonStaffAbsenceDate.timeStart) as timeStart, MAX(gibbonStaffAbsenceDate.timeEnd) as timeEnd, 0 as urgent, SUM(gibbonStaffAbsenceDate.value) as value,
                 gibbonStaffAbsence.status, gibbonStaffAbsence.timestampApproval, gibbonStaffAbsence.notesApproval,
                 gibbonPersonIDCreator, timestampCreator, timestampStatus, timestampCoverage, gibbonStaffAbsence.notificationList, gibbonStaffAbsence.notificationSent, gibbonStaffAbsence.gibbonGroupID, gibbonStaffAbsence.googleCalendarEventID,
