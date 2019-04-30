@@ -43,6 +43,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
     $staffCoverageDateGateway = $container->get(StaffCoverageDateGateway::class);
     $staffAbsenceDateGateway = $container->get(StaffAbsenceDateGateway::class);
+    $fullDayThreshold =  floatval(getSettingByScope($connection2, 'Staff', 'absenceFullDayThreshold'));
+    $halfDayThreshold = floatval(getSettingByScope($connection2, 'Staff', 'absenceHalfDayThreshold'));
 
     $requestDates = $_POST['requestDates'] ?? [];
     $substituteTypes = $_POST['substituteTypes'] ?? [];
@@ -107,11 +109,34 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     $absenceDates = $staffAbsenceDateGateway->selectDatesByAbsence($data['gibbonStaffAbsenceID']);
 
     // Create a coverage date for each absence date, allow coverage request form to override absence times
-    foreach ($absenceDates as $dateData) {
-        $dateData['gibbonStaffCoverageID'] = $gibbonStaffCoverageID;
-        $dateData['allDay'] = $_POST['allDay'] ?? $dateData['allDay'] ?? 'N';
-        $dateData['timeStart'] = $_POST['timeStart'] ?? $dateData['timeStart'];
-        $dateData['timeEnd'] = $_POST['timeEnd'] ?? $dateData['timeEnd'];
+    foreach ($absenceDates as $absenceDate) {
+
+        $dateData = [
+            'gibbonStaffCoverageID'    => $gibbonStaffCoverageID,
+            'gibbonStaffAbsenceDateID' => $absenceDate['gibbonStaffAbsenceDateID'],
+            'date'      => $absenceDate['date'],
+            'allDay'    => $_POST['allDay'] ?? 'N',
+            'timeStart' => $_POST['timeStart'] ?? $absenceDate['timeStart'],
+            'timeEnd'   => $_POST['timeEnd'] ?? $absenceDate['timeEnd'],
+        ];
+
+        if ($dateData['allDay'] == 'Y') {
+            $dateData['value'] = 1.0;
+        } else {
+            $start = new DateTime($absenceDate['date'].' '.$dateData['timeStart']);
+            $end = new DateTime($absenceDate['date'].' '.$dateData['timeEnd']);
+
+            $timeDiff = $end->getTimestamp() - $start->getTimestamp();
+            $hoursAbsent = abs($timeDiff / 3600);
+            
+            if ($hoursAbsent < $halfDayThreshold) {
+                $dateData['value'] = 0.0;
+            } elseif ($hoursAbsent < $fullDayThreshold) {
+                $dateData['value'] = 0.5;
+            } else {
+                $dateData['value'] = 1.0;
+            }
+        }
 
         if ($staffCoverageDateGateway->unique($dateData, ['gibbonStaffCoverageID', 'date'])) {
             $partialFail &= !$staffCoverageDateGateway->insert($dateData);
