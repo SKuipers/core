@@ -30,7 +30,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
             {% endif %}
 
             <div class="px-4 py-3 text-gray-700 text-sm font-sans leading-relaxed">
-                <span class="inline-block font-semibold">{{ name }}</span> {{ action|lower }} <span class="whitespace-no-wrap">{{ date|raw }}</span>
+                <span class="inline-block font-semibold">{{ name }}</span> {{ action|lower }} <span class="whitespace-no-wrap">{{ date|lower|raw }}</span>
 
                 {% if status %}
                     <span class="mx-2 tag {{ tag }}">{{ status }}</span>
