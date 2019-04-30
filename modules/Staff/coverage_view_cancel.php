@@ -52,8 +52,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_cancel
 
     $coverage = $staffCoverageGateway->getCoverageDetailsByID($gibbonStaffCoverageID);
 
-    if (empty($coverage) || $coverage['status'] != 'Requested') {
+    if (empty($coverage) || ($coverage['status'] != 'Requested' && $coverage['status'] != 'Accepted')) {
         $page->addError(__('The specified record cannot be found.'));
+        return;
+    }
+
+    if ($coverage['status'] == 'Accepted' && $coverage['dateEnd'] <= date('Y-m-d')) {
+        $page->addError(__('Your request failed because the selected date is not in the future.'));
         return;
     }
 

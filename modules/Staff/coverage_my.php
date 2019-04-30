@@ -52,7 +52,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php') ==
 
     $todaysCoverage = $staffCoverageGateway->queryCoverageByPersonCovering($criteria, $gibbonPersonID);
 
-    if (!empty($todaysCoverage)) {
+    if (count($todaysCoverage) > 0) {
         $page->write('<h2>'.__("Today's Coverage").'</h2>');
 
         foreach ($todaysCoverage as $coverage) {
@@ -136,7 +136,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php') ==
                 $actions->addAction('edit', __('Edit'))
                     ->setURL('/modules/Staff/coverage_view_edit.php');
                     
-                if ($coverage['status'] == 'Requested') {
+                if ($coverage['status'] == 'Requested' || ($coverage['status'] == 'Accepted' && $coverage['dateEnd'] < date('Y-m-d'))) {
                     $actions->addAction('cancel', __('Cancel'))
                         ->setIcon('iconCross')
                         ->setURL('/modules/Staff/coverage_view_cancel.php');
