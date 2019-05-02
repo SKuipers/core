@@ -22,17 +22,17 @@ use Gibbon\Domain\User\UserGateway;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
-use Gibbon\Data\BackgroundProcess;
 use Gibbon\Domain\Staff\StaffCoverageDateGateway;
+use Gibbon\Data\BackgroundProcess;
 
 require_once '../../gibbon.php';
 
 $gibbonStaffAbsenceID = $_POST['gibbonStaffAbsenceID'] ?? '';
 
 $URL = $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Staff/coverage_request.php&gibbonStaffAbsenceID='.$gibbonStaffAbsenceID;
-$URLSuccess = isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php')
-    ? $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Staff/absences_manage.php'
-    : $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Staff/coverage_view_edit.php&gibbonStaffAbsenceID='.$gibbonStaffAbsenceID;
+$URLSuccess = isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_edit.php')
+    ? $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Staff/coverage_view_edit.php&gibbonStaffAbsenceID='.$gibbonStaffAbsenceID
+    : $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Staff/coverage_view_details.php&gibbonStaffAbsenceID='.$gibbonStaffAbsenceID;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php') == false) {
     $URL .= '&return=error0';
@@ -113,6 +113,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
 
     // Create a coverage date for each absence date, allow coverage request form to override absence times
     foreach ($absenceDates as $absenceDate) {
+
+        // Skip dates that were not selected for Individual requests
+        if ($data['requestType'] == 'Individual' && !in_array($absenceDate['date'], $requestDates)) {
+            continue;
+        }
 
         $dateData = [
             'gibbonStaffCoverageID'    => $gibbonStaffCoverageID,
