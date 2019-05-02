@@ -62,13 +62,22 @@ class CoverageView
 
         if ($coverage['status'] == 'Requested') {
             if ($coverage['requestType'] == 'Individual') {
-                $message = __('Individual request sent to {name}', ['name' => Format::name($substitute['title'], $substitute['preferredName'], $substitute['surname'], 'Staff', false, true)]);
+                $params = [
+                    'type' => __('Individual'),
+                    'name' => Format::name($substitute['title'], $substitute['preferredName'], $substitute['surname'], 'Staff', false, true),
+                ];
             } elseif ($coverage['requestType'] == 'Broadcast') {
                 if ($notificationList = json_decode($coverage['notificationList'])) {
                     $notified = $this->userGateway->selectNotificationDetailsByPerson($notificationList)->fetchGroupedUnique();
-                    $message = __('Open request sent to {name}', ['name' => Format::nameList($notified, 'Staff', false, true, ', ')]);
+                    $notified = Format::nameList($notified, 'Staff', false, true, ', ');
                 }
+
+                $params = [
+                    'type' => $coverage['substituteTypes'] ?? __('Open'),
+                    'name' => $notified ?? __('Unknown'),
+                ];
             }
+            $message = __('{type} request sent to {name}', $params);
         }
 
         // Coverage Request
