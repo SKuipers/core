@@ -99,7 +99,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_declin
     // Unlink any absence dates from the coverage request so they can be re-requested
     foreach ($coverageDates as $coverageDate) {
         $dateData = [
-            'gibbonStaffAbsenceDateID' => $coverageDate['gibbonStaffAbsenceDateID'] ?? '',
+            'gibbonStaffAbsenceDateID' => '',
             'gibbonPersonIDUnavailable' => $markAsUnavailable ? $coverage['gibbonPersonIDCoverage'] : '',
         ];
 

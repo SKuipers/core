@@ -99,11 +99,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
     $coverageDates = $staffCoverageDateGateway->selectDatesByCoverage($gibbonStaffCoverageID);
     $uncoveredDates = [];
 
-    // Unlink any absence dates from the coverage request if they were not selected
+    // Remove any coverage dates from the coverage request if they were not selected
     foreach ($coverageDates as $date) {
         if (!in_array($date['date'], $requestDates)) {
             $uncoveredDates[] = $date['date'];
-            $partialFail &= !$staffCoverageDateGateway->delete($date['gibbonStaffAbsenceDateID']);
+            $partialFail &= !$staffCoverageDateGateway->delete($date['gibbonStaffCoverageDateID']);
         }
     }
 
