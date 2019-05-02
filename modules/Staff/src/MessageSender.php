@@ -21,9 +21,9 @@ namespace Gibbon\Module\Staff;
 
 use Gibbon\Contracts\Comms\Mailer as MailerContract;
 use Gibbon\Contracts\Comms\SMS as SMSContract;
+use Gibbon\Domain\System\NotificationGateway;
 use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Domain\User\UserGateway;
-use Gibbon\Domain\System\NotificationGateway;
 
 /**
  * MessageSender
@@ -53,67 +53,89 @@ class MessageSender
 
     public function send(Message $message, array $recipients, $senderID = '')
     {
-        $via = $message->via();
+        // Get the user data per gibbonPersonID
+        $sender = !empty($senderID) ? $this->userGateway->getByID($senderID) : [];
+        $recipients = array_map(function ($gibbonPersonID) {
+            return $this->userGateway->getByID($gibbonPersonID);
+        }, array_filter(array_unique($recipients)));
         $result = [];
 
-        // Get the user data per gibbonPersonID
-        $userGateway = &$this->userGateway;
+        foreach ($message->via() as $via) {
+            switch ($via) {
+                case 'sms':
+                    $sendCount = $this->sendViaSMS($message, $recipients);
+                    break;
 
-        $sender = !empty($senderID) ? $this->userGateway->getByID($senderID) : [];
-        $recipients = array_map(function ($gibbonPersonID) use (&$userGateway) {
-            return $userGateway->getByID($gibbonPersonID);
-        }, array_filter(array_unique($recipients)));
+                case 'mail':
+                    $sendCount = $this->sendViaMail($message, $recipients, $sender);
+                    break;
 
-        // Send SMS
-        if (in_array('sms', $via) && !empty($this->sms)) {
-            $phoneNumbers = array_map(function ($person) {
-                return ($person['phone1CountryCode'] ?? '').($person['phone1'] ?? '');
-            }, $recipients);
-
-            $sent = $this->sms
-                ->content($message->toSMS()."\n".'['.$this->settings['absoluteURL'].']')
-                ->send($phoneNumbers);
-
-            $result['sms'] = is_array($sent) ? count($sent) : $sent;
-        }
-
-        // Send Mail
-        if (in_array('mail', $via) && !empty($this->mail)) {
-            $this->mail->setDefaultSender($message->toMail()['subject']);
-            $this->mail->renderBody('mail/message.twig.html', $message->toMail());
-
-            if (!empty($sender['email'])) {
-                $this->mail->addReplyTo($sender['email'], $sender['preferredName'].' '.$sender['surname']);
+                case 'database':
+                    $sendCount = $this->sendViaDatabase($message, $recipients);
+                    break;
             }
-
-            foreach ($recipients as $person) {
-                if (empty($person['email'])) continue;
-
-                $this->mail->clearAllRecipients();
-                $this->mail->AddAddress($person['email'], $person['preferredName'].' '.$person['surname']);
-
-                if ($this->mail->Send()) {
-                    $result['mail'] = ($result['mail'] ?? 0) + 1;
-                }
-            }
-        }
-
-        // Add database notification
-        if (in_array('database', $via)) {
-            foreach ($recipients as $person) {
-                $notification = $message->toDatabase() + ['gibbonPersonID' => $person['gibbonPersonID']];
-                $row = $this->notificationGateway->selectNotificationByStatus($notification, 'New')->fetch();
-
-                if (!empty($row)) {
-                    $this->notificationGateway->updateNotificationCount($row['gibbonNotificationID'], $row['count']+1);
-                } else {
-                    $this->notificationGateway->insertNotification($notification);
-                }
-
-                $result['database'] = ($result['database'] ?? 0) + 1;
-            }
+            $result[$via] = ($result[$via] ?? 0) + $sendCount;
         }
 
         return $result;
+    }
+
+    protected function sendViaSMS(Message $message, array $recipients = []) : int
+    {
+        if (empty($this->sms)) return 0;
+
+        $phoneNumbers = array_map(function ($person) {
+            return ($person['phone1CountryCode'] ?? '').($person['phone1'] ?? '');
+        }, $recipients);
+
+        $sent = $this->sms
+            ->content($message->toSMS()."\n".'['.$this->settings['absoluteURL'].']')
+            ->send($phoneNumbers);
+
+        return is_array($sent) ? count($sent) : $sent;
+    }
+
+    protected function sendViaMail(Message $message, array $recipients = [], array $sender = []) : int
+    {
+        if (empty($this->mail)) return 0;
+
+        $this->mail->setDefaultSender($message->toMail()['subject']);
+        $this->mail->renderBody('mail/message.twig.html', $message->toMail());
+
+        if (!empty($sender['email'])) {
+            $this->mail->addReplyTo($sender['email'], $sender['preferredName'].' '.$sender['surname']);
+        }
+
+        $sent = 0;
+        foreach ($recipients as $person) {
+            if (empty($person['email'])) continue;
+
+            $this->mail->clearAllRecipients();
+            $this->mail->AddAddress($person['email'], $person['preferredName'].' '.$person['surname']);
+
+            if ($this->mail->Send()) {
+                $sent++;
+            }
+        }
+
+        return $sent;
+    }
+
+    protected function sendViaDatabase(Message $message, array $recipients = []) : int
+    {
+        if (empty($this->notificationGateway)) return 0;
+
+        foreach ($recipients as $person) {
+            $notification = $message->toDatabase() + ['gibbonPersonID' => $person['gibbonPersonID']];
+            $row = $this->notificationGateway->selectNotificationByStatus($notification, 'New')->fetch();
+
+            if (!empty($row)) {
+                $this->notificationGateway->updateNotificationCount($row['gibbonNotificationID'], $row['count']+1);
+            } else {
+                $this->notificationGateway->insertNotification($notification);
+            }
+        }
+
+        return count($recipients);
     }
 }
