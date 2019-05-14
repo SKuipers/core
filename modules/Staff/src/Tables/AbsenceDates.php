@@ -30,6 +30,8 @@ use Gibbon\Contracts\Database\Connection;
 /**
  * AbsenceDates
  *
+ * Reusable DataTable class for displaying the info and actions available for absence dates.
+ *
  * @version v18
  * @since   v18
  */
@@ -78,19 +80,34 @@ class AbsenceDates
                 ->format([AbsenceFormats::class, 'coverage']);
         }
 
-        $canManage = isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php') || $absence['gibbonPersonID'] == $_SESSION[$guid]['gibbonPersonID'];
-        $canRequest = isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php') && $absence['dateEnd'] >= date('Y-m-d');
+        // ACTIONS
+        $canRequestCoverage = isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php') && $absence['status'] == 'Approved';
+        $canManage = isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php');
+        $canDelete = count($dates) > 1;
 
-        if ($canManage && $canRequest && $absence['status'] == 'Approved') {
+        if ($canManage || $absence['gibbonPersonID'] == $_SESSION[$guid]['gibbonPersonID']) {
             $table->addActionColumn()
-                ->addParam('gibbonStaffAbsenceID')
-                ->format(function ($values, $actions) {
-                    if (!empty($values['gibbonStaffCoverageID'])) return;
-                    if ($values['date'] < date('Y-m-d')) return;
+                ->addParam('gibbonStaffAbsenceID', $gibbonStaffAbsenceID)
+                ->addParam('gibbonStaffAbsenceDateID')
+                ->format(function ($absence, $actions) use ($canManage, $canDelete, $canRequestCoverage) {
+                    if ($canManage) {
+                        $actions->addAction('edit', __('Edit'))
+                            ->setURL('/modules/Staff/absences_manage_edit_edit.php');
+                    }
 
-                    $actions->addAction('coverage', __('Request Coverage'))
-                        ->setIcon('attendance')
-                        ->setURL('/modules/Staff/coverage_request.php');
+                    if ($canManage && $canDelete) {
+                        $actions->addAction('deleteInstant', __('Delete'))
+                            ->setIcon('garbage')
+                            ->isDirect()
+                            ->setURL('/modules/Staff/absences_manage_edit_deleteProcess.php')
+                            ->addConfirmation(__('Are you sure you wish to delete this record?'));
+                    }
+
+                    if ($canRequestCoverage && empty($absence['gibbonStaffCoverageID']) && $absence['date'] >= date('Y-m-d')) {
+                        $actions->addAction('coverage', __('Request Coverage'))
+                            ->setIcon('attendance')
+                            ->setURL('/modules/Staff/coverage_request.php');
+                    }
                 });
         }
 

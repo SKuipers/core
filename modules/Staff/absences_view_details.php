@@ -18,7 +18,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
-use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Module\Staff\View\StaffCard;
 use Gibbon\Module\Staff\View\AbsenceView;
 use Gibbon\Module\Staff\Tables\AbsenceDates;
@@ -38,13 +37,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_detail
     }
 
     if (isset($_GET['return'])) {
+        ob_start();
         returnProcess($guid, $_GET['return'], null, null);
+        $page->write(ob_get_clean());
     }
 
     $gibbonStaffAbsenceID = $_GET['gibbonStaffAbsenceID'] ?? '';
 
     $staffAbsenceGateway = $container->get(StaffAbsenceGateway::class);
-    $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
 
     if (empty($gibbonStaffAbsenceID)) {
         $page->addError(__('You have not specified one or more required parameters.'));

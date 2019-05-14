@@ -22,7 +22,6 @@ namespace Gibbon\Domain\Staff;
 use Gibbon\Domain\QueryCriteria;
 use Gibbon\Domain\QueryableGateway;
 use Gibbon\Domain\Traits\TableAware;
-use Gibbon\Domain\Traits\TableQueryAware;
 
 /**
  * Staff Absence Gateway
@@ -33,8 +32,7 @@ use Gibbon\Domain\Traits\TableQueryAware;
 class StaffAbsenceGateway extends QueryableGateway
 {
     use TableAware;
-    use TableQueryAware;
-
+    
     private static $tableName = 'gibbonStaffAbsence';
     private static $primaryKey = 'gibbonStaffAbsenceID';
 
@@ -198,8 +196,8 @@ class StaffAbsenceGateway extends QueryableGateway
     public function getMostRecentAbsenceByPerson($gibbonPersonID)
     {
         $data = ['gibbonPersonID' => $gibbonPersonID];
-        $sql = "SELECT * FROM 
-                gibbonStaffAbsence 
+        $sql = "SELECT * 
+                FROM gibbonStaffAbsence 
                 WHERE gibbonStaffAbsence.gibbonPersonID=:gibbonPersonID
                 ORDER BY timestampCreator DESC
                 LIMIT 1";
@@ -210,8 +208,8 @@ class StaffAbsenceGateway extends QueryableGateway
     public function getMostRecentApproverByPerson($gibbonPersonID)
     {
         $data = ['gibbonPersonID' => $gibbonPersonID];
-        $sql = "SELECT gibbonPersonIDApproval FROM 
-                gibbonStaffAbsence 
+        $sql = "SELECT gibbonPersonIDApproval 
+                FROM gibbonStaffAbsence 
                 WHERE gibbonStaffAbsence.gibbonPersonID=:gibbonPersonID
                 AND gibbonPersonIDApproval IS NOT NULL
                 ORDER BY timestampCreator DESC

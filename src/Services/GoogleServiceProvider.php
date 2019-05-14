@@ -40,8 +40,8 @@ class GoogleServiceProvider extends AbstractServiceProvider
      * @var array
      */
     protected $provides = [
-        Google_Client::class,
-        Google_Service_Calendar::class,
+        'Google_Client',
+        'Google_Service_Calendar',
     ];
 
     /**
@@ -57,34 +57,37 @@ class GoogleServiceProvider extends AbstractServiceProvider
         $container->share(Google_Client::class, function () {
             $session = $this->getContainer()->get('session');
 
-            if (!$session->has('googleAPIAccessToken')) {
-                return null;
-            }
-
             try {
+                // Setup the Client
                 $client = new Google_Client();
+                $client->setApplicationName($session->get('googleClientName'));
+                $client->setScopes(array('email', 'profile', 'https://www.googleapis.com/auth/calendar'));
+                $client->setClientId($session->get('googleClientID'));
+                $client->setClientSecret($session->get('googleClientSecret'));
+                $client->setRedirectUri($session->get('googleRedirectUri'));
+                $client->setDeveloperKey($session->get('googleDeveloperKey'));
+                $client->setAccessType('offline');
+
+                if (!$session->has('googleAPIAccessToken')) {
+                    return $client;
+                }
+
                 $client->setAccessToken($session->get('googleAPIAccessToken'));
-
+                
                 if ($client->isAccessTokenExpired()) {
-                    // Re-establish the Client
-                    $client->setApplicationName($session->get('googleClientName'));
-                    $client->setScopes(array('email', 'profile', 'https://www.googleapis.com/auth/calendar'));
-                    $client->setClientId($session->get('googleClientID'));
-                    $client->setClientSecret($session->get('googleClientSecret'));
-                    $client->setRedirectUri($session->get('googleRedirectUri'));
-                    $client->setDeveloperKey($session->get('googleDeveloperKey'));
-                    $client->setAccessType('offline');
-
-                    // Set the new token
+                    // Re-establish the Client and get a new token
                     if ($session->exists('googleAPIRefreshToken')) {
                         $client->refreshToken($session->get('googleAPIRefreshToken'));
                         $session->set('googleAPIAccessToken', $client->getAccessToken());
+                    } else {
+                        return null;
                     }
                 }
             } catch (\InvalidArgumentException $e) {
-                
+                return null;
+            } catch (\Google_Service_Exception $e) {
+                return null;
             }
-            // catch (\Google_Service_Exception $e) {}
 
             return $client;
         });

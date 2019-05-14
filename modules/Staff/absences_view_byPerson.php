@@ -20,7 +20,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Tables\DataTable;
-use Gibbon\Services\Format;
 use Gibbon\Domain\DataSet;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
@@ -49,7 +48,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
     $staffAbsenceTypeGateway = $container->get(StaffAbsenceTypeGateway::class);
 
     if ($highestAction == 'View Absences_any') {
-
         $gibbonPersonID = $_GET['gibbonPersonID'] ?? $_SESSION[$guid]['gibbonPersonID'];
 
         $form = Form::create('filter', $_SESSION[$guid]['absoluteURL'].'/index.php', 'get');
@@ -122,7 +120,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
     });
 
     $table->addHeaderAction('add', __('New Absence'))
-        ->setURL('/modules/Staff/absences_manage_add.php')
+        ->setURL('/modules/Staff/absences_add.php')
         ->addParam('gibbonPersonID', $gibbonPersonID)
         ->displayLabel();
 
@@ -133,7 +131,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
     $table->addColumn('type', __('Type'))
         ->description(__('Reason'))
         ->format([AbsenceFormats::class, 'typeAndReason']);
-
     
     $table->addColumn('coverage', __('Coverage'))
         ->format([AbsenceFormats::class, 'coverageList']);
@@ -171,5 +168,4 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_byPers
         });
 
     echo $table->render($absences);
-
 }

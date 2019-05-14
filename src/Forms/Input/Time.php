@@ -111,10 +111,6 @@ class Time extends TextField
             'maxTime' => $this->max,
         ];
 
-        // if (!empty($this->min)) {
-        //     $jsonData['minTime'] = $this->min;
-        // }
-
         $output = '';
         $output = '<input type="text" '.$this->getAttributeString().' maxlength="5">';
 

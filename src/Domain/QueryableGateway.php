@@ -111,12 +111,12 @@ abstract class QueryableGateway extends Gateway
         return $this->db()->insert($query->getStatement(), $query->getBindValues());
     }
 
-    protected function runUpdate(UpdateInterface $query)
+    protected function runUpdate(UpdateInterface $query) : bool
     {
         return $this->db()->update($query->getStatement(), $query->getBindValues());
     }
 
-    protected function runDelete(DeleteInterface $query)
+    protected function runDelete(DeleteInterface $query) : bool
     {
         return $this->db()->delete($query->getStatement(), $query->getBindValues());
     }
@@ -210,7 +210,7 @@ abstract class QueryableGateway extends Gateway
      *
      * @return QueryFactory
      */
-    private function getQueryFactory()
+    protected function getQueryFactory()
     {
         if (!isset(self::$queryFactory)) {
             self::$queryFactory = new QueryFactory('mysql');

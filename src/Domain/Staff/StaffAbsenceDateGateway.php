@@ -22,7 +22,6 @@ namespace Gibbon\Domain\Staff;
 use Gibbon\Domain\QueryCriteria;
 use Gibbon\Domain\QueryableGateway;
 use Gibbon\Domain\Traits\TableAware;
-use Gibbon\Domain\Traits\TableQueryAware;
 
 /**
  * Staff Absence Date Gateway
@@ -33,7 +32,6 @@ use Gibbon\Domain\Traits\TableQueryAware;
 class StaffAbsenceDateGateway extends QueryableGateway
 {
     use TableAware;
-    use TableQueryAware;
 
     private static $tableName = 'gibbonStaffAbsenceDate';
     private static $primaryKey = 'gibbonStaffAbsenceDateID';

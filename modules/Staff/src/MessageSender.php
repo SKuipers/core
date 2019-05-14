@@ -51,38 +51,54 @@ class MessageSender
         $this->sms = $sms;
     }
 
-    public function send(Message $message, array $recipients, $senderID = '')
+    /**
+     * Send a message class to a group of recipients via multiple channels.
+     *
+     * @param Message   $message
+     * @param array     $recipients gibbonPersonID
+     * @param string    $senderID   gibbonPersonID
+     * @return array
+     */
+    public function send(Message $message, array $recipients, $senderID = '') : array
     {
         // Get the user data per gibbonPersonID
         $sender = !empty($senderID) ? $this->userGateway->getByID($senderID) : [];
         $recipients = array_map(function ($gibbonPersonID) {
             return $this->userGateway->getByID($gibbonPersonID);
         }, array_filter(array_unique($recipients)));
+
         $result = [];
 
         foreach ($message->via() as $via) {
             switch ($via) {
                 case 'sms':
-                    $sendCount = $this->sendViaSMS($message, $recipients);
+                    $sent = $this->sendViaSMS($message, $recipients);
                     break;
 
                 case 'mail':
-                    $sendCount = $this->sendViaMail($message, $recipients, $sender);
+                    $sent = $this->sendViaMail($message, $recipients, $sender);
                     break;
 
                 case 'database':
-                    $sendCount = $this->sendViaDatabase($message, $recipients);
+                    $sent = $this->sendViaDatabase($message, $recipients);
                     break;
             }
-            $result[$via] = ($result[$via] ?? 0) + $sendCount;
+            $result[$via] = $sent;
         }
 
         return $result;
     }
 
-    protected function sendViaSMS(Message $message, array $recipients = []) : int
+    /**
+     * Sends the message via SMS and returns an array of the successful phone numbers.
+     *
+     * @param Message   $message
+     * @param array     $recipients
+     * @return array
+     */
+    protected function sendViaSMS(Message $message, array $recipients = []) : array
     {
-        if (empty($this->sms)) return 0;
+        if (empty($this->sms)) return [];
 
         $phoneNumbers = array_map(function ($person) {
             return ($person['phone1CountryCode'] ?? '').($person['phone1'] ?? '');
@@ -92,12 +108,20 @@ class MessageSender
             ->content($message->toSMS()."\n".'['.$this->settings['absoluteURL'].']')
             ->send($phoneNumbers);
 
-        return is_array($sent) ? count($sent) : $sent;
+        return is_array($sent) ? $sent : [$sent];
     }
 
-    protected function sendViaMail(Message $message, array $recipients = [], array $sender = []) : int
+    /**
+     * Sends the message via Email and returns an array of the successful email addresses.
+     *
+     * @param Message   $message
+     * @param array     $recipients
+     * @param array     $sender
+     * @return array
+     */
+    protected function sendViaMail(Message $message, array $recipients = [], array $sender = []) : array
     {
-        if (empty($this->mail)) return 0;
+        if (empty($this->mail)) return [];
 
         $this->mail->setDefaultSender($message->toMail()['subject']);
         $this->mail->renderBody('mail/message.twig.html', $message->toMail());
@@ -106,24 +130,31 @@ class MessageSender
             $this->mail->addReplyTo($sender['email'], $sender['preferredName'].' '.$sender['surname']);
         }
 
-        $sent = 0;
+        $sent = [];
         foreach ($recipients as $person) {
-            if (empty($person['email'])) continue;
+            if (empty($person['email']) || $person['receiveNotificationEmails'] == 'N') continue;
 
             $this->mail->clearAllRecipients();
             $this->mail->AddAddress($person['email'], $person['preferredName'].' '.$person['surname']);
 
             if ($this->mail->Send()) {
-                $sent++;
+                $sent[] = $person['email'];
             }
         }
 
         return $sent;
     }
 
-    protected function sendViaDatabase(Message $message, array $recipients = []) : int
+    /**
+     * Inserts a message into the Notification table and returns an array of gibbonPersonID.
+     *
+     * @param Message   $message
+     * @param array     $recipients
+     * @return array
+     */
+    protected function sendViaDatabase(Message $message, array $recipients = []) : array
     {
-        if (empty($this->notificationGateway)) return 0;
+        if (empty($this->notificationGateway)) return [];
 
         foreach ($recipients as $person) {
             $notification = $message->toDatabase() + ['gibbonPersonID' => $person['gibbonPersonID']];
@@ -136,6 +167,6 @@ class MessageSender
             }
         }
 
-        return count($recipients);
+        return $recipients;
     }
 }

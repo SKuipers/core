@@ -22,6 +22,8 @@ namespace Gibbon\Module\Staff\Tables;
 use Gibbon\Services\Format;
 
 /**
+ * Reusable formats for displaying absence and coverage info in tables.
+ * 
  * @version v18
  * @since   v18
  */
@@ -46,7 +48,7 @@ class AbsenceFormats
 
     public static function substituteDetails($coverage)
     {
-        return $coverage['gibbonPersonIDCoverage'] 
+        return $coverage['gibbonPersonIDCoverage']
             ? Format::name($coverage['titleCoverage'], $coverage['preferredNameCoverage'], $coverage['surnameCoverage'], 'Staff', false, true)
             : '<span class="tag message">'.__('Pending').'</span>';
     }

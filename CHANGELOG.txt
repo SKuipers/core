@@ -30,6 +30,7 @@ v18.0.00
     Significant Changes
         System: added a webpack-based build process for javascript and css files
         Attendance: added ability to set future absence for multiple students
+        Attendance: replaced the attendance pre-fill settings with Count Class Attendance as School Attendance
         Rubrics: added ability to export Visualise chart to PNG
 
     Security
@@ -41,8 +42,11 @@ v18.0.00
         System: method for columns that require the translation, and update the columns where this is applicable
         System: added Omani Rial as a currency option
         System: added an option to select SMTP encryption in Third Party Settings
+        Data Updater: differentiate required field settings by role, add hidden & read-only options
+        Attendance: updated Take Attendance by Person logs to separate class and school wide attendance
         Form Groups: hide student count from non-staff
         Students: added link from student profile to Individual Needs edit screen
+        School Admin: add a Manage Staff Settings page
         System Admin: updated importer to add Skip Non-Required Fields option when importing partial data
         Timetable: update View Timetable by Person to access Expected users when All Users filter is enabled
 
@@ -60,9 +64,11 @@ v18.0.00
         Markbook: fixed bug preventing parents and students from viewing the markbook with work submitted to a lesson plan
         Markbook: fixed column widths when modified assessment is enabled
         School Admin: fixed interface string typos
+        School Admin: increased field lengths for Roll Group name and nameShort
         Staff: fixed staff photo not displaying on Facilities sub-page in staff profile
         System Admin: fixed typo in Google integration settings
         System Admin: added a clear cache option under System Check
+        Timetable: fixed some staff not showing up in View Timetable by Person
         Timetable Admin: fixed malformed translatable interface strings
         User Admin: fixed issue preventing action names from being translated in Manage Permissions
         User Admin: improved interface string consistency
