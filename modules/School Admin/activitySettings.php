@@ -20,10 +20,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Forms\Form;
 
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/activitySettings.php') == false) {
-    //Acess denied
-    echo "<div class='error'>";
-    echo __('You do not have access to this action.');
-    echo '</div>';
+    // Access denied
+    $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed!
     $page->breadcrumbs->add(__('Manage Activity Settings'));
@@ -41,7 +39,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/activitySetti
     
     if (!empty($activityTypes)) {
         $continue = true;
-        $activityTypes = array_map(function($item) { return trim($item); }, explode(',', $activityTypes));
+        $activityTypes = array_map('trim', explode(',', $activityTypes));
         $access = getSettingByScope($connection2, 'Activities', 'access');
         $enrolmentType = getSettingByScope($connection2, 'Activities', 'enrolmentType');
         $backupChoice = getSettingByScope($connection2, 'Activities', 'backupChoice');
@@ -62,6 +60,41 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/activitySetti
     $data = array();
     $sql = 'SELECT * FROM gibbonActivityType ORDER BY name';
     $result = $pdo->executeQuery($data, $sql);
+
+
+    $activityTypeGateway = $container->get(StudentNoteGateway::class);
+
+    // QUERY
+    $criteria = $activityTypeGateway->newQueryCriteria()
+        ->sortBy(['name'])
+        ->fromArray($_POST);
+
+    $activityTypes = $activityTypeGateway->queryActivityTypes($criteria);
+
+    // DATA TABLE
+    $table = DataTable::createPaginated('activityTypes', $criteria);
+
+    $table->addHeaderAction('add', __('Add'))
+        ->setURL('/modules/School Admin/activitySettings_type_add.php')
+        ->displayLabel();
+
+    $table->addColumn('name', __('Name'));
+
+    // ACTIONS
+    $table->addActionColumn()
+        ->addParam('gibbonStudentNoteCategoryID')
+        ->format(function ($values, $actions) {
+            $actions->addAction('edit', __('Edit'))
+                ->setURL('/modules/School Admin/activitySettings_type_edit.php');
+
+            $actions->addAction('delete', __('Delete'))
+                ->setURL('/modules/School Admin/activitySettings_type_delete.php');
+        });
+
+    echo $table->render($activityTypes);
+
+
+
 
     echo "<div class='linkTop'>";
     echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.$_SESSION[$guid]['module']."/activitySettings_type_add.php'>".__('Add')."<img style='margin-left: 5px' title='".__('Add')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/page_new.png'/></a>";
@@ -118,8 +151,8 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/activitySetti
             echo ynExpander($guid, $type['backupChoice']);
             echo '</td>';
             echo '<td>';
-            echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.$_SESSION[$guid]['module'].'/activitySettings_type_edit.php&gibbonActivityTypeID='.$type['gibbonActivityTypeID']."'><img title='".__($guid, 'Edit')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/config.png'/></a> ";
-            echo "<a class='thickbox' href='".$_SESSION[$guid]['absoluteURL'].'/fullscreen.php?q=/modules/'.$_SESSION[$guid]['module'].'/activitySettings_type_delete.php&gibbonActivityTypeID='.$type['gibbonActivityTypeID']."&width=650&height=155'><img title='".__($guid, 'Delete')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/garbage.png'/></a>";
+            echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.$_SESSION[$guid]['module'].'/activitySettings_type_edit.php&gibbonActivityTypeID='.$type['gibbonActivityTypeID']."'><img title='".__('Edit')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/config.png'/></a> ";
+            echo "<a class='thickbox' href='".$_SESSION[$guid]['absoluteURL'].'/fullscreen.php?q=/modules/'.$_SESSION[$guid]['module'].'/activitySettings_type_delete.php&gibbonActivityTypeID='.$type['gibbonActivityTypeID']."&width=650&height=155'><img title='".__('Delete')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/garbage.png'/></a>";
             echo '</td>';
             echo '</tr>';
         }

@@ -25,15 +25,13 @@ use Gibbon\Forms\Form;
 include './modules/'.$_SESSION[$guid]['module'].'/moduleFunctions.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/activitySettings_type_edit.php') == false) {
-    //Acess denied
-    echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
-    echo '</div>';
+    // Access denied
+    $page->addError(__('You do not have access to this action.'));
 } else {
-    //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/activitySettings.php'>".__($guid, 'Manage Activity Settings')."</a> > </div><div class='trailEnd'>".__($guid, 'Edit').'</div>';
-    echo '</div>';
+    // Proceed!
+    $page->breadcrumbs
+        ->add(__('Manage Activity Settings'), 'activitySettings.php')
+        ->add(__('Edit'));
 
     $editLink = '';
     if (isset($_GET['editID'])) {
