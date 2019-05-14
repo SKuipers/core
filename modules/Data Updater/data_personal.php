@@ -331,7 +331,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
                     if ($student || $staff) {
                         $form->addRow()->addHeading(__('Emergency Contacts'));
 
-                        $form->addRow()->addContent(__('These details are used when immediate family members (e.g. parent, spouse) cannot be reached first. Please try to avoid listing immediate family members.'));
+                        $form->addRow()->addAlert(__('These details are used when immediate family members (e.g. parent, spouse) cannot be reached first. Please try to avoid listing immediate family members.'));
 
                         $row = $form->addRow()->onlyIf($isVisible('emergency1Name'));
                         $row->addLabel('emergency1Name', __('Contact 1 Name'));
