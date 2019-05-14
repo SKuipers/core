@@ -37,6 +37,8 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/thirdPartySet
     $googleRedirectUri = (isset($_POST['googleRedirectUri']))? $_POST['googleRedirectUri'] : '';
     $googleDeveloperKey = (isset($_POST['googleDeveloperKey']))? $_POST['googleDeveloperKey'] : '';
     $calendarFeed = (isset($_POST['calendarFeed']))? $_POST['calendarFeed'] : '';
+    $smsGateway = $_POST['smsGateway'] ?? '';
+    $smsSenderID = $_POST['smsSenderID'] ?? '';
     $smsUsername = (isset($_POST['smsUsername']))? $_POST['smsUsername'] : '';
     $smsPassword = (isset($_POST['smsPassword']))? $_POST['smsPassword'] : '';
     $smsURL = (isset($_POST['smsURL']))? $_POST['smsURL'] : '';
@@ -46,6 +48,7 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/thirdPartySet
     $enableMailerSMTP = (isset($_POST['enableMailerSMTP']))? $_POST['enableMailerSMTP'] : '';
     $mailerSMTPHost = (isset($_POST['mailerSMTPHost']))? $_POST['mailerSMTPHost'] : '';
     $mailerSMTPPort = (isset($_POST['mailerSMTPPort']))? $_POST['mailerSMTPPort'] : '';
+    $mailerSMTPSecure = (isset($_POST['mailerSMTPSecure']))? $_POST['mailerSMTPSecure'] : '';
     $mailerSMTPUsername = (isset($_POST['mailerSMTPUsername']))? $_POST['mailerSMTPUsername'] : '';
     $mailerSMTPPassword = (isset($_POST['mailerSMTPPassword']))? $_POST['mailerSMTPPassword'] : '';
 
@@ -161,39 +164,59 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/thirdPartySet
         }
 
         try {
-            $data = array('value' => $smsUsername);
-            $sql = "UPDATE gibbonSetting SET value=:value WHERE scope='Messenger' AND name='smsUsername'";
+            $data = array('value' => $smsGateway);
+            $sql = "UPDATE gibbonSetting SET value=:value WHERE scope='Messenger' AND name='smsGateway'";
             $result = $connection2->prepare($sql);
             $result->execute($data);
         } catch (PDOException $e) {
             $fail = true;
         }
 
-        try {
-            $data = array('value' => $smsPassword);
-            $sql = "UPDATE gibbonSetting SET value=:value WHERE scope='Messenger' AND name='smsPassword'";
-            $result = $connection2->prepare($sql);
-            $result->execute($data);
-        } catch (PDOException $e) {
-            $fail = true;
-        }
+        if (!empty($smsGateway)) {
+            try {
+                $data = array('value' => $smsSenderID);
+                $sql = "UPDATE gibbonSetting SET value=:value WHERE scope='Messenger' AND name='smsSenderID'";
+                $result = $connection2->prepare($sql);
+                $result->execute($data);
+            } catch (PDOException $e) {
+                $fail = true;
+            }
 
-        try {
-            $data = array('value' => $smsURL);
-            $sql = "UPDATE gibbonSetting SET value=:value WHERE scope='Messenger' AND name='smsURL'";
-            $result = $connection2->prepare($sql);
-            $result->execute($data);
-        } catch (PDOException $e) {
-            $fail = true;
-        }
+            try {
+                $data = array('value' => $smsUsername);
+                $sql = "UPDATE gibbonSetting SET value=:value WHERE scope='Messenger' AND name='smsUsername'";
+                $result = $connection2->prepare($sql);
+                $result->execute($data);
+            } catch (PDOException $e) {
+                $fail = true;
+            }
 
-        try {
-            $data = array('value' => $smsURLCredit);
-            $sql = "UPDATE gibbonSetting SET value=:value WHERE scope='Messenger' AND name='smsURLCredit'";
-            $result = $connection2->prepare($sql);
-            $result->execute($data);
-        } catch (PDOException $e) {
-            $fail = true;
+            try {
+                $data = array('value' => $smsPassword);
+                $sql = "UPDATE gibbonSetting SET value=:value WHERE scope='Messenger' AND name='smsPassword'";
+                $result = $connection2->prepare($sql);
+                $result->execute($data);
+            } catch (PDOException $e) {
+                $fail = true;
+            }
+
+            try {
+                $data = array('value' => $smsURL);
+                $sql = "UPDATE gibbonSetting SET value=:value WHERE scope='Messenger' AND name='smsURL'";
+                $result = $connection2->prepare($sql);
+                $result->execute($data);
+            } catch (PDOException $e) {
+                $fail = true;
+            }
+
+            try {
+                $data = array('value' => $smsURLCredit);
+                $sql = "UPDATE gibbonSetting SET value=:value WHERE scope='Messenger' AND name='smsURLCredit'";
+                $result = $connection2->prepare($sql);
+                $result->execute($data);
+            } catch (PDOException $e) {
+                $fail = true;
+            }
         }
 
         // SMTP Mailer
@@ -219,6 +242,15 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/thirdPartySet
             try {
                 $data = array('value' => $mailerSMTPPort);
                 $sql = "UPDATE gibbonSetting SET value=:value WHERE scope='System' AND name='mailerSMTPPort'";
+                $result = $connection2->prepare($sql);
+                $result->execute($data);
+            } catch (PDOException $e) {
+                $fail = true;
+            }
+
+            try {
+                $data = array('value' => $mailerSMTPSecure);
+                $sql = "UPDATE gibbonSetting SET value=:value WHERE scope='System' AND name='mailerSMTPSecure'";
                 $result = $connection2->prepare($sql);
                 $result->execute($data);
             } catch (PDOException $e) {

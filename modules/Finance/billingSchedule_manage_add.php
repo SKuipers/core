@@ -22,13 +22,17 @@ use Gibbon\Forms\Form;
 if (isActionAccessible($guid, $connection2, '/modules/Finance/billingSchedule_manage_add.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Finance/billingSchedule_manage.php&gibbonSchoolYearID='.$_GET['gibbonSchoolYearID']."'>".__($guid, 'Manage Billing Schedule')."</a> > </div><div class='trailEnd'>".__($guid, 'Add Entry').'</div>';
-    echo '</div>';
+    $gibbonSchoolYearID = $_GET['gibbonSchoolYearID'];
+
+    $urlParams = compact('gibbonSchoolYearID');
+    
+    $page->breadcrumbs
+        ->add(__('Manage Billing Schedule'), 'billingSchedule_manage.php', $urlParams)
+        ->add(__('Add Entry'));
 
     $editLink = '';
     if (isset($_GET['editID'])) {
@@ -40,16 +44,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/billingSchedule_ma
     }
 
     //Check if school year specified
-    $gibbonSchoolYearID = $_GET['gibbonSchoolYearID'];
     $search = $_GET['search'];
     if ($gibbonSchoolYearID == '') {
         echo "<div class='error'>";
-        echo __($guid, 'You have not specified one or more required parameters.');
+        echo __('You have not specified one or more required parameters.');
         echo '</div>';
     } else {
         if ($search != '') {
             echo "<div class='linkTop'>";
-            echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Finance/billingSchedule_manage.php&gibbonSchoolYearID=$gibbonSchoolYearID&search=$search'>".__($guid, 'Back to Search Results').'</a>';
+            echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Finance/billingSchedule_manage.php&gibbonSchoolYearID=$gibbonSchoolYearID&search=$search'>".__('Back to Search Results').'</a>';
             echo '</div>';
         }
 
@@ -59,27 +62,27 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/billingSchedule_ma
 
         $row = $form->addRow();
         	$row->addLabel("yearName", __("School Year"))->description(__("This value cannot be changed."));
-        	$row->addTextField("yearName")->setValue($_SESSION[$guid]['gibbonSchoolYearName'])->readonly(true)->isRequired();
+        	$row->addTextField("yearName")->setValue($_SESSION[$guid]['gibbonSchoolYearName'])->readonly(true)->required();
 
         $row = $form->addRow();
         	$row->addLabel("name", __("Name"));
-        	$row->addTextField("name")->maxLength(100)->isRequired();
+        	$row->addTextField("name")->maxLength(100)->required();
 
         $row = $form->addRow();
         	$row->addLabel("active", __("Active"));
-        	$row->addYesNo("active")->isRequired();
+        	$row->addYesNo("active")->required();
 
         $row = $form->addRow();
         	$row->addLabel("description", __("Description"));
         	$row->addTextArea("description")->setRows(5);
 
         $row = $form->addRow();
-        	$row->addLabel("invoiceIssueDate", __('Invoice Issue Date'))->description(__($guid, 'Intended issue date.').'<br/>')->append(__('Format:').' ')->append($_SESSION[$guid]['i18n']['dateFormat']);
-        	$row->addDate('invoiceIssueDate')->isRequired();
+        	$row->addLabel("invoiceIssueDate", __('Invoice Issue Date'))->description(__('Intended issue date.').'<br/>')->append(__('Format:').' ')->append($_SESSION[$guid]['i18n']['dateFormat']);
+        	$row->addDate('invoiceIssueDate')->required();
 
         $row = $form->addRow();
-			$row->addLabel('invoiceDueDate', __('Invoice Due Date'))->description(__($guid, 'Final payment date.').'<br/>')->append(__('Format:').' ')->append($_SESSION[$guid]['i18n']['dateFormat']);
-			$row->addDate('invoiceDueDate')->isRequired();
+			$row->addLabel('invoiceDueDate', __('Invoice Due Date'))->description(__('Final payment date.').'<br/>')->append(__('Format:').' ')->append($_SESSION[$guid]['i18n']['dateFormat']);
+			$row->addDate('invoiceDueDate')->required();
 
         $row = $form->addRow();
         	$row->addFooter();

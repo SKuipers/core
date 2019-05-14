@@ -22,13 +22,11 @@ use Gibbon\Forms\Form;
 if (isActionAccessible($guid, $connection2, '/modules/User Admin/publicRegistrationSettings.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > </div><div class='trailEnd'>".__($guid, 'Public Registration Settings').'</div>';
-    echo '</div>';
+    $page->breadcrumbs->add(__('Public Registration Settings'));
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, null);
@@ -43,7 +41,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/publicRegistrat
     $setting = getSettingByScope($connection2, 'User Admin', 'enablePublicRegistration', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
-        $row->addYesNo($setting['name'])->selected($setting['value'])->isRequired();
+        $row->addYesNo($setting['name'])->selected($setting['value'])->required();
 
     $setting = getSettingByScope($connection2, 'User Admin', 'publicRegistrationMinimumAge', true);
     $row = $form->addRow();
@@ -53,7 +51,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/publicRegistrat
     $setting = getSettingByScope($connection2, 'User Admin', 'publicRegistrationDefaultStatus', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
-        $row->addSelect($setting['name'])->fromString('Full, Pending Approval')->selected($setting['value'])->isRequired();
+        $row->addSelect($setting['name'])->fromString('Full, Pending Approval')->selected($setting['value'])->required();
 
     $sql = "SELECT gibbonRoleID AS value, name FROM gibbonRole ORDER BY name";
     $setting = getSettingByScope($connection2, 'User Admin', 'publicRegistrationDefaultRole', true);
@@ -62,7 +60,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/publicRegistrat
         $row->addSelect($setting['name'])
             ->fromQuery($pdo, $sql)
             ->selected($setting['value'])
-            ->isRequired();
+            ->required();
 
     $row = $form->addRow()->addHeading(__('Interface Options'));
 

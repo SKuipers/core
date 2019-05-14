@@ -19,29 +19,32 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
+use Gibbon\Services\Format;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage_edit_contract_edit.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a>  > <a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Staff/staff_manage.php'>".__($guid, 'Manage Staff')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/staff_manage_edit.php&gibbonStaffID='.$_GET['gibbonStaffID']."'>".__($guid, 'Edit Staff')."</a> > </div><div class='trailEnd'>".__($guid, 'Edit Contract').'</div>';
-    echo '</div>';
+    $gibbonStaffID = $_GET['gibbonStaffID'] ?? '';
+    $gibbonStaffContractID = $_GET['gibbonStaffContractID'] ?? '';
+    $search = $_GET['search'] ?? '';
+
+    $page->breadcrumbs
+        ->add(__('Manage Staff'), 'staff_manage.php')
+        ->add(__('Edit Staff'), 'staff_manage_edit.php', ['gibbonStaffID' => $gibbonStaffID])
+        ->add(__('Edit Contract'));
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, null);
     }
 
     //Check if school year specified
-    $gibbonStaffID = $_GET['gibbonStaffID'];
-    $gibbonStaffContractID = $_GET['gibbonStaffContractID'];
-    $search = $_GET['search'];
     if ($gibbonStaffID == '' or $gibbonStaffContractID == '') {
         echo "<div class='error'>";
-        echo __($guid, 'You have not specified one or more required parameters.');
+        echo __('You have not specified one or more required parameters.');
         echo '</div>';
     } else {
         try {
@@ -55,7 +58,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage_edit_co
 
         if ($result->rowCount() != 1) {
             echo "<div class='error'>";
-            echo __($guid, 'The specified record cannot be found.');
+            echo __('The specified record cannot be found.');
             echo '</div>';
         } else {
             //Let's go!
@@ -63,32 +66,30 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage_edit_co
 
             if ($search != '') {
                 echo "<div class='linkTop'>";
-                echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Staff/staff_manage_edit.php&gibbonStaffID=$gibbonStaffID&search=$search'>".__($guid, 'Back to Search Results').'</a>';
+                echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Staff/staff_manage_edit.php&gibbonStaffID=$gibbonStaffID&search=$search'>".__('Back to Search Results').'</a>';
                 echo '</div>';
             }
 
             $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/staff_manage_edit_contract_editProcess.php?gibbonStaffContractID=$gibbonStaffContractID&gibbonStaffID=$gibbonStaffID&search=$search");
-
             $form->setFactory(DatabaseFormFactory::create($pdo));
-            $form->setClass('smallIntBorder fullWidth');
 
             $form->addHiddenValue('address', $_SESSION[$guid]['address']);
 
             $row = $form->addRow();
                 $row->addLabel('person', __('Person'));
-                $row->addTextField('person')->setValue(formatName('', $values['preferredName'], $values['surname'], 'Student'))->readonly()->isRequired();
+                $row->addTextField('person')->setValue(Format::name('', $values['preferredName'], $values['surname'], 'Student'))->readonly()->required();
 
             $row = $form->addRow();
                 $row->addLabel('title', __('Title'))->description(__('A name to identify this contract.'));
-                $row->addTextField('title')->maxlength(100)->isRequired();
+                $row->addTextField('title')->maxlength(100)->required();
 
             $row = $form->addRow();
                 $row->addLabel('status', __('Status'));
-                $row->addSelect('status')->fromArray(array('Pending' => __('Pending'), 'Active' => __('Active'), 'Expired' => __('Expired')))->isRequired()->placeholder();
+                $row->addSelect('status')->fromArray(array('Pending' => __('Pending'), 'Active' => __('Active'), 'Expired' => __('Expired')))->required()->placeholder();
 
             $row = $form->addRow();
                 $row->addLabel('dateStart', __('Start Date'));
-                $row->addDate('dateStart')->isRequired();
+                $row->addDate('dateStart')->required();
 
             $row = $form->addRow();
                 $row->addLabel('dateEnd', __('End Date'));
@@ -153,7 +154,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage_edit_co
             $row = $form->addRow();
                 $column = $row->addColumn();
                 $column->addLabel('education', __('Education Benefits'));
-            	$column->addTextArea('education')->setRows(5)->setClass('fullWidth');
+                $column->addTextArea('education')->setRows(5)->setClass('fullWidth');
 
             $row = $form->addRow();
                 $column = $row->addColumn();
@@ -178,4 +179,3 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage_edit_co
         }
     }
 }
-?>

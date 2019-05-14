@@ -22,13 +22,11 @@ use Gibbon\Forms\Form;
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/daysOfWeek_manage.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > </div><div class='trailEnd'>".__($guid, 'Manage Alert Levels').'</div>';
-    echo '</div>';
+    $page->breadcrumbs->add(__('Manage Alert Levels'));
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, null);
@@ -59,28 +57,28 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/daysOfWeek_ma
     		$row->addTextField('name'.$count)
             ->setValue($rowSQL['name'])
             ->maxLength(50)
-            ->isRequired();
+            ->required();
 
         $row = $form->addRow();
         	$row->addLabel('nameShort'.$count, __('Short Name'));
     		$row->addTextField('nameShort'.$count)
             ->setValue($rowSQL['nameShort'])
             ->maxLength(4)
-            ->isRequired();
+            ->required();
 
         $row = $form->addRow();
         	$row->addLabel('color'.$count, __('Font/Border Color'))->description(__('RGB Hex value, without leading #.'));
     		$row->addTextField('color'.$count)
                 ->setValue($rowSQL['color'])
                 ->maxLength(6)
-                ->isRequired();
+                ->required();
 
         $row = $form->addRow();
         	$row->addLabel('colorBG'.$count, __('Background Color'))->description(__('RGB Hex value, without leading #.'));
     		$row->addTextField('colorBG'.$count)
                 ->setValue($rowSQL['colorBG'])
                 ->maxLength(6)
-                ->isRequired();
+                ->required();
 
         $row = $form->addRow();
         	$row->addLabel('sequenceNumber'.$count, __('Sequence Number'));
@@ -88,7 +86,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/daysOfWeek_ma
             ->setValue($rowSQL['sequenceNumber'])
             ->maxLength(4)
             ->readonly()
-            ->isRequired();
+            ->required();
 
         $row = $form->addRow();
         	$row->addLabel('description'.$count, __('Description'));
@@ -106,4 +104,3 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/daysOfWeek_ma
 	echo $form->getOutput();
 
 }
-?>

@@ -22,13 +22,11 @@ use Gibbon\Forms\Form;
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/plannerSettings.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > </div><div class='trailEnd'>".__($guid, 'Planner Settings').'</div>';
-    echo '</div>';
+    $page->breadcrumbs->add(__('Manage Planner Settings'));
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, null);
@@ -65,39 +63,39 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/plannerSettin
     $setting = getSettingByScope($connection2, 'Planner', 'makeUnitsPublic', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
-        $row->addYesNo($setting['name'])->isRequired()->selected($setting['value']);
+        $row->addYesNo($setting['name'])->required()->selected($setting['value']);
 
     $setting = getSettingByScope($connection2, 'Planner', 'shareUnitOutline', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
-        $row->addYesNo($setting['name'])->isRequired()->selected($setting['value']);
+        $row->addYesNo($setting['name'])->required()->selected($setting['value']);
 
     $setting = getSettingByScope($connection2, 'Planner', 'allowOutcomeEditing', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
-        $row->addYesNo($setting['name'])->isRequired()->selected($setting['value']);
+        $row->addYesNo($setting['name'])->required()->selected($setting['value']);
 
     $setting = getSettingByScope($connection2, 'Planner', 'sharingDefaultParents', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
-        $row->addYesNo($setting['name'])->isRequired()->selected($setting['value']);
+        $row->addYesNo($setting['name'])->required()->selected($setting['value']);
 
     $setting = getSettingByScope($connection2, 'Planner', 'sharingDefaultStudents', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
-        $row->addYesNo($setting['name'])->isRequired()->selected($setting['value']);
+        $row->addYesNo($setting['name'])->required()->selected($setting['value']);
 
     $form->addRow()->addHeading(__('Miscellaneous'));
 
     $setting = getSettingByScope($connection2, 'Planner', 'parentWeeklyEmailSummaryIncludeBehaviour', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
-        $row->addYesNo($setting['name'])->isRequired()->selected($setting['value']);
+        $row->addYesNo($setting['name'])->required()->selected($setting['value']);
 
     $setting = getSettingByScope($connection2, 'Planner', 'parentWeeklyEmailSummaryIncludeMarkbook', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
-        $row->addYesNo($setting['name'])->isRequired()->selected($setting['value']);
+        $row->addYesNo($setting['name'])->required()->selected($setting['value']);
 
     $row = $form->addRow();
         $row->addFooter();

@@ -58,9 +58,11 @@ class FormFactory implements FormFactoryInterface
         return new Layout\Table($this, $id);
     }
 
-    public function createDataTable($id, $criteria)
+    public function createDataTable($id, $criteria = null)
     {
-        return DataTable::createPaginated($id, $criteria);
+        return !empty($criteria)
+            ? DataTable::createPaginated($id, $criteria)
+            : DataTable::create($id);
     }
 
     public function createTableCell($content = '')
@@ -115,6 +117,11 @@ class FormFactory implements FormFactoryInterface
         return new Input\TextField($name);
     }
 
+    public function createRange($name, $min, $max, $step = null)
+    {
+        return new Input\Range($name, $min, $max, $step);
+    }
+
     public function createFinder($name)
     {
         return new Input\Finder($name);
@@ -127,7 +134,7 @@ class FormFactory implements FormFactoryInterface
 
     public function createEmail($name)
     {
-        return (new Input\TextField($name))->addValidation('Validate.Email');
+        return (new Input\TextField($name))->addValidation('Validate.Email')->maxLength(75);
     }
 
     //A URL web link
@@ -204,6 +211,16 @@ class FormFactory implements FormFactoryInterface
     public function createCustomBlocks($name, \Gibbon\Session $session)
     {
         return new Input\CustomBlocks($this, $name, $session);
+    }
+
+    public function createUsername($name)
+    {
+        return new Input\Username($name);
+    }
+
+    public function createSelectPerson($name)
+    {
+        return new Input\Person($name);
     }
 
     /* PRE-DEFINED LAYOUT --------------------------- */
@@ -358,12 +375,14 @@ class FormFactory implements FormFactoryInterface
             'ro_RO' => 'Română',
             'sq_AL' => 'Shqip - Shqipëri',
             'vi_VN' => 'Tiếng Việt - Việt Nam',
+            'tr_TR' => 'Türkçe - Türkiye',
             'ar_SA' => 'العربية - المملكة العربية السعودية',
             'th_TH' => 'ภาษาไทย - ราชอาณาจักรไทย',
+            'ur_PK' => 'پاکستان - اُردُو',
             'zh_CN' => '汉语 - 中国',
             'zh_HK' => '體字 - 香港',
         );
-        
+
         return $this->createSelect($name)->fromArray($languages);
     }
 
@@ -411,12 +430,14 @@ class FormFactory implements FormFactoryInterface
                 'IDR Rp' => 'Indonesian Rupiah (Rp)',
                 'JMD $' => 'Jamaican Dollar ($)',
                 'KES KSh' => 'Kenyan Shilling (KSh)',
+                'LKR Rs' => 'Sri Lankan Rupee (Rs)',
                 'MOP' => 'Macanese Pataca (MOP)',
                 'MMK K' => 'Myanmar Kyat (K)',
                 'MAD' => 'Moroccan Dirham (MAD)',
                 'NAD N$' => 'Namibian Dollar (N$)',
                 'NPR ₨' => 'Nepalese Rupee (₨)',
                 'NGN ₦' => 'Nigerian Naira (₦)',
+                'OMR ر.ع.' => 'Omani Rial (ر.ع.)',
                 'PKR ₨' => 'Pakistani Rupee (₨)',
                 'RUB ₽' => 'Russian Ruble (₽)',
                 'SAR ﷼‎' => 'Saudi Riyal (﷼‎)',

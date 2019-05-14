@@ -23,13 +23,13 @@ use Gibbon\Forms\DatabaseFormFactory;
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYear_manage_add.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/schoolYear_manage.php'>".__($guid, 'Manage School Years')."</a> > </div><div class='trailEnd'>".__($guid, 'Add School Year').'</div>';
-    echo '</div>';
+    $page->breadcrumbs
+        ->add(__('Manage School Years'), 'schoolYear_manage.php')
+        ->add(__('Add School Year'));
 
     $editLink = '';
     if (isset($_GET['editID'])) {
@@ -52,11 +52,11 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYear_ma
 
     $row = $form->addRow();
         $row->addLabel('name', __('Name'));
-        $row->addTextField('name')->isRequired()->maxLength(9);
+        $row->addTextField('name')->required()->maxLength(9);
 
     $row = $form->addRow();
         $row->addLabel('status', __('Status'));
-        $row->addSelect('status')->fromArray($statuses)->isRequired()->selected('Upcoming');
+        $row->addSelect('status')->fromArray($statuses)->required()->selected('Upcoming');
 
     $form->toggleVisibilityByClass('statusChange')->onSelect('status')->when('Current');
     $direction = __('Past');
@@ -67,15 +67,15 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYear_ma
 
     $row = $form->addRow();
         $row->addLabel('sequenceNumber', __('Sequence Number'))->description(__('Must be unique. Controls chronological ordering.'));
-        $row->addSequenceNumber('sequenceNumber', 'gibbonSchoolYear')->isRequired()->maxLength(3);
+        $row->addSequenceNumber('sequenceNumber', 'gibbonSchoolYear')->required()->maxLength(3);
 
     $row = $form->addRow();
         $row->addLabel('firstDay', __('First Day'))->description($_SESSION[$guid]['i18n']['dateFormat'])->prepend(__('Format:'));
-        $row->addDate('firstDay')->isRequired();
+        $row->addDate('firstDay')->required();
 
     $row = $form->addRow();
         $row->addLabel('lastDay', __('Last Day'))->description($_SESSION[$guid]['i18n']['dateFormat'])->prepend(__('Format:'));
-        $row->addDate('lastDay')->isRequired();
+        $row->addDate('lastDay')->required();
 
     $row = $form->addRow();
         $row->addFooter();

@@ -28,13 +28,13 @@ require_once __DIR__ . '/moduleFunctions.php';
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/gradeScales_manage_edit.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/gradeScales_manage.php'>".__($guid, 'Manage Grade Scales')."</a> > </div><div class='trailEnd'>".__($guid, 'Edit Grade Scale').'</div>';
-    echo '</div>';
+    $page->breadcrumbs
+        ->add(__('Manage Grade Scales'), 'gradeScales_manage.php')
+        ->add(__('Edit Grade Scale'));
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, null);
@@ -44,7 +44,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/gradeScales_m
     $gibbonScaleID = (isset($_GET['gibbonScaleID']))? $_GET['gibbonScaleID'] : null;
     if (empty($gibbonScaleID)) {
         echo "<div class='error'>";
-        echo __($guid, 'You have not specified one or more required parameters.');
+        echo __('You have not specified one or more required parameters.');
         echo '</div>';
     } else {
         try {
@@ -58,7 +58,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/gradeScales_m
 
         if ($result->rowCount() != 1) {
             echo "<div class='error'>";
-            echo __($guid, 'The specified record cannot be found.');
+            echo __('The specified record cannot be found.');
             echo '</div>';
         } else {
             //Let's go!
@@ -71,23 +71,23 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/gradeScales_m
 
             $row = $form->addRow();
                 $row->addLabel('name', __('Name'))->description(__('Must be unique.'));
-                $row->addTextField('name')->isRequired()->maxLength(40);
+                $row->addTextField('name')->required()->maxLength(40);
 
             $row = $form->addRow();
                 $row->addLabel('nameShort', __('Short Name'))->description(__('Must be unique.'));
-                $row->addTextField('nameShort')->isRequired()->maxLength(5);
+                $row->addTextField('nameShort')->required()->maxLength(5);
 
             $row = $form->addRow();
                 $row->addLabel('usage', __('Usage'))->description(__('Brief description of how scale is used.'));
-                $row->addTextField('usage')->isRequired()->maxLength(50);
+                $row->addTextField('usage')->required()->maxLength(50);
 
             $row = $form->addRow();
                 $row->addLabel('active', __('Active'));
-                $row->addYesNo('active')->isRequired();
+                $row->addYesNo('active')->required();
 
             $row = $form->addRow();
                 $row->addLabel('numeric', __('Numeric'))->description(__('Does this scale use only numeric grades? Note, grade "Incomplete" is exempt.'));
-                $row->addYesNo('numeric')->isRequired();
+                $row->addYesNo('numeric')->required();
 
             $data = array('gibbonScaleID' => $gibbonScaleID);
             $sql = "SELECT sequenceNumber as value, gibbonScaleGrade.value as name FROM gibbonScaleGrade WHERE gibbonScaleID=:gibbonScaleID ORDER BY sequenceNumber";

@@ -58,6 +58,10 @@ class SimpleRenderer implements RendererInterface
             $output .= '<h2>'.$title.'</h2>';
         }
 
+        if ($description = $table->getDescription()) {
+            $output .= '<p>'.$description.'</p>';
+        }
+
         $output .= '<header style="position:relative">';
         $output .= $this->renderHeader($table, $dataSet);
         $output .= '</header>';
@@ -158,7 +162,7 @@ class SimpleRenderer implements RendererInterface
         $output = '';
 
         if ($headerActions = $table->getHeader()) {
-            $output .= '<div class="linkTop column inline">';
+            $output .= '<div class="linkTop">';
             foreach ($headerActions as $header) {
                 $output .= $header->getOutput();
             }

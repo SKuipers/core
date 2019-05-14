@@ -25,13 +25,15 @@ require_once __DIR__ . '/moduleFunctions.php';
 if (isActionAccessible($guid, $connection2, '/modules/System Admin/systemCheck.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > </div><div class='trailEnd'>".__($guid, 'System Check').'</div>';
-    echo '</div>';
+    $page->breadcrumbs->add(__('System Check'));
+
+    if (isset($_GET['return'])) {
+        returnProcess($guid, $_GET['return'], null, null);
+    }
 
     $versionDB = getSettingByScope($connection2, 'System', 'version');
 
@@ -63,7 +65,7 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/systemCheck.p
         $fileCount++;
     }
 
-    $form = Form::create('installer', "./install.php?step=1");
+    $form = Form::create('systemCheck', "")->setClass('smallIntBorder w-full');
 
     $form->addRow()->addHeading(__('System Requirements'));
 
@@ -153,6 +155,17 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/systemCheck.p
         $row->addTextField('uploadsFolder')->setValue($_SESSION[$guid]['absoluteURL'].'/uploads')->readonly();
         $row->addContent(is_writable($_SESSION[$guid]['absolutePath'].'/uploads')? $trueIcon : $falseIcon);
 
+
+    echo $form->getOutput();
+
+
+    // CLEAR CACHE
+    $form = Form::create('clearCache', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/systemCheck_clearCacheProcess.php');
+    $form->addClass('mt-10');
+
+    $form->addRow()->addHeading(__('System Data'));
+
+    $row = $form->addRow()->addSubmit(__('Clear Cache'));
 
     echo $form->getOutput();
 }

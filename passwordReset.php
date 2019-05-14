@@ -19,9 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Form;
 
-echo "<div class='trail'>";
-echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > </div><div class='trailEnd'>".__($guid, 'Password Reset').'</div>';
-echo '</div>';
+$page->breadcrumbs->add(__('Password Reset'));
 
 $step = 1;
 if (isset($_GET['step'])) {
@@ -41,7 +39,7 @@ if ($step == 1) {
     $returns['error4'] = __('Your request failed due to incorrect, non-existent or non-unique email address or username.');
     $returns['error3'] = __('Failed to send update email.');
     $returns['error5'] = __('Your request failed due to non-matching passwords.');
-    $returns['error6'] = __('Your request failed because your password to not meet the minimum requirements for strength.');
+    $returns['error6'] = __('Your request failed because your password does not meet the minimum requirements for strength.');
     $returns['error7'] = __('Your request failed because your new password is the same as your current password.');
     $returns['fail2'] = __('You do not have sufficient privileges to login.');
     $returns['fail9'] = __('Your primary role does not support the ability to log into the specified year.');
@@ -52,12 +50,11 @@ if ($step == 1) {
 
     $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/passwordResetProcess.php?step=1');
 
-    $form->setClass('smallIntBorder fullWidth');
     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
 
     $row = $form->addRow();
         $row->addLabel('email', __('Username/Email'));
-        $row->addTextField('email')->maxLength(255)->isRequired();
+        $row->addTextField('email')->maxLength(255)->required();
 
     $row = $form->addRow();
         $row->addFooter();
@@ -87,11 +84,11 @@ else {
 
     if ($result->rowCount() != 1) {
         echo "<div class='error'>";
-        echo __($guid, 'Your reset request is invalid: you may not proceed.');
+        echo __('Your reset request is invalid: you may not proceed.');
         echo '</div>';
     } else {
         echo "<div class='success'>";
-        echo __($guid, 'Your reset request is valid: you may proceed.');
+        echo __('Your reset request is valid: you may proceed.');
         echo '</div>';
 
         $form = Form::create('action', $_SESSION[$guid]['absoluteURL']."/passwordResetProcess.php?input=$input&step=2&gibbonPersonResetID=$gibbonPersonResetID&key=$key");
@@ -111,14 +108,14 @@ else {
             $row->addPassword('passwordNew')
                 ->addPasswordPolicy($pdo)
                 ->addGeneratePasswordButton($form)
-                ->isRequired()
+                ->required()
                 ->maxLength(30);
 
         $row = $form->addRow();
             $row->addLabel('passwordConfirm', __('Confirm New Password'));
             $row->addPassword('passwordConfirm')
                 ->addConfirmation('passwordNew')
-                ->isRequired()
+                ->required()
                 ->maxLength(30);
 
         $row = $form->addRow();

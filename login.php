@@ -19,8 +19,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Comms\NotificationEvent;
 
-include 'functions.php';
-include 'config.php';
+// Gibbon system-wide include
+require_once './gibbon.php';
 
 setCurrentSchoolYear($guid, $connection2);
 
@@ -186,7 +186,7 @@ else {
                             //Check number of rows returned.
                             //If it is not 1, show error
                             if (!($resultYear->rowCount() == 1)) {
-                                die(__($guid, 'Configuration Error: there is a problem accessing the current Academic Year from the database.'));
+                                die(__('Configuration Error: there is a problem accessing the current Academic Year from the database.'));
                             }
                             //Else get year details
                             else {
@@ -229,7 +229,7 @@ else {
                         }
                         if ($resultLanguage->rowCount() == 1) {
                             $rowLanguage = $resultLanguage->fetch();
-                            setLanguageSession($guid, $rowLanguage);
+                            setLanguageSession($guid, $rowLanguage, false);
                         }
                     } else {
                         //If no language specified, get user preference if it exists
@@ -243,7 +243,7 @@ else {
                             }
                             if ($resultLanguage->rowCount() == 1) {
                                 $rowLanguage = $resultLanguage->fetch();
-                                setLanguageSession($guid, $rowLanguage);
+                                setLanguageSession($guid, $rowLanguage, false);
                             }
                         }
                     }

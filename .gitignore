@@ -14,10 +14,24 @@ tests/config/support/_generated/*
 # Template Cache
 /resources/templates/cache/*
 
-# Misc Files
+# Misc System Temp Files
 Thumb.db
 .DS_Store
+*~
 nbproject/
 
 # Dev Dependencies
 /vendor/twbs
+
+# examples and tests in the vendor folder
+/vendor/**/tests
+/vendor/**/unitTests
+/vendor/**/Examples
+/vendor/**/examples
+/vendor/**/samples
+/vendor/**/docs
+
+
+# Var Folder
+var/*
+!var/.htaccess

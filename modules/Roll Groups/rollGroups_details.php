@@ -19,17 +19,18 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
+use Gibbon\Tables\Prefab\RollGroupTable;
 
 if (isActionAccessible($guid, $connection2, '/modules/Roll Groups/rollGroups_details.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     $gibbonRollGroupID = $_GET['gibbonRollGroupID'];
     if ($gibbonRollGroupID == '') {
         echo "<div class='error'>";
-        echo __($guid, 'You have not specified one or more required parameters.');
+        echo __('You have not specified one or more required parameters.');
         echo '</div>';
     } else {
         try {
@@ -43,28 +44,28 @@ if (isActionAccessible($guid, $connection2, '/modules/Roll Groups/rollGroups_det
 
         if ($result->rowCount() != 1) {
             echo "<div class='error'>";
-            echo __($guid, 'The selected record does not exist, or you do not have access to it.');
+            echo __('The selected record does not exist, or you do not have access to it.');
             echo '</div>';
             echo '</div>';
         } else {
             $row = $result->fetch();
 
-            echo "<div class='trail'>";
-            echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/rollGroups.php'>".__($guid, 'View Roll Groups')."</a> > </div><div class='trailEnd'>".$row['name'].'</div>';
-            echo '</div>';
+            $page->breadcrumbs
+                ->add(__('View Roll Groups'), 'rollGroups.php')
+                ->add($row['name']);
 
             echo '<h3>';
-            echo __($guid, 'Basic Information');
+            echo __('Basic Information');
             echo '</h3>';
 
             echo "<table class='smallIntBorder' cellspacing='0' style='width: 100%'>";
             echo '<tr>';
             echo "<td style='width: 33%; vertical-align: top'>";
-            echo "<span style='font-size: 115%; font-weight: bold'>".__($guid, 'Name').'</span><br/>';
+            echo "<span style='font-size: 115%; font-weight: bold'>".__('Name').'</span><br/>';
             echo '<i>'.$row['name'].'</i>';
             echo '</td>';
             echo "<td style='width: 33%; vertical-align: top'>";
-            echo "<span style='font-size: 115%; font-weight: bold'>".__($guid, 'Tutors').'</span><br/>';
+            echo "<span style='font-size: 115%; font-weight: bold'>".__('Tutors').'</span><br/>';
             try {
                 $dataTutor = array('gibbonPersonID1' => $row['gibbonPersonIDTutor'], 'gibbonPersonID2' => $row['gibbonPersonIDTutor2'], 'gibbonPersonID3' => $row['gibbonPersonIDTutor3']);
                 $sqlTutor = 'SELECT gibbonPersonID, surname, preferredName, image_240 FROM gibbonPerson WHERE gibbonPersonID=:gibbonPersonID1 OR gibbonPersonID=:gibbonPersonID2 OR gibbonPersonID=:gibbonPersonID3';
@@ -83,14 +84,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Roll Groups/rollGroups_det
                 if ($rowTutor['gibbonPersonID'] == $row['gibbonPersonIDTutor']) {
                     $primaryTutor240 = $rowTutor['image_240'];
                     if ($resultTutor->rowCount() > 1) {
-                        echo ' ('.__($guid, 'Main Tutor').')';
+                        echo ' ('.__('Main Tutor').')';
                     }
                 }
                 echo '</i><br/>';
             }
             echo '</td>';
             echo "<td style='width: 33%; vertical-align: top'>";
-            echo "<span style='font-size: 115%; font-weight: bold'>".__($guid, 'Educational Assistants').'</span><br/>';
+            echo "<span style='font-size: 115%; font-weight: bold'>".__('Educational Assistants').'</span><br/>';
             try {
                 $dataTutor = array('gibbonPersonID1' => $row['gibbonPersonIDEA'], 'gibbonPersonID2' => $row['gibbonPersonIDEA2'], 'gibbonPersonID3' => $row['gibbonPersonIDEA3']);
                 $sqlTutor = 'SELECT gibbonPersonID, surname, preferredName, image_240 FROM gibbonPerson WHERE gibbonPersonID=:gibbonPersonID1 OR gibbonPersonID=:gibbonPersonID2 OR gibbonPersonID=:gibbonPersonID3';
@@ -110,32 +111,26 @@ if (isActionAccessible($guid, $connection2, '/modules/Roll Groups/rollGroups_det
             echo '</td>';
             echo '</tr>';
             echo "<td style='width: 33%; vertical-align: top' colspan=3>";
-            echo "<span style='font-size: 115%; font-weight: bold'>".__($guid, 'Location').'</span><br/>';
+            echo "<span style='font-size: 115%; font-weight: bold'>".__('Location').'</span><br/>';
             echo '<i>'.$row['space'].'</i>';
             echo '</td>';
             echo '</tr>';
             if ($row['website'] != '') {
                 echo '<tr>';
                 echo "<td style='width: 33%; padding-top: 15px; vertical-align: top' colspan=3>";
-                echo "<span style='font-size: 115%; font-weight: bold'>".__($guid, 'Website').'</span><br/>';
+                echo "<span style='font-size: 115%; font-weight: bold'>".__('Website').'</span><br/>';
                 echo "<a target='_blank' href='".$row['website']."'>".$row['website'].'</a>';
                 echo '</td>';
                 echo '</tr>';
             }
             echo '</table>';
 
-            echo '<h2>';
-            echo __($guid, 'Filters');
-            echo '</h2>';
-
-            $sortBy = null;
-            if (isset($_GET['sortBy'])) {
-                $sortBy = $_GET['sortBy'];
-            }
+            $sortBy = $_GET['sortBy'] ?? '';
 
             $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/index.php', 'get');
 
             $form->setFactory(DatabaseFormFactory::create($pdo));
+            $form->setTitle(__('Filters'));
             $form->setClass('noIntBorder fullWidth');
 
             $form->addHiddenValue('q', "/modules/".$_SESSION[$guid]['module']."/rollGroups_details.php");
@@ -143,7 +138,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Roll Groups/rollGroups_det
 
             $row = $form->addRow();
                 $row->addLabel('sortBy', __('Sort By'));
-                $row->addSelect('sortBy')->fromArray(array('normal' => __('Roll Order'), 'surname' => __('Surname'), 'preferredName' => __('Preferred Name')))->selected($sortBy)->isRequired();
+                $row->addSelect('sortBy')->fromArray(array('rollOrder, surname, preferredName' => __('Roll Order'), 'surname, preferredName' => __('Surname'), 'preferredName, surname' => __('Preferred Name')))->selected($sortBy)->required();
 
             $row = $form->addRow();
                 $row->addFooter();
@@ -151,10 +146,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Roll Groups/rollGroups_det
 
             echo $form->getOutput();
 
-            echo '<h3>';
-            echo __($guid, 'Students');
-            echo '</h3>';
-            echo getRollGroupTable($guid, $gibbonRollGroupID, 5, $connection2, true, $sortBy, true);
+            // Students
+            $table = $container->get(RollGroupTable::class);
+            $table->build($gibbonRollGroupID, true, true, $sortBy);
+
+            echo $table->getOutput();
 
             //Set sidebar
             $_SESSION[$guid]['sidebarExtra'] = getUserPhoto($guid, $primaryTutor240, 240);

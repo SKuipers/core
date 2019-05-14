@@ -22,15 +22,15 @@ use Gibbon\Forms\Form;
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/gradeScales_manage_edit_grade_add.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    $gibbonScaleID = $_GET['gibbonScaleID'];
+    $gibbonScaleID = $_GET['gibbonScaleID'] ?? '';
 
     if ($gibbonScaleID == '') {
         echo "<div class='error'>";
-        echo __($guid, 'You have not specified one or more required parameters.');
+        echo __('You have not specified one or more required parameters.');
         echo '</div>';
     } else {
         try {
@@ -44,14 +44,15 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/gradeScales_m
 
         if ($result->rowCount() != 1) {
             echo "<div class='error'>";
-            echo __($guid, 'The specified record does not exist.');
+            echo __('The specified record does not exist.');
             echo '</div>';
         } else {
             $values = $result->fetch();
 
-            echo "<div class='trail'>";
-            echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/gradeScales_manage.php'>".__($guid, 'Manage Grade Scales')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/gradeScales_manage_edit.php&gibbonScaleID=$gibbonScaleID'>".__($guid, 'Edit Grade Scale')."</a> > </div><div class='trailEnd'>".__($guid, 'Add Grade').'</div>';
-            echo '</div>';
+            $page->breadcrumbs
+                ->add(__('Manage Grade Scales'), 'gradeScales_manage.php')
+                ->add(__('Edit Grade Scale'), 'gradeScales_manage_edit.php', ['gibbonScaleID' => $gibbonScaleID])
+                ->add(__('Add Grade'));
 
             $editLink = '';
             if (isset($_GET['editID'])) {
@@ -72,19 +73,19 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/gradeScales_m
 
             $row = $form->addRow();
                 $row->addLabel('value', __('Value'))->description(__('Must be unique for this grade scale.'));
-                $row->addTextField('value')->isRequired()->maxLength(10);
+                $row->addTextField('value')->required()->maxLength(10);
 
             $row = $form->addRow();
                 $row->addLabel('descriptor', __('Descriptor'));
-                $row->addTextField('descriptor')->isRequired()->maxLength(50);
+                $row->addTextField('descriptor')->required()->maxLength(50);
 
             $row = $form->addRow();
                 $row->addLabel('sequenceNumber', __('Sequence Number'))->description(__('Must be unique for this grade scale.'));
-                $row->addNumber('sequenceNumber')->isRequired()->maxLength(5);
+                $row->addNumber('sequenceNumber')->required()->maxLength(5);
 
             $row = $form->addRow();
                 $row->addLabel('isDefault', __('Is Default?'))->description(__('Preselects this option when using this grade scale in appropriate contexts.'));
-                $row->addYesNo('isDefault')->isRequired()->selected('N');
+                $row->addYesNo('isDefault')->required()->selected('N');
 
             $row = $form->addRow();
                 $row->addFooter();

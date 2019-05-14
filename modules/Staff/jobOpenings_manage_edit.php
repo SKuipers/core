@@ -22,13 +22,13 @@ use Gibbon\Forms\Form;
 if (isActionAccessible($guid, $connection2, '/modules/Staff/jobOpenings_manage_edit.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Staff/jobOpenings_manage.php'>".__($guid, 'Job Openings')."</a> > </div><div class='trailEnd'>".__($guid, 'Edit Job Opening').'</div>';
-    echo '</div>';
+    $page->breadcrumbs
+        ->add(__('Job Openings'), 'jobOpenings_manage.php')
+        ->add(__('Edit Job Opening'));
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, null);
@@ -38,7 +38,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/jobOpenings_manage_e
     $gibbonStaffJobOpeningID = $_GET['gibbonStaffJobOpeningID'];
     if ($gibbonStaffJobOpeningID == '') {
         echo "<div class='error'>";
-        echo __($guid, 'You have not specified one or more required parameters.');
+        echo __('You have not specified one or more required parameters.');
         echo '</div>';
     } else {
         try {
@@ -52,15 +52,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/jobOpenings_manage_e
 
         if ($result->rowCount() != 1) {
             echo "<div class='error'>";
-            echo __($guid, 'The specified record cannot be found.');
+            echo __('The specified record cannot be found.');
             echo '</div>';
         } else {
             //Let's go!
             $values = $result->fetch();
 
             $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/jobOpenings_manage_editProcess.php?gibbonStaffJobOpeningID=$gibbonStaffJobOpeningID");
-
-            $form->setClass('smallIntBorder fullWidth');
 
             $form->addHiddenValue('address', $_SESSION[$guid]['address']);
 
@@ -70,24 +68,24 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/jobOpenings_manage_e
             $types[__('System Roles')] = ($result->rowCount() > 0)? $result->fetchAll(\PDO::FETCH_KEY_PAIR) : array();
             $row = $form->addRow();
                 $row->addLabel('type', __('Type'));
-                $row->addSelect('type')->fromArray($types)->placeholder()->isRequired();
+                $row->addSelect('type')->fromArray($types)->placeholder()->required();
 
             $row = $form->addRow();
                 $row->addLabel('jobTitle', __('Job Title'));
-                $row->addTextField('jobTitle')->maxlength(100)->isRequired();
+                $row->addTextField('jobTitle')->maxlength(100)->required();
 
             $row = $form->addRow();
                 $row->addLabel('dateOpen', __('Opening Date'));
-                $row->addDate('dateOpen')->isRequired();
+                $row->addDate('dateOpen')->required();
 
             $row = $form->addRow();
                 $row->addLabel('active', __('Active'));
-                $row->addYesNo('active')->isRequired();
+                $row->addYesNo('active')->required();
 
             $row = $form->addRow();
                 $column = $row->addColumn();
                 $column->addLabel('description', __('Description'));
-                $column->addEditor('description', $guid)->setRows(20)->showMedia()->isRequired();
+                $column->addEditor('description', $guid)->setRows(20)->showMedia()->required();
 
             $form->loadAllValuesFrom($values);
 
@@ -99,4 +97,3 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/jobOpenings_manage_e
         }
     }
 }
-?>

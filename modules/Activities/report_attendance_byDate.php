@@ -28,7 +28,7 @@ require_once __DIR__ . '/moduleFunctions.php';
 if (isActionAccessible($guid, $connection2, '/modules/Activities/report_attendance_byDate.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
@@ -38,9 +38,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/report_attendan
     $viewMode = isset($_REQUEST['format']) ? $_REQUEST['format'] : '';
 
     if (empty($viewMode)) {
-        echo "<div class='trail'>";
-        echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > </div><div class='trailEnd'>".__($guid, 'Activity Attendance by Date').'</div>';
-        echo '</div>';
+        $page->breadcrumbs->add(__('Activity Attendance by Date'));
 
         if (isset($_GET['return'])) {
             returnProcess($guid, $_GET['return'], null, null);
@@ -57,7 +55,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/report_attendan
 
         $row = $form->addRow();
             $row->addLabel('date', __('Date'))->description($_SESSION[$guid]['i18n']['dateFormat'])->prepend(__('Format:'));
-            $row->addDate('date')->setValue(dateConvertBack($guid, $date))->isRequired();
+            $row->addDate('date')->setValue(dateConvertBack($guid, $date))->required();
 
         $sortOptions = array('absent' => __('Absent'), 'surname' => __('Surname'), 'preferredName' => __('Given Name'), 'rollGroup' => __('Roll Group'));
         $row = $form->addRow();

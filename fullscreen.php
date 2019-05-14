@@ -36,6 +36,10 @@ if (!$session->has('systemSettingsSet')) {
 
 $address = $page->getAddress();
 
+$page->addData([
+    'isLoggedIn' => $session->has('username') && $session->has('gibbonRoleIDCurrent'),
+]);
+
 if (empty($address)) {
     $page->addWarning(__('There is no content to display'));
 } elseif ($page->isAddressValid($address) == false) {

@@ -22,15 +22,15 @@ use Gibbon\Forms\Form;
 if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/tt_edit_day_add.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
-    $gibbonSchoolYearID = $_GET['gibbonSchoolYearID'];
-    $gibbonTTID = $_GET['gibbonTTID'];
+    $gibbonSchoolYearID = $_GET['gibbonSchoolYearID'] ?? '';
+    $gibbonTTID = $_GET['gibbonTTID'] ?? '';
 
     if ($gibbonSchoolYearID == '' or $gibbonTTID == '') {
         echo "<div class='error'>";
-        echo __($guid, 'You have not specified one or more required parameters.');
+        echo __('You have not specified one or more required parameters.');
         echo '</div>';
     } else {
         try {
@@ -44,15 +44,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/tt_edit_da
 
         if ($result->rowCount() != 1) {
             echo "<div class='error'>";
-            echo __($guid, 'The specified record does not exist.');
+            echo __('The specified record does not exist.');
             echo '</div>';
         } else {
             $values = $result->fetch();
 
-            echo "<div class='trail'>";
-            echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/tt.php&gibbonSchoolYearID='.$_GET['gibbonSchoolYearID']."'>".__($guid, 'Manage Timetables')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/tt_edit.php&gibbonTTID=$gibbonTTID&gibbonSchoolYearID=".$_GET['gibbonSchoolYearID']."'>".__($guid, 'Edit Timetable')."</a> > </div><div class='trailEnd'>".__($guid, 'Add Timetable Day').'</div>';
-            echo '</div>';
-
+            $page->breadcrumbs
+                ->add(__('Manage Timetables'), 'tt.php', ['gibbonSchoolYearID' => $gibbonSchoolYearID])
+                ->add(__('Edit Timetable'), 'tt_edit.php', ['gibbonTTID' => $gibbonTTID, 'gibbonSchoolYearID' => $gibbonSchoolYearID])
+                ->add(__('Add Timetable Day'));
+        
             $editLink = '';
             if (isset($_GET['editID'])) {
                 $editLink = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Timetable Admin/tt_edit_day_edit.php&gibbonTTDayID='.$_GET['editID'].'&gibbonSchoolYearID='.$_GET['gibbonSchoolYearID'].'&gibbonTTID='.$_GET['gibbonTTID'];
@@ -69,19 +70,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/tt_edit_da
 
             $row = $form->addRow();
                 $row->addLabel('schoolYear', __('School Year'));
-                $row->addTextField('schoolYear')->maxLength(20)->isRequired()->readonly()->setValue($values['schoolYear']);
+                $row->addTextField('schoolYear')->maxLength(20)->required()->readonly()->setValue($values['schoolYear']);
 
             $row = $form->addRow();
                 $row->addLabel('ttName', __('Timetable'));
-                $row->addTextField('ttName')->maxLength(20)->isRequired()->readonly()->setValue($values['ttName']);
+                $row->addTextField('ttName')->maxLength(20)->required()->readonly()->setValue($values['ttName']);
 
             $row = $form->addRow();
                 $row->addLabel('name', __('Name'))->description(__('Must be unique for this school year.'));
-                $row->addTextField('name')->maxLength(12)->isRequired();
+                $row->addTextField('name')->maxLength(12)->required();
 
             $row = $form->addRow();
                 $row->addLabel('nameShort', __('Short Name'))->description(__('Must be unique for this school year.'));
-                $row->addTextField('nameShort')->maxLength(4)->isRequired();
+                $row->addTextField('nameShort')->maxLength(4)->required();
 
             $row = $form->addRow();
                 $row->addLabel('color', __('Header Background Colour'))->description(__('RGB Hex value, without leading #.'));
@@ -95,7 +96,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/tt_edit_da
             $sql = "SELECT gibbonTTColumnID as value, name FROM gibbonTTColumn ORDER BY name";
             $row = $form->addRow();
                 $row->addLabel('gibbonTTColumnID', __('Timetable Column'));
-                $row->addSelect('gibbonTTColumnID')->fromQuery($pdo, $sql, $data)->isRequired()->placeholder();
+                $row->addSelect('gibbonTTColumnID')->fromQuery($pdo, $sql, $data)->required()->placeholder();
 
             $row = $form->addRow();
                 $row->addFooter();
@@ -105,4 +106,3 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/tt_edit_da
         }
     }
 }
-?>

@@ -28,12 +28,10 @@ require_once __DIR__ . '/moduleFunctions.php';
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/department_manage.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > </div><div class='trailEnd'>".__($guid, 'Manage Departments').'</div>';
-    echo '</div>';
+    $page->breadcrumbs->add(__('Manage Departments'));
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, null);
@@ -50,7 +48,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/department_ma
     $setting = getSettingByScope($connection2, 'Departments', 'makeDepartmentsPublic', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
-        $row->addYesNo($setting['name'])->isRequired()->selected($setting['value']);
+        $row->addYesNo($setting['name'])->required()->selected($setting['value']);
 
     $row = $form->addRow();
         $row->addFooter();
@@ -79,7 +77,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/department_ma
         ->displayLabel();
 
     $table->addColumn('name', __('Name'));
-    $table->addColumn('type', __('Type'));
+    $table->addColumn('type', __('Type'))->translatable();
     $table->addColumn('nameShort', __('Short Name'));
     $table->addColumn('staff', __('Staff'))
         ->sortable(false)

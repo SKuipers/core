@@ -81,6 +81,12 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/update.php') 
                 // Update DB version for existing languages
                 i18nCheckAndUpdateVersion($container, $versionDB);
 
+                // Clear the templates cache folder
+                removeDirectoryContents($_SESSION[$guid]['absolutePath'].'/uploads/cache');
+
+                // Clear the var/log folder
+                removeDirectoryContents($_SESSION[$guid]['absolutePath'].'/var/log');
+
                 $URL .= '&return=success0';
                 header("Location: {$URL}");
             }
@@ -194,6 +200,12 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/update.php') 
 
                 // Update DB version for existing languages
                 i18nCheckAndUpdateVersion($container, $versionDB);
+
+                // Clear the templates cache folder
+                removeDirectoryContents($_SESSION[$guid]['absolutePath'].'/uploads/cache');
+
+                // Clear the var folder and remove it
+                removeDirectoryContents($_SESSION[$guid]['absolutePath'].'/var', true);
 
                 //Reset cache to force top-menu reload
                 $_SESSION[$guid]['pageLoads'] = null;

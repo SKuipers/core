@@ -26,13 +26,11 @@ use Gibbon\Domain\Staff\StaffGateway;
 if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > </div><div class='trailEnd'>".__($guid, 'Manage Staff').'</div>';
-    echo '</div>';
+    $page->breadcrumbs->add(__('Manage Staff'));
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, null);
@@ -86,12 +84,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage.php') =
     $form->addHiddenValue('search', $search);
 
     $bulkActions = array(
-        'Left' => __('Mark as Left'),
+        'Left' => __('Mark as left'),
     );
 
     $col = $form->createBulkActionColumn($bulkActions);
         $col->addDate('dateEnd')
-            ->isRequired()
+            ->required()
             ->placeholder(__('Date End'))
             ->setClass('shortWidth dateEnd');
         $col->addSubmit(__('Go'));
@@ -134,8 +132,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage.php') =
                 .'<br/><span style="font-size: 85%; font-style: italic">'.$person['initials']."</span>";
         });
 
-    $table->addColumn('type', __('Staff Type'))->width('20%');
-    $table->addColumn('status', __('Status'))->width('10%');
+    $table->addColumn('type', __('Staff Type'))->width('20%')->translatable();
+    $table->addColumn('status', __('Status'))->width('10%')->translatable();
     $table->addColumn('jobTitle', __('Job Title'))->width('20%');
 
     // ACTIONS

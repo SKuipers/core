@@ -22,13 +22,13 @@ use Gibbon\Forms\Form;
 if (isActionAccessible($guid, $connection2, '/modules/User Admin/userSettings.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/User Admin/userSettings.php'>".__($guid, 'Manage User Settings')."</a> > </div><div class='trailEnd'>".__($guid, 'Edit Username Format').'</div>';
-    echo '</div>';
+    $page->breadcrumbs
+        ->add(__('Manage User Settings'), 'userSettings.php')
+        ->add(__('Edit Username Format'));
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return']);
@@ -49,7 +49,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/userSettings.ph
 
     if ($result->rowCount() == 0) {
         echo "<div class='error'>";
-        echo __($guid, 'The specified record cannot be found.');
+        echo __('The specified record cannot be found.');
         echo '</div>';
         return;
     }
@@ -69,12 +69,12 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/userSettings.ph
 
     $row = $form->addRow();
         $row->addLabel('format', __('Username Format'))->description(__('How should usernames be formated? Choose from [preferredName], [firstName], [surname].').'<br>'.__('Use a colon to limit the number of letters, for example [preferredName:1] will use the first initial.'));
-        $row->addTextField('format')->isRequired();
+        $row->addTextField('format')->required();
 
     $row = $form->addRow();
         $row->addLabel('gibbonRoleIDList', __('Roles'));
         $row->addSelect('gibbonRoleIDList')
-            ->isRequired()
+            ->required()
             ->selectMultiple()
             ->setSize(4)
             ->fromResults($result);
@@ -91,15 +91,15 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/userSettings.ph
 
     $row = $form->addRow()->addClass('numericValueSettings');
         $row->addLabel('numericValue', __('Starting Value'))->description(__('Each time a username is generated this value will increase by the increment defined below.'));
-        $row->addTextField('numericValue')->isRequired()->maxLength(12);
+        $row->addTextField('numericValue')->required()->maxLength(12);
 
     $row = $form->addRow()->addClass('numericValueSettings');
         $row->addLabel('numericSize', __('Number of Digits'));
-        $row->addNumber('numericSize')->isRequired()->minimum(0)->maximum(12);
+        $row->addNumber('numericSize')->required()->minimum(0)->maximum(12);
 
     $row = $form->addRow()->addClass('numericValueSettings');
         $row->addLabel('numericIncrement', __('Increment By'));
-        $row->addNumber('numericIncrement')->isRequired()->minimum(0)->maximum(100);
+        $row->addNumber('numericIncrement')->required()->minimum(0)->maximum(100);
 
     $row = $form->addRow();
         $row->addFooter();

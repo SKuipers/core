@@ -22,13 +22,11 @@ use Gibbon\Forms\Form;
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/formalAssessmentSettings.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > </div><div class='trailEnd'>".__($guid, 'Formal Assessment Settings').'</div>';
-    echo '</div>';
+    $page->breadcrumbs->add(__('Formal Assessment Settings'));
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, null);
@@ -43,7 +41,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/formalAssessm
     $setting = getSettingByScope($connection2, 'Formal Assessment', 'internalAssessmentTypes', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description($setting['description']);
-        $row->addTextArea($setting['name'])->setValue($setting['value'])->isRequired();
+        $row->addTextArea($setting['name'])->setValue($setting['value'])->required();
 
     $form->addRow()->addHeading(__('Primary External Assessement'))->append(__('These settings allow a particular type of external assessment to be associated with each year group. The selected assessment will be used as the primary assessment to be used as a baseline for comparison (for example, within the Markbook). You are required to select a particular field category can be chosen from which to draw data (if no category is chosen, the data will not be saved).'));
 

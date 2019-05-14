@@ -23,15 +23,15 @@ use Gibbon\Forms\DatabaseFormFactory;
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/externalAssessments_manage_edit_field_add.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
-    $gibbonExternalAssessmentID = $_GET['gibbonExternalAssessmentID'];
+    $gibbonExternalAssessmentID = $_GET['gibbonExternalAssessmentID'] ?? '';
 
     if ($gibbonExternalAssessmentID == '') {
         echo "<div class='error'>";
-        echo __($guid, 'You have not specified one or more required parameters.');
+        echo __('You have not specified one or more required parameters.');
         echo '</div>';
     } else {
         try {
@@ -45,14 +45,15 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/externalAsses
 
         if ($result->rowCount() != 1) {
             echo "<div class='error'>";
-            echo __($guid, 'The specified record does not exist.');
+            echo __('The specified record does not exist.');
             echo '</div>';
         } else {
             $values = $result->fetch();
 
-            echo "<div class='trail'>";
-            echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/externalAssessments_manage.php'>".__($guid, 'Manage External Assessments')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/externalAssessments_manage_edit.php&gibbonExternalAssessmentID=$gibbonExternalAssessmentID'>".__($guid, 'Edit External Assessment')."</a> > </div><div class='trailEnd'>".__($guid, 'Add Field').'</div>';
-            echo '</div>';
+            $page->breadcrumbs
+                ->add(__('Manage External Assessments'), 'externalAssessments_manage.php')
+                ->add(__('Edit External Assessment'), 'externalAssessments_manage_edit.php', ['gibbonExternalAssessmentID' => $gibbonExternalAssessmentID])
+                ->add(__('Add Field'));
 
             $editLink = '';
             if (isset($_GET['editID'])) {
@@ -74,20 +75,20 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/externalAsses
 
             $row = $form->addRow();
                 $row->addLabel('name', __('Name'));
-                $row->addTextField('name')->isRequired()->maxLength(50);
+                $row->addTextField('name')->required()->maxLength(50);
 
             $row = $form->addRow();
                 $row->addLabel('category', __('Category'));
-                $row->addTextField('category')->isRequired()->maxLength(50);
+                $row->addTextField('category')->required()->maxLength(50);
 
             $row = $form->addRow();
                 $row->addLabel('order', __('Order'))->description(__('Order in which fields appear within category<br/>Should be unique for this category.'));
-                $row->addNumber('order')->isRequired()->maxLength(4);
+                $row->addNumber('order')->required()->maxLength(4);
 
             $sql = "SELECT gibbonScaleID as value, name FROM gibbonScale WHERE (active='Y') ORDER BY name";
             $row = $form->addRow();
                 $row->addLabel('gibbonScaleID', __('Grade Scale'))->description(__('Grade scale used to control values that can be assigned.'));
-                $row->addSelect('gibbonScaleID')->fromQuery($pdo, $sql)->isRequired()->placeholder();
+                $row->addSelect('gibbonScaleID')->fromQuery($pdo, $sql)->required()->placeholder();
 
             $row = $form->addRow();
                 $row->addLabel('yearGroups', __('Year Groups'))->description(__('Year groups to which this field is relevant.'));

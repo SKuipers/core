@@ -32,7 +32,7 @@ $gibbonLibraryItemID = isset($_POST['gibbonLibraryItemID'])? $_POST['gibbonLibra
 if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_catalog_add.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'Your request failed because you do not have access to this action.');
+    echo __('Your request failed because you do not have access to this action.');
     echo '</div>';
 } else {
     $data = array('gibbonLibraryTypeID' => $gibbonLibraryTypeID);
@@ -71,9 +71,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
             $fieldName = 'field'.preg_replace('/ |\(|\)/', '', $field['name']);
             $fieldValue = isset($fieldsValues[$field['name']])? $fieldsValues[$field['name']] : '';
 
-            $row = $table->addRow();
-                $row->addLabel($fieldName, $field['name'])->description($field['description']);
-                $row->addCustomField($fieldName, $field)->setValue($fieldValue);
+            $row = $table->addRow()->addClass('flex flex-col sm:flex-row justify-between content-center p-0');
+                $row->addLabel($fieldName, $field['name'])->description($field['description'])->addClass('flex-grow sm:mb-0 border-transparent border-t-0 sm:border-gray-400');
+                $row->addCustomField($fieldName, $field)->setValue($fieldValue)->addClass('w-full max-w-full sm:max-w-xs flex justify-end items-center border-0 sm:border-b');
         }
 
         // Add Google Books data grabber

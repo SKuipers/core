@@ -26,9 +26,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/ttDates.ph
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__('Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__(getModuleName($_GET['q']))."</a> > </div><div class='trailEnd'>".__('Tie Days to Dates').'</div>';
-    echo '</div>';
+    $page->breadcrumbs->add(__('Tie Days to Dates'));
 
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, null);
@@ -102,11 +100,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/ttDates.ph
         } else {
 
             $form = Form::create('ttDates', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/ttDates_addMultiProcess.php?gibbonSchoolYearID='.$gibbonSchoolYearID);
+            $form->setClass('w-full blank');
             
             $form->addHiddenValue('q', $_SESSION[$guid]['address']);
-            $form->getRenderer()->setWrapper('form', 'div');
-            $form->getRenderer()->setWrapper('row', 'div');
-            $form->getRenderer()->setWrapper('cell', 'div');
 
             while ($values = $result->fetch()) {
                 $row = $form->addRow()->addHeading($values['name']);

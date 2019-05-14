@@ -187,22 +187,22 @@ function getCurrentVersion($guid, $connection2, $version)
     $output .= 'success: function(data) {';
     $output .= "if (data['version']==='false') {";
     $output .= '$("#status").attr("class","error");';
-    $output .= "$(\"#status\").html('".__($guid, 'Version check failed').".') ;";
+    $output .= "$(\"#status\").html('".__('Version check failed').".') ;";
     $output .= '}';
     $output .= 'else {';
     $output .= "if (versionCompare(data['version'], '".$version."') <= 0) {";
     $output .= '$("#status").attr("class","success");';
-    $output .= "$(\"#status\").html('".sprintf(__($guid, 'Version check successful. Your Gibbon installation is up to date at %1$s.'), $version).' '.sprintf(__($guid, 'If you have recently updated your system files, please check that your database is up to date in %1$sUpdates%2$s.'), "<a href=\'".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/System Admin/update.php\'>", '</a>')."') ;";
+    $output .= "$(\"#status\").html('".sprintf(__('Version check successful. Your Gibbon installation is up to date at %1$s.'), $version).' '.sprintf(__('If you have recently updated your system files, please check that your database is up to date in %1$sUpdates%2$s.'), "<a href=\'".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/System Admin/update.php\'>", '</a>')."') ;";
     $output .= '}';
     $output .= 'else {';
     $output .= '$("#status").attr("class","warning");';
-    $output .= "$(\"#status\").html('".sprintf(__($guid, 'Version check successful. Your Gibbon installation is out of date. Please visit %1$s to download the latest version.'), "<a target=\"blank\" href=\'https://gibbonedu.org/download\'>the Gibbon download page</a>")."') ;";
+    $output .= "$(\"#status\").html('".sprintf(__('Version check successful. Your Gibbon installation is out of date. Please visit %1$s to download the latest version.'), "<a target=\"blank\" href=\'https://gibbonedu.org/download\'>the Gibbon download page</a>")."') ;";
     $output .= '}';
     $output .= '}';
     $output .= '},';
     $output .= 'error: function (data, textStatus, errorThrown) {';
     $output .= '$("#status").attr("class","error");';
-    $output .= "$(\"#status\").html('".__($guid, 'Version check failed').".') ;";
+    $output .= "$(\"#status\").html('".__('Version check failed').".') ;";
     $output .= '}';
     $output .= '});';
     $output .= '});';
@@ -213,7 +213,7 @@ function getCurrentVersion($guid, $connection2, $version)
         $output .= "<div id='status' class='warning'>";
         $output .= "<div style='width: 100%; text-align: center'>";
         $output .= "<img style='margin: 10px 0 5px 0' src='".$_SESSION[$guid]['absoluteURL'].'/themes/'.$_SESSION[$guid]['gibbonThemeName']."/img/loading.gif' alt='Loading'/><br/>";
-        $output .= __($guid, 'Checking for Gibbon updates.');
+        $output .= __('Checking for Gibbon updates.');
         $output .= '</div>';
         $output .= '</div>';
     }
@@ -282,4 +282,42 @@ function i18nCheckAndUpdateVersion($container, $version = null)
             $i18nGateway->updateI18nVersion($i18n['gibboni18nID'], 'N', null);
         }
     }
+}
+
+/**
+ * Recursively remove the contents of a folder, including sub-directories. Optionally remove the folder itself.
+ *
+ * @param string $dir
+ * @param bool   $removeSelf
+ */
+function removeDirectoryContents($dir, $removeSelf = false)
+{
+    if (!is_dir($dir)) return;
+
+    $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS), \RecursiveIteratorIterator::CHILD_FIRST);
+    foreach ($iterator as $filename => $fileInfo) {
+        if ($fileInfo->isDir()) {
+            rmdir($filename);
+        } else {
+            unlink($filename);
+        }
+    }
+
+    if ($removeSelf) {
+        rmdir($dir);
+    }
+}
+
+function num2alpha($n)
+{
+    for ($r = ""; $n >= 0; $n = intval($n / 26) - 1) {
+        $r = chr($n%26 + 0x41) . $r;
+    }
+    return $r;
+}
+
+function readableFileSize($bytes)
+{
+    $unit=array('bytes','KB','MB','GB','TB','PB');
+    return @round($bytes/pow(1024, ($i=floor(log($bytes, 1024)))), 2).' '.$unit[$i];
 }

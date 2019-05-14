@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Contracts\Comms\Mailer;
+
 include './gibbon.php';
 
 //Create password
@@ -105,13 +107,11 @@ else {
             }
             $gibbonPersonResetID = str_pad($connection2->lastInsertID(), 12, '0', STR_PAD_LEFT);
 
-            require $_SESSION[$guid]["absolutePath"] . '/lib/PHPMailer/PHPMailerAutoload.php';
-
             //Send email
-            $subject = $_SESSION[$guid]['organisationNameShort'].' '.__($guid, 'Gibbon Password Reset');
-            $body = sprintf(__($guid, 'A password reset request has been initiated for account %1$s, which is registered to this email address.%2$sIf you did not initiate this request, please ignore this email.%2$sIf you do wish to reset your password, please use the link below to access the reset form:%2$s%3$s%2$s%4$s'), $username, "\n\n", $_SESSION[$guid]['absoluteURL']."/index.php?q=/passwordReset.php&input=$input&step=2&gibbonPersonResetID=$gibbonPersonResetID&key=$key", $_SESSION[$guid]['systemName']." Administrator");
+            $subject = $_SESSION[$guid]['organisationNameShort'].' '.__('Gibbon Password Reset');
+            $body = sprintf(__('A password reset request has been initiated for account %1$s, which is registered to this email address.%2$sIf you did not initiate this request, please ignore this email.%2$sIf you do wish to reset your password, please use the link below to access the reset form:%2$s%3$s%2$s%4$s'), $username, "\n\n", '', '');
 
-            $mail = getGibbonMailer($guid);
+            $mail = $container->get(Mailer::class);
             $mail->AddAddress($email);
 
             if (isset($_SESSION[$guid]['organisationEmail']) && $_SESSION[$guid]['organisationEmail'] != '') {
@@ -120,12 +120,15 @@ else {
                 $mail->SetFrom($_SESSION[$guid]['organisationAdministratorEmail'], $_SESSION[$guid]['organisationName']);
             }
 
-            $mail->CharSet="UTF-8";
-            $mail->Encoding="base64" ;
-            $mail->IsHTML(true);
-            $mail->Subject=$subject ;
-            $mail->Body = nl2br($body) ;
-            $mail->AltBody = emailBodyConvert($body) ;
+            $mail->Subject = $subject;
+            $mail->renderBody('mail/email.twig.html', [
+                'title'  => __('Password Reset'),
+                'body'   => nl2br(trim($body, "\n")),
+                'button' => [
+                    'url'  => "/index.php?q=/passwordReset.php&input=$input&step=2&gibbonPersonResetID=$gibbonPersonResetID&key=$key",
+                    'text' => __('Click Here'),
+                ],
+            ]);
 
             if ($mail->Send()) {
                 $URL = $URL.'&return=success0';

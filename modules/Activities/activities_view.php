@@ -26,21 +26,19 @@ use Gibbon\Domain\Activities\ActivityGateway;
 require_once __DIR__ . '/moduleFunctions.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view.php') == false) {
-    //Acess denied
+    // Access denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
-    //Get action with highest precendence
+    // Get action with highest precedence
     $highestAction = getHighestGroupedAction($guid, $_GET['q'], $connection2);
     if ($highestAction == false) {
         echo "<div class='error'>";
-        echo __($guid, 'The highest grouped action cannot be determined.');
+        echo __('The highest grouped action cannot be determined.');
         echo '</div>';
     } else {
-        echo "<div class='trail'>";
-        echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > </div><div class='trailEnd'>".__($guid, 'View Activities').'</div>';
-        echo '</div>';
+        $page->breadcrumbs->add(__('View Activities'));          
 
         if (isset($_GET['return'])) {
             returnProcess($guid, $_GET['return'], null, array('success0' => 'Registration was successful.', 'success1' => 'Unregistration was successful.', 'success2' => 'Registration was successful, but the activity is full, so you are on the waiting list.'));
@@ -259,7 +257,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                 if ($allActivityAccess == 'Register' && $canAccessRegistration && $activities->count() > 0) {
                     if ($dateType == 'Term' and $maxPerTerm > 0) {
                         echo "<div class='warning'>";
-                        echo __($guid, "Remember, each student can register for no more than $maxPerTerm activities per term. Your current registration count by term is:");
+                        echo __("Remember, each student can register for no more than $maxPerTerm activities per term. Your current registration count by term is:");
                         $terms = getTerms($connection2, $_SESSION[$guid]['gibbonSchoolYearID']);
                         echo '<ul>';
                         for ($i = 0; $i < count($terms); $i = $i + 2) {
@@ -316,7 +314,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                 if ($canAccessRegistration && !empty($gibbonPersonID)) {
                     $enroledActivities = $activityGateway->selectActivityEnrolmentByStudent($_SESSION[$guid]['gibbonSchoolYearID'], $gibbonPersonID)->fetchGroupedUnique();
 
-                    $activities->transform(function(&$activity) use ($enroledActivities) {
+                    $activities->transform(function (&$activity) use ($enroledActivities) {
                         $activity['enrolmentFull'] = $activity['waitingList'] != 'Y' && $activity['enrolment'] >= $activity['maxParticipants'];
     
                         if (isset($enroledActivities[$activity['gibbonActivityID']])) {

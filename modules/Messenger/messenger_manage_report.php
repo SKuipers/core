@@ -23,7 +23,7 @@ use Gibbon\Forms\Prefab\BulkActionForm;
 if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_manage_report.php")==FALSE) {
 	//Acess denied
 	print "<div class='error'>" ;
-		print __($guid, "You do not have access to this action.") ;
+		print __("You do not have access to this action.") ;
 	print "</div>" ;
 }
 else {
@@ -31,25 +31,19 @@ else {
 	$highestAction=getHighestGroupedAction($guid, $_GET["q"], $connection2) ;
 	if ($highestAction==FALSE) {
 		print "<div class='error'>" ;
-		print __($guid, "The highest grouped action cannot be determined.") ;
+		print __("The highest grouped action cannot be determined.") ;
 		print "</div>" ;
 	}
 	else {
-		$gibbonMessengerID=NULL ;
-		if (isset($_GET["gibbonMessengerID"])) {
-			$gibbonMessengerID=$_GET["gibbonMessengerID"] ;
-		}
-		$search=NULL ;
-		if (isset($_GET["search"])) {
-			$search=$_GET["search"] ;
-		}
+        $gibbonMessengerID = isset($_GET['gibbonMessengerID']) ? $_GET['gibbonMessengerID'] : null;
+        $search = isset($_GET['search']) ? $_GET['search'] : null;
 
-		print "<div class='trail'>" ;
-		print "<div class='trailHead'><a href='" . $_SESSION[$guid]["absoluteURL"] . "'>" . __($guid, "Home") . "</a> > <a href='" . $_SESSION[$guid]["absoluteURL"] . "/index.php?q=/modules/" . getModuleName($_GET["q"]) . "/" . getModuleEntry($_GET["q"], $connection2, $guid) . "'>" . __($guid, getModuleName($_GET["q"])) . "</a> > <a href='" . $_SESSION[$guid]["absoluteURL"] . "/index.php?q=/modules/" . getModuleName($_GET["q"]) . "/messenger_manage.php&search=$search'>" . __($guid, 'Manage Messages') . "</a> > </div><div class='trailEnd'>" . __($guid, 'View Send Report') . "</div>" ;
-		print "</div>" ;
+        $page->breadcrumbs
+            ->add(__('Manage Messages'), 'messenger_manage.php', ['search' => $search])
+            ->add(__('View Send Report'));
 
 		echo '<h2>';
-		echo __($guid, 'Report Data');
+		echo __('Report Data');
 		echo '</h2>';
 		
 		$nonConfirm = 0;
@@ -67,7 +61,7 @@ else {
 
 		if ($result->rowCount() < 1) {
 			echo "<div class='error'>";
-			echo __($guid, 'The specified record cannot be found.');
+			echo __('The specified record cannot be found.');
 			echo '</div>';
 		}
 		else {
@@ -75,7 +69,7 @@ else {
 
 			if ($row['emailReceiptText'] != '') {
 				echo '<p>';
-				echo "<b>".__($guid, 'Receipt Confirmation Text') . "</b>: ".$row['emailReceiptText'];
+				echo "<b>".__('Receipt Confirmation Text') . "</b>: ".$row['emailReceiptText'];
 				echo '</p>';
 			}
 			?>
@@ -127,8 +121,8 @@ else {
 			echo "<div id='tabs' style='margin: 20px 0'>";
 				//Tab links
 				echo '<ul>';
-				echo "<li><a href='#tabs1'>".__($guid, 'By Roll Group').'</a></li>';
-				echo "<li><a href='#tabs2'>".__($guid, 'By Recipient').'</a></li>';
+				echo "<li><a href='#tabs1'>".__('By Roll Group').'</a></li>';
+				echo "<li><a href='#tabs2'>".__('By Recipient').'</a></li>';
 				echo '</ul>';
 
 				//Tab content
@@ -157,7 +151,7 @@ else {
 
 					if ($result->rowCount() < 1) {
 						echo "<div class='error'>";
-						echo __($guid, 'There are no records to display.');
+						echo __('There are no records to display.');
 						echo '</div>';
 					} else {
 						//Store receipt for this message data in an array
@@ -353,4 +347,3 @@ else {
 		echo "</div>";
 	}
 }
-?>

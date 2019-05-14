@@ -22,22 +22,15 @@ use Gibbon\Forms\Form;
 if (isActionAccessible($guid, $connection2, '/modules/Messenger/messageWall_view.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'Your request failed because you do not have access to this action.');
+    echo __('Your request failed because you do not have access to this action.');
     echo '</div>';
 } else {
     $dateFormat = $_SESSION[$guid]['i18n']['dateFormatPHP'];
     $date = isset($_REQUEST['date'])? $_REQUEST['date'] : date($dateFormat);
 
-    $extra = '';
-    if ($date == date($dateFormat)) {
-        $extra = __($guid, "Today's Messages").' ('.$date.')';
-    } else {
-        $extra = __($guid, 'View Messages').' ('.$date.')';
-	}
-
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > </div><div class='trailEnd'>$extra</div>";
-	echo '</div>';
+    $page->breadcrumbs->add(($date === date($dateFormat)) ?
+        __('Today\'s Messages').' ('.$date.')' :
+        __('View Messages').' ('.$date.')');
 
     if (isset($_GET['return'])) {
         $status = (!empty($_GET['status'])) ? $_GET['status'] : __('Unknown');
@@ -57,17 +50,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Messenger/messageWall_view
 
 	$form->addHiddenValue('address', $_SESSION[$guid]['address']);
 
-	$row = $form->addRow();
+	$row = $form->addRow()->addClass('flex flex-wrap');
 
 	$link = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.$_SESSION[$guid]['module'].'/messageWall_view.php';
 	$prevDay = DateTime::createFromFormat($dateFormat, $date)->modify('-1 day')->format($dateFormat);
 	$nextDay = DateTime::createFromFormat($dateFormat, $date)->modify('+1 day')->format($dateFormat);
 
-	$col = $row->addColumn()->addClass('inline');
-		$col->addButton(__('Previous Day'))->addClass('buttonLink')->onClick("window.location.href='{$link}&date={$prevDay}'");
+	$col = $row->addColumn()->addClass('flex items-center');
+		$col->addButton(__('Previous Day'))->addClass('buttonLink mr-px')->onClick("window.location.href='{$link}&date={$prevDay}'");
 		$col->addButton(__('Next Day'))->addClass('buttonLink')->onClick("window.location.href='{$link}&date={$nextDay}'");
 
-	$col = $row->addColumn()->addClass('inline right');
+	$col = $row->addColumn()->addClass('flex items-center justify-end');
 		$col->addDate('date')->setValue($date)->setClass('shortWidth');
 		$col->addSubmit(__('Go'));
 

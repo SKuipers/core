@@ -30,7 +30,7 @@ require_once __DIR__ . '/moduleFunctions.php';
 if (isActionAccessible($guid, $connection2, '/modules/Activities/report_activityType_rollGroup.php') == false) {
     //Acess denied
     echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
+    echo __('You do not have access to this action.');
     echo '</div>';
 } else {
     //Proceed!
@@ -41,9 +41,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/report_activity
     $viewMode = isset($_REQUEST['format']) ? $_REQUEST['format'] : '';
 
     if (empty($viewMode)) {
-        echo "<div class='trail'>";
-        echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > </div><div class='trailEnd'>".__($guid, 'Activity Type by Roll Group').'</div>';
-        echo '</div>';
+        $page->breadcrumbs->add(__('Activity Type by Roll Group'));
 
         $form = Form::create('filter', $_SESSION[$guid]['absoluteURL'].'/index.php','get');
 
@@ -55,11 +53,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/report_activity
 
         $row = $form->addRow();
             $row->addLabel('gibbonRollGroupID', __('Roll Group'));
-            $row->addSelectRollGroup('gibbonRollGroupID', $_SESSION[$guid]['gibbonSchoolYearID'])->selected($gibbonRollGroupID)->isRequired();
+            $row->addSelectRollGroup('gibbonRollGroupID', $_SESSION[$guid]['gibbonSchoolYearID'])->selected($gibbonRollGroupID)->required();
 
         $row = $form->addRow();
             $row->addLabel('status', __('Status'));
-            $row->addSelect('status')->fromArray(array('Accepted' => __('Accepted'), 'Registered' => __('Registered')))->selected($status)->isRequired();
+            $row->addSelect('status')->fromArray(array('Accepted' => __('Accepted'), 'Registered' => __('Registered')))->selected($status)->required();
 
         $row = $form->addRow();
             $row->addFooter();
