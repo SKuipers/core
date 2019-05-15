@@ -32,9 +32,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
 } else {
     //Proceed!
     
-    if (isActionAccessible($guid, $connection2, '/modules/Staff/subs_manage.php')) {
+    if (isActionAccessible($guid, $connection2, '/modules/Staff/substitutes_manage.php')) {
         $page->breadcrumbs
-            ->add(__('Manage Substitutes'), 'subs_manage.php')
+            ->add(__('Manage Substitutes'), 'substitutes_manage.php')
             ->add(__('Edit Availability'));
 
         $gibbonPersonID = $_GET['gibbonPersonID'] ?? $_SESSION[$guid]['gibbonPersonID'];
