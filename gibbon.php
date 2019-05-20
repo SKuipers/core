@@ -35,7 +35,6 @@ $container->inflector(\Gibbon\Services\BackgroundProcess::class)
           ->invokeMethod('setProcessor', [\Gibbon\Services\BackgroundProcessor::class]);
 
 $container->addServiceProvider(new Gibbon\Services\CoreServiceProvider(__DIR__));
-$container->addServiceProvider(new Gibbon\Services\GoogleServiceProvider());
 $container->addServiceProvider(new Gibbon\Services\ViewServiceProvider());
 $container->addServiceProvider(new Gibbon\Services\GoogleServiceProvider());
 

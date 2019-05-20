@@ -146,6 +146,7 @@ class CoreServiceProvider extends AbstractServiceProvider implements BootableSer
             $twig->addGlobal('absoluteURL', $session->get('absoluteURL'));
             $twig->addGlobal('gibbonThemeName', $themeName);
 
+            
             $twig->addFunction(new \Twig_Function('__', function ($string, $domain = null) {
                 return __($string, $domain);
             }));

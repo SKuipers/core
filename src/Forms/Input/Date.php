@@ -75,20 +75,6 @@ class Date extends TextField
         return false;
     }
 
-    public function from($value)
-    {
-        $this->from = $value;
-
-        return $this;
-    }
-
-    public function to($value)
-    {
-        $this->to = $value;
-
-        return $this;
-    }
-
     /**
      * Provide the ID of another date input to connect the input values in a date range.
      * Chaining a value TO another date range will set the upper limit to that date's value.
