@@ -20,7 +20,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 namespace Gibbon\Domain\Students;
 
 use Gibbon\Domain\Traits\TableAware;
-use Gibbon\Domain\Traits\TableQueryAware;
 use Gibbon\Domain\QueryCriteria;
 use Gibbon\Domain\QueryableGateway;
 
@@ -31,7 +30,6 @@ use Gibbon\Domain\QueryableGateway;
 class ApplicationFormGateway extends QueryableGateway
 {
     use TableAware;
-    use TableQueryAware;
 
     private static $tableName = 'gibbonApplicationForm';
     private static $primaryKey = 'gibbonApplicationFormID';

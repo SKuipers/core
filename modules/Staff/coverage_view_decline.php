@@ -19,12 +19,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
-use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Module\Staff\View\StaffCard;
-use Gibbon\Domain\User\UserGateway;
-use Gibbon\Module\Staff\Tables\CoverageDates;
 use Gibbon\Module\Staff\View\CoverageView;
+use Gibbon\Module\Staff\Tables\CoverageDates;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_decline.php') == false) {
     // Access denied
@@ -36,9 +34,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_declin
         ->add(__('Decline Coverage Request'));
 
     if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, [
-            'success1' => __('Your request was completed successfully.')
-        ]);
+        returnProcess($guid, $_GET['return'], null);
     }
 
     $gibbonStaffCoverageID = $_GET['gibbonStaffCoverageID'] ?? '';

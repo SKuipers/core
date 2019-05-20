@@ -24,7 +24,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_dele
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
-    //Proceed!
+    // Proceed!
     $gibbonStaffCoverageID = $_GET['gibbonStaffCoverageID'] ?? '';
     $staffCoverageGateway = $container->get(StaffCoverageGateway::class);
     

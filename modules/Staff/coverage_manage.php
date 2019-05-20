@@ -18,7 +18,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
-use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
@@ -26,9 +25,7 @@ use Gibbon\Module\Staff\Tables\AbsenceFormats;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage.php') == false) {
     // Access denied
-    echo "<div class='error'>";
-    echo __('You do not have access to this action.');
-    echo '</div>';
+    $page->addError(__('You do not have access to this action.'));
 } else {
     // Proceed!
     $page->breadcrumbs->add(__('Manage Staff Coverage'));
@@ -43,6 +40,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage.php'
     $urgencyThreshold = getSettingByScope($connection2, 'Staff', 'urgencyThreshold');
     $StaffCoverageGateway = $container->get(StaffCoverageGateway::class);
     
+    // SEARCH FORM
     $form = Form::create('filter', $_SESSION[$guid]['absoluteURL'].'/index.php', 'get');
     $form->setTitle(__('Filter'));
     $form->setClass('noIntBorder fullWidth');

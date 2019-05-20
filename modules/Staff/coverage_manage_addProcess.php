@@ -17,11 +17,10 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Services\Format;
-use Gibbon\Data\BackgroundProcess;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Domain\Staff\SubstituteGateway;
 use Gibbon\Domain\Staff\StaffCoverageDateGateway;
+use Gibbon\Module\Staff\CoverageNotificationProcess;
 
 require_once '../../gibbon.php';
 
@@ -59,7 +58,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_add.
     }
 
     // Validate the database relationships exist
-    $substitute = $container->get(SubstituteGateway::class)->selectBy(['gibbonPersonID' => $data['gibbonPersonIDCoverage']])->fetch();
+    $substitute = $container->get(SubstituteGateway::class)->selectBy(['gibbonPersonID'=> $data['gibbonPersonIDCoverage']])->fetch();
 
     if (empty($substitute)) {
         $URL .= '&return=error2';
@@ -127,8 +126,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_add.
 
     // Send messages (Mail, SMS) to relevant users
     if ($data['status'] == 'Requested') {
-        $process = new BackgroundProcess($gibbon->session->get('absolutePath').'/uploads/background');
-        $process->startProcess('staffNotification', __DIR__.'/notification_backgroundProcess.php', ['CoverageIndividual', $gibbonStaffCoverageID]);
+        $process = $container->get(CoverageNotificationProcess::class);
+        $process->startIndividualRequest($gibbonStaffCoverageID);
     }
     
     $URL .= $partialFail
@@ -136,5 +135,4 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_add.
         : "&return=success0";
 
     header("Location: {$URL}");
-    exit;
 }

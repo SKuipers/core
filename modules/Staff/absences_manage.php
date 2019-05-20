@@ -24,15 +24,12 @@ use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 use Gibbon\Module\Staff\Tables\AbsenceFormats;
-use Gibbon\Domain\System\SettingGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php') == false) {
-    //Acess denied
-    echo "<div class='error'>";
-    echo __('You do not have access to this action.');
-    echo '</div>';
+    // Access denied
+    $page->addError(__('You do not have access to this action.'));
 } else {
-    //Proceed!
+    // Proceed!
     $page->breadcrumbs->add(__('Manage Staff Absences'));
 
     if (isset($_GET['return'])) {
@@ -120,19 +117,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage.php'
             ->append('&nbsp;|&nbsp;');
     }
 
-    $calendarID = $container->get(SettingGateway::class)->getSettingByScope('Staff', 'absenceGoogleCalendarID');
-    if (!empty($calendarID)) {
-        $table->addHeaderAction('sync', __('Sync with Google'))
-            ->setIcon('refresh')
-            ->setURL('/modules/Staff/absences_manage_syncProcess.php')
-            ->addConfirmation(__('Are you sure you wish to process this action? It cannot be undone.'))
-            ->displayLabel()
-            ->directLink()
-            ->append('&nbsp;|&nbsp;');
-    }
-
     $table->addHeaderAction('add', __('New Absence'))
-        ->setURL('/modules/Staff/absences_manage_add.php')
+        ->setURL('/modules/Staff/absences_add.php')
         ->addParam('gibbonPersonID', '')
         ->addParam('date', $dateStart)
         ->displayLabel();

@@ -17,15 +17,15 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Services\Format;
-use Gibbon\Tables\Prefab\ReportTable;
 use Gibbon\Forms\Form;
 use Gibbon\Domain\DataSet;
-use Gibbon\Domain\Staff\StaffAbsenceGateway;
-use Gibbon\Domain\School\SchoolYearGateway;
-use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
 use Gibbon\Tables\DataTable;
+use Gibbon\Tables\Prefab\ReportTable;
+use Gibbon\Domain\School\SchoolYearGateway;
+use Gibbon\Domain\Staff\StaffAbsenceGateway;
+use Gibbon\Domain\Staff\StaffAbsenceTypeGateway;
 use Gibbon\Domain\Staff\StaffGateway;
+use Gibbon\Services\Format;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_summary.php') == false) {
     // Access denied

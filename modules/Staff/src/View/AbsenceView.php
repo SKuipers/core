@@ -24,7 +24,7 @@ use Gibbon\Services\Format;
 use Gibbon\Domain\User\UserGateway;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
-
+use Gibbon\Module\Staff\View\CoverageView;
 
 /**
  * AbsenceView
@@ -37,15 +37,15 @@ use Gibbon\Domain\Staff\StaffCoverageGateway;
 class AbsenceView
 {
     protected $staffAbsenceGateway;
-    protected $staffCoverageGateway;
     protected $userGateway;
+    protected $staffCoverageGateway;
     protected $coverageView;
 
     public function __construct(StaffAbsenceGateway $staffAbsenceGateway, StaffCoverageGateway $staffCoverageGateway, UserGateway $userGateway, CoverageView $coverageView)
     {
         $this->staffAbsenceGateway = $staffAbsenceGateway;
-        $this->staffCoverageGateway = $staffCoverageGateway;
         $this->userGateway = $userGateway;
+        $this->staffCoverageGateway = $staffCoverageGateway;
         $this->coverageView = $coverageView;
     }
 

@@ -19,14 +19,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
-use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\SubstituteGateway;
+use Gibbon\Services\Format;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_add.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
-    //Proceed!
+    // Proceed!
     $page->breadcrumbs
         ->add(__('Manage Staff Coverage'), 'coverage_manage.php')
         ->add(__('Add Coverage'));
@@ -67,11 +67,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_add.
     $date = $_GET['date'] ?? '';
     $row = $form->addRow();
         $row->addLabel('dateStart', __('Start Date'));
-        $row->addDate('dateStart')->to('dateEnd')->isRequired()->setValue($date);
+        $row->addDate('dateStart')->chainedTo('dateEnd')->isRequired()->setValue($date);
 
     $row = $form->addRow();
         $row->addLabel('dateEnd', __('End Date'));
-        $row->addDate('dateEnd')->from('dateStart')->isRequired()->setValue($date);
+        $row->addDate('dateEnd')->chainedFrom('dateStart')->isRequired()->setValue($date);
 
     $row = $form->addRow();
         $row->addLabel('allDay', __('When'));
@@ -128,9 +128,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_add.
         $row->addLabel('notesStatus', __('Comment'))->description(__('This message is shared with substitutes, and is also visible to users who manage staff coverage.'));
         $row->addTextArea('notesStatus')->setRows(3);
 
-    $row = $form->addRow();
-        $row->addFooter();
-        $row->addSubmit();
+    $row = $form->addRow()->addClass('coverageSubmit');
+        $row->addSubmit()->prepend('<div class="coverageNoSubmit inline text-right text-xs text-gray-600 italic pr-1">'.__('Select a substitute and at least one date before continuing.').'</div>');
 
     echo $form->getOutput();
 }
@@ -151,7 +150,24 @@ $(document).ready(function() {
             $('.bulkActionForm').find('.bulkCheckbox :checkbox').each(function () {
                 $(this).closest('tr').toggleClass('selected', $(this).prop('checked'));
             });
+
+            $('#gibbonPersonID').trigger('change');
         });
     });
+
+    // Individual requests: Prevent clicking submit until at least one date has been selected
+    $(document).on('change', '#gibbonPersonID, input[name="requestDates[]"]', function() {
+        var checked = $('input[name="requestDates[]"]:checked');
+
+        if (checked.length <= 0) {
+            $('.coverageNoSubmit').show();
+            $('.coverageSubmit :input').prop('disabled', true);
+        } else {
+            $('.coverageNoSubmit').hide();
+            $('.coverageSubmit :input').prop('disabled', false);
+        }
+    });
+    
+    $('#gibbonPersonID').trigger('change');
 }) ;
 </script>

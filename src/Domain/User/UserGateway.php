@@ -22,7 +22,6 @@ namespace Gibbon\Domain\User;
 use Gibbon\Domain\QueryCriteria;
 use Gibbon\Domain\QueryableGateway;
 use Gibbon\Domain\Traits\TableAware;
-use Gibbon\Domain\Traits\TableQueryAware;
 use Gibbon\Domain\Traits\SharedUserLogic;
 
 /**
@@ -34,7 +33,6 @@ use Gibbon\Domain\Traits\SharedUserLogic;
 class UserGateway extends QueryableGateway
 {
     use TableAware;
-    use TableQueryAware;
     use SharedUserLogic;
 
     private static $tableName = 'gibbonPerson';

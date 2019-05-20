@@ -17,13 +17,13 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Data\BackgroundProcess;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
-use Gibbon\Module\Staff\AbsenceCalendarSync;
+use Gibbon\Module\Staff\AbsenceNotificationProcess;
 
 require_once '../../gibbon.php';
 
 $gibbonStaffAbsenceID = $_POST['gibbonStaffAbsenceID'] ?? '';
+$status = $_POST['status'] ?? '';
 
 $URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/absences_approval_action.php&gibbonStaffAbsenceID='.$gibbonStaffAbsenceID;
 $URLSuccess = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/absences_approval.php';
@@ -31,7 +31,7 @@ $URLSuccess = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/absen
 if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_approval_action.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
-} elseif (empty($gibbonStaffAbsenceID)) {
+} elseif (empty($gibbonStaffAbsenceID) || empty($status)) {
     $URL .= '&return=error1';
     header("Location: {$URL}");
     exit;
@@ -46,16 +46,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_approval_ac
         exit;
     }
 
-    if ($absence['gibbonPersonIDApproval'] != $_SESSION[$guid]['gibbonPersonID']) {
-        $URL .= '&return=error0';
+    if ($absence['status'] != 'Pending Approval') {
+        $URL .= '&return=error1';
         header("Location: {$URL}");
         exit;
     }
 
-    $status = $_POST['status'] ?? '';
-
-    if (empty($status)) {
-        $URL .= '&return=error2';
+    if ($absence['gibbonPersonIDApproval'] != $_SESSION[$guid]['gibbonPersonID']) {
+        $URL .= '&return=error0';
         header("Location: {$URL}");
         exit;
     }
@@ -68,23 +66,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_approval_ac
 
     $updated = $staffAbsenceGateway->update($gibbonStaffAbsenceID, $data);
 
-    if (empty($updated)) {
+    if ($updated == false) {
         $URL .= '&return=error2';
         header("Location: {$URL}");
         exit;
     }
 
     // Start a background process for notifications
-    $process = new BackgroundProcess($gibbon->session->get('absolutePath').'/uploads/background');
-    $process->startProcess('staffNotification', __DIR__.'/notification_backgroundProcess.php', ['AbsenceApproval', $gibbonStaffAbsenceID]);
+    $process = $container->get(AbsenceNotificationProcess::class);
+    $process->startAbsenceApproval($gibbonStaffAbsenceID);
 
     if ($status == 'Approved') {
-        $process->startProcess('staffNotification', __DIR__.'/notification_backgroundProcess.php', ['NewAbsence', $gibbonStaffAbsenceID]);
-
-        // Create a Google Calendar event
-        if ($calendarSync = $container->get(AbsenceCalendarSync::class)) {
-            $calendarSync->insertCalendarAbsence($gibbonStaffAbsenceID);
-        }
+        $process->startNewAbsence($gibbonStaffAbsenceID);
     }
 
     $URLSuccess .= '&return=success0';

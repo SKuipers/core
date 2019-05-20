@@ -29,8 +29,6 @@ include '../gibbon.php';
 //Module includes
 require_once '../modules/System Admin/moduleFunctions.php';
 
-$gibbon->session->set('absolutePath', realpath('../'));
-
 // Sanitize the whole $_POST array
 $validator = new Validator();
 $_POST = $validator->sanitize($_POST);
@@ -55,13 +53,20 @@ if (empty($step)) {
     $guid = isset($_POST['guid'])? $_POST['guid'] : '';
     $guid = preg_replace('/[^a-z0-9-]/', '', substr($guid, 0, 36));
 }
+// Use the POSTed GUID in place of "undefined". 
+// Later steps have the guid in the config file but without 
+// a way to store variables relibly prior to that, installation can fail
+$gibbon->session->setGuid($guid); 
+$gibbon->session->set('absolutePath', realpath('../'));
 
 // Generate and save a nonce for forms on this page to use
 $nonce = hash('sha256', substr(mt_rand().date('zWy'), 0, 36));
-$_SESSION[$guid]['nonce'][$step+1] = $nonce;
+$sessionNonce = $gibbon->session->get('nonce', []);
+$sessionNonce[$step+1] = $nonce;
+$gibbon->session->set('nonce', $sessionNonce);
 
 // Deal with non-existent stringReplacement session
-$_SESSION[$guid]['stringReplacement'] = array();
+$gibbon->session->set('stringReplacement', []);
 
 $page = new Page($container->get('twig'), [
     'title'   => __('Gibbon Installer'),
@@ -96,21 +101,21 @@ $isConfigValid = true;
 $isNonceValid = true;
 $canInstall = true;
 
+// Check session for the presence of a valid nonce; if found, remove it so it's used only once.
+if ($step >= 1) {
+    $checkNonce = isset($_POST['nonce'])? $_POST['nonce'] : '';
+    if (!empty($sessionNonce[$step]) && $sessionNonce[$step] == $checkNonce) {
+        unset($sessionNonce[$step]);
+    } else {
+        $isNonceValid = false;
+    }
+}
+
 // Check config values for ' " \ / chars which will cause errors in config.php
 $pattern = '/[\'"\/\\\\]/';
 if (preg_match($pattern, $databaseServer) == true || preg_match($pattern, $databaseName) == true ||
     preg_match($pattern, $databaseUsername) == true || preg_match($pattern, $databasePassword) == true) {
     $isConfigValid = false;
-}
-
-// Check session for the presence of a valid nonce; if found, remove it so it's used only once
-if ($step >= 1) {
-    $checkNonce = isset($_POST['nonce'])? $_POST['nonce'] : '';
-    if (!empty($_SESSION[$guid]['nonce'][$step]) && $_SESSION[$guid]['nonce'][$step] == $checkNonce) {
-        unset($_SESSION[$guid]['nonce'][$step]);
-    } else {
-        $isNonceValid = false;
-    }
 }
 
 // Check for the presence of a config file (if it hasn't been created yet)
@@ -259,7 +264,7 @@ if ($canInstall == false) {
 
     //Check for db values
     if (!empty($databaseServer) && !empty($databaseName) && !empty($databaseUsername) && !empty($demoData)) {
-        //Estabish db connection without database name
+        //Establish db connection without database name
 
         $config = compact('databaseServer', 'databaseUsername', 'databasePassword');
         $mysqlConnector = new MySqlConnector();
@@ -277,38 +282,8 @@ if ($canInstall == false) {
         echo '</div>';
     } else {
         //Set up config.php
-        $config = '';
-        $config .= "<?php\n";
-        $config .= "/*\n";
-        $config .= "Gibbon, Flexible & Open School System\n";
-        $config .= "Copyright (C) 2010, Ross Parker\n";
-        $config .= "\n";
-        $config .= "This program is free software: you can redistribute it and/or modify\n";
-        $config .= "it under the terms of the GNU General Public License as published by\n";
-        $config .= "the Free Software Foundation, either version 3 of the License, or\n";
-        $config .= "(at your option) any later version.\n";
-        $config .= "\n";
-        $config .= "This program is distributed in the hope that it will be useful,\n";
-        $config .= "but WITHOUT ANY WARRANTY; without even the implied warranty of\n";
-        $config .= "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n";
-        $config .= "GNU General Public License for more details.\n";
-        $config .= "\n";
-        $config .= "You should have received a copy of the GNU General Public License\n";
-        $config .= "along with this program.  If not, see <http://www.gnu.org/licenses/>.\n";
-        $config .= "*/\n";
-        $config .= "\n";
-        $config .= "//Sets database connection information\n";
-        $config .= '$databaseServer="'.$databaseServer."\" ;\n";
-        $config .= '$databaseUsername="'.$databaseUsername."\" ;\n";
-        $config .= "\$databasePassword='".$databasePassword."' ;\n";
-        $config .= '$databaseName="'.$databaseName."\" ;\n";
-        $config .= "\n";
-        $config .= "//Sets globally unique id, to allow multiple installs on the server server.\n";
-        $config .= '$guid="'.$guid."\" ;\n";
-        $config .= "\n";
-        $config .= "//Sets system-wide caching factor, used to baalance performance and freshness. Value represents number of page loads between cache refresh. Must be posititve integer. 1 means no caching.\n";
-        $config .= "\$caching=10 ;\n";
-        $config .= "?>\n";
+        $configData = compact('databaseServer', 'databaseUsername', 'databasePassword', 'databaseName', 'guid');
+        $config = $page->fetchFromTemplate('installer/config.twig.html', $configData);
 
         //Write config
         $fp = fopen('../config.php', 'wb');
@@ -934,4 +909,4 @@ $page->addData([
     'sidebar'         => true
 ]);
 
-echo $page->render('install.twig.html');
+echo $page->render('installer/install.twig.html');

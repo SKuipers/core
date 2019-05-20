@@ -19,18 +19,16 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
-use Gibbon\Services\Format;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Module\Staff\View\StaffCard;
-use Gibbon\Domain\User\UserGateway;
-use Gibbon\Module\Staff\Tables\CoverageDates;
 use Gibbon\Module\Staff\View\CoverageView;
+use Gibbon\Module\Staff\Tables\CoverageDates;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_cancel.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
-    //Proceed!
+    // Proceed!
     $page->breadcrumbs
         ->add(__('My Coverage'), 'coverage_my.php')
         ->add(__('Cancel Coverage Request'));
@@ -83,7 +81,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_cancel
 
     $form->addRow()->addHeading(__('Cancel Coverage Request'));
 
-    if ($coverage['type'] == 'Individual') {
+    if ($coverage['requestType'] == 'Individual') {
         $row = $form->addRow();
             $row->addLabel('notesStatus', __('Reply'));
             $row->addTextArea('notesStatus')->setRows(3);

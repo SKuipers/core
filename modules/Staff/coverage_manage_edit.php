@@ -21,16 +21,16 @@ use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
+use Gibbon\Domain\User\UserGateway;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Domain\Staff\StaffCoverageDateGateway;
-use Gibbon\Domain\User\UserGateway;
 use Gibbon\Module\Staff\View\StaffCard;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_edit.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
-    //Proceed!
+    // Proceed!
     $page->breadcrumbs
         ->add(__('Manage Staff Coverage'), 'coverage_manage.php')
         ->add(__('Edit Coverage'));

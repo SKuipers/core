@@ -17,151 +17,79 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Forms\Form;
 use Gibbon\Services\Format;
-use Gibbon\Tables\DataTable;
-use Gibbon\Domain\Students\StudentGateway;
+use Gibbon\UI\Chart\Chart;
+use Gibbon\Tables\Prefab\ReportTable;
+use Gibbon\Domain\IndividualNeeds\INGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/report_graph_overview.php') == false) {
-    //Acess denied
-    echo "<div class='error'>";
-    echo __($guid, 'You do not have access to this action.');
-    echo '</div>';
+    // Access denied
+    $page->addError(__('You do not have access to this action.'));
 } else {
-    //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__($guid, 'Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__($guid, getModuleName($_GET['q']))."</a> > </div><div class='trailEnd'>".__($guid, 'Individual Needs Overview').'</div>';
-    echo '</div>';
+    // Proceed!
+    $viewMode = isset($_REQUEST['format']) ? $_REQUEST['format'] : '';
+    $gibbonYearGroupID = $_GET['gibbonYearGroupID'] ?? '';
 
-    //PLOT DATA
-    echo '<script type="text/javascript" src="'.$_SESSION[$guid]['absoluteURL'].'/lib/Chart.js/2.0/Chart.bundle.min.js"></script>';
+    $onClickURL = $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Individual Needs/';
+    $onClickURL .= !empty($gibbonYearGroupID)? 'in_summary.php&gibbonRollGroupID=' : 'report_graph_overview.php&gibbonYearGroupID=';
 
-    echo '<div style="width:100%">';
-    echo '<div>';
-    echo '<canvas id="canvas"></canvas>';
-    echo '</div>';
-    echo '</div>';
+    // DATA
+    $inGateway = $container->get(INGateway::class);
+    $criteria = $inGateway->newQueryCriteria()
+        ->sortBy(['gibbonYearGroup.sequenceNumber', 'gibbonRollGroup.name'])
+        ->pageSize(0)
+        ->fromPOST();
 
-    $colors = ['153, 102, 255', '255, 99, 132', '54, 162, 235', '255, 206, 86', '75, 192, 192', '255, 159, 64', '152, 221, 95'];
-    $colorCount = count($colors);
+    $inCounts = $inGateway->queryINCountsBySchoolYear($criteria, $_SESSION[$guid]['gibbonSchoolYearID'], $gibbonYearGroupID);
+    $chartData = $inCounts->toArray();
 
-    $gibbonYearGroupID = isset($_GET['gibbonYearGroupID'])? $_GET['gibbonYearGroupID'] : '';
+    if (empty($viewMode)) {
+        $page->breadcrumbs->add(__('Individual Needs Overview'));
+        $page->scripts->add('chart');
 
-    if (!empty($gibbonYearGroupID)) {
-        $data = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'gibbonYearGroupID' => $gibbonYearGroupID);
-        $sql = "SELECT gibbonRollGroup.name as labelName, gibbonRollGroup.gibbonRollGroupID as labelID, COUNT(DISTINCT gibbonStudentEnrolment.gibbonPersonID) as studentCount, COUNT(DISTINCT gibbonINPersonDescriptor.gibbonPersonID) as inCount
-                FROM gibbonStudentEnrolment
-                JOIN gibbonPerson ON (gibbonPerson.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID)
-                JOIN gibbonYearGroup ON (gibbonStudentEnrolment.gibbonYearGroupID=gibbonYearGroup.gibbonYearGroupID)
-                JOIN gibbonRollGroup ON (gibbonStudentEnrolment.gibbonRollGroupID=gibbonRollGroup.gibbonRollGroupID)
-                LEFT JOIN gibbonINPersonDescriptor ON (gibbonINPersonDescriptor.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID)
-                WHERE gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID
-                AND gibbonStudentEnrolment.gibbonYearGroupID=:gibbonYearGroupID
-                AND gibbonPerson.status='Full'
-                GROUP BY gibbonRollGroup.gibbonRollGroupID
-                ORDER BY gibbonYearGroup.sequenceNumber";
-    } else {
-        $data = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID']);
-        $sql = "SELECT gibbonYearGroup.name as labelName, gibbonYearGroup.gibbonYearGroupID as labelID, COUNT(DISTINCT gibbonStudentEnrolment.gibbonPersonID) as studentCount, COUNT(DISTINCT gibbonINPersonDescriptor.gibbonPersonID) as inCount
-                FROM gibbonStudentEnrolment
-                JOIN gibbonPerson ON (gibbonPerson.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID)
-                JOIN gibbonYearGroup ON (gibbonStudentEnrolment.gibbonYearGroupID=gibbonYearGroup.gibbonYearGroupID)
-                LEFT JOIN gibbonINPersonDescriptor ON (gibbonINPersonDescriptor.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID)
-                WHERE gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID
-                AND gibbonPerson.status='Full'
-                GROUP BY gibbonYearGroup.gibbonYearGroupID
-                ORDER BY gibbonYearGroup.sequenceNumber";
+        if (!empty($gibbonYearGroupID)) {
+            echo "<div class='linkTop'>";
+            echo '<a href="'.$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Individual Needs/report_graph_overview.php">'.__('Clear Filters').'</a>';
+            echo '</div>';
+        }
+
+        // SETUP CHART
+        $chart = Chart::create('overview', 'bar');
+        $chart->setLabels(array_column($chartData, 'labelName'));
+        $chart->setMetaData(array_column($chartData, 'labelID'));
+        $chart->setOptions([
+            'tooltips' => [
+                'mode' => 'label',
+            ],
+        ]);
+        
+        $chart->addDataset('total', __('Total Students'))
+            ->setData(array_column($chartData, 'studentCount'));
+
+        $chart->addDataset('in', __('Individual Needs'))
+            ->setData(array_column($chartData, 'inCount'));
+
+        $chart->onClick('function(event, elements) {
+            var index = elements[0]._index;
+            var labelID = elements[0]._chart.config.metadata[index];
+            window.location = "'.$onClickURL.'" + labelID;
+        }');
+
+        // RENDER CHART
+        echo $chart->render();
     }
 
-    
+    $table = ReportTable::createPaginated('inOverview', $criteria)->setViewMode($viewMode, $gibbon->session);
+    $table->setTitle(__('Individual Needs').': '.($gibbonYearGroupID ? __('Roll Group') : __('Year Groups')));
 
-    $chartData = $pdo->select($sql, $data)->fetchAll();
+    $table->addColumn('labelName', $gibbonYearGroupID ? __('Roll Group') : __('Year Groups'))
+        ->sortable(['gibbonYearGroup.sequenceNumber', 'gibbonRollGroup.name'])
+        ->format(function ($inData) use ($onClickURL) {
+            return Format::link($onClickURL.$inData['labelID'], $inData['labelName']);
+        });
 
-    ?>
-    <script>
+    $table->addColumn('studentCount', __('Total Students'));
+    $table->addColumn('inCount', __('Individual Needs'));
 
-    var chartData = {
-
-        labels: [
-            <?php
-                foreach ($chartData as $row) {
-                    echo "'".$row['labelName']."',";
-                }
-            ?>
-        ],
-        datasets: [
-            
-            {
-                label: "Total Students",
-                // backgroundColor: "blue",
-                backgroundColor: "<?php echo 'rgba('.$colors[0].',1)'; ?>",
-                data: [
-                    <?php
-                        foreach ($chartData as $row) {
-                            echo "".$row['studentCount'].",";
-                        }
-                    ?>
-                ]
-            },
-            {
-                label: "Individual Needs",
-                // backgroundColor: "red",
-                backgroundColor: "<?php echo 'rgba('.$colors[1].',1)'; ?>",
-                data: [
-                    <?php
-                        foreach ($chartData as $row) {
-                            echo "".$row['inCount'].",";
-                        }
-                    ?>
-                ]
-            },
-        ],
-
-        ids: [
-            <?php
-                foreach ($chartData as $row) {
-                    echo "'".$row['labelID']."',";
-                }
-            ?>
-        ],
-
-    };
-
-    window.onload = function(){
-        var ctx = document.getElementById("canvas").getContext("2d");
-        var myLineChart = new Chart(ctx, {
-            type: 'bar',
-            data: chartData,
-            options:
-                {
-                    fill: false,
-                    responsive: true,
-                    showTooltips: true,
-                    tooltips: {
-                        mode: 'label',
-                    },
-                    hover: {
-                        mode: 'single',
-                        onHover: function(elements) {
-                            if (elements.length) document.body.style.cursor = 'pointer';
-                            else document.body.style.cursor = 'default';
-                        },
-                    },
-                    onClick: function(event, elements) {
-                        var index = elements[0]._index;
-                        window.location = '<?php 
-                        if (!empty($gibbonYearGroupID)) {
-                            echo $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Individual Needs/in_summary.php&gibbonRollGroupID='; 
-                        } else {
-                            echo $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Individual Needs/report_graph_overview.php&gibbonYearGroupID='; 
-                        }
-                        ?>' + chartData.ids[index];
-                    },
-                }
-            }
-        );
-    }
-    </script>
-    <?php
-    
+    echo $table->render($inCounts);
 }

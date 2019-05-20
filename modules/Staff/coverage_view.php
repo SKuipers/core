@@ -17,11 +17,11 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
-use Gibbon\Domain\Staff\StaffCoverageGateway;
+use Gibbon\Tables\DataTable;
 use Gibbon\Domain\School\SchoolYearGateway;
 use Gibbon\Domain\Staff\SubstituteGateway;
+use Gibbon\Domain\Staff\StaffCoverageGateway;
 use Gibbon\Module\Staff\Tables\AbsenceFormats;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view.php') == false) {
@@ -124,7 +124,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view.php') 
         $allRequestsTable = clone $table;
         $allRequestsTable->setID('allCoverage');
         $allRequestsTable->setTitle(__('All Coverage Requests'));
-        $allRequestsTable->setDescription(__('These requests are open for any available substitute to accept. '));
+        $allRequestsTable->setDescription(__('These requests are open for any available substitute to accept.'));
 
         echo $allRequestsTable->render($allCoverage);
     }

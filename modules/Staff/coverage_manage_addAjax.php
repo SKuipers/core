@@ -19,9 +19,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
-use Gibbon\Domain\Staff\SubstituteGateway;
 use Gibbon\Domain\DataSet;
 use Gibbon\Domain\User\UserGateway;
+use Gibbon\Domain\Staff\SubstituteGateway;
 
 require_once '../../gibbon.php';
 
@@ -44,7 +44,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_add.
     $substituteGateway = $container->get(SubstituteGateway::class);
 
     // DATA TABLE
-    $substitute = $substituteGateway->selectBy(['gibbonPersonID' => $gibbonPersonIDCoverage])->fetch();
+    $substitute = $substituteGateway->selectBy(['gibbonPersonID'=> $gibbonPersonIDCoverage])->fetch();
     $person = $container->get(UserGateway::class)->getByID($gibbonPersonIDCoverage);
     $unavailable = $substituteGateway->selectUnavailableDatesBySub($gibbonPersonIDCoverage)->fetchGrouped();
 
@@ -69,6 +69,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_add.
     $table->setTitle(__('Availability'));
     $table->setDescription('<strong>'.$fullName.'</strong><br/><br/>'.$substitute['details']);
     $table->getRenderer()->addData('class', 'bulkActionForm');
+
+    $table->modifyRows(function ($values, $row) {
+        return $row->addClass('h-10');
+    });
 
     $table->addColumn('dateLabel', __('Date'))
         ->format(Format::using('dateReadable', 'date'));

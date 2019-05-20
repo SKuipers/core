@@ -20,7 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffCoverageDateGateway;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
-use Gibbon\Data\BackgroundProcess;
+use Gibbon\Module\Staff\CoverageNotificationProcess;
 
 require_once '../../gibbon.php';
 
@@ -98,9 +98,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_cancel
     }
 
     // Send messages (Mail, SMS) to relevant users
-    if ($coverage['type'] == 'Individual') {
-        $process = new BackgroundProcess($gibbon->session->get('absolutePath').'/uploads/background');
-        $process->startProcess('staffNotification', __DIR__.'/notification_backgroundProcess.php', ['CoverageCancelled', $gibbonStaffCoverageID]);
+    if ($coverage['requestType'] == 'Individual') {
+        $process = $container->get(CoverageNotificationProcess::class);
+        $process->startCoverageCancelled($gibbonStaffCoverageID);
     }
 
     $URLSuccess .= $partialFail
@@ -108,5 +108,4 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_cancel
         : "&return=success0";
 
     header("Location: {$URLSuccess}");
-    exit;
 }

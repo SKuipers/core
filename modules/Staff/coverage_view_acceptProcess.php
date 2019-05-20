@@ -17,14 +17,11 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Services\Format;
-use Gibbon\Comms\NotificationEvent;
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffCoverageDateGateway;
 use Gibbon\Domain\Staff\StaffCoverageGateway;
-use Gibbon\Data\BackgroundProcess;
 use Gibbon\Domain\Staff\SubstituteGateway;
-
+use Gibbon\Module\Staff\CoverageNotificationProcess;
 
 require_once '../../gibbon.php';
 
@@ -107,13 +104,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_accept
         }
     }
 
-    $process = new BackgroundProcess($gibbon->session->get('absolutePath').'/uploads/background');
-    $process->startProcess('staffNotification', __DIR__.'/notification_backgroundProcess.php', ['CoverageAccepted', $gibbonStaffCoverageID, implode('::', $uncoveredDates)]);
+    // Send messages (Mail, SMS) to relevant users
+    $process = $container->get(CoverageNotificationProcess::class);
+    $process->startCoverageAccepted($gibbonStaffCoverageID, $uncoveredDates);
+
 
     $URLSuccess .= $partialFail
         ? "&return=warning1"
         : "&return=success0";
 
     header("Location: {$URLSuccess}");
-    exit;
 }

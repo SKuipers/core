@@ -19,14 +19,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Domain\Staff\StaffAbsenceGateway;
 use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
-use Gibbon\Module\Staff\AbsenceCalendarSync;
 
 $_POST['address'] = '/modules/Staff/absences_manage.php';
-
-require_once '../../gibbon.php';
-
 $gibbonStaffAbsenceID = $_GET['gibbonStaffAbsenceID'] ?? '';
 $search = $_POST['search'] ?? '';
+
+require_once '../../gibbon.php';
 
 $URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/absences_manage.php&search='.$search;
 
@@ -52,11 +50,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_dele
     $absenceDates = $staffAbsenceDateGateway->selectDatesByAbsence($gibbonStaffAbsenceID)->fetchAll();
     $partialFail = false;
 
-    // Delete the Google Calendar event, if one exists
-    if ($calendarSync = $container->get(AbsenceCalendarSync::class)) {
-        $calendarSync->deleteCalendarAbsence($gibbonStaffAbsenceID);
-    }
-
     // Delete each date first
     foreach ($absenceDates as $log) {
         $partialFail &= $staffAbsenceDateGateway->delete($log['gibbonStaffAbsenceDateID']);
@@ -70,5 +63,4 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_dele
         : '&return=success0';
 
     header("Location: {$URL}");
-    exit;
 }

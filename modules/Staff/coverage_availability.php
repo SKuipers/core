@@ -30,8 +30,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
-    //Proceed!
-    
+    // Proceed!
     if (isActionAccessible($guid, $connection2, '/modules/Staff/substitutes_manage.php')) {
         $page->breadcrumbs
             ->add(__('Manage Substitutes'), 'substitutes_manage.php')
@@ -48,7 +47,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
             $row->addSelectUsers('person')->readonly()->selected($gibbonPersonID);
 
         echo $form->getOutput();
-
     } else {
         $page->breadcrumbs
             ->add(__('My Coverage'), 'coverage_my.php')
@@ -156,11 +154,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_availabilit
     $date = $_GET['date'] ?? '';
     $row = $form->addRow();
         $row->addLabel('dateStart', __('Start Date'));
-        $row->addDate('dateStart')->to('dateEnd')->isRequired()->setValue($date);
+        $row->addDate('dateStart')->chainedTo('dateEnd')->isRequired()->setValue($date);
 
     $row = $form->addRow();
         $row->addLabel('dateEnd', __('End Date'));
-        $row->addDate('dateEnd')->from('dateStart')->setValue($date);
+        $row->addDate('dateEnd')->chainedFrom('dateStart')->setValue($date);
 
     $row = $form->addRow()->addClass('timeOptions');
         $row->addLabel('timeStart', __('Start Time'));
