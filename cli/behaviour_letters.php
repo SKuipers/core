@@ -68,8 +68,17 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
         if ($behaviourLettersLetter1Count != '' and $behaviourLettersLetter1Text != '' and $behaviourLettersLetter2Count != '' and $behaviourLettersLetter2Text != '' and $behaviourLettersLetter3Count != '' and $behaviourLettersLetter3Text != '' and is_numeric($behaviourLettersLetter1Count) and is_numeric($behaviourLettersLetter2Count) and is_numeric($behaviourLettersLetter3Count)) {
             //SCAN THROUGH ALL STUDENTS
             try {
-                $data = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID']);
-                $sql = "SELECT gibbonPerson.gibbonPersonID, preferredName, surname, gibbonRollGroup.gibbonRollGroupID, gibbonRollGroup.name AS rollGroup, 'Student' AS role, gibbonPersonIDTutor, gibbonPersonIDTutor2, gibbonPersonIDTutor3 FROM gibbonPerson, gibbonStudentEnrolment, gibbonRollGroup WHERE gibbonPerson.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID AND gibbonStudentEnrolment.gibbonRollGroupID=gibbonRollGroup.gibbonRollGroupID AND status='Full' AND (dateStart IS NULL OR dateStart<='".date('Y-m-d')."') AND (dateEnd IS NULL  OR dateEnd>='".date('Y-m-d')."') AND gibbonRollGroup.gibbonSchoolYearID=:gibbonSchoolYearID ORDER BY surname, preferredName";
+                $data = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'today' => date('Y-m-d'));
+                $sql = "SELECT gibbonPerson.gibbonPersonID, preferredName, surname, gibbonRollGroup.gibbonRollGroupID, gibbonRollGroup.name AS rollGroup, 'Student' AS role, gibbonPersonIDTutor, gibbonPersonIDTutor2, gibbonPersonIDTutor3 
+                        FROM gibbonPerson
+                        JOIN gibbonStudentEnrolment ON (gibbonPerson.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID)
+                        JOIN gibbonRollGroup ON (gibbonStudentEnrolment.gibbonRollGroupID=gibbonRollGroup.gibbonRollGroupID)
+                        JOIN gibbonYearGroup ON (gibbonStudentEnrolment.gibbonYearGroupID=gibbonYearGroup.gibbonYearGroupID)
+                        WHERE gibbonPerson.status='Full' AND (dateStart IS NULL OR dateStart<=:today) AND (dateEnd IS NULL  OR dateEnd>=:today) 
+                        AND gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID 
+                        AND (gibbonYearGroup.nameShort = 'G7' OR gibbonYearGroup.nameShort = 'G8' OR gibbonYearGroup.nameShort = 'G9' 
+                            OR gibbonYearGroup.nameShort = 'G10' OR gibbonYearGroup.nameShort = 'G11' OR gibbonYearGroup.nameShort = 'G12')
+                        ORDER BY gibbonPerson.surname, gibbonPerson.preferredName";
                 $result = $connection2->prepare($sql);
                 $result->execute($data);
             } catch (PDOException $e) {
