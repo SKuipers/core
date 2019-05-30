@@ -125,8 +125,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/in_edit.p
                 $form->setClass('blank fullWidth');
                 $form->addHiddenValue('address', $_SESSION[$guid]['address']);
 
-                $col = $form->addRow()->addColumn()->addClass('inline right');
-                    $col->addLabel('gibbonINArchiveID', __('Archived Plans'));
+                $col = $form->addRow()->addColumn()->addClass('flex justify-end items-center');
+                    $col->addLabel('gibbonINArchiveID', __('Archived Plans'))->addClass('mr-1');
                     $col->addSelect('gibbonINArchiveID')
                         ->fromArray(array('' => __('Current Plan')))
                         ->fromArray($archiveOptions)
@@ -220,12 +220,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/in_edit.p
                 $table = $form->addRow()->addTable()->setClass('smallIntBorder fullWidth');
 
                 $row = $table->addRow();
-                    $row->addLabel('staff', __('Staff'));
-                    $row->addSelectStaff('staff')->selectMultiple();
+                    $row->addLabel('staff', __('Staff'))->addClass('w-48');
+                    $row->addSelectStaff('staff')->selectMultiple()->addClass('w-full sm:max-w-xs');
 
                 $row = $table->addRow();
                     $row->addLabel('comment', __('Comment'));
-                    $row->addTextArea('comment')->setRows(4);
+                    $row->addTextArea('comment')->setRows(4)->addClass('w-full sm:max-w-xs');
             }
 
             // DISPLAY AND EDIT IEP
