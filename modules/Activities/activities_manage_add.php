@@ -49,7 +49,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
         echo '</div>';
 	}
 
-    $search = isset($_GET['search'])? $_GET['search'] : null;
+    $search = $_GET['search'] ?? null;
     
     $activityGateway = $container->get(ActivityGateway::class);
 

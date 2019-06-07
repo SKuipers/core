@@ -79,9 +79,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
             $countChild = 0;
             if ($roleCategory == 'Parent' and $highestAction == 'View Activities_studentRegisterByParent') {
                 
-                if (isset($_GET['gibbonPersonID'])) {
-                    $gibbonPersonID = $_GET['gibbonPersonID'];
-                }
+                $gibbonPersonID = $_GET['gibbonPersonID'] ?? null;
                 try {
                     $data = array('gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID']);
                     $sql = "SELECT * FROM gibbonFamilyAdult WHERE gibbonPersonID=:gibbonPersonID AND childDataAccess='Y'";
@@ -130,7 +128,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
             echo __('Filter & Search');
             echo '</h2>';
 
-            $search = isset($_GET['search'])? $_GET['search'] : null;
+            $search = $_GET['search'] ?? '';
 
             $form = Form::create('searchForm', $_SESSION[$guid]['absoluteURL'].'/index.php','get');
             $form->setClass('noIntBorder fullWidth');
@@ -157,10 +155,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
             echo '</h2>';
 
             //Set pagination variable
-            $page = 1;
-            if (isset($_GET['page'])) {
-                $page = $_GET['page'];
-            }
+            $page = $_GET['page'] ?? 1;
+            
             if ((!is_numeric($page)) or $page < 1) {
                 $page = 1;
             }
