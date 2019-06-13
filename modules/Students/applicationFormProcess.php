@@ -715,18 +715,19 @@ if ($proceed == false) {
                 if ($applicationFormRefereeLink != '' and $referenceEmail != '' and $_SESSION[$guid]['organisationAdmissionsName'] != '' and $_SESSION[$guid]['organisationAdmissionsEmail'] != '') {
                     //Prep message
                     $subject = __('Request For Reference');
-                    $body = sprintf(__('To whom it may concern,%4$sThis email is being sent in relation to the application of a current or former student of your school: %1$s.%4$sIn assessing their application for our school, we would like to enlist your help in completing the following reference form: %2$s.<br/><br/>Please feel free to contact me, should you have any questions in regard to this matter.%4$sRegards,%4$s%3$s'), $officialName, "<a href='$applicationFormRefereeLink' target='_blank'>$applicationFormRefereeLink</a>", $_SESSION[$guid]['organisationAdmissionsName'], '<br/><br/>');
-                    $body .= "<p style='font-style: italic;'>".sprintf(__('Email sent via %1$s at %2$s.'), $_SESSION[$guid]['systemName'], $_SESSION[$guid]['organisationName']).'</p>';
-                    $bodyPlain = emailBodyConvert($body);
+                    $body = sprintf(__('To whom it may concern,%4$sThis email is being sent in relation to the application of a current or former student of your school: %1$s.%4$sIn assessing their application for our school, we would like to enlist your help in completing the following reference form: %2$s.<br/><br/>To complete this form please print, fill out and sign the reference form and reply to this e-mail with the attached filled form.<br/><br/>Please feel free to contact us, should you have any questions in regard to this matter.%4$sRegards,%4$s%3$s'), $officialName, "<a href='$applicationFormRefereeLink' target='_blank'>$applicationFormRefereeLink</a>", $_SESSION[$guid]['organisationAdmissionsName'], '<br/><br/>');
+                    
                     $mail = $container->get(Mailer::class);
                     $mail->SetFrom($_SESSION[$guid]['organisationAdmissionsEmail'], $_SESSION[$guid]['organisationAdmissionsName']);
+                    $mail->AddReplyTo($_SESSION[$guid]['organisationAdmissionsEmail'], $_SESSION[$guid]['organisationAdmissionsName']);
                     $mail->AddAddress($referenceEmail);
-                    $mail->CharSet = 'UTF-8';
-                    $mail->Encoding = 'base64';
-                    $mail->IsHTML(true);
+
                     $mail->Subject = $subject;
-                    $mail->Body = $body;
-                    $mail->AltBody = $bodyPlain;
+                    $mail->renderBody('mail/email.twig.html', [
+                        'title'  => $subject,
+                        'body'   => $body
+                    ]);
+
                     $mail->Send();
                 }
 
@@ -734,22 +735,24 @@ if ($proceed == false) {
 
                 //Notify parent 1 of application status
                 if (!empty($parent1email) && !$skipEmailNotification) {
+                    $subject = sprintf(__('%1$s Application Form Confirmation'), $_SESSION[$guid]['organisationName']);
                     $body = sprintf(__('Dear Parent%1$sThank you for applying for a student place at %2$s.'), '<br/><br/>', $_SESSION[$guid]['organisationName']).' ';
                     $body .= __('Your application was successfully submitted. Our admissions team will review your application and be in touch in due course.').'<br/><br/>';
                     $body .= __('You may continue submitting applications for siblings with the form below and they will be linked to your family data.').'<br/><br/>';
                     $body .= "<a href='{$URL}&id={$secureAI}'>{$URL}&id={$secureAI}</a><br/><br/>";
                     $body .= sprintf(__('In the meantime, should you have any questions please contact %1$s at %2$s.'), $_SESSION[$guid]['organisationAdmissionsName'], $_SESSION[$guid]['organisationAdmissionsEmail']).'<br/><br/>';
-                    $body .= "<p style='font-style: italic;'>".sprintf(__('Email sent via %1$s at %2$s.'), $_SESSION[$guid]['systemName'], $_SESSION[$guid]['organisationName']).'</p>';
-                    $bodyPlain = emailBodyConvert($body);
+                    
                     $mail = $container->get(Mailer::class);
                     $mail->SetFrom($_SESSION[$guid]['organisationAdmissionsEmail'], $_SESSION[$guid]['organisationAdmissionsName']);
+                    $mail->AddReplyTo($_SESSION[$guid]['organisationAdmissionsEmail'], $_SESSION[$guid]['organisationAdmissionsName']);
                     $mail->AddAddress($parent1email);
-                    $mail->CharSet = 'UTF-8';
-                    $mail->Encoding = 'base64';
-                    $mail->IsHTML(true);
-                    $mail->Subject = sprintf(__('%1$s Application Form Confirmation'), $_SESSION[$guid]['organisationName']);
-                    $mail->Body = $body;
-                    $mail->AltBody = $bodyPlain;
+
+                    $mail->Subject = $subject;
+                    $mail->renderBody('mail/email.twig.html', [
+                        'title'  => $subject,
+                        'body'   => $body
+                    ]);
+
                     $mail->Send();
                 }
 
