@@ -210,6 +210,9 @@ table th {
     background-color: #ebebeb;
     text-align: left;
 }
+table th small {
+    font-weight: normal;
+}
 table .heading td:not(:first-child) {
     border-left: 0px;
 }
