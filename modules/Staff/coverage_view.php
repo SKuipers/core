@@ -111,7 +111,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view.php') 
             });
     }
 
-    if ($myCoverage->getResultCount() > 0) {
+    if (!empty($substitute) && $myCoverage->getResultCount() > 0) {
         $myRequestsTable = clone $table;
         $myRequestsTable->setID('myCoverage');
         $myRequestsTable->setTitle(__('Personal Coverage Requests'));
