@@ -145,10 +145,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
         // All substitute types are selected by default.
         $allSubsTypes = $container->get(SettingGateway::class)->getSettingByScope('Staff', 'substituteTypes');
         $allSubsTypes = array_filter(array_map('trim', explode(',', $allSubsTypes)));
+        
+        // Pre-check internal sub if there are any available, otherwise check external sub
+        $internalSubCount = $countTypes['Internal Sub'] ?? 0;
+        $subTypeChecked = $internalSubCount > 0 ? 'Internal Sub' : 'External Sub';
+
         if (count($allSubsTypes) > 1) {
             $row = $form->addRow()->addClass('broadcastOptions');
             $row->addLabel('substituteTypes', __('Substitute Types'));
-            $row->addCheckbox('substituteTypes')->fromArray($availableSubsByType)->checkAll()->wrap('<div class="standardWidth floatRight">', '</div>');
+            $row->addCheckbox('substituteTypes')->fromArray($availableSubsByType)->checked($subTypeChecked)->wrap('<div class="standardWidth floatRight">', '</div>');
         }
     } else {
         $row->addAlert(__("There are no substitutes currently available for this time period. You should still send a request, as substitute availability may change, but you cannot select a specific substitute at this time. A notification will be sent to administration."), 'warning');
