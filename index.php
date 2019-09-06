@@ -255,6 +255,7 @@ $javascriptConfig = [
     'config' => [
         'datepicker' => [
             'locale' => $datepickerLocale,
+            'dateFormat' => str_replace('yyyy', 'yy', $session->get('i18n')['dateFormat']),
         ],
         'thickbox' => [
             'pathToImage' => $session->get('absoluteURL').'/lib/thickbox/loadingAnimation.gif',
@@ -291,12 +292,15 @@ $page->scripts->addMultiple([
 $page->scripts->addMultiple([
     'jquery-latex'    => 'lib/jquery-jslatex/jquery.jslatex.js',
     'jquery-form'     => 'lib/jquery-form/jquery.form.js',
-    //This sets the default for en-US, or changes for none en-US
-    'jquery-date'     => $datepickerLocale === 'en-US' ? '' : 'lib/jquery-ui/i18n/jquery.ui.datepicker-'.$datepickerLocale.'.js',
     'jquery-autosize' => 'lib/jquery-autosize/jquery.autosize.min.js',
     'jquery-timeout'  => 'lib/jquery-sessionTimeout/jquery.sessionTimeout.min.js',
     'jquery-token'    => 'lib/jquery-tokeninput/src/jquery.tokeninput.js',
 ], ['context' => 'foot']);
+
+//This sets the default for en-US, or changes for none en-US
+if($datepickerLocale !== 'en-US'){
+    $page->scripts->add('jquery-date', 'lib/jquery-ui/i18n/jquery.ui.datepicker-'.$datepickerLocale.'.js');
+}
 
 // Set page scripts: foot - misc
 $thickboxInline = 'var tb_pathToImage="'.$session->get('absoluteURL').'/lib/thickbox/loadingAnimation.gif";';

@@ -904,7 +904,15 @@ UPDATE `gibbonAction` SET category='User Settings' WHERE name='Data Updater Sett
 UPDATE `gibbonAction` SET name='Manage Custom Fields' WHERE name='Manage User Custom Fields' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='User Admin');end
 ";
 
+//v18.0.01
+++$count;
+$sql[$count][0] = '18.0.01';
+$sql[$count][1] = "";
+
 //v19.0.00
 ++$count;
 $sql[$count][0] = '19.0.00';
-$sql[$count][1] = "";
+$sql[$count][1] = "
+UPDATE `gibboni18n` SET dateFormatRegEx = '/^(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\\d\\d$/i' WHERE gibboni18n.code = 'pl_PL';end
+UPDATE `gibboni18n` SET dateFormatRegEx = '/^(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\\\d\\\d$/i' WHERE gibboni18n.code = 'pl_PL';end
+";

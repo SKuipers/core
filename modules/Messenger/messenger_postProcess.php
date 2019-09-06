@@ -19,6 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Contracts\Comms\Mailer;
 use Gibbon\Contracts\Comms\SMS;
+use Gibbon\Services\Format;
 
 include '../../gibbon.php';
 
@@ -1722,9 +1723,9 @@ else {
                                     catch(PDOException $e) { }
                                     while ($rowSMS=$resultSMS->fetch()) {
 										$countryCodeTemp = $countryCode;
-	  									  if ($rowEmail["countryCode"]=="")
-	  										  $countryCodeTemp = $rowEmail["countryCode"];
-	  									  $report = reportAdd($report, $emailReceipt, $rowEmail['gibbonPersonID'], 'Role', $t, 'Attendance', $countryCodeTemp.$rowEmail["phone"]);
+	  									  if ($rowSMS["countryCode"]=="")
+	  										  $countryCodeTemp = $rowSMS["countryCode"];
+	  									  $report = reportAdd($report, $emailReceipt, $rowSMS['gibbonPersonID'], 'Attendance', $t, 'SMS', $countryCodeTemp.$rowSMS["phone"]);
                                     }
                                   }
                                 }
@@ -1744,9 +1745,9 @@ else {
                                 catch(PDOException $e) { }
                                 while ($rowSMS=$resultSMS->fetch()) {
 									$countryCodeTemp = $countryCode;
-	   								 if ($rowEmail["countryCode"]=="")
-	   									 $countryCodeTemp = $rowEmail["countryCode"];
-	   								 $report = reportAdd($report, $emailReceipt, $rowEmail['gibbonPersonID'], 'Attendance', $t, 'SMS', $countryCodeTemp.$rowEmail["phone"]);
+	   								 if ($rowSMS["countryCode"]=="")
+	   									 $countryCodeTemp = $rowSMS["countryCode"];
+	   								 $report = reportAdd($report, $emailReceipt, $rowSMS['gibbonPersonID'], 'Attendance', $t, 'SMS', $countryCodeTemp.$rowSMS["phone"]);
                                 }
                               }
                             } //END SMS
@@ -2045,7 +2046,7 @@ else {
                         $mail->AddBCC($recipient, '');
                     }
 
-                    $sender = formatName('', $_SESSION[$guid]['preferredName'], $_SESSION[$guid]['surname'], 'Staff');
+                    $sender = Format::name('', $_SESSION[$guid]['preferredName'], $_SESSION[$guid]['surname'], 'Staff');
                     $date = dateConvertBack($guid, date('Y-m-d')).' '.date('H:i:s');
 
                     $mail->renderBody('mail/email.twig.html', [

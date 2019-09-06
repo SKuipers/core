@@ -1294,7 +1294,7 @@ function getSystemSettings($guid, $connection2)
     }
     if ($result->rowCount() == 1) {
         $row = $result->fetch();
-        $_SESSION[$guid]['organisationAdministratorName'] = formatName('', $row['preferredName'], $row['surname'], 'Staff', false, true);
+        $_SESSION[$guid]['organisationAdministratorName'] = Format::name('', $row['preferredName'], $row['surname'], 'Staff', false, true);
         $_SESSION[$guid]['organisationAdministratorEmail'] = $row['email'];
     }
     //DBA
@@ -1307,7 +1307,7 @@ function getSystemSettings($guid, $connection2)
     }
     if ($result->rowCount() == 1) {
         $row = $result->fetch();
-        $_SESSION[$guid]['organisationDBAName'] = formatName('', $row['preferredName'], $row['surname'], 'Staff', false, true);
+        $_SESSION[$guid]['organisationDBAName'] = Format::name('', $row['preferredName'], $row['surname'], 'Staff', false, true);
         $_SESSION[$guid]['organisationDBAEmail'] = $row['email'];
     }
     //Admissions
@@ -1320,7 +1320,7 @@ function getSystemSettings($guid, $connection2)
     }
     if ($result->rowCount() == 1) {
         $row = $result->fetch();
-        $_SESSION[$guid]['organisationAdmissionsName'] = formatName('', $row['preferredName'], $row['surname'], 'Staff', false, true);
+        $_SESSION[$guid]['organisationAdmissionsName'] = Format::name('', $row['preferredName'], $row['surname'], 'Staff', false, true);
         $_SESSION[$guid]['organisationAdmissionsEmail'] = $row['email'];
     }
     //HR Administraotr
@@ -1333,7 +1333,7 @@ function getSystemSettings($guid, $connection2)
     }
     if ($result->rowCount() == 1) {
         $row = $result->fetch();
-        $_SESSION[$guid]['organisationHRName'] = formatName('', $row['preferredName'], $row['surname'], 'Staff', false, true);
+        $_SESSION[$guid]['organisationHRName'] = Format::name('', $row['preferredName'], $row['surname'], 'Staff', false, true);
         $_SESSION[$guid]['organisationHREmail'] = $row['email'];
     }
 
