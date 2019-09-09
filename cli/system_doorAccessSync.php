@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
-CREATE TABLE `dooraccess_log` ( 
+CREATE TABLE `doorAccessLog` ( 
     `dooraccessID` INT(16) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT , 
     `entrance` VARCHAR(60) NULL , 
     `timestamp` TIMESTAMP NULL , 
@@ -42,8 +42,11 @@ if (!isCommandLineInterface()) {
     die(__('This script cannot be run from a browser, only via CLI.'));
 }
 
-$logOriginalLocation = '/Users/sankuipe/Desktop/Localhost/gibbon/uploads/DOORACCESS.TXT';
-$logBackupLocation = '/Users/sankuipe/Desktop/Localhost/gibbon/uploads/DOORACCESS_BAK.TXT';
+// $logOriginalLocation = '/home/sambauser/dooraccess/DOORACCESS.TXT';
+// $logBackupLocation = '/home/sambauser/dooraccess/DOORACCESS_BAK.TXT';
+
+$logOriginalLocation = '/Users/sankuipe/Desktop/Localhost/archive/dooraccess/DOORACCESS.TXT';
+$logBackupLocation = '/Users/sankuipe/Desktop/Localhost/archive/dooraccess/DOORACCESS_BAK.TXT';
 
 if (!is_file($logOriginalLocation)) {
     echo "File not found: $logOriginalLocation \n";
@@ -100,7 +103,7 @@ foreach ($lines as $line) {
     ];
 
     // Insert or update the logs in the database
-    $sql = "INSERT INTO `dooraccess_log` (`entrance`, `timestamp`, `direction`, `cardName`, `cardID`, `gibbonPersonID`) VALUES (:entrance, :timestamp, :direction, :cardName, :cardID, :gibbonPersonID) ON DUPLICATE KEY UPDATE cardName=:cardName, cardID=:cardID";
+    $sql = "INSERT INTO `doorAccessLog` (`entrance`, `timestamp`, `direction`, `cardName`, `cardID`, `gibbonPersonID`) VALUES (:entrance, :timestamp, :direction, :cardName, :cardID, :gibbonPersonID) ON DUPLICATE KEY UPDATE cardName=:cardName, cardID=:cardID";
 
     if ($pdo->statement($sql, $data)) {
         $success++;
