@@ -29,19 +29,23 @@ v19.0.00
     Tweaks & Additions
         System: added Maldivian Rufiyaa as a currency option
         System: update DatePicker to use gibboni18n date format
+        Activities: added a Year Group filter in Manage Activities
         Attendance: added an option to record the first class attendance in a day as school-wide attendance
         Attendance: added an option to disable prefilling by attendance code, applied to Present - Late by default
         Attendance: added Consecutive Absence report to list all students who have been absent for the last N school days
         Attendance: updated Student History to still display class attendance when countClassAsSchool in N
         Behaviour: new Copy To Notes feature
         Form Groups: added staff-only summary of Year Groups after Form Group listing
+        Messenger: added a Copy to Next Year bulk-option for Manage Groups
         Students: improved display of Teachers' emails in student profile
         Students: added extra permission allowing editing of all Notes
         Timetable Admin: included student reportable flag in student enrolment
+        User Admin: increased Student ID field max length to 15
 
     Bug Fixes
         System: fix installer bug where passwords are unnecessarily encoded
         System: fixed date picker validation error for Polish language
+        System: fixed Notification Events to only send to users who have status Full
         Activities: improved interface string advising users of disabled external activity registration
         Attendance: fixed missing data in printable view of Student History
         Finance: fixed missing payment info in invoice receipt email for multiple partial payments
@@ -49,6 +53,7 @@ v19.0.00
         Messenger: fixed bug when sending parent and student SMS for Attendance status
         Planner: fixed non-functional Smart Block Template setting
         Planner: fixed Unit Planner bug causing actions to appear in Classes table for newly created units
+        Staff: fixed Cancel Coverage button not available for future coverage
         Students: adjusted official name size in ID card for long-named students
 
 v18.0.01
