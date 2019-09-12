@@ -480,6 +480,8 @@ class DatabaseFormFactory extends FormFactory
         $valueQuery = ($params['valueMode'] == 'id')? 'gibbonScaleGradeID as value' : 'value';
         $labelQuery = ($params['labelMode'] == 'descriptor')? 'descriptor' : 'value';
 
+        if ($gibbonScaleID == '00027') $labelQuery = 'descriptor';
+
         $data = array('gibbonScaleID' => $gibbonScaleID);
         $sql = "SELECT {$valueQuery}, {$labelQuery} as name, isDefault FROM gibbonScaleGrade WHERE gibbonScaleID=:gibbonScaleID ORDER BY sequenceNumber";
         $results = $this->pdo->executeQuery($data, $sql);

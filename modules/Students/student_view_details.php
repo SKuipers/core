@@ -2307,6 +2307,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                                                     } elseif ($rowEntry['attainmentConcern'] == 'P' and $showParentAttainmentWarning == 'Y') {
                                                         $styleAttainment = "style='color: #390; font-weight: bold; border: 2px solid #390; padding: 2px 4px; background-color: #D4F6DC'";
                                                     }
+                                                    if ($rowEntry['gibbonScaleIDAttainment'] == '00027') {
+                                                        $rowEntry['attainmentValue'] = $rowEntry['attainmentDescriptor'];
+                                                        $rowEntry['attainmentDescriptor'] = '';
+                                                    }
                                                     echo "<div $styleAttainment>".$rowEntry['attainmentValue'];
                                                     if ($rowEntry['gibbonRubricIDAttainment'] != '' AND $enableRubrics =='Y') {
                                                         echo "<a class='thickbox' href='".$_SESSION[$guid]['absoluteURL'].'/fullscreen.php?q=/modules/Markbook/markbook_view_rubric.php&gibbonRubricID='.$rowEntry['gibbonRubricIDAttainment'].'&gibbonCourseClassID='.$rowList['gibbonCourseClassID'].'&gibbonMarkbookColumnID='.$rowEntry['gibbonMarkbookColumnID']."&gibbonPersonID=$gibbonPersonID&mark=FALSE&type=attainment&width=1100&height=550'><img style='margin-bottom: -3px; margin-left: 3px' title='View Rubric' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/rubric.png'/></a>";
