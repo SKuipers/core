@@ -246,6 +246,10 @@ if (isActionAccessible($guid, $connection2, "/modules/Attendance/attendance_take
 
                                 $log = ($result->rowCount() > 0) ? $result->fetch() : $log;
                                 $countLogs += $result->rowCount();
+
+                                if ($log['type'] == 'Left - Early') {
+                                    $log['type'] = 'Absent - Excused';
+                                }
                             }
 
                             $students[$key]['cellHighlight'] = '';
