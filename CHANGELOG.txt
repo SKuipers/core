@@ -23,6 +23,8 @@ v19.0.00
     Changes With Important Notices
 
     Significant Changes
+        System: added Year Switcher to staff homepage sidebar
+        Planner: added "View Only" sub-action to Lesson Planner
 
     Security
 
@@ -35,10 +37,12 @@ v19.0.00
         Attendance: added Consecutive Absence report to list all students who have been absent for the last N school days
         Attendance: updated Student History to still display class attendance when countClassAsSchool in N
         Behaviour: new Copy To Notes feature
+        Behaviour: added settings to toggle notifications for Tutors and Education Assistants
         Form Groups: added staff-only summary of Year Groups after Form Group listing
         Messenger: added a Copy to Next Year bulk-option for Manage Groups
         Students: improved display of Teachers' emails in student profile
         Students: added extra permission allowing editing of all Notes
+        Students: adjusted Privacy options to display even if blurb is not set
         Timetable Admin: included student reportable flag in student enrolment
         User Admin: increased Student ID field max length to 15
         User Admin: added a View Role page in Manage Roles to display all actions and users per role
