@@ -73,7 +73,7 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
                 AND gibbonPerson.status='Full'";
 
                 // Exclude Secondary on Wednesday
-                if (date('D') == 'Wed') {
+                if (date('D') == 'Wed' && $_SESSION[$guid]['organisationNameShort'] == 'TIS') {
                     $sql .= " AND NOT (
                         (gibbonRollGroup.nameShort LIKE 'G12-%') OR (gibbonRollGroup.nameShort LIKE 'G11-%') OR (gibbonRollGroup.nameShort LIKE 'G10-%') OR 
                         (gibbonRollGroup.nameShort LIKE 'G9-%') OR (gibbonRollGroup.nameShort LIKE 'G8-%') OR (gibbonRollGroup.nameShort LIKE 'G7-%') OR
