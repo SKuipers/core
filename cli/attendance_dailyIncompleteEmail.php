@@ -70,8 +70,17 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
                 JOIN gibbonPerson ON (gibbonRollGroup.gibbonPersonIDTutor=gibbonPerson.gibbonPersonID)
                 WHERE gibbonSchoolYearID=:gibbonSchoolYearID
                 AND attendance = 'Y'
-                AND gibbonPerson.status='Full'
-                ORDER BY LENGTH(gibbonRollGroup.name), gibbonRollGroup.name";
+                AND gibbonPerson.status='Full'";
+
+                // Exclude Secondary on Wednesday
+                if (date('D') == 'Wed') {
+                    $sql .= " AND NOT (
+                        (gibbonRollGroup.nameShort LIKE 'G12-%') OR (gibbonRollGroup.nameShort LIKE 'G11-%') OR (gibbonRollGroup.nameShort LIKE 'G10-%') OR 
+                        (gibbonRollGroup.nameShort LIKE 'G9-%') OR (gibbonRollGroup.nameShort LIKE 'G8-%') OR (gibbonRollGroup.nameShort LIKE 'G7-%') OR
+                        (gibbonRollGroup.name LIKE 'G10-12%')
+                    )";
+                }
+                $sql .= " ORDER BY LENGTH(gibbonRollGroup.name), gibbonRollGroup.name";
 
                 $result = $connection2->prepare($sql);
                 $result->execute($data);
