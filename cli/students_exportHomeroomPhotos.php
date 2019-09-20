@@ -28,23 +28,10 @@ setCurrentSchoolYear($guid, $connection2);
 if (php_sapi_name() != 'cli') { echo __($guid, 'This script cannot be run from a browser, only via CLI.');
 } else {
 
-    $photoPathDSEJ = '/var/www/archive/photos/photosDSEJ/';
-    if (is_dir($photoPathDSEJ)==FALSE) {
-        mkdir($photoPathDSEJ, 0755, TRUE);
+    $photoPathHomeroom = $_SESSION[$guid]['absolutePath'] .'/../archive/photos/photosHomeroom/';
+    if (is_dir($photoPathHomeroom)==FALSE) {
+        mkdir($photoPathHomeroom, 0755, TRUE);
     }
-
-    try {
-        $dataField = array( 'name' => 'DSEJ ID Number' );
-        $sqlField = 'SELECT gibbonPersonFieldID FROM gibbonPersonField WHERE name=:name LIMIT 1';
-        $resultField = $connection2->prepare($sqlField);
-        $resultField->execute($dataField);
-    } catch (PDOException $e) {
-        die("Your request failed due to a database error.\n");
-    }
-
-    if ($resultField->rowCount() == 0) die("Could not load DSEJ field info.\n");
-
-    $fieldID = $resultField->fetchColumn(0);
 
     try {
         $data = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'] );
@@ -66,57 +53,32 @@ if (php_sapi_name() != 'cli') { echo __($guid, 'This script cannot be run from a
     $sizeLimit = 1024 * 100;
 
     $countStudents = 0;
-    $countDSEJID = 0;
+    $countHomeroomID = 0;
     $countCopied = 0;
     $countResized = 0;
 
-    $missingDSEJ = '';
+    $missingHomeroom = '';
     $missingPhoto = '';
 
     while ($row = $result->fetch()) {
         $countStudents++;
 
-        $fields = unserialize( $row['fields'] );
-        $dsejID = (isset($fields[$fieldID]))? $fields[$fieldID] : '';
-
         $photoPath = $_SESSION[$guid]['absolutePath'] .'/'. $row['image_240'];
-        $photoPathRollGroup = $photoPathDSEJ . $row['rollGroup'] .'/';
+        $photoPathRollGroup = $photoPathHomeroom . $row['rollGroup'] .'/';
 
         if (is_dir( $photoPathRollGroup )==FALSE) {
             mkdir( $photoPathRollGroup , 0777, TRUE) ;
         }
 
-        if (file_exists($photoPath) && !empty($dsejID)) {
-            $countDSEJID++;
+        $photoName = $row['username'] . ' - '.$row['surname'].', '. $row['preferredName'] . '.jpg';
 
-            if ( filesize($photoPath) < $sizeLimit) {
+        if (is_file($photoPath)) {
+            
+            if (copy($photoPath, $photoPathRollGroup . $photoName)) {
                 $countCopied++;
-                copy($photoPath, $photoPathRollGroup . $dsejID . '.jpg' );
-            } else {
-                //create a image resource from the contents of the uploaded image
-                $resource = @imagecreatefromjpeg( $photoPath );
-
-                if(!$resource) {
-                    die('Something wrong with the file reader!');
-                }
-
-                //move the uploaded file with a lesser quality
-                imagejpeg($resource, $photoPathRollGroup . $dsejID . '.jpg', $restrainedQuality);
-                imagedestroy($resource);
-
-                if ( filesize($photoPathRollGroup . $dsejID . '.jpg') > $sizeLimit ) {
-                    echo "File still too large: " . $dsejID . '.jpg' . "\n";
-                }
-                $countResized++;
             }
         } else {
-            if (empty($dsejID)) {
-                $missingDSEJ .= $row['surname'].', '. $row['preferredName'] .' ('.$row['rollGroup'].', Student ID:'. $row['studentID'] .')' . "\n";
-            }
-
-            if (!file_exists($photoPath)) {
-                $missingPhoto .= $row['surname'].', '. $row['preferredName'] .' ('.$row['rollGroup'].', Student ID:'. $row['studentID'] .')' . "\n";
-            }
+            $missingPhoto .= $row['surname'].', '. $row['preferredName'] .' ('.$row['rollGroup'].', Student ID:'. $row['studentID'] .')' . "\n";
         }
     }
 
@@ -125,13 +87,6 @@ if (php_sapi_name() != 'cli') { echo __($guid, 'This script cannot be run from a
         echo $missingPhoto . "\n\n";
     }
 
-    if (!empty($missingDSEJ)) {
-        echo "Missing DSEJ ID: \n";
-        echo $missingDSEJ . "\n\n";
-    }
-
     echo "Students Total: " . $countStudents . "\n";
-    echo "DSEJ Id's Found: " . $countDSEJID . "\n";
     echo "Photos copied: " . $countCopied . "\n";
-    echo "Photos resized: " . $countResized . "\n";
 }
