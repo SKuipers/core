@@ -62,9 +62,9 @@ if (!isCommandLineInterface()) {
             WHERE gibbonAttendanceLogPerson.date BETWEEN :dateStart AND :dateEnd
             AND gibbonPerson.status='Full' ";
 
-    if ($countClassAsSchool == 'N') {
-        $sql .= "AND NOT gibbonAttendanceLogPerson.context='Class' ";
-    }
+    // if ($countClassAsSchool == 'N') {
+    //     $sql .= "AND NOT gibbonAttendanceLogPerson.context='Class' ";
+    // }
 
     $sql .= "AND gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID
             ORDER BY gibbonYearGroup.sequenceNumber, gibbonRollGroup.nameShort, gibbonPerson.surname, gibbonPerson.preferredName, gibbonAttendanceLogPerson.date, gibbonAttendanceLogPerson.timestampTaken
