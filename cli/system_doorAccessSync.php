@@ -18,16 +18,18 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
 CREATE TABLE `doorAccessLog` ( 
-    `dooraccessID` INT(16) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT , 
+    `doorAccessID` INT(16) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT , 
     `entrance` VARCHAR(60) NULL , 
     `timestamp` TIMESTAMP NULL , 
     `direction` ENUM('In','Out') NOT NULL DEFAULT 'Out', 
     `cardName` VARCHAR(60) NULL , 
     `cardID` VARCHAR(60) NULL , 
     `gibbonPersonID` INT(10) UNSIGNED ZEROFILL NULL , 
-    PRIMARY KEY (`dooraccessID`),
+    PRIMARY KEY (`doorAccessID`),
     UNIQUE KEY `log` (`entrance`, `timestamp`, `cardID`)
 ) ENGINE = InnoDB CHARSET=utf8 COLLATE utf8_general_ci;
+
+ALTER TABLE `doorAccessLog` ADD INDEX( `timestamp`, `gibbonPersonID`);
 
 */
 
@@ -42,11 +44,10 @@ if (!isCommandLineInterface()) {
     die(__('This script cannot be run from a browser, only via CLI.'));
 }
 
-// $logOriginalLocation = '/home/sambauser/dooraccess/DOORACCESS.TXT';
-// $logBackupLocation = '/home/sambauser/dooraccess/DOORACCESS_BAK.TXT';
+$logLocation = getSettingByScope($connection2, 'Staff', 'doorAccessLogPath');
 
-$logOriginalLocation = '/Users/sankuipe/Desktop/Localhost/archive/dooraccess/DOORACCESS.TXT';
-$logBackupLocation = '/Users/sankuipe/Desktop/Localhost/archive/dooraccess/DOORACCESS_BAK.TXT';
+$logOriginalLocation = $logLocation.'DOORACCESS.TXT';
+$logBackupLocation = $logLocation.'DOORACCESS_BAK.TXT';
 
 if (!is_file($logOriginalLocation)) {
     echo "File not found: $logOriginalLocation \n";
@@ -66,11 +67,12 @@ if (($handle = fopen($logBackupLocation, "r")) !== false) {
         if (empty($data[0])) continue;
 
         $lines[] = [
-            'date'     => $data[0] ?? '',
-            'time'     => $data[1] ?? '',
-            'entrance' => $data[2] ?? '',
-            'cardID'   => $data[3] ?? '',
-            'cardName' => $data[4] ?? '',
+            'date'       => $data[0] ?? '',
+            'time'       => $data[1] ?? '',
+            'entrance'   => $data[2] ?? '',
+            'cardID'     => $data[3] ?? '',
+            'cardName'   => $data[4] ?? '',
+            'cardNumber' => $data[5] ?? '',
         ];
     }
     fclose($handle);
@@ -83,6 +85,16 @@ $success = 0;
 
 // Sync logs with the database
 foreach ($lines as $line) {
+    // Skip non-valid entrances
+    if (stripos($line['entrance'], '1490c') === false) continue;
+
+    // Skip invalid users
+    if (empty($line['cardID']) || $line['cardID'] == '8888') continue;
+
+    if ($line['cardID'] == '10000272') {
+        $line['cardID'] = 'admin';
+    }
+
     $person = $userGateway->selectBy(['username' => $line['cardID']])->fetch();
     if (empty($person)) {
         echo "Could not find person: {$line['cardID']} \n";
@@ -91,7 +103,7 @@ foreach ($lines as $line) {
     // Parse log entries into useable info
     $date = '20'.substr($line['date'], 0, 2).'-'.substr($line['date'], 2, 2).'-'.substr($line['date'], 4, 2);
     $time = substr($line['time'], 0, 2).':'.substr($line['time'], 2, 2).':'.substr($line['time'], 4, 2);
-    $direction = stripos($line['entrance'], 'Out') !== false ? 'Out' : 'In';
+    $direction = stripos($line['entrance'], 'outside') !== false ? 'In' : 'Out';
 
     $data = [
         'entrance'       => $line['entrance'],
