@@ -38,6 +38,7 @@ v19.0.00
         Attendance: added an option to disable prefilling by attendance code, applied to Present - Late by default
         Attendance: added Consecutive Absence report to list all students who have been absent for the last N school days
         Attendance: updated Student History to still display class attendance when countClassAsSchool in N
+        Attendance: added a Students Not In Class report
         Behaviour: new Copy To Notes feature
         Behaviour: added settings to toggle notifications for Tutors and Education Assistants
         Form Groups: added staff-only summary of Year Groups after Form Group listing
@@ -45,7 +46,7 @@ v19.0.00
         Staff: added a Weekly View and Daily View to Substitute Availability report
         Staff: added a Substitute Information setting for displaying text on My Coverage page
         Students: improved display of Teachers' emails in student profile
-        Students: added extra permission allowing editing of all Notes
+        Students: added extra permission allowing editing and deleting of all Notes
         Students: adjusted Privacy options to display even if blurb is not set
         Students: adjusted Application Form to allow showing of Language Selection blurb without fields
         Timetable Admin: included student reportable flag in student enrolment
@@ -58,6 +59,7 @@ v19.0.00
         System: fix installer bug where passwords are unnecessarily encoded
         System: fixed date picker validation error for Polish language
         System: fixed Notification Events to only send to users who have status Full
+        System: adjusted date formats for German language
         Activities: improved interface string advising users of disabled external activity registration
         Attendance: fixed missing data in printable view of Student History
         Attendance: fixed Set Future Absence to only allow future dates
