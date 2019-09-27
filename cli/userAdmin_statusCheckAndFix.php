@@ -100,7 +100,7 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
             $data = array('gibbonPersonID' => $row['gibbonPersonID']);
             $sql = "UPDATE gibbonPerson SET gibbonPerson.status='Left' 
                     WHERE gibbonPerson.gibbonPersonID=:gibbonPersonID 
-                    AND (SELECT COUNT(*) FROM gibbonRole WHERE FIND_IN_SET(gibbonRole.gibbonRoleID, gibbonPerson.gibbonRoleIDAll) AND category<>'Parent') = 0";
+                    AND (SELECT COUNT(*) FROM gibbonRole WHERE FIND_IN_SET(gibbonRole.gibbonRoleID, gibbonPerson.gibbonRoleIDAll) AND (category<>'Parent' OR nameShort='PREP')) = 0";
             $resultUpdate = $connection2->prepare($sql);
             $resultUpdate->execute($data);
         } catch (PDOException $e) {
