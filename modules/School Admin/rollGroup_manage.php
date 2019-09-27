@@ -100,6 +100,11 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/rollGroup_man
         ->addParam('gibbonSchoolYearID', $gibbonSchoolYearID)
         ->displayLabel();
 
+    $table->addDraggableColumn('gibbonRollGroupID', $gibbon->session->get('absoluteURL').'/modules/School Admin/rollGroup_manage_editOrderAjax.php', [
+        'gibbonSchoolYearID' => $gibbonSchoolYearID
+    ]);
+
+    $table->addColumn('sequenceNumber', __('sequenceNumber'));
     $table->addColumn('name', __('Name'))
           ->description(__('Short Name'))
           ->format(function ($rollGroup) {

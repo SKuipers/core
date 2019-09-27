@@ -34,6 +34,7 @@ class RollGroupGateway extends QueryableGateway
     use TableAware;
 
     private static $tableName = 'gibbonRollGroup';
+    private static $primaryKey = 'gibbonRollGroupID';
     private static $searchableColumns = [];
 
     public function queryRollGroups(QueryCriteria $criteria, $gibbonSchoolYearID)
@@ -42,7 +43,7 @@ class RollGroupGateway extends QueryableGateway
             ->newQuery()
             ->from($this->getTableName())
             ->cols([
-                'gibbonSchoolYear.sequenceNumber',
+                'gibbonRollGroup.sequenceNumber',
                 'gibbonSchoolYear.gibbonSchoolYearID',
                 'gibbonRollGroup.gibbonRollGroupID',
                 'gibbonSchoolYear.name as yearName',
