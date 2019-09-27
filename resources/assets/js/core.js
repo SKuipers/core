@@ -158,6 +158,7 @@ jQuery(function($){
 
 var DraggableDataTable = function () {
     var table = this;
+    
     $('tbody', table).sortable({
         placeholder: "drag-placeholder bg-gray-400 shadow-inner",
         handle: ".drag-handle",
@@ -175,14 +176,15 @@ var DraggableDataTable = function () {
                 url: $(table).data('drag-url'),
                 data: {
                     data: $(table).data('drag-data'),
-                    order: JSON.stringify(elementOrder)
+                    index: $(table).data('drag-index'),
+                    order: JSON.stringify(elementOrder),
                 },
                 type: 'POST',
                 success: function(data) {
                 }
             });
         }
-    }).disableSelection();
+    });
 };
 
 // Form API Functions
@@ -605,6 +607,7 @@ DataTable.prototype.refresh = function() {
         $('.bulkActionPanel').addClass('hidden');
         tb_init('a.thickbox');
         clearTimeout(submitted);
+        $('.dataTable table[data-drag-url]').each(DraggableDataTable);
     });
 };
 
