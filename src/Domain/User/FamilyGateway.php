@@ -52,6 +52,24 @@ class FamilyGateway extends QueryableGateway
         return $this->runQuery($query, $criteria);
     }
 
+    public function queryFamiliesByStudent(QueryCriteria $criteria, $gibbonPersonID)
+    {
+        $gibbonPersonIDList = is_array($gibbonPersonID) ? implode(',', $gibbonPersonID) : $gibbonPersonID;
+
+        $query = $this
+            ->newQuery()
+            ->from($this->getTableName())
+            ->cols([
+                'gibbonFamily.gibbonFamilyID', 'gibbonFamily.*', "GROUP_CONCAT(DISTINCT gibbonFamilyChild.gibbonPersonID SEPARATOR ',') as gibbonPersonIDList"
+            ])
+            ->innerJoin('gibbonFamilyChild', 'gibbonFamilyChild.gibbonFamilyID=gibbonFamily.gibbonFamilyID')
+            ->where('FIND_IN_SET(gibbonFamilyChild.gibbonPersonID, :gibbonPersonIDList)')
+            ->bindValue('gibbonPersonIDList', $gibbonPersonIDList)
+            ->groupBy(['gibbonFamily.gibbonFamilyID']);
+
+        return $this->runQuery($query, $criteria);
+    }
+
     public function selectAdultsByFamily($gibbonFamilyIDList)
     {
         $gibbonFamilyIDList = is_array($gibbonFamilyIDList) ? implode(',', $gibbonFamilyIDList) : $gibbonFamilyIDList;

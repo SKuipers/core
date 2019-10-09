@@ -17,13 +17,28 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-//Gibbon system-wide includes
-include './gibbon.php';
+use Gibbon\Domain\School\YearGroupGateway;
 
-try {
-    $data = array('gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID']);
-    $sql = "UPDATE gibbonStaff SET smartWorkflowHelp='N' WHERE gibbonPersonID=:gibbonPersonID";
-    $result = $connection2->prepare($sql);
-    $result->execute($data);
-} catch (PDOException $e) {
+$_POST['address'] = '/modules/School Admin/yearGroup_manage.php';
+
+require_once '../../gibbon.php';
+
+if (isActionAccessible($guid, $connection2, '/modules/School Admin/yearGroup_manage.php') == false) {
+    exit;
+} else {
+    // Proceed!
+    $data = $_POST['data'] ?? [];
+    $order = json_decode($_POST['order']);
+
+    if (empty($order)) {
+        exit;
+    } else {
+        $yearGroupGateway = $container->get(YearGroupGateway::class);
+
+        $count = 1;
+        foreach ($order as $gibbonYearGroupID) {
+            $updated = $yearGroupGateway->update($gibbonYearGroupID, ['sequenceNumber' => $count]);
+            $count++;
+        }
+    }
 }

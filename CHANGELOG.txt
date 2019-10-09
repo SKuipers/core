@@ -33,6 +33,7 @@ v19.0.00
         System: added Maldivian Rufiyaa as a currency option
         System: updated DatePicker to use gibboni18n date format
         System: updated SpreadsheetRenderer to write cell contents as plain text
+        System: updated TinyMCE allowable HTML to include details, summary and code blocks
         Activities: added a Year Group filter in Manage Activities
         Attendance: added an option to record the first class attendance in a day as school-wide attendance
         Attendance: added an option to disable prefilling by attendance code, applied to Present - Late by default
@@ -61,6 +62,7 @@ v19.0.00
         System: fixed date picker validation error for Polish language
         System: fixed Notification Events to only send to users who have status Full
         System: adjusted date formats for German language
+        System: fixed translatability issue of Public Registration text
         Activities: improved interface string advising users of disabled external activity registration
         Attendance: fixed missing data in printable view of Student History
         Attendance: fixed Set Future Absence to only allow future dates
@@ -71,8 +73,12 @@ v19.0.00
         Planner: fixed Unit Planner bug causing actions to appear in Classes table for newly created units
         Staff: fixed Cancel Coverage button not available for future coverage
         Staff: fixed Delete Staff Absence to also delete any related coverage
+        Staff: limited open coverage requests to the type of sub requested
         Students: adjusted official name size in ID card for long-named students
         Students: fixed timetable chooser not working on student profile pages
+
+    Deprecations
+        System: removed Smart Workflow Help feature
 
 v18.0.01
 --------
