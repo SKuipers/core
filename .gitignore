@@ -37,3 +37,7 @@ nbproject/
 # Var Folder
 var/*
 !var/.htaccess
+
+# TIS CUSTOM
+
+!/resources/reports
