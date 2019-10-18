@@ -1,0 +1,29 @@
+{#<!--
+name: Elementary Footer First Page
+category: Footers
+types: Footer
+-->#}
+{{- include('tis/secondary-style.twig') -}}
+<style>
+.footer {
+    font-size: 9.5px;
+    line-height:3.75;
+}
+</style><table cellpadding="4" style="background-color:#ffffff;">
+    <tr>
+        <td class="footer border" style="width:45%;">
+            <b>Signature:</b>
+        </td> 
+        <td class="footer border" style="width:30%;">
+            {{ principal.title }}
+        </td>
+        <td class="footer border" style="width:25%;">
+            {{ report.endDate|date("j F Y") }} 
+        </td>
+    </tr>
+</table>
+<table>
+    <tr>
+       <td style="text-align:right;line-height:15px;">Page {{ pageNum -}}</td> 
+    </tr>
+</table>

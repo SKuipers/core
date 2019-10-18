@@ -1,0 +1,15 @@
+{#<!--
+name: Elementary Header
+category: Headers
+types: Header
+sources:
+    student: Student
+    report: Report
+-->#}
+{{ include('tis/secondary-style.twig') }}
+<table>
+    <tr>
+        <td style="text-align:left;width:50%;"><b>{{ report.reportName }}</b></td> 
+        <td style="text-align:right;width:50%;"><b>{{ student.surname }}, {{ student.firstName }}{% if student.firstName != student.preferredName %} ({{ student.preferredName }}){% endif %}</b>, {{ student.rollGroupNameShort }}</td> 
+    </tr>
+</table>

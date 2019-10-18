@@ -1,0 +1,53 @@
+{#<!--
+name: Elementary Student Details
+category: Body
+types: Body
+sources:
+    student: Student
+    report: Report
+    tutors: Tutors
+-->#}
+{{- include('tis/secondary-style.twig') -}}
+<style>
+    .header {
+        font-size: {{ fontSizeMedium }} ;
+        background-color: #AAAAAA;
+        vertical-align: middle;
+    }
+
+    .title {
+        font-size: {{ fontSizeLarge }} ;
+        font-weight: bold;
+        text-align: center;
+        line-height: 1;
+    }
+
+    .student {
+        font-size: {{ fontSizeComment }} ;
+        text-align: left;
+        line-height: 4;
+    }
+</style>
+<table cellspacing="0" cellpadding="0">
+    <tr>
+        <td class="title">{{ reportName|format(report.reportName) }}</td>
+    </tr>
+</table>
+<table cellspacing="0" cellpadding="0">
+    <tr>
+        <td class="student"><b>Student:</b> {{ student.surname }}, {{ student.firstName }} {% if student.firstName != student.preferredName %}({{ student.preferredName }}){% endif %}</td>
+    </tr>
+</table>
+<table cellspacing="0" cellpadding="4">
+    <tr>
+        <td class="header border-top border-bottom border-left" style="width:50%" colspan="1"><b>Class:</b> {{ student.rollGroupName }}</td>
+        <td class="header border-top border-bottom border-right" style="width:50%;text-align: right;" colspan="1"><b>Homeroom Teacher:</b> {{ (tutors|first).fullName }}</td>
+    </tr>
+    {% if report.notes %}
+    <tr>
+        <td class="border" style="width:100%" colspan="2"><table cellpadding="4"><tr>
+            <td style="font-size: {{ fontSizeMedium }}">{{ report.notes }}</td>
+        </tr></table></td>
+    </tr>
+    {% endif %}
+</table>
