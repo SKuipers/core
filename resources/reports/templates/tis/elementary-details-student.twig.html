@@ -30,7 +30,7 @@ sources:
 </style>
 <table cellspacing="0" cellpadding="0">
     <tr>
-        <td class="title">{{ reportName|format(report.reportName) }}</td>
+        <td class="title">{{ report.name }}</td>
     </tr>
 </table>
 <table cellspacing="0" cellpadding="0">
@@ -41,7 +41,11 @@ sources:
 <table cellspacing="0" cellpadding="4">
     <tr>
         <td class="header border-top border-bottom border-left" style="width:50%" colspan="1"><b>Class:</b> {{ student.rollGroupName }}</td>
-        <td class="header border-top border-bottom border-right" style="width:50%;text-align: right;" colspan="1"><b>Homeroom Teacher:</b> {{ (tutors|first).fullName }}</td>
+        <td class="header border-top border-bottom border-right" style="width:50%;text-align: right;" colspan="1">
+            <b>Homeroom Teacher:</b> 
+            {% set teacher = tutors|first %}
+            {{ teacher.title }} {{ teacher.preferredName|first }}. {{ teacher.surname }}
+        </td>
     </tr>
     {% if report.notes %}
     <tr>

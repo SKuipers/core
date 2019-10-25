@@ -1,0 +1,42 @@
+{#<!--
+name: Student Activities
+category: Body
+types: Body
+sources:
+    student: Student
+    activities: Activities
+-->#}
+{{- include('tis/secondary-style.twig') -}}
+<style>
+    .header {
+        font-size: {{ fontSizeMedium }} ;
+        font-weight: bold;
+        background-color: #AAAAAA;
+        vertical-align: middle;
+    }
+
+    .center {
+        text-align: center;
+    }
+</style>
+
+{% if student.yearGroupNameShort != 'PK' %}
+<table cellspacing="0" cellpadding="4">
+    <tr>
+        <td class="header border-top border-bottom border-left" style="width:66.6%;">Extra Curricular Activities</td>
+        <td class="header border-top border-bottom border-right center" style="width:33.3%;">Dates</td>
+    </tr>
+
+    {% for activity in activities %}
+    <tr>
+        <td class="border" style="width:66.6%;">{{ activity.name }}</td>
+        <td class="border center" style="width:33.3%;">{{ activity.programStart|date('M Y') }} to {{ activity.programEnd|date('M Y') }}</td>
+    </tr>
+
+    {% else %}
+        <tr>
+            <td class="border" style="width:99.9%;" colspan="2">{{ student.preferredName }} did not participate in any ECAs this term.</td>
+        </tr>
+    {% endfor %}
+</table>
+{% endif %}

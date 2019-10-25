@@ -2,6 +2,8 @@
 name: Elementary Footer First Page
 category: Footers
 types: Footer
+sources:
+    reportingCycle: ReportingCycle
 -->#}
 {{- include('tis/secondary-style.twig') -}}
 <style>
@@ -15,10 +17,10 @@ types: Footer
             <b>Signature:</b>
         </td> 
         <td class="footer border" style="width:30%;">
-            {{ principal.title }}
+            {{ principal.title|default("Elementary School Principal") }}
         </td>
         <td class="footer border" style="width:25%;">
-            {{ report.endDate|date("j F Y") }} 
+            {{ reportingCycle.dateEnd|date("j F Y") }} 
         </td>
     </tr>
 </table>

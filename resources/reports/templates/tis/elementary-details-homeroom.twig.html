@@ -1,0 +1,54 @@
+{#<!--
+name: Elementary Homeroom
+category: Body
+types: Body
+sources:
+    homeroom: RollGroupCriteria
+    tutors: Tutors
+-->#}
+{{- include('tis/secondary-style.twig') -}}
+<style>
+    .header {
+        font-size: {{ fontSizeMedium }} ;
+        font-weight: bold;
+        background-color: #AAAAAA;
+        vertical-align: middle;
+    }
+
+    .comment {
+        font-size: {{ fontSizeComment }} ;
+        line-height: {{ lineHeightComment }};
+        text-align: justified;
+    }
+</style>
+<table cellspacing="0" cellpadding="4">
+    <tr>
+        <td class="header border-top border-bottom border-left" style="width:50%;line-height:3;" colspan="1">  HOMEROOM COMMENTS</td>
+        <td class="header border-top border-bottom border-right" style="width:50%;line-height:3;text-align:right;" colspan="1">
+            {% set teacher = tutors|first %}
+            {{ teacher.title }} {{ teacher.preferredName|first }}. {{ teacher.surname }}
+        </td>
+    </tr>
+
+    {% if homeroom %}
+    <tr>
+        <td class="border" colspan="2"><table cellpadding="6" >
+            {% for criteria in homeroom %}
+                {% if criteria.valueType == 'Comment' %}
+                    <tr nobr="true">
+                        <td class="comment">{%- if criteria.criteriaName %}<b>{{ criteria.criteriaName|title }}:</b><br/>{% endif -%}
+                        <span style="font-family:DroidSansFallback;">{{ criteria.comment -}}</span></td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+
+            {% if studentProgression and studentProgression.progression == 'Y' %}
+            <tr nobr="true">
+                <td class="comment"><b>Student Progression:</b><br/>
+                <span style="font-family:DroidSansFallback;">{{ student.preferredName }} has been promoted to {{ studentProgression.grade }}.</span></td>
+            </tr>
+            {% endif %}
+        </table></td>
+    </tr>
+    {% endif %}
+</table>

@@ -1,0 +1,74 @@
+{#<!--
+name: Elementary Outcomes
+category: Body
+types: Body
+sources:
+    reportingCycle: ReportingCycle
+    courseOutcomes: CourseOutcomes
+-->#}
+{{- include('tis/secondary-style.twig') -}}<style>
+    .header {
+        font-size: {{ fontSizeMedium }};
+        font-weight: bold;
+        background-color: #AAAAAA;
+        vertical-align: middle;
+    }
+
+    .subheader {
+        font-size: {{ fontSizeSmall }} ;
+        text-align: center;
+        line-height: 1.5;
+    }
+
+    .comment {
+        font-size: {{ fontSizeComment }} ;
+        line-height: {{ lineHeightComment }};
+        text-align: justified;
+    }
+
+    .outcome {
+        font-size: {{ fontSizeMedium }};
+        vertical-align: middle;
+    }
+</style>{% for course in courseOutcomes %}<table cellspacing="0" cellpadding="4" nobr="true">
+    <tr>
+        <td class="header border-top border-bottom border-left" style="width:63.95%;line-height:3;" colspan="1" rowspan="2">{{ course.name|upper }}</td>
+        <td class="header border-top border-bottom border-right" style="width:36.05%;text-align:right;" colspan="{{ reportingCycle.cycleTotal|default(1) + 1 }}">
+        {% for teacher in course.teachers %}
+            {{- teacher.fullName -}}
+            {{ not loop.last ? ',' }}
+        {% endfor %}
+        </td>
+    </tr>
+
+    <tr>
+        {# <td class="border" style="width:64%"></td> #}
+        <td style="width:0.05%;max-width:1px;background-color:#000000;padding: 0;"></td>
+        {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
+            <td class="border" style="width:{{ 36 / reportingCycle.cycleTotal|default(1) }}%;text-align:center;font-weight:bold;">Term {{ cycleNum }}</td>
+        {% endfor %}
+    </tr>
+
+    {% for outcome, grades in course.outcomes %}
+        <tr>
+            <td class="outcome border" style="width:64%" colspan="2">{{ outcome }}</td>
+            {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
+                {% set defaultValue = term.active? defaultOutcome : '' %}
+                <td class="outcome border" style="width:{{ 36 / reportingCycle.cycleTotal|default(1) }}%;" valign="middle">{{ grades["Cycle "~cycleNum] | default(defaultValue) }}</td>
+            {% endfor %}
+        </tr>
+    {% endfor %}
+
+    {% if course.comments.studentComment %}
+        {% if 'MUSIC' not in course.nameShort and 'PHYSE' not in course.nameShort and 'ELL' not in course.nameShort %}
+        <tr>
+            <td class="border" colspan="{{ reportingCycle.cycleTotal|default(1) + 2 }}" style="width:100%;"><table cellpadding="6"><tr>
+                <td style="font-size: {{ fontSizeMedium }}"><b>Comments:</b> <span style="font-family:DroidSansFallback;">{{ course.comments.studentComment }}</span></td>
+                </tr></table>
+            </td>
+        </tr>
+        {% endif %}
+    {% endif %}
+</table><table cellspacing="0" cellpadding="0" style="height: 3.5mm;font-size: 3.5mm;">
+<tr><td></td></tr>
+</table>{% endfor %}

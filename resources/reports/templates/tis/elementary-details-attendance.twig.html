@@ -1,0 +1,44 @@
+{#<!--
+name: Elementary Attendance
+category: Body
+types: Body
+sources:
+    attendance: AttendanceByCycle
+    reportingCycle: ReportingCycle
+-->#}
+{{- include('tis/secondary-style.twig') -}}
+<style>
+    .header {
+        font-size: {{ fontSizeMedium }} ;
+        font-weight: bold;
+        background-color: #AAAAAA;
+        vertical-align: middle;
+    }
+
+    .attendance {
+        font-size: {{ fontSizeSmall }} ;
+        text-align: center;
+    }
+</style>
+
+{% if reportingCycle %}
+    <table cellspacing="0" cellpadding="4">
+        <tr>
+            {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
+            <td class="header border attendance" style="width:33.3%" colspan="2">Term {{ cycleNum }} Attendance</td>
+            {% endfor %}
+        </tr>
+        <tr>
+            {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
+            <td class="header border-top border-bottom border-left attendance" style="width:16.65%">Absent</td>
+            <td class="header border-top border-bottom border-right attendance" style="width:16.65%">Late</td>
+            {% endfor %}
+        </tr>
+        <tr>
+            {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
+            <td class="border-top border-bottom border-left attendance" style="width:16.65%">{{ cycleNum? attendance["Cycle "~cycleNum].absent|default('') }}</td>
+            <td class="border-top border-bottom border-right attendance" style="width:16.65%">{{ cycleNum? attendance["Cycle "~cycleNum].late|default('') }}</td>
+            {% endfor %}
+        </tr> 
+    </table>
+{% endif -%}
