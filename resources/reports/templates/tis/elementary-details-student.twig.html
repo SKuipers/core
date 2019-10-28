@@ -55,3 +55,17 @@ sources:
     </tr>
     {% endif %}
 </table>
+
+{% if 'PK' in student.yearGroupNameShort %}
+<table cellspacing="0" cellpadding="0" style="height: 3.5mm;font-size: 3.5mm;">
+<tr><td></td></tr>
+</table>
+<table cellpadding="8" class="border" style="width:100%;">
+    <tr>
+        <td style="font-size:{{ fontSizeSmall }};"><div style="text-align: center; font-weight: bold; font-size:{{ fontSizeMedium }};">Dispositions</div>
+            <div style="font-size: 0.5pt; height: 0.5pt; line-height: 0"></div>
+            In the TIS ECE program we support the children in their development of key learning dispositions and assess their progress in their development. The development of appropriate dispositions is fundamental to a young child’s future learning and well-being. The notion that children learn every day through every situation is a central idea in Flight: Alberta’s Early Learning and Care Framework. Using Alberta’s  Early Learning and Care Framework: Flight, we identify five dispositions to learn: playing and playfulness, seeking,participating, persisting, and caring. This report card provides an insight into the observed development of your child’s dispositions in regards to these five areas. 
+        </td>
+    </tr>
+</table>
+{% endif %}

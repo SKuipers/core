@@ -1,0 +1,81 @@
+{#<!--
+name: Kindergarten Dispositions
+category: Body
+types: Body
+sources:
+    student: Student
+    reportingCycle: ReportingCycle
+    homeroom: RollGroupCriteria
+-->#}
+{{- include('tis/secondary-style.twig') -}}<style>
+    .header {
+        font-size: {{ fontSizeMedium }};
+        font-weight: bold;
+        background-color: #e1c5f0;
+        vertical-align: middle;
+    }
+
+    .outcome {
+        font-size: {{ fontSizeMedium }};
+        vertical-align: middle;
+    }
+</style>{% if 'JK' in student.yearGroupNameShort %}<table cellspacing="0" cellpadding="4" nobr="true">
+    <tr>
+        <td class="header border-top border-bottom border-left" style="width:69.95%;line-height:3;" colspan="1" rowspan="2">
+            The child is demonstrating the following dispositions: 
+        </td>
+
+        <td class="header border-top border-bottom border-right" style="width:30.05%;text-align:right;" colspan="{{ reportingCycle.cycleTotal|default(1) + 1 }}">
+        </td>
+    </tr>
+
+    <tr>
+        <td style="width:0.05%;max-width:1px;background-color:#000000;padding: 0;"></td>
+        {% for cycleNum in range(2, 3) %}
+            <td class="border" style="width:{{ 30 / 2 }}%;text-align:center;font-weight:bold;">Term {{ cycleNum }}</td>
+        {% endfor %}
+    </tr>
+
+    <tr>
+        <td class="outcome border" style="width:70%;" colspan="2"><span style="line-height: 1.5; vertical-align: middle; font-weight: bold; color: #663380;">Playing and Playful</span><div style="font-size:8pt;">Inventing, creating, imagining, creating/testing theories, telling/directing stories/narratives, exploring/representing their knowledge using multi-modal literacies. Using open ended materials to support creativity.</div>
+        </td>
+        <td class="outcome border" style="width:15%;" valign="middle"></td>
+        <td class="outcome border" style="width:15%;" valign="middle"></td>
+    </tr>
+
+    <tr>
+        <td class="outcome border" style="width:70%;" colspan="2"><span style="line-height: 1.5; vertical-align: middle; font-weight: bold; color: #663380;">Seeking</span><div style="font-size:8pt;">Children question, wonder, explore with senses, problem solving in play and learning, understanding multiple perspectives, ideas, thoughts and feelings.</div>
+        </td>
+        <td class="outcome border" style="width:15%;" valign="middle"></td>
+        <td class="outcome border" style="width:15%;" valign="middle"></td>
+    </tr>
+
+    <tr>
+        <td class="outcome border" style="width:70%;" colspan="2"><span style="line-height: 1.5; vertical-align: middle; font-weight: bold; color: #663380;">Participating</span><div style="font-size:8pt;">Engage with others; debate, collaborate, negotiate, express feelings and thoughts both verbally and non-verbally. Take turns, observe.
+hers; debate, collaborate, negotiate, express feelings and thoughts both verbally andTake turns, observe.</div>
+        </td>
+        <td class="outcome border" style="width:15%;" valign="middle"></td>
+        <td class="outcome border" style="width:15%;" valign="middle"></td>
+    </tr>
+
+    <tr>
+        <td class="outcome border" style="width:70%;" colspan="2"><span style="line-height: 1.5; vertical-align: middle; font-weight: bold; color: #663380;">Persisting</span><div style="font-size:8pt;">Continue through challenges and difficulties, try new strategies (pursue own questions/theories in play), ask for help, test theories/ask questions/gather information on topics of interest.</div>
+        </td>
+        <td class="outcome border" style="width:15%;" valign="middle"></td>
+        <td class="outcome border" style="width:15%;" valign="middle"></td>
+    </tr>
+
+    <tr>
+        <td class="outcome border" style="width:70%;" colspan="2"><span style="line-height: 1.5; vertical-align: middle; font-weight: bold; color: #663380;">Caring</span><div style="font-size:8pt;">Helping others/themselves/materials/environment
+Self-care, independence, jobs of responsibility
+Respect and responsibility for the community, the world and care for the living things
+
+Respect diversity and differences; cultural, abilities, routines and different ideas.</div>
+        </td>
+        <td class="outcome border" style="width:15%;" valign="middle"></td>
+        <td class="outcome border" style="width:15%;" valign="middle"></td>
+    </tr>
+
+</table><table cellspacing="0" cellpadding="0" style="height: 3.5mm;font-size: 3.5mm;">
+<tr><td></td></tr>
+</table>{% endif %}
