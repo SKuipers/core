@@ -49,12 +49,12 @@ sources:
         {% endfor %}
     </tr>
 
-    {% for outcome, grades in course.outcomes %}
+    {% for outcome in course.outcomes %}
         <tr>
-            <td class="outcome border" style="width:64%" colspan="2">{{ outcome }}</td>
+            <td class="outcome border" style="width:64%" colspan="2">{{ outcome.name }}</td>
             {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
                 {% set defaultValue = term.active? defaultOutcome : '' %}
-                <td class="outcome border" style="width:{{ 36 / reportingCycle.cycleTotal|default(1) }}%;" valign="middle">{{ grades["Cycle "~cycleNum] | default(defaultValue) }}</td>
+                <td class="outcome border" style="width:{{ 36 / reportingCycle.cycleTotal|default(1) }}%;" valign="middle">{{ outcome.values["Cycle "~cycleNum] | default(defaultValue) }}</td>
             {% endfor %}
         </tr>
     {% endfor %}

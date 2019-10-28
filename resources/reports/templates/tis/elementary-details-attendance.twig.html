@@ -3,15 +3,23 @@ name: Elementary Attendance
 category: Body
 types: Body
 sources:
+    student: Student
     attendance: AttendanceByCycle
     reportingCycle: ReportingCycle
 -->#}
 {{- include('tis/secondary-style.twig') -}}
 <style>
     .header {
-        font-size: {{ fontSizeMedium }} ;
+        font-size: {{ fontSizeSmall }} ;
         font-weight: bold;
-        background-color: #AAAAAA;
+        background-color: {{ 'PK' in student.yearGroupNameShort or 'JK' in student.yearGroupNameShort ? '#c9f5bc' : '#AAAAAA' }};
+        vertical-align: middle;
+    }
+
+    .subheader {
+        font-size: {{ fontSizeSmall }} ;
+        font-weight: bold;
+        background-color: #DDDDDD;
         vertical-align: middle;
     }
 
@@ -30,14 +38,14 @@ sources:
         </tr>
         <tr>
             {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
-            <td class="header border-top border-bottom border-left attendance" style="width:16.65%">Absent</td>
-            <td class="header border-top border-bottom border-right attendance" style="width:16.65%">Late</td>
+            <td class="subheader border-top border-bottom border-left attendance" style="width:16.65%">Absent</td>
+            <td class="subheader border-top border-bottom border-right attendance" style="width:16.65%">Late</td>
             {% endfor %}
         </tr>
         <tr>
             {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
-            <td class="border-top border-bottom border-left attendance" style="width:16.65%">{{ cycleNum? attendance["Cycle "~cycleNum].absent|default('') }}</td>
-            <td class="border-top border-bottom border-right attendance" style="width:16.65%">{{ cycleNum? attendance["Cycle "~cycleNum].late|default('') }}</td>
+            <td class="border-top border-bottom border-left attendance" style="width:16.65%">{{ cycleNum? attendance[cycleNum].absent|default('') }}</td>
+            <td class="border-top border-bottom border-right attendance" style="width:16.65%">{{ cycleNum? attendance[cycleNum].late|default('') }}</td>
             {% endfor %}
         </tr> 
     </table>

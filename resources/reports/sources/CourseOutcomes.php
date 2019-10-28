@@ -11,11 +11,28 @@ class CourseOutcomes extends DataSource
                 'name'      => 'Grade 1 Science',
                 'nameShort' => 'GR1SCIENCE',
                 //'comments'  => $this->factory->get('CourseComments')->getSchema(),
-                //'teachers'  => $this->factory->get('ClassTeachers')->getSchema(),
+                'teachers'  => $this->getFactory()->get('ClassTeachers')->getSchema(),
                 'outcomes'   => [
-                    [
-                        'criteriaName' => 'Understands and applies scientific concepts being studied',
-                        'grades'      => [
+                    0 => [
+                        'name'     => 'Understands and applies scientific concepts being studied',
+                        'category' => '',
+                        'values'   => [
+                            1 => 'Approaching',
+                            2 => 'Meeting',
+                        ],
+                    ],
+                    1 => [
+                        'name'     => 'Listening to others, and sharing ideas, thoughts, and feelings',
+                        'category' => '',
+                        'values'   => [
+                            1 => 'Approaching',
+                            2 => 'Meeting',
+                        ],
+                    ],
+                    2 => [
+                        'name'     => 'Continuing through challenges and/or difficulties',
+                        'category' => '',
+                        'values'   => [
                             1 => 'Approaching',
                             2 => 'Meeting',
                         ],
@@ -28,7 +45,7 @@ class CourseOutcomes extends DataSource
     public function getData($ids = [])
     {
         $data = array('gibbonStudentEnrolmentID' => $ids['gibbonStudentEnrolmentID']);
-        $sql = "SELECT gibbonCourse.gibbonCourseID, gibbonCourse.gibbonCourseIDParent, gibbonCourseClass.gibbonCourseClassID, gibbonCourse.name as courseName, gibbonCourse.nameShort as courseNameShort, gibbonCourse.description, gibbonCourseClass.name as className, gibbonCourseClass.nameShort as classNameShort, gibbonCourseClassPerson.role as role, gibbonReportingCriteriaType.name as criteriaType,gibbonReportingCriteria.name as criteriaName, gibbonReportingValue.value as gradeID, gibbonScaleGrade.descriptor, gibbonReportingCycle.cycleNumber as reportNum, gibbonReportingCycle.gibbonReportingCycleID as reportID
+        $sql = "SELECT gibbonCourse.gibbonCourseID, gibbonCourse.gibbonCourseIDParent, gibbonCourseClass.gibbonCourseClassID, gibbonCourse.name as courseName, gibbonCourse.nameShort as courseNameShort, gibbonCourse.description, gibbonCourseClass.name as className, gibbonCourseClass.nameShort as classNameShort, gibbonCourseClassPerson.role as role, gibbonReportingCriteriaType.name as criteriaType, gibbonReportingCriteriaType.valueType as valueType, gibbonReportingCriteria.category, gibbonReportingCriteria.gibbonReportingCriteriaID as criteriaID, gibbonReportingCriteria.name as criteriaName, gibbonReportingValue.comment, gibbonReportingValue.value, gibbonScaleGrade.descriptor, gibbonReportingCycle.cycleNumber as reportNum, gibbonReportingCycle.gibbonReportingCycleID as reportID
                 FROM gibbonStudentEnrolment
                 JOIN gibbonCourseClassPerson ON (gibbonStudentEnrolment.gibbonPersonID=gibbonCourseClassPerson.gibbonPersonID)
                 JOIN gibbonCourseClass ON (gibbonCourseClass.gibbonCourseClassID=gibbonCourseClassPerson.gibbonCourseClassID)
@@ -40,7 +57,6 @@ class CourseOutcomes extends DataSource
                 LEFT JOIN gibbonReportingCycle ON (gibbonReportingCycle.gibbonReportingCycleID=gibbonReportingValue.gibbonReportingCycleID)
                 WHERE gibbonStudentEnrolment.gibbonStudentEnrolmentID=:gibbonStudentEnrolmentID
                 AND gibbonCourse.gibbonSchoolYearID=gibbonStudentEnrolment.gibbonSchoolYearID
-                AND gibbonReportingCriteriaType.name='Elementary Indicator'
                 AND gibbonCourseClass.reportable='Y'
                 AND (gibbonCourseClassPerson.role = 'Student' OR gibbonCourseClassPerson.role = 'Student - Left')
                 ORDER BY gibbonCourse.orderBy, gibbonCourse.nameShort, gibbonReportingCriteria.sequenceNumber";
@@ -53,7 +69,8 @@ class CourseOutcomes extends DataSource
             // Build a set of top-level courses and an array of classes/outcomes for each
             $groupedByCourse = array_reduce($groupedByCourse, function ($courses, $item) {
                 $id = $item['gibbonCourseID'];
-                $reportNum = "Cycle ".($item['reportNum'] ?? '1');
+                // $reportNum = "Cycle ".($item['reportNum'] ?? '1');
+                $reportNum = ($item['reportNum'] ?? '1');
 
                 $courses[$id]['name'] = $item['courseName'];
                 $courses[$id]['nameShort'] = $item['courseNameShort'];
@@ -61,13 +78,21 @@ class CourseOutcomes extends DataSource
                 $courses[$id]['gibbonCourseClassID'] = $item['gibbonCourseClassID'];
                 $courses[$id]['role'] = $item['role'];
                 $courses[$id]['reportID'] = !empty($item['reportID'])? $item['reportID'] : ($courses[$id]['reportID'] ?? '');
-                if ($item['criteriaType'] == 1 || $item['criteriaType'] == 2 || $item['criteriaType'] == 4) {
-                    $courses[$id]['outcomes'][$item['criteriaName']][$reportNum] = !empty($item['gradeID'])? $item['gradeID'].'%' : 'N/A';
-                } elseif ($item['criteriaType'] == 6) {
-                    $courses[$id]['outcomes'][$item['criteriaName']][$reportNum] = !empty($item['gradeID'] && $item['gradeID'] == 'Y')? 'Yes' : '';
+
+                if ($item['criteriaType'] == 'Elementary Indicator' || $item['criteriaType'] == 'Kindergarten Indicator') {
+                    $courses[$id]['outcomes'][$item['criteriaName']]['name'] = $item['criteriaName'];
+                    $courses[$id]['outcomes'][$item['criteriaName']]['category'] = $item['category'];
+                    $courses[$id]['outcomes'][$item['criteriaName']]['values'][$reportNum] = $item['descriptor'];
                 } else {
-                    $courses[$id]['outcomes'][$item['criteriaName']][$reportNum] = $item['descriptor'];
+                    $courses[$id]['criteria'][$item['criteriaID']] = [
+                        'name'         => $item['criteriaName'],
+                        'criteriaType' => $item['criteriaType'],
+                        'valueType'    => $item['valueType'],
+                        'value'        => $item['value'],
+                        'comment'      => $item['comment'],
+                    ];
                 }
+                
                 
                 return $courses;
             }, array());
@@ -78,7 +103,7 @@ class CourseOutcomes extends DataSource
                 $ids['gibbonCourseClassID'] = $course['gibbonCourseClassID'];
                 $ids['reportID'] = $course['reportID']; // Added for secondary comments to work
 
-                //$course['teachers'] = $this->factory->get('ClassTeachers')->getData($ids);
+                $course['teachers'] = $this->getFactory()->get('ClassTeachers')->getData($ids);
                 //$course['comments'] = $this->factory->get('CourseComments')->getData($ids);
 
                 $values[] = $course;

@@ -3,6 +3,7 @@ name: Elementary Homeroom
 category: Body
 types: Body
 sources:
+    student: Student
     homeroom: RollGroupCriteria
     tutors: Tutors
 -->#}
@@ -11,7 +12,7 @@ sources:
     .header {
         font-size: {{ fontSizeMedium }} ;
         font-weight: bold;
-        background-color: #AAAAAA;
+        background-color: {{ 'PK' in student.yearGroupNameShort or 'JK' in student.yearGroupNameShort ? '#bee4fa' : '#AAAAAA' }};
         vertical-align: middle;
     }
 

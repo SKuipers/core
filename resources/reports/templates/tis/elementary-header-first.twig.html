@@ -8,6 +8,19 @@ sources:
     reportingCycle: ReportingCycle
 -->#}
 {{ include('tis/secondary-style.twig') }}
+
+{% set school = {
+    name: 'The International School of Macao',
+    address: 'Macau University of Science and Technology
+    Block K, Avenida Wai Long, Taipa, Macao
+    Tel: +853 2853 3700 Fax: +853 2853 3702',
+} %}
+
+{% set principal = {
+    name: 'Ms. Mary-Anne Jasinski',
+    title: 'Elementary School Principal',
+} %}
+
 <table>
     <tr>
         <td style="width:40%;text-align:center;font-size:{{ fontSizeSmall }};">&nbsp;<br/>
