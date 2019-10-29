@@ -4,6 +4,7 @@ category: Body
 types: Body
 sources:
     student: Student
+    families: Families
     homeroom: RollGroupCriteria
     tutors: Tutors
 -->#}
@@ -43,6 +44,20 @@ sources:
                 {% endif %}
             {% endfor %}
 
+            {% set family = families|first %}
+            {% if family.languageHomePrimary %}
+            <tr nobr="true">
+                <td class="comment"><b>Home Language:</b><br/>
+                <span style="font-family:DroidSansFallback;">
+                    {%- if family.languageHomePrimary and family.languageHomeSecondary -%}
+                        In {{ student.preferredName }}’s home the following languages are spoken: {{ family.languageHomePrimary }} and {{ family.languageHomeSecondary }}
+                    {%- else -%}
+                        In {{ student.preferredName }}’s home the following language is spoken: {{ family.languageHomePrimary }}
+                    {%- endif -%}
+                </span></td>
+            </tr>
+            {% endif %}
+
             {% if studentProgression and studentProgression.progression == 'Y' %}
             <tr nobr="true">
                 <td class="comment"><b>Student Progression:</b><br/>
@@ -52,4 +67,6 @@ sources:
         </table></td>
     </tr>
     {% endif %}
+
+    
 </table>

@@ -8,10 +8,9 @@ sources:
     courseOutcomes: CourseOutcomes
 -->#}
 {{- include('tis/secondary-style.twig') -}}<style>
-    .header {
+    .headerOutcome {
         font-size: {{ fontSizeMedium }};
         font-weight: bold;
-        /* background-color: #AAAAAA; */
         background-color: #e1c5f0;
         vertical-align: middle;
     }
@@ -34,18 +33,21 @@ sources:
     }
 </style>{% for course in courseOutcomes %}<table cellspacing="0" cellpadding="4" nobr="true">
     <tr>
-        {% if 'PK' in student.yearGroupNameShort %}
-            <td class="header border-top border-bottom border-left" style="width:69.95%;line-height:2;" colspan="1" rowspan="2">
-                {{- course.name|upper|replace({"PK ": "", "JK ": ""}) -}}
-                <br/><span style="color: #663380;">The child is ...</span>
-            </td>
-        {% else %}
-            <td class="header border-top border-bottom border-left" style="width:69.95%;line-height:3;" colspan="1" rowspan="2">
-            {{- course.name|upper|replace({"PK ": "", "JK ": ""}) -}}
-        </td>
-        {% endif %}
+    {% set lineHeight = 'PK' in student.yearGroupNameShort or 'PK' in student.yearGroupNameShort ? '2' : '3' %}
 
-        <td class="header border-top border-bottom border-right" style="width:30.05%;text-align:right;" colspan="{{ reportingCycle.cycleTotal|default(1) + 1 }}">
+        <td class="headerOutcome border-top border-bottom border-left" style="width:69.95%;line-height:{{ lineHeight }};" colspan="1" rowspan="2">
+            {{- course.name|upper|replace({"PK ": "", "JK ": ""}) -}}
+
+            {% if 'Chinese' in course.name %}
+                <br/><span style="color: #663380;">The child demonstrates ...</span>
+            {% elseif 'PK' in student.yearGroupNameShort %}
+                <br/><span style="color: #663380;">The child is ...</span>
+            {% elseif 'JK' in student.yearGroupNameShort %}
+                <br/><span style="color: #663380;">The child ...</span>
+            {% endif %}
+        </td>
+
+        <td class="headerOutcome border-top border-bottom border-right" style="width:30.05%;text-align:right;" colspan="{{ reportingCycle.cycleTotal|default(1) + 1 }}">
         {% for teacher in course.teachers %}
             {{- teacher.fullName -}}
             {{ not loop.last ? ',' }}
