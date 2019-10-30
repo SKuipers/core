@@ -11,7 +11,7 @@ sources:
 <style>
     .header {
         font-size: {{ fontSizeMedium }} ;
-        background-color: {{ 'PK' in student.yearGroupNameShort or 'JK' in student.yearGroupNameShort ? '#DDDDDD' : '#AAAAAA' }};
+        background-color: {{ 'K' in student.yearGroupNameShort ? '#DDDDDD' : '#AAAAAA' }};
         vertical-align: middle;
     }
 
@@ -35,6 +35,8 @@ sources:
                 Pre-{{ report.name }} Progress Report
             {%- elseif 'JK' in student.yearGroupNameShort -%}
                 Junior {{ report.name }} Progress Report
+            {%- elseif 'SK' in student.yearGroupNameShort -%}
+                Senior {{ report.name }} Progress Report
             {%- else -%}
                 {{ report.name }} Progress Report
             {%- endif -%}

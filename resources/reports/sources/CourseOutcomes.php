@@ -83,7 +83,7 @@ class CourseOutcomes extends DataSource
                     $courses[$id]['outcomes'][$item['criteriaName']]['name'] = $item['criteriaName'];
                     $courses[$id]['outcomes'][$item['criteriaName']]['category'] = $item['category'];
                     $courses[$id]['outcomes'][$item['criteriaName']]['values'][$reportNum] = $item['descriptor'];
-                } else {
+                } elseif ($item['valueType'] != 'Remark') {
                     $courses[$id]['criteria'][$item['criteriaID']] = [
                         'name'         => $item['criteriaName'],
                         'criteriaType' => $item['criteriaType'],

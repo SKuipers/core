@@ -54,21 +54,19 @@ sources:
             <td class="outcome border" style="width:64%" colspan="2">{{ outcome.name }}</td>
             {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
                 {% set defaultValue = term.active? defaultOutcome : '' %}
-                <td class="outcome border" style="width:{{ 36 / reportingCycle.cycleTotal|default(1) }}%;" valign="middle">{{ outcome.values["Cycle "~cycleNum] | default(defaultValue) }}</td>
+                <td class="outcome border" style="width:{{ 36 / reportingCycle.cycleTotal|default(1) }}%;" valign="middle">{{ outcome.values[cycleNum] | default(defaultValue) }}</td>
             {% endfor %}
         </tr>
     {% endfor %}
 
-    {% if course.comments.studentComment %}
-        {% if 'MUSIC' not in course.nameShort and 'PHYSE' not in course.nameShort and 'ELL' not in course.nameShort %}
+    {% for criteria in course.criteria %}
         <tr>
-            <td class="border" colspan="{{ reportingCycle.cycleTotal|default(1) + 2 }}" style="width:100%;"><table cellpadding="6"><tr>
-                <td style="font-size: {{ fontSizeMedium }}"><b>Comments:</b> <span style="font-family:DroidSansFallback;">{{ course.comments.studentComment }}</span></td>
+            <td class="border" colspan="{{ 4 }}" style="width:100%;"><table cellpadding="6"><tr>
+                <td style="font-size: {{ fontSizeMedium }}"><b>{{ criteria.name }}:</b> <span style="font-family:DroidSansFallback;">{{ criteria.comment }}</span></td>
                 </tr></table>
             </td>
         </tr>
-        {% endif %}
-    {% endif %}
+    {% endfor %}
 </table><table cellspacing="0" cellpadding="0" style="height: 3.5mm;font-size: 3.5mm;">
 <tr><td></td></tr>
 </table>{% endfor %}

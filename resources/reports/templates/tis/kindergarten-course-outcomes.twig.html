@@ -33,16 +33,14 @@ sources:
     }
 </style>{% for course in courseOutcomes %}<table cellspacing="0" cellpadding="4" nobr="true">
     <tr>
-    {% set lineHeight = 'PK' in student.yearGroupNameShort or 'PK' in student.yearGroupNameShort ? '2' : '3' %}
-
-        <td class="headerOutcome border-top border-bottom border-left" style="width:69.95%;line-height:{{ lineHeight }};" colspan="1" rowspan="2">
-            {{- course.name|upper|replace({"PK ": "", "JK ": ""}) -}}
+        <td class="headerOutcome border-top border-bottom border-left" style="width:69.95%;line-height:1.6;" colspan="1" rowspan="2">
+            {{- course.name|upper|replace({"PK ": "", "JK ": "", "SK ": ""}) -}}
 
             {% if 'Chinese' in course.name %}
                 <br/><span style="color: #663380;">The child demonstrates ...</span>
             {% elseif 'PK' in student.yearGroupNameShort %}
                 <br/><span style="color: #663380;">The child is ...</span>
-            {% elseif 'JK' in student.yearGroupNameShort %}
+            {% else %}
                 <br/><span style="color: #663380;">The child ...</span>
             {% endif %}
         </td>
