@@ -4,7 +4,7 @@ use Gibbon\Module\Reports\DataSource;
 
 class ClassAttendance extends DataSource
 {
-    protected $gibbonPersonID;
+    protected $gibbonStudentEnrolmentID;
     protected $data;
 
     public function getSchema()
@@ -19,7 +19,7 @@ class ClassAttendance extends DataSource
     {
         if ($this->isCacheValid($ids) == false) {
             $this->data = $this->getAllData($ids);
-            $this->gibbonPersonID = $ids['gibbonPersonID'];
+            $this->gibbonStudentEnrolmentID = $ids['gibbonStudentEnrolmentID'];
         }
 
         return (isset($this->data[$ids['gibbonCourseClassID']]))? $this->data[$ids['gibbonCourseClassID']] : array();
@@ -27,29 +27,30 @@ class ClassAttendance extends DataSource
 
     protected function isCacheValid($ids)
     {
-        return isset($this->data) && $this->gibbonPersonID == $ids['gibbonPersonID'];
+        return isset($this->data) && $this->gibbonStudentEnrolmentID == $ids['gibbonStudentEnrolmentID'];
     }
 
     protected function getAllData($ids = [])
     {
         $data = array(
-            'gibbonPersonID'     => $ids['gibbonPersonID'],
-            'gibbonSchoolYearID' => $ids['gibbonSchoolYearID'],
-            'reportID'           => $ids['reportID'],
+            'gibbonStudentEnrolmentID'     => $ids['gibbonStudentEnrolmentID'],
+            'gibbonReportingCycleID'           => $ids['gibbonReportingCycleID'],
         );
         $sql = "SELECT gibbonAttendanceLogPerson.gibbonCourseClassID, gibbonAttendanceLogPerson.date, gibbonAttendanceLogPerson.type
-                FROM gibbonAttendanceLogPerson
-                JOIN gibbonSchoolYear ON (gibbonSchoolYear.gibbonSchoolYearID=:gibbonSchoolYearID)
-                JOIN arrReport ON (arrReport.reportID=:reportID)
-                WHERE gibbonAttendanceLogPerson.gibbonPersonID=:gibbonPersonID
+                FROM gibbonStudentEnrolment
+                JOIN gibbonSchoolYear ON (gibbonSchoolYear.gibbonSchoolYearID=gibbonStudentEnrolment.gibbonSchoolYearID)
+                JOIN gibbonAttendanceLogPerson ON (gibbonAttendanceLogPerson.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID)
+                JOIN gibbonReportingCycle ON (gibbonReportingCycle.gibbonSchoolYearID=gibbonSchoolYear.gibbonSchoolYearID)
+                WHERE gibbonStudentEnrolment.gibbonStudentEnrolmentID=:gibbonStudentEnrolmentID
+                AND gibbonReportingCycle.gibbonReportingCycleID=:gibbonReportingCycleID
                 AND gibbonAttendanceLogPerson.gibbonCourseClassID>0
                 AND gibbonAttendanceLogPerson.date>=gibbonSchoolYear.firstDay
-                AND gibbonAttendanceLogPerson.date<=arrReport.endDate
+                AND gibbonAttendanceLogPerson.date<=gibbonReportingCycle.dateEnd
                 AND gibbonAttendanceLogPerson.date<=CURDATE()
                 ORDER BY gibbonAttendanceLogPerson.date, gibbonAttendanceLogPerson.timestampTaken
                 ";
 
-        $result = $this->pdo->executeQuery($data, $sql);
+        $result = $this->db()->executeQuery($data, $sql);
 
         $values = ($result->rowCount() > 0)? $result->fetchAll(): array();
 

@@ -99,9 +99,8 @@ class CourseList extends DataSource
                     $ids['gibbonCourseClassID'] = $class['gibbonCourseClassID'];
 
                     $class['courseName'] = $this->filterClassName($class['courseName'], $course['cycleNumber']);
-                    // $class['attendance'] = $this->getFactory()->get('ClassAttendance')->getData($ids);
-                    $classGrades = $this->getFactory()->get('ClassGrades');
-                    $class['grades'] = !empty($classGrades) ? $classGrades->getData($ids) : [];
+                    $class['attendance'] =  $this->getFactory()->get('ClassAttendance')->getData($ids);
+                    $class['grades'] = $this->getFactory()->get('ClassGrades')->getData($ids);
                 }
 
                 $values[] = $course;
