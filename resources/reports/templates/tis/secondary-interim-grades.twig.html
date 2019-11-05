@@ -1,0 +1,74 @@
+{#<!--
+name: Secondary Interim Grades
+category: Body
+types: Body
+sources:
+    reportingCycle: ReportingCycle
+-->#}
+{{- include('tis/secondary-style.twig') -}}<style>
+    .header {
+        font-weight: bold;
+        background-color: #AAAAAA;
+        vertical-align: middle;
+    }
+
+    .subheader {
+        font-size: {{ fontSizeSmall }} ;
+        text-align: center;
+        line-height: 1.5;
+    }
+
+    .comment {
+        
+        font-size: {{ fontSizeComment }} ;
+        line-height: {{ lineHeightComment }};
+        text-align: justified;
+    }
+</style>
+{%- if courseListInterim -%}
+<table cellspacing="0" cellpadding="4">
+<tr>
+    <td class="header border subheader" style="width:20%">Teacher</td>
+    <td class="header border subheader" style="width:{{ hasGrades ? "28%" : "35%" }}">Course</td>
+    <td class="header border subheader" style="width:7.5%">Absent</td>
+    <td class="header border subheader" style="width:7.5%">Late</td>
+    {% if hasGrades %}
+        <td class="header border subheader" style="width:7%"> Grade</td>
+    {% endif %}
+    <td class="header border subheader" style="width:20%">Effort</td>
+    <td class="header border subheader" style="width:10%">Interview</td>
+</tr>
+
+{% for course in courseListInterim %}
+
+    {% set teacher = course.teachers|first %}
+    {% set courseClass = course.classes|first %}
+    {% set reportID = (report.reportNum - 1) %}
+
+    {% for class in course.classes %}
+        {% if class.grades[reportID].effort.descriptor is not empty %}
+        <tr>
+            <td class="border subheader" style="width:20%">{{ teacher.fullName }}</td>
+
+            <td class="border subheader" style="width:{{ hasGrades ? "28%" : "35%" }}">{{ class.courseName }}</td>
+
+            <td class="border subheader" style="width:7.5%">{{ courseClass.attendance.absent|default(0) }}</td>
+
+            <td class="border subheader" style="width:7.5%">{{ courseClass.attendance.late|default(0) }}</td>
+
+            {% if hasGrades %}
+                {% set showGrade = class.grades[reportID].grade is not empty %}
+                <td class="border subheader" style="width:7%">{{ showGrade ? class.grades[reportID].grade : ' -' }}</td>
+            {% endif %}
+
+            <td class="border subheader" style="width:20%">{{ class.grades[reportID].effort.descriptor }}</td>
+
+            <td class="border subheader" style="width:10%">{% if class.grades[reportID].interview.value is not empty %}YES{% endif %}</td>
+        </tr>
+        {% endif %}
+
+    {% endfor %}
+{% endfor %}
+
+</table>
+{%- endif -%}

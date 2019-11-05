@@ -1,0 +1,47 @@
+{#<!--
+name: Secondary Header First Page
+category: Headers
+types: Header
+sources:
+    school: School
+    report: Report
+    reportingCycle: ReportingCycle
+-->#}
+{{- include('tis/secondary-style.twig') -}}
+
+{%- set school = {
+    name: 'The International School of Macao',
+    address: 'Macau University of Science and Technology
+    Block K, Avenida Wai Long, Taipa, Macao
+    Tel: +853 2853 3700 Fax: +853 2853 3702',
+} -%}
+
+{%- set headOfSchool = {
+    name: 'Mr. Mark Lockwood',
+    title: 'Head of School',
+} -%}
+
+{%- set principal = {
+    name: 'Mr. Lorne Schmidt',
+    title: 'Secondary Principal',
+} -%}
+
+<table>
+    <tr>
+        <td style="width:40%;text-align:center;font-size:{{ fontSizeSmall }};">&nbsp;<br/>
+            <span style="font-weight:bold;font-size:{{ fontSizeMedium }};">{{- school.name -}}</span><br/>
+            {{- school.address|nl2br -}}
+        </td>
+        <td style="width:20%;text-align:center;">
+            {% if true or school.logoSrc %}
+            <img src="{{ assetPath }}/images/logo_tis.png" alt="logo" height="80">
+            {% endif %}
+        </td>
+        <td  style="width:40%;text-align:center;font-size:{{ fontSizeSmall }};">&nbsp;<br/>
+            {{- headOfSchool.title }}: {{ headOfSchool.name -}}<br/>
+            {{- principal.title }}: {{ principal.name -}}<br/>
+            School Year: {{ report.schoolYear|replace({"-":" - "}) }}<br/>
+            Report Date: {{ reportingCycle.dateEnd|date("F jS, Y") }} 
+        </td>
+    </tr>
+</table>

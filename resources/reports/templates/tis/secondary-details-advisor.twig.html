@@ -1,0 +1,75 @@
+{#<!--
+name: Secondary Advisor Comments
+category: Body
+types: Body
+sources:
+    report: Report
+    reportingCycle: ReportingCycle
+    attendance: AttendanceByCycle
+    yearGroup: YearGroupScope
+    rollGroup: RollGroupScope
+    tutors: Tutors
+-->#}
+{{- include('tis/secondary-style.twig') -}}
+<style>
+    .header {
+        font-size: {{ fontSizeMedium }} ;
+        font-weight: bold;
+        background-color: #AAAAAA;
+        vertical-align: middle;
+    }
+
+    .attendance {
+        font-size: {{ fontSizeSmall }} ;
+        text-align: center;
+    }
+
+    .comment {
+        font-size: {{ fontSizeComment }} ;
+        line-height: {{ lineHeightComment }};
+        text-align: justified;
+    }
+</style><table cellspacing="0" cellpadding="4">
+
+    {%- set advisor = tutors|first -%}
+    {%- set advisorComment = yearGroup.perGroup|first -%}
+    {%- set studentComment = rollGroup.perStudent|first -%}
+    <tr>
+        <td class="header border-top border-bottom border-left" style="width:50%" colspan="4">TEACHER ADVISOR PROGRAM [TAP]</td>
+        <td class="header border-top border-bottom border-right" style="width:50%;text-align:right;" colspan="4">{{ advisor.title }} {{ advisor.preferredName|first }}. {{ advisor.surname }}</td>
+    </tr>
+    <tr>
+        <td class="border" colspan="8"><table cellpadding="6"><tr>
+            <td class="comment"><b>Program Description:</b> <span style="font-family:DroidSansFallback;">{{ advisorComment.comment }}</span></td>
+            </tr></table>
+        </td>
+    </tr>
+
+
+    {% if reportingCycle %}
+        <tr>
+            {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
+            <td class="header border attendance" style="width:25%" colspan="2">{{- cycleNum }} Attendance</td>
+            {% endfor %}
+        </tr>
+        <tr>
+            {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
+            <td class="header border attendance" style="width:12.5%">Absent</td>
+            <td class="header border attendance" style="width:12.5%">Late</td>
+            {% endfor %}
+        </tr>
+        <tr>
+            {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
+            <td class="border attendance" style="width:12.5%">{{ cycleNum? attendance[cycleNum].absent|default('')  }}</td>
+            <td class="border attendance" style="width:12.5%">{{ cycleNum? attendance[cycleNum].late|default('')  }}</td>
+            {% endfor %}
+        </tr>
+    {% endif %}
+
+    <tr nobr="true">
+        <td class="border" colspan="8"><table cellpadding="6"><tr>
+            <td class="comment"><b>Advisor Comments:</b> <span style="font-family:DroidSansFallback;">{{ studentComment.comment -}}</span></td>
+            </tr></table>
+        </td>
+    </tr>
+</table>

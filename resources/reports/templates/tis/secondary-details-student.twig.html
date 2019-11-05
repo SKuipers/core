@@ -1,0 +1,80 @@
+{#<!--
+name: Secondary Student Details
+category: Body
+types: Body
+sources:
+    student: Student
+    report: Report
+    tutors: Tutors
+-->#}
+{{- include('tis/secondary-style.twig') -}}
+<style>
+    .header {
+        font-size: {{ fontSizeMedium }} ;
+        background-color: #AAAAAA;
+        vertical-align: middle;
+    }
+
+    .title {
+        font-size: {{ fontSizeLarge }} ;
+        font-weight: bold;
+        text-align: center;
+        line-height: 1;
+    }
+
+    .student {
+        font-size: {{ fontSizeComment }} ;
+        text-align: left;
+        line-height: 4;
+    }
+
+    .term {
+        font-size: {{ fontSizeMedium }} ;
+        line-height: 1.4;
+    }
+</style>
+<table cellspacing="0" cellpadding="0">
+    <tr>
+        <td class="title">Secondary School - {{ report.reportName }} Progress Report</td>
+    </tr>
+</table>
+<table cellspacing="0" cellpadding="0">
+    <tr>
+        <td class="student"><b>Student:</b> {{ student.surname }}, {{ student.firstName }} {% if student.firstName != student.preferredName %}({{ student.preferredName }}){% endif %}</td>
+    </tr>
+</table>
+<table cellspacing="0" cellpadding="4">
+    <tr>
+        <td class="header border-top border-bottom border-left" style="width:25%" colspan="1"><b>Student ID:</b> {{ student.studentID }}</td>
+        <td class="header border-top border-bottom" style="width:25%" colspan="1"><b>Class:</b> {{ student.rollGroupName }}</td>
+        <td class="header border-top border-bottom border-right" style="width:50%;text-align: right;" colspan="2">
+            {%- set advisor = tutors|first -%}
+            <b>Advisor:</b> {{ advisor.title }} {{ advisor.preferredName|first }}. {{ advisor.surname }}
+        </td>
+    </tr>
+    
+    {% if termGrades %}
+    <tr>
+        {% set grades = termGrades.terms %}
+        {% for reportID, term in termDefaults %}
+        <td class="border" style="width:25%"><table cellspacing="0" cellpadding="0">
+                <tr>
+                    <td colspan="2" class="term"><b>{{- term.name -}}</b></td>
+                </tr>
+                <tr>
+                    <td colspan="2" class="term" style="line-height:2.5;">{% if grades[reportID].status and (reportID == 1 or reportID == 2 or reportID == 3)  %}{{- grades[reportID].status -}}{% endif %}</td>
+                </tr>
+                {# ########
+                <tr>
+                    <td class="term" style="width:40%">{% if grades[reportID].gpa %}Average:{% endif %}</td>
+                    <td class="term" style="width:60%">{% if grades[reportID].gpa %}{{- grades[reportID].gpa -}}%{% endif %}</td>
+                </tr>
+                ######### #}
+            </table>
+        </td>
+        {% endfor %}
+    </tr>
+    {% endif %}
+    
+</table>
+&nbsp;
