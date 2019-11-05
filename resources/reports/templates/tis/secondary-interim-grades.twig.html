@@ -4,6 +4,7 @@ category: Body
 types: Body
 sources:
     reportingCycle: ReportingCycle
+    courseListInterim: CourseList
 -->#}
 {{- include('tis/secondary-style.twig') -}}<style>
     .header {
@@ -43,7 +44,7 @@ sources:
 
     {% set teacher = course.teachers|first %}
     {% set courseClass = course.classes|first %}
-    {% set reportID = (report.reportNum - 1) %}
+    {% set reportID = reportingCycle.cycleNumber %}
 
     {% for class in course.classes %}
         {% if class.grades[reportID].effort.descriptor is not empty %}
@@ -63,7 +64,7 @@ sources:
 
             <td class="border subheader" style="width:20%">{{ class.grades[reportID].effort.descriptor }}</td>
 
-            <td class="border subheader" style="width:10%">{% if class.grades[reportID].interview.value is not empty %}YES{% endif %}</td>
+            <td class="border subheader" style="width:10%">{% if class.grades[reportID].interview.value == 'Y' %}YES{% endif %}</td>
         </tr>
         {% endif %}
 

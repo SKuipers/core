@@ -17,7 +17,7 @@ sources:
             <b>Signature:</b>
         </td> 
         <td class="footer border" style="width:30%;">
-            {{ principal.title|default("Elementary School Principal") }}
+            {{ principal.title|default( "Secondary" in reportingCycle.name ? "Secondary School Principal" : "Elementary School Principal") }}
         </td>
         <td class="footer border" style="width:25%;">
             {{ reportingCycle.dateEnd|date("j F Y") }} 

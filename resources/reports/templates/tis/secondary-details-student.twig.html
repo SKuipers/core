@@ -5,6 +5,7 @@ types: Body
 sources:
     student: Student
     report: Report
+    reportingCycle: ReportingCycle
     tutors: Tutors
 -->#}
 {{- include('tis/secondary-style.twig') -}}
@@ -35,7 +36,7 @@ sources:
 </style>
 <table cellspacing="0" cellpadding="0">
     <tr>
-        <td class="title">Secondary School - {{ report.reportName }} Progress Report</td>
+        <td class="title">Secondary School - {{ reportingCycle.nameShort }} Progress Report</td>
     </tr>
 </table>
 <table cellspacing="0" cellpadding="0">
@@ -53,21 +54,28 @@ sources:
         </td>
     </tr>
     
-    {% if termGrades %}
+    {% if reportingCycle %}
+    {% set reportNames = {
+        1: 'Term 1 Interim', 
+        2: 'Term 1 End ', 
+        3: 'Term 2 Interim', 
+        4: 'Term 2 End', 
+    } %}
+
     <tr>
         {% set grades = termGrades.terms %}
-        {% for reportID, term in termDefaults %}
+        {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
         <td class="border" style="width:25%"><table cellspacing="0" cellpadding="0">
                 <tr>
-                    <td colspan="2" class="term"><b>{{- term.name -}}</b></td>
+                    <td colspan="2" class="term"><b>{{- reportNames[cycleNum] -}}</b></td>
                 </tr>
                 <tr>
-                    <td colspan="2" class="term" style="line-height:2.5;">{% if grades[reportID].status and (reportID == 1 or reportID == 2 or reportID == 3)  %}{{- grades[reportID].status -}}{% endif %}</td>
+                    <td colspan="2" class="term" style="line-height:2.5;">{% if grades[cycleNum].status and (cycleNum == 1 or cycleNum == 2 or cycleNum == 3)  %}{{- grades[cycleNum].status -}}{% endif %}</td>
                 </tr>
                 {# ########
                 <tr>
-                    <td class="term" style="width:40%">{% if grades[reportID].gpa %}Average:{% endif %}</td>
-                    <td class="term" style="width:60%">{% if grades[reportID].gpa %}{{- grades[reportID].gpa -}}%{% endif %}</td>
+                    <td class="term" style="width:40%">{% if grades[cycleNum].gpa %}Average:{% endif %}</td>
+                    <td class="term" style="width:60%">{% if grades[cycleNum].gpa %}{{- grades[cycleNum].gpa -}}%{% endif %}</td>
                 </tr>
                 ######### #}
             </table>
@@ -77,4 +85,3 @@ sources:
     {% endif %}
     
 </table>
-&nbsp;
