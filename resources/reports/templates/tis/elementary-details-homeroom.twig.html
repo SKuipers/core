@@ -45,7 +45,7 @@ sources:
             {% endfor %}
 
             {% set family = families|first %}
-            {% if family.languageHomePrimary %}
+            {% if 'K' in student.yearGroupNameShort and family.languageHomePrimary %}
             <tr nobr="true">
                 <td class="comment"><b>Home Language:</b><br/>
                 <span style="font-family:DroidSansFallback;">
