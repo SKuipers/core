@@ -10,8 +10,8 @@ class ClassAttendance extends DataSource
     public function getSchema()
     {
         return [
-            'absent' => 0,
-            'late' => 0,
+            'absent' => ['randomDigit'],
+            'late' => ['randomDigit'],
         ];
     }
 

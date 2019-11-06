@@ -7,7 +7,7 @@ class CourseList extends DataSource
     public function getSchema()
     {
         return [
-            [
+            0 => [
                 'name'      => 'Biology',
                 'nameShort' => 'SCN2231',
                 'comments'  => $this->getFactory()->get('CourseComments')->getSchema(),

@@ -9,11 +9,11 @@ class ClassGrades extends DataSource
 
     public function getSchema()
     {
-        return [ 
-            ['grade' => 70, 'effort' => 'S'],
-            ['grade' => 80, 'effort' => 'G'],
-            ['grade' => 90, 'effort' => 'VG'],
-            ['grade' => 100, 'effort' => 'E'],
+        return [
+            1 => ['grade' => 70, 'effort' => ['value' => 'S', 'descriptor' => 'Satisfactory']],
+            2 => ['grade' => 80, 'effort' => ['value' => 'G', 'descriptor' => 'Good']],
+            3 => ['grade' => 90, 'effort' => ['value' => 'VG', 'descriptor' => 'Very Good']],
+            4 => ['grade' => 100, 'effort' => ['value' => 'E', 'descriptor' => 'Excellent']],
         ];
     }
 
