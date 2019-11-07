@@ -32,11 +32,13 @@ class Radio extends Input
     use MultipleOptionsTrait;
 
     protected $inline = false;
+    protected $align = 'right';
 
     public function __construct($name)
     {
         $this->setID(''); // Cannot share an ID across multiple Radio inputs
         $this->setName($name);
+        $this->addClass('md:max-w-md');
     }
 
     /**
@@ -58,6 +60,27 @@ class Radio extends Input
     public function inline($value = true)
     {
         $this->inline = $value;
+        $this->addClass('right');
+        return $this;
+    }
+
+    /**
+     * Aligns the list options to the right edge.
+     * @return  self
+     */
+    public function alignRight()
+    {
+        $this->align = 'right';
+        return $this;
+    }
+
+    /**
+     * Aligns the list options to the left edge.
+     * @return  self
+     */
+    public function alignLeft()
+    {
+        $this->align = 'left';
         return $this;
     }
 
@@ -98,16 +121,23 @@ class Radio extends Input
             }
 
             $count = 0;
+            $totalOptions = count($this->getOptions());
             foreach ($this->getOptions() as $value => $label) {
-
                 $this->setAttribute('checked', $this->getIsChecked($value));
 
                 if ($this->inline) {
                     $output .= '&nbsp;&nbsp;<input type="radio" value="'.$value.'" id="'.$this->getName().$count.'" '.$this->getAttributeString().'>&nbsp;';
                     $output .= '<label for="'.$this->getName().$count.'">'.$label.'</label>';
+                } elseif ($this->align == 'left') {
+                    $output .= '<div class="flex text-left '.($totalOptions > 1 ? 'my-2' : 'my-px').'">';
+                    $output .= '<input type="radio" value="'.$value.'" id="'.$this->getName().$count.'" '.$this->getAttributeString().'>';
+                    $output .= '<label class="leading-compact ml-2" for="'.$this->getName().$count.'">'.$label.'</label><br/>';
+                    $output .= '</div>';
                 } else {
-                    $output .= '<label for="'.$this->getName().$count.'">'.$label.'</label>&nbsp;';
+                    $output .= '<div class="flex justify-end text-right '.($totalOptions > 1 ? 'my-2' : 'my-px').'">';
+                    $output .= '<label class="leading-compact mr-1" for="'.$this->getName().$count.'">'.$label.'</label>&nbsp;';
                     $output .= '<input type="radio" value="'.$value.'" id="'.$this->getName().$count.'" '.$this->getAttributeString().'><br/>';
+                    $output .= '</div>';
                 }
                 $count++;
             }
