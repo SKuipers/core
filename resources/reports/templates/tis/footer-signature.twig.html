@@ -4,20 +4,37 @@ category: Footers
 types: Footer
 sources:
     reportingCycle: ReportingCycle
+params:
+    height: 26
+config:
+    signatureTitle:
+        label: Signature Title
+        type: words
+        default: Principal
+    signatureImage:
+        label: Signature Image
+        type: image
 -->#}
 {{- include('tis/secondary-style.twig') -}}
 <style>
 .footer {
     font-size: 9.5px;
-    line-height:3.75;
+    line-height:4.5;
 }
-</style><table cellpadding="4" style="background-color:#ffffff;">
+</style><table cellpadding="2" style="background-color:#ffffff;">
     <tr>
-        <td class="footer border" style="width:45%;">
+        <td class="footer border-left border-top border-bottom" style="width:15%;">
             <b>Signature:</b>
         </td> 
+        <td class="border-right border-top border-bottom" style="width:30%; vertical-align: middle;">
+            {% if true or isDraft %}
+                <span style="color: #cccccc; font-size: 22px; font-weight: bold; line-height:1.9;">DRAFT COPY</span>
+            {% elseif config.signatureImage %}
+                <img src="{{ basePath }}/{{ config.signatureImage }}" style="display: inline-block; height: 50px;" height="50">
+            {% endif %}
+        </td> 
         <td class="footer border" style="width:30%;">
-            {{ principal.title|default( "Secondary" in reportingCycle.name ? "Secondary School Principal" : "Elementary School Principal") }}
+            {{ config.signatureTitle|default("Principal") }}
         </td>
         <td class="footer border" style="width:25%;">
             {{ reportingCycle.dateEnd|date("j F Y") }} 
@@ -26,6 +43,6 @@ sources:
 </table>
 <table>
     <tr>
-       <td style="text-align:right;line-height:15px;">Page {{ pageNum -}}</td> 
+       <td style="color: #000; text-align:right;line-height:1.8;">Page {{ pageNum -}}</td> 
     </tr>
 </table>
