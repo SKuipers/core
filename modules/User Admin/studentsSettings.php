@@ -46,7 +46,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/studentsSetting
     $studentNoteGateway = $container->get(StudentNoteGateway::class);
 
     // QUERY
-    $criteria = $studentNoteGateway->newQueryCriteria()
+    $criteria = $studentNoteGateway->newQueryCriteria(true)
         ->sortBy(['name'])
         ->fromArray($_POST);
 
@@ -180,6 +180,11 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/studentsSetting
         $row->addYesNo($setting['name'])->selected($setting['value'])->required();
 
     $setting = getSettingByScope($connection2, 'School Admin', 'studentAgreementOptions', true);
+    $row = $form->addRow();
+        $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
+        $row->addTextArea($setting['name'])->setValue($setting['value']);
+
+    $setting = getSettingByScope($connection2, 'Students', 'firstAidDescriptionTemplate', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addTextArea($setting['name'])->setValue($setting['value']);

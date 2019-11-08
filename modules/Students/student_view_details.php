@@ -1869,7 +1869,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                                 $noteGateway = $container->get(StudentNoteGateway::class);
 
                                 // DATA TABLE
-                                $table = DataTable::createPaginated('studentNotes', $noteGateway->newQueryCriteria());
+                                $table = DataTable::createPaginated('studentNotes', $noteGateway->newQueryCriteria(true));
 
                                 $table->addExpandableColumn('note');
 

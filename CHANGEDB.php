@@ -516,4 +516,6 @@ CREATE TABLE `gibbonINInvestigationContribution` ( `gibbonINInvestigationContrib
 UPDATE gibbonAction SET name='Individual Needs Settings' WHERE name='IN Settings' AND `gibbonModuleID`= (SELECT gibbonModuleID FROM gibbonModule WHERE name='School Admin');end
 INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`)VALUES ('Individual Needs', 'investigationNotificationsRole', 'Investigations Notification Role', 'Users to notify when an Investigation is complete.', '');end
 UPDATE gibbonSetting set name='investigationNotificationRole' WHERE scope='Individual Needs' AND name='investigationNotificationsRole';end
+INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`)VALUES ('Students', 'firstAidDescriptionTemplate', 'First Aid Description Template', 'Template text to be included in the Description field of a First Aid Record.', '');end
+CREATE TABLE `gibbonFirstAidFollowUp` (`gibbonFirstAidFollowUpID` int(11) unsigned zerofill NOT NULL AUTO_INCREMENT, `gibbonFirstAidID` int(10) unsigned zerofill NOT NULL, `gibbonPersonID` int(10) unsigned zerofill NOT NULL, `followUp` text NOT NULL, `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (`gibbonFirstAidFollowUpID`), KEY `gibbonFirstAidID` (`gibbonFirstAidID`)) ENGINE=InnoDB DEFAULT CHARSET=utf8;end
 ";
