@@ -548,6 +548,28 @@ if (!$session->has('address')) {
         $page->writeFromTemplate('welcome.twig.html', $templateData);
         
     } else {
+        // Pinned Messages
+        $pinnedMessagesOnHome = getSettingByScope($connection2, 'Messenger', 'pinnedMessagesOnHome');
+        if ($pinnedMessagesOnHome == 'Y' && isActionAccessible($guid, $connection2, '/modules/Messenger/messageWall_view.php')) {
+            if ($cacheLoad || !$session->exists('pinnedMessages')) {
+                $pinnedMessages = array_reduce(getMessages($guid, $connection2, 'array'), function ($group, $item) {
+                    if ($item['messageWallPin'] == 'Y') {
+                        if (isset($group[$item['gibbonMessengerID']]['source'])) {
+                            $item['source'] .= str_replace(':', ', ', strrchr($group[$item['gibbonMessengerID']]['source'], ':'));
+                        }
+                        $group[$item['gibbonMessengerID']] = $item;
+                    }
+                    return $group;
+                }, []);
+                
+                $session->set('pinnedMessages', $pinnedMessages);
+            }
+
+            if ($session->has('pinnedMessages')) {
+                $page->writeFromTemplate('ui/pinnedMessages.twig.html', ['pinnedMessages' => $session->get('pinnedMessages')]);
+            }
+        }
+
         // Custom content loader
         if (!$session->exists('index_custom.php')) {
             $globals = [

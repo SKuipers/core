@@ -97,7 +97,7 @@ function getMessages($guid, $connection2, $mode = '', $date = '')
     if ($date == '') {
         $date = date('Y-m-d');
     }
-    if ($mode != 'print' and $mode != 'count' and $mode != 'result') {
+    if ($mode != 'print' and $mode != 'count' and $mode != 'result' and $mode != 'array') {
         $mode = 'print';
     }
 
@@ -608,13 +608,19 @@ function getMessages($guid, $connection2, $mode = '', $date = '')
     if ($mode == 'result') {
         $resultReturn = array();
         $resultReturn[0] = $dataPosts;
-        $resultReturn[1] = $sqlPosts.' ORDER BY subject, gibbonMessengerID, source';
+        $resultReturn[1] = $sqlPosts.' ORDER BY messageWallPin DESC, subject, gibbonMessengerID, source';
 
         return serialize($resultReturn);
+    } elseif ($mode == 'array') {
+        $sqlPosts = $sqlPosts.' ORDER BY messageWallPin DESC, subject, gibbonMessengerID, source';
+        $resultPosts = $connection2->prepare($sqlPosts);
+        $resultPosts->execute($dataPosts);
+
+        return  $resultPosts->rowCount() > 0 ? $resultPosts->fetchAll() : [];
     } else {
         $count = 0;
         try {
-            $sqlPosts = $sqlPosts.' ORDER BY subject, gibbonMessengerID, source';
+            $sqlPosts = $sqlPosts.' ORDER BY messageWallPin DESC, subject, gibbonMessengerID, source';
             $resultPosts = $connection2->prepare($sqlPosts);
             $resultPosts->execute($dataPosts);
         } catch (PDOException $e) {
@@ -639,6 +645,7 @@ function getMessages($guid, $connection2, $mode = '', $date = '')
                     $output[$count]['source'] = $rowPosts['source'];
                     $output[$count]['gibbonMessengerID'] = $rowPosts['gibbonMessengerID'];
                     $output[$count]['gibbonPersonID'] = $rowPosts['gibbonPersonID'];
+                    $output[$count]['messageWallPin'] = $rowPosts['messageWallPin'];
 
                     ++$count;
                     $last = $rowPosts['gibbonMessengerID'];
@@ -657,7 +664,10 @@ function getMessages($guid, $connection2, $mode = '', $date = '')
             $rowCount = 0;
             $rowNum = 'odd';
             for ($i = 0; $i < count($output); ++$i) {
-                if ($rowCount % 2 == 0) {
+                if ($output[$i]['messageWallPin'] == "Y") {
+                    $rowNum = 'selected';
+                }
+                else if ($rowCount % 2 == 0) {
                     $rowNum = 'even';
                 } else {
                     $rowNum = 'odd';
@@ -673,6 +683,11 @@ function getMessages($guid, $connection2, $mode = '', $date = '')
 
                 $return .= '<b><u>'.__('Shared Via').'</b></u><br/>';
                 $return .= $output[$i]['source'].'<br/><br/>';
+
+                if ($output[$i]['messageWallPin'] == "Y") {
+                    $return .= '<i>'.__('Pinned To Top').'</i><br/>';
+                }
+
                 $return .= '</td>';
                 $return .= "<td style='border-left: none; vertical-align: top; padding-bottom: 10px; padding-top: 10px; border-top: 1px solid #666; width: 640px'>";
                 $return .= "<h3 style='margin-top: 3px'>";
