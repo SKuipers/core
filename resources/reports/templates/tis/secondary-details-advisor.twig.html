@@ -26,7 +26,7 @@ sources:
 
     .comment {
         font-size: 9.5pt;
-        line-height: 1.4;
+        line-height: 1.35;
         text-align: justified;
     }
 </style><table cellspacing="0" cellpadding="4">
@@ -53,18 +53,18 @@ sources:
             3: 'Term 2 Interim', 
             4: 'Term 2 End', 
         } %}
-        <tr>
+        <tr nobr="true">
             {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
             <td class="header border attendance" style="width:25%" colspan="2">{{- reportNames[cycleNum] }} Attendance</td>
             {% endfor %}
         </tr>
-        <tr>
+        <tr nobr="true">
             {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
             <td class="header border attendance" style="width:12.5%">Absent</td>
             <td class="header border attendance" style="width:12.5%">Late</td>
             {% endfor %}
         </tr>
-        <tr>
+        <tr nobr="true">
             {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
             <td class="border attendance" style="width:12.5%">{{ cycleNum? attendance[cycleNum].absent|default('')  }}</td>
             <td class="border attendance" style="width:12.5%">{{ cycleNum? attendance[cycleNum].late|default('')  }}</td>
@@ -73,7 +73,7 @@ sources:
     {% endif %}
 
     <tr nobr="true">
-        <td class="border" colspan="8"><table cellpadding="6"><tr>
+        <td class="border" colspan="8"><table cellpadding="6" nobr="true"><tr>
             <td class="comment"><b>Advisor Comments:</b> <span style="font-family:DroidSansFallback;">{{ studentComment.comment -}}</span></td>
             </tr></table>
         </td>

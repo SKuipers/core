@@ -30,7 +30,7 @@ sources:
 </style>
 
 {% if reportingCycle %}
-    <table cellspacing="0" cellpadding="4">
+    <table cellspacing="0" cellpadding="4" nobr="true">
         <tr>
             {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
             <td class="header border attendance" style="width:33.3%" colspan="2">Term {{ cycleNum }} Attendance</td>

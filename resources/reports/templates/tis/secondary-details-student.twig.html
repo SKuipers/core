@@ -69,15 +69,11 @@ sources:
                 <tr>
                     <td colspan="2" class="term"><b>{{- reportNames[cycleNum] -}}</b></td>
                 </tr>
+                {% if reportingCycle.cycleNumber > 1 %}
                 <tr>
-                    <td colspan="2" class="term" style="line-height:2.5;">{% if grades[cycleNum].status and (cycleNum == 1 or cycleNum == 2 or cycleNum == 3)  %}{{- grades[cycleNum].status -}}{% endif %}</td>
+                    <td colspan="2" class="term" style="line-height:2.5">{% if grades[cycleNum].status and (cycleNum == 2 or cycleNum == 3 or cycleNum == 4)  %}{{- grades[cycleNum].status -}}{% endif %}</td>
                 </tr>
-                {# ########
-                <tr>
-                    <td class="term" style="width:40%">{% if grades[cycleNum].gpa %}Average:{% endif %}</td>
-                    <td class="term" style="width:60%">{% if grades[cycleNum].gpa %}{{- grades[cycleNum].gpa -}}%{% endif %}</td>
-                </tr>
-                ######### #}
+                {% endif %}
             </table>
         </td>
         {% endfor %}
