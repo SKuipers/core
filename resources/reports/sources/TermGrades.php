@@ -49,7 +49,7 @@ class TermGrades extends DataSource
     protected function getAllData($ids = [])
     {
         $data = array('gibbonStudentEnrolmentID' => $ids['gibbonStudentEnrolmentID']);
-        $sql = "SELECT gibbonReportingCycle.cycleNumber, gibbonReportingCycle.gibbonReportingCycleID, gibbonReportingValue.gibbonCourseClassID, gibbonReportingCriteriaType.name as criteriaType, gibbonReportingCriteriaType.valueType, gibbonReportingCriteria.name as criteriaName, gibbonReportingValue.value as gradeID, gibbonScaleGrade.descriptor, gibbonScaleGrade.value, gibbonCourse.weight, gibbonCourse.gibbonCourseID, gibbonReportingCriteriaType.gibbonScaleID as gradesetID
+        $sql = "SELECT gibbonReportingCycle.cycleNumber, gibbonReportingCycle.gibbonReportingCycleID, gibbonReportingValue.gibbonCourseClassID, gibbonReportingCriteriaType.name as criteriaType, gibbonReportingCriteriaType.valueType, gibbonReportingCriteria.name as criteriaName, gibbonReportingValue.value as gradeID, gibbonReportingValue.comment,  gibbonScaleGrade.descriptor, gibbonScaleGrade.value, gibbonCourse.weight, gibbonCourse.gibbonCourseID, gibbonReportingCriteriaType.gibbonScaleID as gradesetID
                 FROM gibbonStudentEnrolment
                 JOIN gibbonReportingCycle ON (gibbonReportingCycle.gibbonSchoolYearID=gibbonStudentEnrolment.gibbonSchoolYearID)
                 LEFT JOIN gibbonReportingValue ON (gibbonReportingValue.gibbonPersonIDStudent=gibbonStudentEnrolment.gibbonPersonID AND gibbonReportingValue.gibbonReportingCycleID=gibbonReportingCycle.gibbonReportingCycleID)
@@ -88,6 +88,11 @@ class TermGrades extends DataSource
                     $values[$class][$report]['effort'] = array(
                         'value' => $item['value'],
                         'descriptor' => $item['descriptor'],
+                    ); 
+                } else if ($item['valueType'] == 'Comment') { // Effort
+                    $values[$class][$report]['comment'] = array(
+                        'value' => $item['comment'],
+                        'descriptor' => $item['criteriaName'],
                     ); 
                 } else {
                     $criteria = strtolower($item['criteriaName']);

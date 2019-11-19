@@ -2,7 +2,7 @@
 
 use Gibbon\Module\Reports\DataSource;
 
-class CourseList extends DataSource
+class CourseListSemestered extends DataSource
 {
     public function getSchema()
     {
@@ -39,7 +39,7 @@ class CourseList extends DataSource
                 AND gibbonReportingCycle.gibbonReportingCycleID=:gibbonReportingCycleID
                 AND gibbonCourse.gibbonSchoolYearID=gibbonStudentEnrolment.gibbonSchoolYearID
                 AND gibbonCourse.nameShort NOT LIKE '%TAP' AND gibbonCourse.nameShort NOT LIKE '%Advisor'
-                AND (gibbonCourseClass.nameShort NOT LIKE '1-%' AND gibbonCourseClass.nameShort NOT LIKE '2-%')
+                AND (gibbonCourseClass.nameShort LIKE '1-%' OR gibbonCourseClass.nameShort LIKE '2-%')
                 AND gibbonCourseClass.reportable='Y'
                 AND gibbonCourseClassPerson.role = 'Student'
                 ORDER BY (CASE WHEN gibbonCourse.orderBy > 0 THEN gibbonCourse.orderBy ELSE 80 end), gibbonCourse.nameShort";
@@ -91,7 +91,7 @@ class CourseList extends DataSource
                 $ids['gibbonCourseClassID'] = $course['gibbonCourseClassID'];
 
                 $course['name'] = $this->filterCourseName($course['name']);
-                // $course['comments'] = $this->getFactory()->get('CourseComments')->getData($ids);
+                $course['comments'] = $this->getFactory()->get('CourseComments')->getData($ids);
                 $course['teachers'] = $this->getFactory()->get('ClassTeachers')->getData($ids);
                 // $course['outcomes'] = $this->getFactory()->get('ClassOutcomes')->getData($ids);
 
