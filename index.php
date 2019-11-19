@@ -317,6 +317,8 @@ $page->scripts->add('core-setup', 'resources/assets/js/setup.js');
 
 // Register scripts available to the core, but not included by default
 $page->scripts->register('chart', 'lib/Chart.js/2.0/Chart.bundle.min.js', ['context' => 'head']);
+$page->scripts->register('dropzone', 'lib/dropzone/dist/min/dropzone.min.js', ['context' => 'head']);
+$page->stylesheets->register('dropzone', 'lib/dropzone/dist/min/dropzone.min.css');
 
 // Set system analytics code from session cache
 $page->addHeadExtra($session->get('analytics'));

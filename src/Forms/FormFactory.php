@@ -173,6 +173,11 @@ class FormFactory implements FormFactoryInterface
         return new Input\FileUpload($name);
     }
 
+    public function createFileDragDrop($name, $page)
+    {
+        return new Input\FileDragDrop($name, $page);
+    }
+
     public function createDate($name)
     {
         return new Input\Date($name);

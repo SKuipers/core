@@ -1,0 +1,43 @@
+{#<!--
+Gibbon, Flexible & Open School System
+Copyright (C) 2010, Ross Parker
+
+This is a Gibbon template file, written in HTML and Twig syntax.
+For info about editing, see: https://twig.symfony.com/doc/2.x/
+
+<div class="dz-preview dz-file-preview">
+  <div class="dz-details">
+    <div class="dz-filename"><span data-dz-name></span></div>
+    <div class="dz-size" data-dz-size></div>
+    <img data-dz-thumbnail />
+  </div>
+  <div class="dz-progress"><span class="dz-upload" data-dz-uploadprogress></span></div>
+  <div class="dz-success-mark"><span>✔</span></div>
+  <div class="dz-error-mark"><span>✘</span></div>
+  <div class="dz-error-message"><span data-dz-errormessage></span></div>
+</div>
+
+-->#}
+<div class="px-2">
+
+    <div class="">
+      <!-- This is used as the file preview template -->
+      <div class="w-24 h-24 relative group">
+          
+        <div class="name relative z-10" data-dz-name>This is a name</div>
+          <div class="size relative z-10" data-dz-size>45kb</div>
+          
+        <span class=""><img data-dz-thumbnail class="rounded absolute w-24 h-24 left-0 top-0" src=""/></span>
+        
+          
+
+          
+      </div>
+
+      <div>
+          <strong class="error text-danger" data-dz-errormessage></strong>
+      </div>
+      
+    </div>
+  
+</div>
