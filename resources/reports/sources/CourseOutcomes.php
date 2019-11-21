@@ -58,7 +58,7 @@ class CourseOutcomes extends DataSource
                 WHERE gibbonStudentEnrolment.gibbonStudentEnrolmentID=:gibbonStudentEnrolmentID
                 AND gibbonCourse.gibbonSchoolYearID=gibbonStudentEnrolment.gibbonSchoolYearID
                 AND gibbonCourseClass.reportable='Y'
-                AND (gibbonCourseClassPerson.role = 'Student' OR gibbonCourseClassPerson.role = 'Student - Left')
+                AND (gibbonCourseClassPerson.role = 'Student')
                 ORDER BY gibbonCourse.orderBy, gibbonCourse.nameShort, gibbonReportingCriteria.sequenceNumber";
 
         $result = $this->db()->select($sql, $data);
