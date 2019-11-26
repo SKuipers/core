@@ -56,6 +56,7 @@ v19.0.00
         Messenger: low SMS credit notification when fewer than 1,000 credits remain
         Messenger: added ability to pin messages to the top of the message wall
         Messenger: added a setting to display pinned messages above the dashboard
+        Messenger: allow access to View Message Wall for roles with category Other
         School Admin: renamed IN Settings to Individual Needs Settings
         Staff: added a Weekly View and Daily View to Substitute Availability report
         Staff: added a Substitute Information setting for displaying text on My Coverage page
@@ -80,6 +81,7 @@ v19.0.00
         System: adjusted date formats for German language
         System: fixed translatability issue of Public Registration text
         System: fixed pagination setting so it correctly controls table size
+        System: fixed Dashboard error for users with role category Other
         Activities: improved interface string advising users of disabled external activity registration
         Attendance: fixed missing data in printable view of Student History
         Attendance: fixed Set Future Absence to only allow future dates
