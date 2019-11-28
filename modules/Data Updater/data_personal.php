@@ -213,7 +213,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
                 $proceed = false;
                 $requiredFields = [];
 
-                if ($highestAction != 'Update Personal Data_any') {
+                if ($highestAction != 'Update Personal Data_any' || $gibbonPersonID == $_SESSION[$guid]['gibbonPersonID']) {
                     $requiredFieldsSetting = unserialize(getSettingByScope($connection2, 'User Admin', 'personalDataUpdaterRequiredFields'));
                     if (is_array($requiredFieldsSetting)) {
                         if (!isset($requiredFieldsSetting[$primaryRoleCategory])) {
