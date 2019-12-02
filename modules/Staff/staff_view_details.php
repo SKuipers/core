@@ -270,10 +270,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                         if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage.php') == true) {
                             echo " | <a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Staff/staff_manage_edit.php&gibbonStaffID=".$row['gibbonStaffID']."'>".__('Edit Staff')."<img style='margin: 0 0 -4px 5px' title='".__('Edit Staff')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/config.png'/></a> ";
                         }
-                        }
-                        if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage.php') == true) {
-                            echo " | <a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Staff/staff_manage_edit.php&gibbonStaffID=".$row['gibbonStaffID']."'>".__('Edit Staff')."<img style='margin: 0 0 -4px 5px' title='".__('Edit Staff')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/config.png'/></a> ";
-                        }
                         echo '</div>';
 
                         // Display a message if the staff member is absent today.
