@@ -46,7 +46,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
             $search = $_GET['search'] ?? '';
             $allStaff = $_GET['allStaff'] ?? '';
 
-            if ($highestAction == 'View Staff Profile_brief') {
+            if ($highestAction == 'Staff Directory_brief') {
                 //Proceed!
                 try {
                     $data = array('gibbonPersonID' => $gibbonPersonID);
@@ -66,7 +66,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                     $row = $result->fetch();
 
                     $page->breadcrumbs
-                        ->add(__('View Staff Profiles'), 'staff_view.php')
+                        ->add(__('Staff Directory'), 'staff_view.php')
                         ->add(Format::name('', $row['preferredName'], $row['surname'], 'Student'));
 
                     if ($search != '') {
@@ -239,7 +239,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                     $row = $result->fetch();
 
                     $page->breadcrumbs
-                        ->add(__('View Staff Profiles'), 'staff_view.php', ['search' => $search, 'allStaff' => $allStaff])
+                        ->add(__('Staff Directory'), 'staff_view.php', ['search' => $search, 'allStaff' => $allStaff])
                         ->add(Format::name('', $row['preferredName'], $row['surname'], 'Student'));
 
                     $subpage = null;
@@ -266,6 +266,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                         echo "<div class='linkTop'>";
                         if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage.php') == true) {
                             echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/User Admin/user_manage_edit.php&gibbonPersonID=$gibbonPersonID'>".__('Edit User')."<img style='margin: 0 0 -4px 5px' title='".__('Edit User')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/config.png'/></a> ";
+                        }
+                        if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage.php') == true) {
+                            echo " | <a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Staff/staff_manage_edit.php&gibbonStaffID=".$row['gibbonStaffID']."'>".__('Edit Staff')."<img style='margin: 0 0 -4px 5px' title='".__('Edit Staff')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/config.png'/></a> ";
+                        }
                         }
                         if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage.php') == true) {
                             echo " | <a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Staff/staff_manage_edit.php&gibbonStaffID=".$row['gibbonStaffID']."'>".__('Edit Staff')."<img style='margin: 0 0 -4px 5px' title='".__('Edit Staff')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/config.png'/></a> ";

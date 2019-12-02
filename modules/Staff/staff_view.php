@@ -36,10 +36,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view.php') == 
         $page->addError(__('The highest grouped action cannot be determined.'));
         return;
     }
-    
+
     // Proceed!
     $viewMode = $_REQUEST['format'] ?? '';
-    $directoryView = $highestAction == 'View Staff Profile_full' && !empty($_GET['view']);
+    $directoryView = $highestAction == 'Staff Directory_full' && !empty($_GET['view']);
     $_GET['sidebar'] = 'false';
 
     $urlParams = [
@@ -61,7 +61,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view.php') == 
 
     // FILTERS
     if (empty($viewMode)) {
-        $page->breadcrumbs->add(__('View Staff Profiles'), 'staff_view.php');
+        $page->breadcrumbs->add(__('Staff Directory'), 'staff_view.php');
 
         if ($directoryView) {
             $page->breadcrumbs->add(__('Staff Directory'));
@@ -81,12 +81,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view.php') == 
             $row->addLabel('search', __('Search For'))->description(__('Preferred, surname, username.'));
             $row->addTextField('search')->setValue($criteria->getSearchText())->maxLength(20);
 
-        if ($highestAction == 'View Staff Profile_full') {
+        if ($highestAction == 'Staff Directory_full') {
             $sortOptions = ['biographicalGrouping' => __('Biographical Grouping'), 'surname' => __('Surname')];
             $row = $form->addRow();
                 $row->addLabel('sortBy', __('Sort By'));
                 $row->addSelect('sortBy')->fromArray($sortOptions)->selected($urlParams['sortBy']);
-        
             $row = $form->addRow();
                 $row->addLabel('allStaff', __('All Staff'))->description(__('Include all staff, regardless of status, start date, end date, etc.'));
                 $row->addCheckbox('allStaff')->checked($urlParams['allStaff']);
@@ -94,13 +93,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view.php') == 
 
         $row = $form->addRow();
             $row->addFooter();
-            $row->addSearchSubmit($gibbon->session);
+            $row->addSearchSubmit($gibbon->session, 'Clear Filters', ['view', 'sidebar']);
 
         echo $form->getOutput();
     }
 
 
-    if ($highestAction == 'View Staff Profile_basic') {
+    if ($highestAction == 'Staff Directory_brief') {
         // BASIC STAFF LIST
         $criteria->sortBy(['surname', 'preferredName']);
         $staff = $staffGateway->queryAllStaff($criteria);
@@ -133,17 +132,20 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view.php') == 
         echo $table->render($staff);
         return;
 
-    } elseif ($highestAction == 'View Staff Profile_full') {
+    } elseif ($highestAction == 'Staff Directory_full') {
         // FULL STAFF DIRECTORY
-        $criteria->sortBy($urlParams['sortBy'] == 'biographicalGrouping'
-            ? ['biographicalGroupingOrder', 'biographicalGrouping', 'biographicalGroupingPriority', 'surname', 'preferredName']
-            : ['surname', 'preferredName']);
+        if ($urlParams['sortBy'] == 'biographicalGrouping') {
+            $criteria->sortBy(['biographicalGroupingOrder', 'biographicalGrouping'])
+                ->sortBy(['biographicalGroupingPriority'], 'DESC')
+                ->sortBy(['surname', 'preferredName']);
+        } else {
+            $criteria->sortBy(['surname', 'preferredName']);
+        }
 
         $staff = $staffGateway->queryAllStaff($criteria, $gibbon->session->get('gibbonSchoolYearID'));
 
         $table = ReportTable::createPaginated('staffView', $criteria)->setViewMode($viewMode, $gibbon->session);
         $table->setTitle($directoryView ? __('Staff Directory') : __('Choose A Staff Member'));
-        
         if ($urlParams['sortBy'] == 'biographicalGrouping') {
             $lastGroup = '';
             $table->modifyRows(function ($data, $row, $columnCount) use (&$lastGroup, &$urlParams) {
@@ -151,7 +153,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view.php') == 
                     $urlParams['grouping'] = $lastGroup = $data['biographicalGrouping'];
                     $url = './index.php?q=/modules/Staff/staff_view.php&'.http_build_query($urlParams);
                     $link = Format::link($url, !empty($data['biographicalGrouping'])? $data['biographicalGrouping'] : ' ', ['class' => 'block text-gray-700  uppercase leading-relaxed hover:underline']);
-                    
                     if ($urlParams['view'] == 'list') {
                         $row->prepend('<tr class="bg-gray-300 font-bold"><td colspan="'.$columnCount.'">'.$link.'</td></tr>');
                     } elseif ($urlParams['view'] == 'grid') {
@@ -269,7 +270,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view.php') == 
                             ->setURL('/modules/Staff/staff_view_details.php');
                 });
         }
-    
         echo $table->render($staff);
     }
 }

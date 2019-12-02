@@ -99,18 +99,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
             } else {
                 $dob = dateConvert($guid, $dob);
             }
-            $languageHomePrimary = isset($_POST['languageHomePrimary']) ? $_POST['languageHomePrimary'] : $application['languageHomePrimary'];
-            $languageHomeSecondary = isset($_POST['languageHomeSecondary']) ? $_POST['languageHomeSecondary'] : $application['languageHomeSecondary'];
-            $languageFirst = isset($_POST['languageFirst']) ? $_POST['languageFirst'] : $application['languageFirst'];
-            $languageSecond = isset($_POST['languageSecond']) ? $_POST['languageSecond'] : $application['languageSecond'];
-            $languageThird = isset($_POST['languageThird']) ? $_POST['languageThird'] : $application['languageThird'];
-            $countryOfBirth = isset($_POST['countryOfBirth']) ? $_POST['countryOfBirth'] : $application['countryOfBirth'];
-            $citizenship1 = isset($_POST['citizenship1']) ? $_POST['citizenship1'] : $application['citizenship1'];
-            $citizenship1Passport = isset($_POST['citizenship1Passport']) ? $_POST['citizenship1Passport'] : $application['citizenship1Passport'];
+            $languageHomePrimary = $_POST['languageHomePrimary'] ?? '';
+            $languageHomeSecondary = $_POST['languageHomeSecondary'] ?? '';
+            $languageFirst = $_POST['languageFirst'] ?? '';
+            $languageSecond = $_POST['languageSecond'] ?? '';
+            $languageThird = $_POST['languageThird'] ?? '';
+            $countryOfBirth = $_POST['countryOfBirth'] ?? '';
+            $citizenship1 = $_POST['citizenship1'] ?? '';
+            $citizenship1Passport = $_POST['citizenship1Passport'] ?? '';
             $citizenship1PassportExpiry = isset($_POST['citizenship1PassportExpiry']) ? Format::dateConvert($_POST['citizenship1PassportExpiry']) : null;
-            $nationalIDCardNumber = isset($_POST['nationalIDCardNumber']) ? $_POST['nationalIDCardNumber'] : $application['nationalIDCardNumber'];
-            $residencyStatus = isset($_POST['residencyStatus']) ? $_POST['residencyStatus'] : $application['residencyStatus'];
-            $visaExpiryDate = isset($_POST['visaExpiryDate']) ? $_POST['visaExpiryDate'] : $application['visaExpiryDate'];
+            $nationalIDCardNumber = $_POST['nationalIDCardNumber'] ?? '';
+            $residencyStatus = $_POST['residencyStatus'] ?? '';
+            $visaExpiryDate = $_POST['visaExpiryDate'] ?? '';
             if ($visaExpiryDate == '') {
                 $visaExpiryDate = null;
             } else {
