@@ -75,6 +75,9 @@ class DataTable implements OutputableInterface
         global $container;
 
         $renderer = !empty($renderer) ? $renderer : $container->get(DataTableView::class);
+
+        $container->get('page')->addData('preventOverflow', true);
+        $renderer->addData('preventOverflow', true);
         
         return (new static($renderer))->setID($id);
     }
@@ -89,8 +92,11 @@ class DataTable implements OutputableInterface
     public static function createPaginated($id, QueryCriteria $criteria)
     {
         global $container;
-
+        
         $renderer = $container->get(PaginatedView::class)->setCriteria($criteria);
+
+        $container->get('page')->addData('preventOverflow', true);
+        $renderer->addData('preventOverflow', true);
 
         return (new static($renderer))->setID($id)->setRenderer($renderer);
     }

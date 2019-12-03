@@ -30,7 +30,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
         {% endblock header %}
     </header>
 
-    <div id="{{ table.getID }}" class="dataTable">
+    <div id="{{ table.getID }}" class="dataTable {{ not preventOverflow ? 'overflow-x-auto overflow-y-visible' }}">
 
    
     {% if not rows and not isFiltered and dataSet.getResultCount == 0 %}
