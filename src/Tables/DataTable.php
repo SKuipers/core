@@ -76,6 +76,8 @@ class DataTable implements OutputableInterface
 
         $renderer = !empty($renderer) ? $renderer : $container->get(DataTableView::class);
 
+        // This is a temporary workaround to prevent overflow on pages that have a refactored table.
+        // This enables the sticky headers to work for DataTables without breaking legacy tables.
         $container->get('page')->addData('preventOverflow', true);
         $renderer->addData('preventOverflow', true);
         
@@ -95,6 +97,8 @@ class DataTable implements OutputableInterface
         
         $renderer = $container->get(PaginatedView::class)->setCriteria($criteria);
 
+        // This is a temporary workaround to prevent overflow on pages that have a refactored table.
+        // This enables the sticky headers to work for DataTables without breaking legacy tables.
         $container->get('page')->addData('preventOverflow', true);
         $renderer->addData('preventOverflow', true);
 
