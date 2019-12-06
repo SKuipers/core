@@ -309,9 +309,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                                 AND gibbonPerson.gibbonPersonID=:gibbonPersonID AND status='Full'
                                 AND (dateStart IS NULL OR dateStart<=:today) AND (dateEnd IS NULL  OR dateEnd>=:today) ";
                         } else {
-                            $data = array('gibbonPersonID' => $gibbonPersonID);
-                            $sql = "SELECT DISTINCT gibbonPerson.* FROM gibbonPerson
-                                LEFT JOIN gibbonStudentEnrolment ON (gibbonPerson.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID)
+                            $data = array('gibbonPersonID' => $gibbonPersonID, 'gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID']);
+                            $sql = "SELECT * FROM gibbonPerson
+                                LEFT JOIN gibbonStudentEnrolment ON (gibbonPerson.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID AND gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID)
                                 WHERE gibbonPerson.gibbonPersonID=:gibbonPersonID";
                         }
                     } else {
