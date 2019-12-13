@@ -42,9 +42,11 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
     </p>
 {% endif %}
 
+{##
 {% for hook in indexHooks %}
     <h2 style='margin-top: 30px'>{{ hook.title }}</h2>
     <p>
         {{ hook.text|raw }}
     </p>
 {% endfor %}
+####}
