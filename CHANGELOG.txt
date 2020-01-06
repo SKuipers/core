@@ -93,6 +93,7 @@ v19.0.00
         System: fixed Fast Finder bug on mobile when entering search text
         Activities: improved interface string advising users of disabled external activity registration
         Activities: fixed bug preventing viewing activity details in Activity Choices by Student when listing closed
+        Activities: fixed permission error for View action in Activity Choices By Student and Student Profile
         Attendance: fixed missing data in printable view of Student History
         Attendance: fixed Set Future Absence to only allow future dates
         Departments: fixed permission check causing Export to Excel to fail
@@ -100,6 +101,7 @@ v19.0.00
         Finance: fixed missing payment info in invoice receipt email for multiple partial payments
         Finance: fixed missing Other category for installs with no demo data
         Finance: fixed Manage Invoices bulk actions not refreshing after changing filters
+        Finance: fixed inactive fees showing up in dropdown lists
         Library: set Bookable to No by default on Add record screen
         Markbook: implemented unit ordering and date ordering for unit and lesson fields
         Messenger: fixed bug when sending parent and student SMS for Attendance status
