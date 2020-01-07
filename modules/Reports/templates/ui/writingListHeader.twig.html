@@ -26,7 +26,6 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
     {% if relatedReports and relatedReports|length > 1 %}
         <div class="p-4 {{ totalCount ? 'pt-0' }} text-center text-xs">
             
-            
             {% for report in relatedReports %}
                 <a {{ report.gibbonReportingCycleID == params.gibbonReportingCycleID ? 'class="active"' }} href="{{ absoluteURL }}/index.php?q=/modules/Reports/reporting_write.php&gibbonPersonID={{ params.gibbonPersonID }}&gibbonReportingCycleID={{ report.gibbonReportingCycleID }}&gibbonReportingScopeID={{ report.gibbonReportingScopeID }}&scopeTypeID={{ params.scopeTypeID }}">{{ report.nameShort }}</a>
                 {% if not loop.last %}&nbsp; |  &nbsp;{% endif %}
@@ -46,3 +45,12 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
     </div>
     {% endif %}
 </div>
+
+{% if markbookCopy == 'Y' %}
+<div class='linkTop'>
+    <a class="" href="{{ absoluteURL }}/index.php?q=/modules/Reports/reporting_write_markbookCopy.php&{{ params|url_encode }}">
+        {{ __('Copy Grades from Markbook') }}
+        <img style="margin: 0 0 -4px 5px" title="{{ __('Copy Grades from Markbook') }}" src="./themes/{{ gibbonThemeName }}/img/markbook.png"/>
+    </a>
+</div>
+{% endif %}

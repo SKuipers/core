@@ -150,6 +150,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_write_by
         'params' => $urlParams,
     ]);
 
+    if ($reportingScope['markbookVisual'] == 'Y') {
+        
+    }
+
     // PER STUDENT CRITERIA
     $reportingCriteria = $reportingAccessGateway->selectReportingCriteriaByStudentAndScope($reportingScope['gibbonReportingScopeID'], $reportingScope['scopeType'], $urlParams['scopeTypeID'], $gibbonPersonIDStudent)->fetchAll();
 
