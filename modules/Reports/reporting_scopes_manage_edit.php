@@ -84,6 +84,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_scopes_m
         $row->addLabel('scopeType', __('Type'));
         $row->addTextField('scopeType')->readonly();
 
+    if ($reportingScope['scopeType'] == 'Course') {
+        $row = $form->addRow();
+            $row->addLabel('markbookVisual', __('Enable Markbook Visualization'))->description(__('Adds graphs of student markbook grades to the report writing screen.'));
+            $row->addYesNo('markbookVisual')->selected('N');
+
+        $row = $form->addRow();
+            $row->addLabel('markbookCopy', __('Enable Markbook Copying'))->description(__('Adds tools for copying grades from the markbook into the report.'));
+            $row->addYesNo('markbookCopy')->selected('N');
+    }
+ 
     $row = $form->addRow();
         $row->addFooter();
         $row->addSubmit();
