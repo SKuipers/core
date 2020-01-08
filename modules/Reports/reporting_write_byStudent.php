@@ -17,10 +17,12 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Services\Format;
-use Gibbon\Tables\DataTable;
+
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
+use Gibbon\Services\Format;
+use Gibbon\Tables\DataTable;
+use Gibbon\Domain\User\UserGateway;
 use Gibbon\Domain\Students\StudentGateway;
 use Gibbon\Module\Reports\Forms\ReportingSidebarForm;
 use Gibbon\Module\Reports\Forms\CommentEditor;
@@ -28,7 +30,9 @@ use Gibbon\Module\Reports\Domain\ReportingCycleGateway;
 use Gibbon\Module\Reports\Domain\ReportingAccessGateway;
 use Gibbon\Module\Reports\Domain\ReportingScopeGateway;
 use Gibbon\Module\Reports\Domain\ReportingProgressGateway;
-use Gibbon\Domain\User\UserGateway;
+use Gibbon\Module\Reports\Charts\MarkbookVisualization;
+use Gibbon\Domain\Markbook\MarkbookEntryGateway;
+use Gibbon\Domain\Markbook\MarkbookWeightGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_write_byStudent.php') == false) {
     // Access denied
@@ -150,8 +154,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_write_by
         'params' => $urlParams,
     ]);
 
-    if ($reportingScope['markbookVisual'] == 'Y') {
-        
+    // MARKBOOK VISUALIZATION
+    if ($reportingScope['scopeType'] == 'Course' && $reportingScope['markbookVisual'] == 'Y') {
+        $markbookEntries = $container->get(MarkbookEntryGateway::class)->selectMarkbookEntriesByClassAndStudent($urlParams['scopeTypeID'], $gibbonPersonIDStudent)->fetchGrouped();
+        $markbookWeights = $container->get(MarkbookWeightGateway::class)->selectMarkbookWeightingsByClass($urlParams['scopeTypeID'])->fetchGroupedUnique();
+
+        $visualization = new MarkbookVisualization($markbookEntries, $markbookWeights);
+        echo $page->fetchFromTemplate('ui/reportingMarkbookVisual.twig.html', $visualization->getCharts());
     }
 
     // PER STUDENT CRITERIA
@@ -172,6 +181,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_write_by
     $form->addHiddenValue('gibbonPersonID', $gibbonPersonID);
 
     $form->addRow()->addClass('reportStatus')->addContent($scopeDetails['name'])->wrap('<h4 class="mt-3 p-0">', '</h4>');
+
 
     $lastCategory = '';
     foreach ($reportingCriteria as $criteria) {
