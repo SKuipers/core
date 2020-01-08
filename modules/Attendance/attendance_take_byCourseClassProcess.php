@@ -129,6 +129,7 @@ else {
                         die();
                     }
 
+                    $recordFirstClassAsSchool = getSettingByScope($connection2, 'Attendance', 'recordFirstClassAsSchool');
                     $attendanceLogGateway = $container->get(AttendanceLogPersonGateway::class);
 
                     $recordSchoolAttendance = $_POST['recordSchoolAttendance'] ?? 'N';
@@ -141,6 +142,7 @@ else {
                         $type=$_POST[$i . "-type"] ;
                         $reason=$_POST[$i . "-reason"] ;
                         $comment=$_POST[$i . "-comment"] ;
+                        $prefilled=$_POST[$i . "-prefilled"] ;
 
                         $attendanceCode = $attendance->getAttendanceCodeByType($type);
                         $direction = $attendanceCode['direction'];
@@ -195,7 +197,7 @@ else {
                             $partialFail &= !$updated;
                         }
                         
-                        if ($recordSchoolAttendance == 'Y') {
+                        if ($recordFirstClassAsSchool == 'Y' && empty($prefilled)) {
                             $data['context'] = 'Person';
                             $inserted = $attendanceLogGateway->insert($data);
                             $partialFail &= !$inserted;

@@ -104,7 +104,6 @@ if (isActionAccessible($guid, $connection2, "/modules/Attendance/attendance_take
                 echo "</div>";
             } else {
                 $defaultAttendanceType = getSettingByScope($connection2, 'Attendance', 'defaultClassAttendanceType');
-                $recordFirstClassAsSchool = getSettingByScope($connection2, 'Attendance', 'recordFirstClassAsSchool');
                 $crossFillClasses = getSettingByScope($connection2, 'Attendance', 'crossFillClasses');
 
                 // Check class
@@ -209,7 +208,6 @@ if (isActionAccessible($guid, $connection2, "/modules/Attendance/attendance_take
                     } else {
                         $count = 0;
                         $countPresent = 0;
-                        $countLogs = 0;
                         $columns = 4;
 
                         $defaults = array('type' => $defaultAttendanceType, 'reason' => '', 'comment' => '', 'context' => '', 'prefill' => 'Y');
@@ -227,7 +225,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Attendance/attendance_take
                             $result = $pdo->executeQuery($data, $sql);
 
                             $log = ($result->rowCount() > 0) ? $result->fetch() : $defaults;
-                            $countLogs += $result->rowCount();
+                            $log['prefilled'] = $result->rowCount() > 0 ? $log['context'] : '';
 
                             //Check for school prefill if attendance not taken in this class
                             if ($result->rowCount() == 0) {
@@ -245,9 +243,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Attendance/attendance_take
                                 $result = $pdo->executeQuery($data, $sql);
 
                                 $log = ($result->rowCount() > 0) ? $result->fetch() : $log;
-                                if ($log['context'] == 'Roll Group' || $log['context'] == 'Person') {
-                                    $countLogs += 1;
-                                }
+                                $log['prefilled'] = $result->rowCount() > 0 ? $log['context'] : '';
 
                                 if ($log['prefill'] == 'N') {
                                     $log = $defaults;
@@ -293,6 +289,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Attendance/attendance_take
 
                         foreach ($students as $student) {
                             $form->addHiddenValue($count . '-gibbonPersonID', $student['gibbonPersonID']);
+                            $form->addHiddenValue($count . '-prefilled', $student['log']['prefilled'] ?? '');
 
                             $cell = $grid->addCell()
                                 ->setClass('text-center py-2 px-1 -mr-px -mb-px flex flex-col justify-between')
@@ -321,12 +318,6 @@ if (isActionAccessible($guid, $connection2, "/modules/Attendance/attendance_take
                             $cell->addContent($attendance->renderMiniHistory($student['gibbonPersonID'], 'Class', $gibbonCourseClassID));
 
                             $count++;
-                        }
-
-                        // Option to record first class in a day as school-wide attendance
-                        if ($recordFirstClassAsSchool == 'Y' && $countLogs < $countPresent) {
-                            $row = $form->addRow();
-                                $row->addCheckbox('recordSchoolAttendance')->setValue('Y')->description(__('Record as school-wide attendance'))->checked('Y');
                         }
 
                         $form->addRow()->addAlert(__('Total students:') . ' ' . $count, 'success')->setClass('right')
