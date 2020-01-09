@@ -6,7 +6,7 @@ sources:
     student: Student
     activities: Activities
 -->#}
-{{- include('tis/secondary-style.twig') -}}
+{{- stylesheet ? include(stylesheet) -}}
 <style>
     .header {
         font-size: 9pt ;

@@ -7,7 +7,7 @@ sources:
     attendance: AttendanceByCycle
     reportingCycle: ReportingCycle
 -->#}
-{{- include('tis/secondary-style.twig') -}}
+{{- stylesheet ? include(stylesheet) -}}
 <style>
     .header {
         font-size: 8pt ;

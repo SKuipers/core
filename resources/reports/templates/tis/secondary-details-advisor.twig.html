@@ -6,11 +6,11 @@ sources:
     report: Report
     reportingCycle: ReportingCycle
     attendance: AttendanceByCycle
-    yearGroup: YearGroupScope
-    rollGroup: RollGroupScope
+    yearGroup: YearGroupCriteria
+    rollGroup: RollGroupCriteria
     tutors: Tutors
 -->#}
-{{- include('tis/secondary-style.twig') -}}
+{{- stylesheet ? include(stylesheet) -}}
 <style>
     .header {
         font-size: 9pt ;

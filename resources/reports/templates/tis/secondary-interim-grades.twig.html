@@ -6,7 +6,7 @@ sources:
     reportingCycle: ReportingCycle
     courseListInterim: CourseList
 -->#}
-{{- include('tis/secondary-style.twig') -}}<style>
+{{- stylesheet ? include(stylesheet) -}}<style>
     .header {
         font-weight: bold;
         background-color: #AAAAAA;

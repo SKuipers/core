@@ -7,7 +7,7 @@ sources:
     report: Report
     tutors: Tutors
 -->#}
-{{- include('tis/secondary-style.twig') -}}
+{{- stylesheet ? include(stylesheet) -}}
 {%- if report.notes %}<table cellspacing="0" cellpadding="1">
     <tr>
     <td style="width:100%; font-size: 12pt; font-weight: bold; text-align: center;">Please refer to the reverse side of this report for detailed explanations of <i>Progress</i> and <i>Effort</i> indicators, as well as Academic Standing details.</td>

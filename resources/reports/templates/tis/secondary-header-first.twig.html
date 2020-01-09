@@ -7,7 +7,7 @@ sources:
     report: Report
     reportingCycle: ReportingCycle
 -->#}
-{{- include('tis/secondary-style.twig') -}}
+{{- stylesheet ? include(stylesheet) -}}
 
 {%- set school = {
     name: 'The International School of Macao',

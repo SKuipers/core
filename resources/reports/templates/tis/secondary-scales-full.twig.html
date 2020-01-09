@@ -3,7 +3,7 @@ name: Secondary Grade Scales - Full
 category: Secondary
 types: Body
 -->#}
-{{- include('tis/secondary-style.twig') -}}
+{{- stylesheet ? include(stylesheet) -}}
 <style>
     .scale {
         text-align: center;

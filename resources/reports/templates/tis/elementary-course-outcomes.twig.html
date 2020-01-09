@@ -6,7 +6,7 @@ sources:
     reportingCycle: ReportingCycle
     courseOutcomes: CourseOutcomes
 -->#}
-{{- include('tis/secondary-style.twig') -}}<style>
+{{- stylesheet ? include(stylesheet) -}}<style>
     .header {
         font-size: 9pt;
         font-weight: bold;

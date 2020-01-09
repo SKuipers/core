@@ -8,7 +8,7 @@ sources:
     reportingCycle: ReportingCycle
     tutors: Tutors
 -->#}
-{{- include('tis/secondary-style.twig') -}}
+{{- stylesheet ? include(stylesheet) -}}
 <style>
     .header {
         font-size: 9pt ;
@@ -24,7 +24,7 @@ sources:
     }
 
     .student {
-        font-size: 9.5pt ;
+        font-size: 11.6pt ;
         text-align: left;
         line-height: 4;
     }

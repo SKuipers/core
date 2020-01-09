@@ -6,7 +6,7 @@ sources:
     reportingCycle: ReportingCycle
     courseList: CourseList
 -->#}
-{{- include('tis/secondary-style.twig') -}}<style>
+{{- stylesheet ? include(stylesheet) -}}<style>
     .header {
         
         font-weight: bold;
@@ -33,17 +33,18 @@ sources:
     }
 
     .comment {
-        
         font-size: 9.5pt ;
         line-height: {{ lineHeightComment }};
         text-align: justified;
     }
-</style>{% for course in courseList %}<table cellspacing="0" cellpadding="0" style="height: 3.5mm;font-size: 3.5mm;">
+</style>
+{%- for course in courseList -%}
+<table cellspacing="0" cellpadding="0" style="height: 3.5mm;font-size: 3.5mm;">
 <tr><td></td></tr>
 </table><table cellspacing="0" cellpadding="4" nobr="true">
     <tr>
         <td class="header border-top border-bottom border-left" style="width:50%" colspan="6">{{ course.name|upper }}</td>
-        <td class="header border-top border-bottom border-right" style="width:50%;text-align:right;" colspan="6">
+        <td class="header border-top border-bottom border-right" style="width:50%;text-align:right;" colspan="7">
         {% if (course.nameShort == 'OTH3998' or course.nameShort == 'OTH3999') and course.comments.writtenBy is not empty %}
             {{- course.comments.writtenBy -}}
         {% else %}
@@ -57,14 +58,24 @@ sources:
     </tr>
 
     <tr>
-        <td class="border" colspan="12"><table cellpadding="6"><tr>
-            {% if "1-" in (course.classes|first).classNameShort or (course.comments.classNotes is empty and course.comments.studentComment is empty) %}
+        <td class="border" colspan="13"><table cellpadding="6"><tr>
+            {% if "1-" in (course.classes|first).classNameShort and course.comments.comment is empty %}
                 {% set defaultComment = "This course was completed last semester. Please refer to the Semester 1 report for details." %}
+            {% elseif "2-" in (course.classes|first).classNameShort and course.comments.comment is empty  %}
+                {% set defaultComment = "This course will begin later in the Academic Year. No comments or grades are available at this time." %}
             {% endif %}
-            <td class="comment"><b>Course&nbsp;Description:</b> <span style="font-family:DroidSansFallback;">{{ course.comments.classNotes|default(defaultComment) }}</span></td>
+            <td class="comment"><b>Course&nbsp;Description:</b> <span style="font-family:DroidSansFallback;">{{ course.comments.comment|default(defaultComment) }}</span></td>
             </tr></table>
         </td>
     </tr>
+
+    {% set reportNames = {
+        1: 'Term 1 Interim', 
+        2: 'Term 1 End ', 
+        3: 'Term 2 Interim', 
+        4: 'Term 2 End', 
+    } %}
+
     
     {% if course.classes %}
     <tr>
@@ -73,11 +84,11 @@ sources:
         <td class="header border rowheader" style="width:7%" rowspan="2"> Absent</td>
         <td class="header border rowheader" style="width:7%" rowspan="2"> Late</td>
 
-        <td class="header border subheader" style="width:49%" colspan="8">Marks & Effort</td>
+        <td class="header border subheader" style="width:49%" colspan="9">Marks & Effort</td>
     </tr>
     <tr>
-        {% for term in termDefaults %}
-        <td class="header border subheader" style="width:11%" colspan="2">{{ term.name|replace({"Interim":"\nInterim", "End":"\nEnd"})|nl2br }}</td>
+        {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
+        <td class="header border subheader" style="width:11%" colspan="2">{{ reportNames[cycleNum]|replace({"Interim":"\nInterim", "End":"\nEnd"})|nl2br }}</td>
         {% endfor %}
 
         <td class="header border subheader" style="width:5%"> %</td>
@@ -90,14 +101,16 @@ sources:
         <td class="border subheader" style="width:7%">{{ loop.first ? class.attendance.absent|default(0) : ' -' }}</td>
         <td class="border subheader" style="width:7%">{{ loop.first ? class.attendance.late|default(0) : ' -' }}</td>
         
+        
+
         {% set grades = class.grades %}
-        {% for reportID, term in termDefaults %}
-            {% set showGrade = grades[reportID].grade is not empty %}
-            {% set showEffort = grades[reportID].effort.value is not empty %}
-            {% set gradeValue = (grades[reportID].final is not empty ? grades[reportID].final : grades[reportID].grade) %}
+        {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
+            {% set showGrade = grades[cycleNum].grade is not empty %}
+            {% set showEffort = grades[cycleNum].effort.value is not empty %}
+            {% set gradeValue = (grades[cycleNum]['final grade'] is not empty ? grades[cycleNum]['final grade'].value : grades[cycleNum]['term grade'].value) %}
 
             <td class="border subheader" style="width:5.5%">{{ term.active and not showGrade ? ' -' : gradeValue }}</td>
-            <td class="border subheader" style="width:5.5%">{{ term.active and not showEffort ? ' -' : grades[reportID].effort.value }}</td>
+            <td class="border subheader" style="width:5.5%">{{ term.active and not showEffort ? ' -' : grades[cycleNum].effort.value }}</td>
         {% endfor %}
 
         <td class="border subheader" style="width:5%">
@@ -122,8 +135,8 @@ sources:
         {% for outcome, grades in course.outcomes %}
         <tr>
             <td class="border outcome" style="width:51%;" colspan="2">{{ outcome }}</td>
-            {% for reportID, term in termDefaults %}
-                <td class="border outcome" style="width:11%; text-align: center;" colspan="2">{{ grades[reportID] }}</td>
+            {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
+                <td class="border outcome" style="width:11%; text-align: center;" colspan="2">{{ grades[cycleNum] }}</td>
             {% endfor %}
             <td class="border subheader" style="width:5%"></td>
         </tr>
@@ -133,10 +146,10 @@ sources:
 
     {% endif %}
 
-    {% if course.role != 'Student - Left' and course.comments.studentComment %}
+    {% if course.role != 'Student - Left' and (course.classes|first).grades[reportingCycle.cycleNumber].comment.value %}
     <tr>
         <td class="border" colspan="{% if course.hasCredits %}13{% else %}12{% endif %}" style="width:100%"><table cellpadding="6"><tr>
-            <td class="comment"><b>Teacher<span style="color:white">-</span>Comments:</b> <span style="font-family:DroidSansFallback;">{{ course.comments.studentComment }}</span></td>
+            <td class="comment"><b>Teacher<span style="color:white">-</span>Comments:</b> <span style="font-family:DroidSansFallback;">{{ (course.classes|first).grades[reportingCycle.cycleNumber].comment.value }}</span></td>
             </tr></table>
         </td>
     </tr>

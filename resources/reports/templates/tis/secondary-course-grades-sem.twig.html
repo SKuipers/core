@@ -5,7 +5,7 @@ types: Body
 sources:
     courseList: CourseListSemestered
 -->#}
-{{- include('tis/secondary-style.twig') -}}<style>
+{{- stylesheet ? include(stylesheet) -}}<style>
     .header {
         
         font-weight: bold;
@@ -42,7 +42,7 @@ sources:
 </table><table cellspacing="0" cellpadding="4" nobr="true">
     <tr>
         <td class="header border-top border-bottom border-left" style="width:50%" colspan="6">{{ course.name|upper }}</td>
-        <td class="header border-top border-bottom border-right" style="width:50%;text-align:right;" colspan="6">
+        <td class="header border-top border-bottom border-right" style="width:50%;text-align:right;" colspan="7">
         {% if (course.nameShort == 'OTH3998' or course.nameShort == 'OTH3999') and course.comments.writtenBy is not empty %}
             {{- course.comments.writtenBy -}}
         {% else %}
@@ -56,7 +56,7 @@ sources:
     </tr>
 
     <tr>
-        <td class="border" colspan="12"><table cellpadding="6"><tr>
+        <td class="border" colspan="13"><table cellpadding="6"><tr>
             {% if "1-" in (course.classes|first).classNameShort and course.comments.comment is empty %}
                 {% set defaultComment = "This course was completed last semester. Please refer to the Semester 1 report for details." %}
             {% elseif "2-" in (course.classes|first).classNameShort and course.comments.comment is empty  %}
@@ -86,7 +86,7 @@ sources:
         <td class="header border rowheader" style="width:7%" rowspan="2"> Absent</td>
         <td class="header border rowheader" style="width:7%" rowspan="2"> Late</td>
 
-        <td class="header border subheader" style="width:49%" colspan="8">Marks & Effort</td>
+        <td class="header border subheader" style="width:49%" colspan="9">Marks & Effort</td>
     </tr>
     <tr>
         {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
