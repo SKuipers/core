@@ -10,10 +10,42 @@ class ClassGrades extends DataSource
     public function getSchema()
     {
         return [
-            1 => ['grade' => 70, 'effort' => ['value' => 'S', 'descriptor' => 'Satisfactory']],
-            2 => ['grade' => 80, 'effort' => ['value' => 'G', 'descriptor' => 'Good']],
-            3 => ['grade' => 90, 'effort' => ['value' => 'VG', 'descriptor' => 'Very Good']],
-            4 => ['grade' => 100, 'effort' => ['value' => 'E', 'descriptor' => 'Excellent']],
+            1 => [
+                'effort'    => [
+                    'value' => 'VG',
+                    'descriptor' => 'Very Good',
+                ],
+                'comment'    => [
+                    'value' => ['paragraph', 6],
+                ],
+            ],
+            2 => [
+                'effort'    => [
+                    'value' => 'VG',
+                    'descriptor' => 'Very Good',
+                ],
+                'comment'    => [
+                    'value' => ['paragraph', 6],
+                ],
+            ],
+            3 => [
+                'effort'    => [
+                    'value' => 'VG',
+                    'descriptor' => 'Very Good',
+                ],
+                'comment'    => [
+                    'value' => ['paragraph', 6],
+                ],
+            ],
+            4 => [
+                'effort'    => [
+                    'value' => 'VG',
+                    'descriptor' => 'Very Good',
+                ],
+                'comment'    => [
+                    'value' => ['paragraph', 6],
+                ],
+            ],
         ];
     }
 

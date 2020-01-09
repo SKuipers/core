@@ -12,20 +12,40 @@ class TermGrades extends DataSource
         return [
             'terms' => [
                 1 => [
-                    'gpa'       => '70',
-                    'status'    => 'Good Standing',
+                    'effort'    => [
+                        'value' => 'VG',
+                        'descriptor' => 'Very Good',
+                    ],
+                    'comment'    => [
+                        'value' => ['paragraph', 6],
+                    ],
                 ],
                 2 => [
-                    'gpa'       => '70',
-                    'status'    => 'Good Standing',
+                    'effort'    => [
+                        'value' => 'VG',
+                        'descriptor' => 'Very Good',
+                    ],
+                    'comment'    => [
+                        'value' => ['paragraph', 6],
+                    ],
                 ],
                 3 => [
-                    'gpa'       => '70',
-                    'status'    => 'Good Standing',
+                    'effort'    => [
+                        'value' => 'VG',
+                        'descriptor' => 'Very Good',
+                    ],
+                    'comment'    => [
+                        'value' => ['paragraph', 6],
+                    ],
                 ],
                 4 => [
-                    'gpa'       => '70',
-                    'status'    => 'Good Standing',
+                    'effort'    => [
+                        'value' => 'VG',
+                        'descriptor' => 'Very Good',
+                    ],
+                    'comment'    => [
+                        'value' => ['paragraph', 6],
+                    ],
                 ],
             ],
         ];

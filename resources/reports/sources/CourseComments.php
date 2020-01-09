@@ -7,7 +7,11 @@ class CourseComments extends DataSource
     public function getSchema()
     {
         return [
-            'classNotes'      => 'The first units focused on photosynthesis and cellular respiration, as well as the human body system. Students explored the biochemistry behind photosynthesis and cellular respiration. Additionally, they investigated the human digestive system, circulatory system, motor system, respiratory system, and the excretory system.',
+            'criteriaName'        => 'Course Description',
+            'criteriaDescription' => ['sentence'],
+            'value'               => ['randomDigit'],
+            'comment'             => ['paragraph', 6],
+            'valueType'           => 'Comment',
         ];
     }
 
