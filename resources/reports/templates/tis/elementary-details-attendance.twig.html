@@ -1,6 +1,6 @@
 {#<!--
 name: Elementary Attendance
-category: Body
+category: Elementary
 types: Body
 sources:
     student: Student
@@ -10,21 +10,21 @@ sources:
 {{- include('tis/secondary-style.twig') -}}
 <style>
     .header {
-        font-size: {{ fontSizeSmall }} ;
+        font-size: 8pt ;
         font-weight: bold;
         background-color: {{ 'K' in student.yearGroupNameShort ? '#bee4fa' : '#AAAAAA' }};
         vertical-align: middle;
     }
 
     .subheader {
-        font-size: {{ fontSizeSmall }} ;
+        font-size: 8pt ;
         font-weight: bold;
         background-color: #DDDDDD;
         vertical-align: middle;
     }
 
     .attendance {
-        font-size: {{ fontSizeSmall }} ;
+        font-size: 8pt ;
         text-align: center;
     }
 </style>

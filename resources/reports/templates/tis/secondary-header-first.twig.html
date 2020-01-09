@@ -1,6 +1,6 @@
 {#<!--
 name: Secondary Header First Page
-category: Headers
+category: Secondary
 types: Header
 sources:
     school: School
@@ -28,8 +28,8 @@ sources:
 
 <table>
     <tr>
-        <td style="width:40%;text-align:center;font-size:{{ fontSizeSmall }};">&nbsp;<br/>
-            <span style="font-weight:bold;font-size:{{ fontSizeMedium }};">{{- school.name -}}</span><br/>
+        <td style="width:40%;text-align:center;font-size:8pt;">&nbsp;<br/>
+            <span style="font-weight:bold;font-size:9pt;">{{- school.name -}}</span><br/>
             {{- school.address|nl2br -}}
         </td>
         <td style="width:20%;text-align:center;">
@@ -37,7 +37,7 @@ sources:
             <img src="{{ assetPath }}/images/logo_tis.png" alt="logo" height="80">
             {% endif %}
         </td>
-        <td  style="width:40%;text-align:center;font-size:{{ fontSizeSmall }};">&nbsp;<br/>
+        <td  style="width:40%;text-align:center;font-size:8pt;">&nbsp;<br/>
             {{- headOfSchool.title }}: {{ headOfSchool.name -}}<br/>
             {{- principal.title }}: {{ principal.name -}}<br/>
             School Year: {{ report.schoolYear|replace({"-":" - "}) }}<br/>

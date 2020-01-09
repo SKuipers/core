@@ -1,6 +1,6 @@
 {#<!--
 name: Elementary Homeroom
-category: Body
+category: Elementary
 types: Body
 sources:
     student: Student
@@ -11,14 +11,14 @@ sources:
 {{- include('tis/secondary-style.twig') -}}
 <style>
     .header {
-        font-size: {{ fontSizeMedium }} ;
+        font-size: 9pt ;
         font-weight: bold;
         background-color: {{ 'K' in student.yearGroupNameShort ? '#bee4fa' : '#AAAAAA' }};
         vertical-align: middle;
     }
 
     .comment {
-        font-size: {{ fontSizeComment }} ;
+        font-size: 11.4pt ;
         line-height: {{ lineHeightComment }};
         text-align: justified;
     }

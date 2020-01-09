@@ -1,6 +1,6 @@
 {#<!--
 name: Secondary Interim Notes
-category: Body
+category: Secondary
 types: Body
 sources:
     student: Student
@@ -10,9 +10,9 @@ sources:
 {{- include('tis/secondary-style.twig') -}}
 {%- if report.notes %}<table cellspacing="0" cellpadding="1">
     <tr>
-    <td style="width:100%; font-size: {{ fontSizeLarge }}; font-weight: bold; text-align: center;">Please refer to the reverse side of this report for detailed explanations of <i>Progress</i> and <i>Effort</i> indicators, as well as Academic Standing details.</td>
+    <td style="width:100%; font-size: 12pt; font-weight: bold; text-align: center;">Please refer to the reverse side of this report for detailed explanations of <i>Progress</i> and <i>Effort</i> indicators, as well as Academic Standing details.</td>
     </tr>
     <tr>
-    <td style="width:100%; font-size: {{ fontSizeMedium }}">{{ report.notes }}</td>
+    <td style="width:100%; font-size: 9pt">{{ report.notes }}</td>
     </tr>
 </table>{% endif -%}

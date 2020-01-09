@@ -1,6 +1,6 @@
 {#<!--
 name: Elementary Student Details
-category: Body
+category: Elementary
 types: Body
 sources:
     student: Student
@@ -10,20 +10,20 @@ sources:
 {{- include('tis/secondary-style.twig') -}}
 <style>
     .header {
-        font-size: {{ fontSizeMedium }} ;
+        font-size: 9pt ;
         background-color: {{ 'K' in student.yearGroupNameShort ? '#DDDDDD' : '#AAAAAA' }};
         vertical-align: middle;
     }
 
     .title {
-        font-size: {{ fontSizeLarge }} ;
+        font-size: 12pt ;
         font-weight: bold;
         text-align: center;
         line-height: 1;
     }
 
     .student {
-        font-size: {{ fontSizeComment }} ;
+        font-size: 11.4pt ;
         text-align: left;
         line-height: 4;
     }
@@ -60,7 +60,7 @@ sources:
     {% if report.notes %}
     <tr>
         <td class="border" style="width:100%" colspan="2"><table cellpadding="4"><tr>
-            <td style="font-size: {{ fontSizeMedium }}">{{ report.notes }}</td>
+            <td style="font-size: 9pt">{{ report.notes }}</td>
         </tr></table></td>
     </tr>
     {% endif %}
@@ -72,7 +72,7 @@ sources:
 </table>
 <table cellpadding="8" class="border" style="width:100%;">
     <tr>
-        <td style="font-size:{{ fontSizeSmall }};"><div style="text-align: center; font-weight: bold; font-size:{{ fontSizeMedium }};">Dispositions</div>
+        <td style="font-size:8pt;"><div style="text-align: center; font-weight: bold; font-size:9pt;">Dispositions</div>
             <div style="font-size: 0.5pt; height: 0.5pt; line-height: 0"></div>
             In the TIS ECE program we support the children in their development of key learning dispositions and assess their progress in their development. The development of appropriate dispositions is fundamental to a young child’s future learning and well-being. The notion that children learn every day through every situation is a central idea in Flight: Alberta’s Early Learning and Care Framework. Using the framework Flight, we identify five dispositions to learn: playing and playfulness, seeking,participating, persisting, and caring. This report card provides insight into the observed development of your child’s dispositions in regards to these five areas. 
         </td>

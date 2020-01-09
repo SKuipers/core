@@ -1,6 +1,6 @@
 {#<!--
 name: Elementary Outcomes
-category: Body
+category: Elementary
 types: Body
 sources:
     reportingCycle: ReportingCycle
@@ -8,26 +8,26 @@ sources:
 -->#}
 {{- include('tis/secondary-style.twig') -}}<style>
     .header {
-        font-size: {{ fontSizeMedium }};
+        font-size: 9pt;
         font-weight: bold;
         background-color: #AAAAAA;
         vertical-align: middle;
     }
 
     .subheader {
-        font-size: {{ fontSizeSmall }} ;
+        font-size: 8pt ;
         text-align: center;
         line-height: 1.5;
     }
 
     .comment {
-        font-size: {{ fontSizeComment }} ;
+        font-size: 11.4pt ;
         line-height: {{ lineHeightComment }};
         text-align: justified;
     }
 
     .outcome {
-        font-size: {{ fontSizeMedium }};
+        font-size: 9pt;
         vertical-align: middle;
     }
 </style>{% for course in courseOutcomes %}<table cellspacing="0" cellpadding="4" nobr="true">
@@ -62,7 +62,7 @@ sources:
     {% for criteria in course.criteria %}
         <tr>
             <td class="border" colspan="{{ 4 }}" style="width:100%;"><table cellpadding="6"><tr>
-                <td style="font-size: {{ fontSizeMedium }}"><b>{{ criteria.name }}:</b> <span style="font-family:DroidSansFallback;">{{ criteria.comment }}</span></td>
+                <td style="font-size: 9pt"><b>{{ criteria.name }}:</b> <span style="font-family:DroidSansFallback;">{{ criteria.comment }}</span></td>
                 </tr></table>
             </td>
         </tr>
