@@ -354,6 +354,7 @@ input[type="file"] {
 input[type="text"],
 input[type="password"] {
     padding-left: 4px;
+    padding-right: 4px;
 }
 
 input[readonly],

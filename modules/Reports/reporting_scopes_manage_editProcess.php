@@ -38,6 +38,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_scopes_m
     $data = [
         'gibbonReportingCycleID' => $gibbonReportingCycleID,
         'name'                   => $_POST['name'] ?? '',
+        'markbookVisual'         => $_POST['markbookVisual'] ?? 'N',
+        'markbookCopy'           => $_POST['markbookCopy'] ?? 'N',
     ];
 
     // Validate the required values are present

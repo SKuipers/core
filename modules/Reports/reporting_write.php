@@ -119,6 +119,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_write.ph
         'relatedReports' => $relatedReports,
         'totalCount' => count($progress),
         'progressCount' => count($progressByCategory['Complete'] ?? []),
+        'markbookCopy' => $reportingScope['markbookCopy'] ?? 'N',
         'params' => $urlParams,
     ]);
 
