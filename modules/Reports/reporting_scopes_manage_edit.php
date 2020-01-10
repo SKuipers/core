@@ -128,6 +128,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_scopes_m
 
     $table->addColumn('nameShort', __('Short Name'));
     $table->addColumn('name', __('Name'));
+    $table->addColumn('students', __('Students'));
     $table->addColumn('count', __('Criteria'));
 
     $table->addHeaderAction('addMulti', __('Add Multiple'))
