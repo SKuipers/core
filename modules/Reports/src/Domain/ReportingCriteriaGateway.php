@@ -42,21 +42,26 @@ class ReportingCriteriaGateway extends QueryableGateway
             ->distinct()
             ->from($this->getTableName())
             ->cols(['gibbonReportingCriteria.gibbonReportingCriteriaID', 'gibbonReportingCriteria.description', 'gibbonReportingCriteria.target', 'gibbonReportingCriteriaType.name as criteriaType', 'gibbonReportingCriteria.gibbonYearGroupID', 'gibbonReportingCriteria.gibbonRollGroupID', 'gibbonReportingCriteria.gibbonCourseID'])
+            ->innerJoin('gibbonReportingCycle', 'gibbonReportingCycle.gibbonReportingCycleID=gibbonReportingCriteria.gibbonReportingCycleID')
             ->leftJoin('gibbonReportingCriteriaType', 'gibbonReportingCriteriaType.gibbonReportingCriteriaTypeID=gibbonReportingCriteria.gibbonReportingCriteriaTypeID')
             ->where('gibbonReportingCriteria.gibbonReportingScopeID=:gibbonReportingScopeID')
             ->bindValue('gibbonReportingScopeID', $gibbonReportingScopeID);
 
         if ($scopeType == 'Year Group') {
-            $query->cols(['gibbonYearGroup.gibbonYearGroupID AS scopeTypeID', 'gibbonYearGroup.nameShort as nameShort', 'gibbonYearGroup.name as name', 'COUNT(gibbonReportingCriteria.gibbonReportingCriteriaID) AS count'])
+            $query->cols(['gibbonYearGroup.gibbonYearGroupID AS scopeTypeID', 'gibbonYearGroup.nameShort as nameShort', 'gibbonYearGroup.name as name', 'COUNT(DISTINCT gibbonReportingCriteria.gibbonReportingCriteriaID) AS count', 'COUNT(DISTINCT gibbonStudentEnrolment.gibbonStudentEnrolmentID) AS students'])
                   ->leftJoin('gibbonYearGroup', 'gibbonYearGroup.gibbonYearGroupID=gibbonReportingCriteria.gibbonYearGroupID')
+                  ->leftJoin('gibbonStudentEnrolment', 'gibbonStudentEnrolment.gibbonYearGroupID=gibbonYearGroup.gibbonYearGroupID AND gibbonStudentEnrolment.gibbonSchoolYearID=gibbonReportingCycle.gibbonSchoolYearID')
                   ->groupBy(['gibbonYearGroup.gibbonYearGroupID']);
         } elseif ($scopeType == 'Roll Group') {
-            $query->cols(['gibbonRollGroup.gibbonRollGroupID AS scopeTypeID', 'gibbonRollGroup.nameShort as nameShort', 'gibbonRollGroup.name as name', 'COUNT(gibbonReportingCriteria.gibbonReportingCriteriaID) AS count'])
+            $query->cols(['gibbonRollGroup.gibbonRollGroupID AS scopeTypeID', 'gibbonRollGroup.nameShort as nameShort', 'gibbonRollGroup.name as name', 'COUNT(DISTINCT gibbonReportingCriteria.gibbonReportingCriteriaID) AS count', 'COUNT(DISTINCT gibbonStudentEnrolment.gibbonStudentEnrolmentID) AS students'])
                   ->leftJoin('gibbonRollGroup', 'gibbonRollGroup.gibbonRollGroupID=gibbonReportingCriteria.gibbonRollGroupID')
+                  ->leftJoin('gibbonStudentEnrolment', 'gibbonStudentEnrolment.gibbonRollGroupID=gibbonRollGroup.gibbonRollGroupID')
                   ->groupBy(['gibbonRollGroup.gibbonRollGroupID']);
         } elseif ($scopeType == 'Course') {
-            $query->cols(['gibbonCourse.gibbonCourseID AS scopeTypeID', 'gibbonCourse.nameShort as nameShort', 'gibbonCourse.name as name', 'COUNT(gibbonReportingCriteria.gibbonReportingCriteriaID) AS count'])
+            $query->cols(['gibbonCourse.gibbonCourseID AS scopeTypeID', 'gibbonCourse.nameShort as nameShort', 'gibbonCourse.name as name', 'COUNT(DISTINCT gibbonReportingCriteria.gibbonReportingCriteriaID) AS count', 'COUNT(DISTINCT gibbonCourseClassPerson.gibbonCourseClassPersonID) AS students'])
                   ->leftJoin('gibbonCourse', 'gibbonCourse.gibbonCourseID=gibbonReportingCriteria.gibbonCourseID')
+                  ->leftJoin('gibbonCourseClass', 'gibbonCourseClass.gibbonCourseID=gibbonCourse.gibbonCourseID')
+                  ->leftJoin('gibbonCourseClassPerson', "gibbonCourseClassPerson.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID AND gibbonCourseClassPerson.role='Student'")
                   ->groupBy(['gibbonCourse.gibbonCourseID']);
         }
 
