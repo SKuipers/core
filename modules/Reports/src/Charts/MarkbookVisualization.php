@@ -44,10 +44,15 @@ class MarkbookVisualization
 
     public function getProgressionChart()
     {
+        if (empty($this->markbookEntries)) return [];
+        
         $tooltipAssignment = "function(tooltipItem, data) {
             var list = this._chartInstance.config.metadata[tooltipItem.xLabel];
             return list ;
         }";
+
+        $lineData = [];
+        $metaData = [];
 
         foreach ($this->markbookEntries as $markbookType => $entries) {
             foreach ($entries as $entry) {
@@ -101,6 +106,8 @@ class MarkbookVisualization
 
     public function getFrequencyCharts()
     {
+        if (empty($this->markbookEntries)) return [];
+
         $tooltipLabel = "function(tooltipItem, data) {
             var index = tooltipItem.datasetIndex;
             var list = this._chartInstance.config.metadata[index][tooltipItem.xLabel];

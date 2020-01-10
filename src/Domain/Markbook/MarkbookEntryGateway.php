@@ -48,6 +48,7 @@ class MarkbookEntryGateway extends QueryableGateway
                 WHERE gibbonMarkbookColumn.gibbonCourseClassID=:gibbonCourseClassID
                 AND gibbonMarkbookColumn.attainment='Y'
                 AND gibbonMarkbookColumn.attainmentWeighting > 0.0
+                AND gibbonMarkbookColumn.attainmentType = 'Summative'
                 AND gibbonMarkbookEntry.gibbonPersonIDStudent=:gibbonPersonIDStudent
                 AND gibbonMarkbookEntry.attainmentValue IS NOT NULL
                 AND gibbonMarkbookEntry.attainmentValue <> ''

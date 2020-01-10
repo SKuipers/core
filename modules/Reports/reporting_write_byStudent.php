@@ -161,7 +161,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_write_by
         $markbookWeights = $container->get(MarkbookWeightGateway::class)->selectMarkbookWeightingsByClass($urlParams['scopeTypeID'])->fetchGroupedUnique();
 
         $visualization = new MarkbookVisualization($markbookEntries, $markbookWeights);
-        echo $page->fetchFromTemplate('ui/reportingMarkbookVisual.twig.html', $visualization->getCharts());
+        echo $page->fetchFromTemplate('ui/reportingMarkbookVisual.twig.html', $visualization->getCharts() + [
+            'name' => $scopeDetails['nameShort'],
+            'gibbonCourseClassID' => $urlParams['scopeTypeID'],
+        ]);
     }
 
     // PER STUDENT CRITERIA
