@@ -18,7 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
 CREATE TABLE `doorAccessLog` ( 
-    `doorAccessID` INT(16) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT , 
+    `doorAccessID` BIGINT(16) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT , 
     `entrance` VARCHAR(60) NULL , 
     `timestamp` TIMESTAMP NULL , 
     `direction` ENUM('In','Out') NOT NULL DEFAULT 'Out', 
@@ -34,6 +34,7 @@ ALTER TABLE `doorAccessLog` ADD INDEX( `timestamp`, `gibbonPersonID`);
 */
 
 use Gibbon\Domain\User\UserGateway;
+use Gibbon\Domain\System\SettingGateway;
 
 $_POST['address'] = '/modules/'.($argv[3] ?? 'System Admin').'/index.php';
 
@@ -44,7 +45,10 @@ if (!isCommandLineInterface()) {
     die(__('This script cannot be run from a browser, only via CLI.'));
 }
 
-$logLocation = getSettingByScope($connection2, 'Staff', 'doorAccessLogPath');
+$settingGateway = $container->get(SettingGateway::class);
+$logLocation = $settingGateway->getSettingByScope('Staff', 'doorAccessLogPath');
+$logTimestamp = $settingGateway->getSettingByScope('Staff', 'doorAccessLogTime');
+if (empty($logTimestamp)) $logTimestamp = strtotime('-1 day');
 
 $logOriginalLocation = $logLocation.'DOORACCESS.TXT';
 $logBackupLocation = $logLocation.'DOORACCESS_BAK.TXT';
@@ -81,10 +85,20 @@ if (($handle = fopen($logBackupLocation, "r")) !== false) {
 }
 
 $userGateway = $container->get(UserGateway::class);
+
+$parsed = 0;
 $success = 0;
 
 // Sync logs with the database
 foreach ($lines as $line) {
+    // Parse log entries into useable info
+    $date = '20'.substr($line['date'], 0, 2).'-'.substr($line['date'], 2, 2).'-'.substr($line['date'], 4, 2);
+    $time = substr($line['time'], 0, 2).':'.substr($line['time'], 2, 2).':00';
+    $parsed++;
+
+    // Skip logs older than last update
+    if (strtotime($date.' '.$time) < ($logTimestamp - 120)) continue;
+
     // Skip non-valid entrances
     if (stripos($line['entrance'], '1490c') === false) continue;
 
@@ -100,22 +114,17 @@ foreach ($lines as $line) {
         echo "Could not find person: {$line['cardID']} \n";
     }
 
-    // Parse log entries into useable info
-    $date = '20'.substr($line['date'], 0, 2).'-'.substr($line['date'], 2, 2).'-'.substr($line['date'], 4, 2);
-    $time = substr($line['time'], 0, 2).':'.substr($line['time'], 2, 2).':'.substr($line['time'], 4, 2);
-    $direction = stripos($line['entrance'], 'outside') !== false ? 'In' : 'Out';
-
     $data = [
         'entrance'       => $line['entrance'],
         'timestamp'      => $date.' '.$time,
-        'direction'      => $direction,
+        'direction'      => stripos($line['entrance'], 'outside') !== false ? 'In' : 'Out',
         'cardName'       => $line['cardName'],
         'cardID'         => $line['cardID'],
         'gibbonPersonID' => $person['gibbonPersonID'] ?? null,
     ];
 
     // Insert or update the logs in the database
-    $sql = "INSERT INTO `doorAccessLog` (`entrance`, `timestamp`, `direction`, `cardName`, `cardID`, `gibbonPersonID`) VALUES (:entrance, :timestamp, :direction, :cardName, :cardID, :gibbonPersonID) ON DUPLICATE KEY UPDATE cardName=:cardName, cardID=:cardID";
+    $sql = "INSERT INTO `doorAccessLog` (`entrance`, `timestamp`, `direction`, `cardName`, `cardID`, `gibbonPersonID`) VALUES (:entrance, :timestamp, :direction, :cardName, :cardID, :gibbonPersonID) ON DUPLICATE KEY UPDATE cardName=:cardName, cardID=:cardID, entrance=:entrance";
 
     if ($pdo->statement($sql, $data)) {
         $success++;
@@ -124,8 +133,6 @@ foreach ($lines as $line) {
     }
 }
 
-if ($success > 0) {
-    echo "Log sync successful: $success lines parsed. \n";
-} else {
-    echo "Log sync failed. \n";
-}
+echo "Log sync complete: $parsed lines parsed, $success lines updated. \n";
+
+$settingGateway->updateSettingByScope('Staff', 'doorAccessLogTime', time());
