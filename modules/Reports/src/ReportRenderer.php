@@ -6,7 +6,10 @@ use Gibbon\Module\Reports\ReportData;
 use Gibbon\Module\Reports\ReportTemplate;
 use Gibbon\Module\Reports\ReportSection;
 use Gibbon\Module\Reports\ReportTCPDF;
+use Mpdf\Mpdf as Mpdf;
+use Mpdf\Config\ConfigVariables;
 use Twig_Environment;
+use Mpdf\Config\FontVariables;
 
 class ReportRenderer
 {
@@ -21,6 +24,7 @@ class ReportRenderer
     protected $filename;
 
     protected $mode = 0;
+    protected $lastPage = false;
 
     protected $preProcess = array();
     protected $postProcess = array();
@@ -174,43 +178,50 @@ class ReportRenderer
 
         $this->profileStart();
 
-        $this->pdf->setLastPage($section->lastPage);
+        $this->lastPage = $section->lastPage;
+
+        $this->template->addData(['pageNum' => $this->pdf->getPageNumber()]);
+
+        if ($header = $this->template->getHeader($this->pdf->getPageNumber()+1, $this->lastPage)) {
+            $data = $reportData->getData(array_keys($header->sources));
+            $data = array_merge($data, $this->template->getData(), $header->getData());
+
+            $this->pdf->SetHTMLHeader($this->twig->render($header->template, $data));
+        } else {
+            $this->pdf->SetHTMLHeaderByName('html_default');
+        }
+
+        if ($footer = $this->template->getFooter($this->pdf->getPageNumber(), $this->lastPage)) {
+            $data = $reportData->getData(array_keys($footer->sources));
+            $data = array_merge($data, $this->template->getData(), $footer->getData());
+
+            $this->pdf->SetHTMLFooter($this->twig->render($footer->template, $data));
+        } else {
+            $this->pdf->SetHTMLFooterByName('html_default');
+        }
 
         if ($section->hasFlag(ReportSection::PAGE_BREAK_BEFORE)) {
             $this->pdf->AddPage();
         }
 
-        // Determine the footer before writing the section? For last pages ...
-        if ($footer = $this->template->getFooter($this->pdf->getPageNumber(), $this->pdf->isLastPage())) {
-            $this->pdf->SetAutoPageBreak(1, $footer->height + $footer->y);
-        }
-        
-        if ($section->y != null) {
-            $signed = substr($section->y, 0, 1);
-            if ($signed === "+" || $signed === "-") {
-                $this->pdf->setY($this->pdf->getY() + floatval($section->y), false);
-            } else {
-                $this->pdf->setY(floatval($section->y), false);
-            }
-        }
-
-        if ($section->x != null) {
-            $signed = substr($section->x, 0, 1);
-            if ($signed === "+" || $signed === "-") {
-                $this->pdf->setX($this->pdf->getX() + floatval($section->x));
-            } else {
-                $this->pdf->setX(floatval($section->x));
-            }
-        }
-    
         $html = $this->renderSectionToHTML($section, $reportData);
-        $this->pdf->writeHTMLTransaction($html, $section->hasFlag(ReportSection::NO_PAGE_WRAP));
+
+        if ($section->x != null && $section->y != null) {
+            $this->pdf->WriteFixedPosHTML(
+                $html,
+                floatval($section->x),
+                floatval($section->y),
+                !empty($section->width) ? $section->width : '100%',
+                !empty($section->height) ? $section->height : '100%',
+                'visible'
+            );
+        } else {
+            $this->pdf->writeHTML($html.'<br/>');
+        }
 
         if ($section->hasFlag(ReportSection::PAGE_BREAK_AFTER)) {
             $this->pdf->AddPage();
         }
-
-        $this->pdf->trimOverflow();
 
         $this->profileEnd($section->template);
     }
@@ -236,9 +247,45 @@ class ReportRenderer
 
     protected function setupDocument()
     {
-        $this->pdf = new ReportTCPDF($this->template->getData('orientation', 'P'), 'mm', $this->template->getData('pageSize', 'a4'), true, 'UTF-8', false);
-        $this->pdf->SetLeftMargin($this->template->getData('marginX', '10'));
-        $this->pdf->SetRightMargin($this->template->getData('marginX', '10'));
+        $defaultConfig = (new ConfigVariables())->getDefaults();
+        $fontDirs = $defaultConfig['fontDir'] ?? [];
+
+        $defaultFontConfig = (new FontVariables())->getDefaults();
+        $fontData = $defaultFontConfig['fontdata'] ?? [];
+
+        $this->pdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => [210, 297],
+            'orientation' => $this->template->getData('orientation', 'P'),
+            'useOddEven' => $this->hasMode(self::OUTPUT_TWO_SIDED) ? '1' : '0',
+
+            'margin_top' => $this->template->getData('marginY', '10'),
+            'margin_bottom' => $this->template->getData('marginY', '10'),
+            'margin_left' => $this->template->getData('marginX', '10'),
+            'margin_right' => $this->template->getData('marginX', '10'),
+
+            'setAutoTopMargin' => 'stretch',
+            'setAutoBottomMargin' => 'stretch',
+            'autoMarginPadding' => 1,
+
+            'defaultCssFile' => $this->absolutePath.'/modules/Reports/templates/'.$this->template->getData('stylesheet'),
+            'fontDir' => array_merge($fontDirs, [
+                $this->absolutePath.'/resources/reports/fonts',
+            ]),
+            // 'fontdata' => $fontData + [
+            //     'myriad' => [
+            //         'R' => 'MyriadPro-Regular.ttf',
+            //         'B' => 'MyriadPro-Bold.ttf',
+            //     ],
+            //     'myriadcond' => [
+            //         'R' => 'MyriadPro-Cond.ttf',
+            //         'B' => 'MyriadPro-BoldCond.ttf',
+            //     ]
+            // ],
+            'default_font' => 'sans-serif',
+        ]);
+
+        $this->template->addData(['stylesheet' => '']);
 
         $this->template->addData([
             'basePath' => $this->absolutePath,
@@ -255,67 +302,31 @@ class ReportRenderer
 
         $this->runPreProcess($reportData);
 
-        $template = &$this->template;
-        $twig = &$this->twig;
+        if ($header = $this->template->getHeader(0)) {
+            $data = $reportData->getData(array_keys($header->sources));
+            $data = array_merge($data, $this->template->getData(), $header->getData());
 
-        // $this->pdf->writeHTML('<span></span>');
-        $this->pdf->resetPageNumber();
-
-        $this->pdf->SetHeaderMargin(0);
-        $this->pdf->SetFooterMargin(0);
-
-        if ($header = $template->getHeader($this->pdf->getPageNumber(), $this->pdf->isLastPage())) {
-            $this->pdf->SetTopMargin($this->template->getData('marginY', '10') + $header->y + $header->height);
+            $this->pdf->DefHTMLHeaderByName('html_default', $this->twig->render($header->template, $data));
         }
 
-        if ($footer = $template->getFooter($this->pdf->getPageNumber(), $this->pdf->isLastPage())) {
-            $this->pdf->SetAutoPageBreak(1, $this->template->getData('marginY', '10') + $footer->height + $footer->y);
+        if ($header = $this->template->getHeader(1)) {
+            $data = $reportData->getData(array_keys($header->sources));
+            $data = array_merge($data, $this->template->getData(), $header->getData());
+
+            $this->pdf->SetHTMLHeader($this->twig->render($header->template, $data));
+        } else {
+            $this->pdf->SetHTMLHeaderByName('html_default');
         }
 
-        // Setting a dynamic callback allows runtime specific details (page numbers) to be inserted
-        $this->pdf->setHeaderCallback(function ($pdf) use (&$reportData) {
-            if ($this->template->getIsDraft()) {
-                $pdf->writeHTMLCell(140, 20, 10, 4, $this->twig->render('draft.twig.html'));
-            }
+        if ($footer = $this->template->getFooter(0)) {
+            $data = $reportData->getData(array_keys($footer->sources));
+            $data = array_merge($data, $this->template->getData(), $footer->getData());
 
-            if ($header = $this->template->getHeader($pdf->getPageNumber(), $pdf->isLastPage())) {
-                $pdf->setX($header->x);
-                $pdf->setY($this->template->getData('marginY', '10') + $header->y);
+            $this->pdf->DefHTMLFooterByName('html_default', $this->twig->render($footer->template, $data));
+            $this->pdf->SetHTMLFooterByName('html_default');
+        }
 
-                $data = $reportData->getData(array_keys($header->sources));
-                $data = array_merge($data, $this->template->getData(), $header->getData(), $pdf->getPageData());
-
-                $html = $this->twig->render($header->template, $data);
-                $pdf->writeHTML($html);
-
-                $pdf->SetTopMargin($this->template->getData('marginY', '10') + $header->y + $header->height);
-                $pdf->setY($this->template->getData('marginY', '10') + $header->y + $header->height);
-            }
-
-            if ($footer = $this->template->getFooter($pdf->getPageNumber(), $pdf->isLastPage())) {
-                $pdf->SetAutoPageBreak(1, $this->template->getData('marginY', '10') + $footer->height + $footer->y);
-            }
-        });
-
-        $this->pdf->setFooterCallback(function ($pdf) use (&$reportData) {
-            if ($footer = $this->template->getFooter($pdf->getPageNumber(), $pdf->isLastPage())) {
-                $pdf->setX($footer->x);
-                $pdf->setY($footer->height * -1);
-                $pdf->SetAutoPageBreak(1, $this->template->getData('marginY', '10') + $footer->height + $footer->y);
-
-                $data = $reportData->getData(array_keys($footer->sources));
-                $data = array_merge($data, $this->template->getData(), $footer->getData(), $pdf->getPageData());
-
-                $html = $this->twig->render($footer->template, $data);
-                $pdf->writeHTML($html);
-            }
-
-            if ($header = $this->template->getHeader($pdf->getPageNumber()+1, $pdf->isLastPage())) {
-                $pdf->SetTopMargin($this->template->getData('marginY', '10') + $header->y + $header->height);
-            }
-        });
-
-        $this->pdf->addPage();
+        $this->pdf->AddPageByArray(['resetpagenum' => 1]);
     }
 
     protected function finishDocument($outputPath)
@@ -332,30 +343,33 @@ class ReportRenderer
 
     protected function finishReport(ReportData &$reportData)
     {
-        $this->pdf->trimOverflow();
-        $this->pdf->setLastPage(true);
+        $this->template->addData(['pageNum' => $this->pdf->getPageNumber(), 'lastPage' => true]);
+        $this->lastPage = true;
         
         // Determine the footer before writing the section? For last pages ...
-        if ($footer = $this->template->getFooter($this->pdf->getPageNumber(), $this->pdf->isLastPage())) {
-            $this->pdf->SetAutoPageBreak(1, $footer->height + $footer->y);
+        if ($footer = $this->template->getFooter($this->pdf->getPageNumber(), $this->lastPage)) {
+            $data = $reportData->getData(array_keys($footer->sources));
+            $data = array_merge($data, $this->template->getData(), $footer->getData());
+
+            $this->pdf->DefHTMLFooterByName('html_lastPage', $this->twig->render($footer->template, $data));
+            $this->pdf->writeHTML('<sethtmlpagefooter name="html_lastPage" value="1" />');
         }
 
-        $this->pdf->endPage();
-        
         $this->runPostProcess($reportData);
 
         // Add a page with odd-numbered reports for two-sided printing
         if ($this->hasMode(self::OUTPUT_TWO_SIDED)) {
             if ($this->pdf->getPageNumber(true) % 2 != 0) {
-                $this->pdf->addPage();
-                $this->pdf->setLastPage(false);
+                $this->pdf->AddPage();
             }
         }
         
         // Finish the current page after a report for non-continuous output
-        if ($this->hasMode(self::OUTPUT_CONTINUOUS) == false){
+        if ($this->hasMode(self::OUTPUT_CONTINUOUS) == false) {
             $outputPath = $this->getFilePath($reportData);
             $this->finishDocument($outputPath);
+        } else {
+            $this->lastPage = false;
         }
     }
 
@@ -366,7 +380,7 @@ class ReportRenderer
         foreach ($this->preProcess as $name => $callable) {
             try {
                 call_user_func($callable, $reportData);
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 echo 'Error calling pre-process '.$name;
                 return;
             }
@@ -381,7 +395,7 @@ class ReportRenderer
             try {
                 $outputPath = $this->getFilePath($reportData);
                 call_user_func($callable, $reportData, $outputPath);
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 echo 'Error calling post-process '.$name;
                 return;
             }
