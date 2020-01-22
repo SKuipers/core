@@ -71,9 +71,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/templates_preview.
         $file = tmpfile();
         $path = stream_get_meta_data($file)['uri'];
         
-        ini_set('display_errors', 0);
+        ini_set('display_errors', $debugMode ? 1 : 0);
 
-        // $path = __DIR__.'/test.pdf';
         $renderer->renderToPDF($reports, $path);
 
         header('Content-Description: File Transfer');

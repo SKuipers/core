@@ -70,6 +70,7 @@ class ReportRenderer
             'basePath' => $this->absoluteURL,
             'assetPath' => $this->absoluteURL.$this->customAssetPath,
             'isDraft' => $this->template->getIsDraft(),
+            'stylesheet' => ''
         ]);
 
         foreach ($reports as $reportData) {
@@ -253,7 +254,9 @@ class ReportRenderer
         $defaultFontConfig = (new FontVariables())->getDefaults();
         $fontData = $defaultFontConfig['fontdata'] ?? [];
 
-        $this->pdf = new Mpdf([
+        
+
+        $config = [
             'mode' => 'utf-8',
             'format' => [210, 297],
             'orientation' => $this->template->getData('orientation', 'P'),
@@ -267,30 +270,31 @@ class ReportRenderer
             'setAutoTopMargin' => 'stretch',
             'setAutoBottomMargin' => 'stretch',
             'autoMarginPadding' => 1,
-
-            'defaultCssFile' => $this->absolutePath.'/modules/Reports/templates/'.$this->template->getData('stylesheet'),
+            
             'fontDir' => array_merge($fontDirs, [
                 $this->absolutePath.'/resources/reports/fonts',
             ]),
-            // 'fontdata' => $fontData + [
-            //     'myriad' => [
-            //         'R' => 'MyriadPro-Regular.ttf',
-            //         'B' => 'MyriadPro-Bold.ttf',
-            //     ],
-            //     'myriadcond' => [
-            //         'R' => 'MyriadPro-Cond.ttf',
-            //         'B' => 'MyriadPro-BoldCond.ttf',
-            //     ]
-            // ],
             'default_font' => 'sans-serif',
-        ]);
+        ];
 
-        $this->template->addData(['stylesheet' => '']);
+        $stylesheetPath = $this->absolutePath.'/modules/Reports/templates/'.$this->template->getData('stylesheet');
+        if (is_file($stylesheetPath)) {
+            $config['defaultCssFile'] = $stylesheetPath;
+        } else {
+            $stylesheetPath = $this->absolutePath.$this->customAssetPath.'/templates/'.$this->template->getData('stylesheet');
+            if (is_file($stylesheetPath)) {
+                $config['defaultCssFile'] = $stylesheetPath;
+            }
+        }
+        
+
+        $this->pdf = new Mpdf($config);
 
         $this->template->addData([
             'basePath' => $this->absolutePath,
             'assetPath' => $this->absolutePath.$this->customAssetPath,
             'isDraft' => $this->template->getIsDraft(),
+            'stylesheet' => ''
         ]);
     }
 
