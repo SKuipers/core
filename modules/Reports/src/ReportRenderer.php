@@ -270,6 +270,9 @@ class ReportRenderer
             'setAutoTopMargin' => 'stretch',
             'setAutoBottomMargin' => 'stretch',
             'autoMarginPadding' => 1,
+
+            'shrink_tables_to_fit' => 0,
+            'defaultPagebreakType' => 'cloneall',
             
             'fontDir' => array_merge($fontDirs, [
                 $this->absolutePath.'/resources/reports/fonts',
