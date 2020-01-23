@@ -23,13 +23,17 @@ v20.0.00
     Changes With Important Notices
 
     Significant Changes
+        Added Español - Mexico as an available locale
 
     Security
 
     Tweaks & Additions
-        Reports: added a Proof Read by Homeroom option
+        Departments: added drag-drop ordering to Departments in School Admin
+        Reports: added a Proof Read by Form Group option
+        Students: added an Exclude Left Students checkbox to Student Enrolment Trends, off by default
 
     Bug Fixes
+        System: fixed module uninstall to also remove notification events
 
 v19.0.00
 --------
