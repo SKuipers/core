@@ -27,6 +27,7 @@ use Gibbon\Module\Reports\ArchiveFile;
 use Gibbon\Module\Reports\Domain\ReportGateway;
 use Gibbon\Module\Reports\Domain\ReportArchiveEntryGateway;
 use Gibbon\Module\Reports\Domain\ReportArchiveGateway;
+use Gibbon\Module\Reports\Renderer\ReportRendererInterface;
 use Gibbon\Module\Reports\Renderer\MpdfRenderer;
 use Gibbon\Module\Reports\Renderer\TcpdfRenderer;
 use League\Container\ContainerAwareInterface;
@@ -71,7 +72,7 @@ class GenerateReportProcess extends BackgroundProcess implements ContainerAwareI
             $reports = $reportBuilder->buildReportBatch($template, $report, $contextData);
 
             $renderer = $this->container->get($template->getData('flags') == 1 ? MpdfRenderer::class : TcpdfRenderer::class);
-            $renderer->setMode(ReportRenderer::OUTPUT_CONTINUOUS | ReportRenderer::OUTPUT_TWO_SIDED);
+            $renderer->setMode(ReportRendererInterface::OUTPUT_CONTINUOUS | ReportRendererInterface::OUTPUT_TWO_SIDED);
 
             // Render the Report: Batch
             $path = $archiveFile->getBatchFilePath($gibbonReportID, $contextData);

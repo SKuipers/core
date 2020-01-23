@@ -28,9 +28,6 @@ use Twig_Environment;
 
 class TcpdfRenderer implements ReportRendererInterface
 {
-    const OUTPUT_TWO_SIDED = 0b0001;
-    const OUTPUT_CONTINUOUS = 0b0010;
-
     protected $template;
     protected $pdf;
     protected $twig;

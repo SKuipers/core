@@ -30,9 +30,6 @@ use Twig_Environment;
 
 class MpdfRenderer implements ReportRendererInterface
 {
-    const OUTPUT_TWO_SIDED = 0b0001;
-    const OUTPUT_CONTINUOUS = 0b0010;
-
     protected $template;
     protected $pdf;
     protected $twig;
@@ -249,6 +246,11 @@ class MpdfRenderer implements ReportRendererInterface
             $data = array_merge($data, $this->template->getData(), $footer->getData());
 
             $this->pdf->DefHTMLFooterByName('html_footer'.$index, $this->twig->render($footer->template, $data));
+        }
+        // Watermark
+        if ($this->template->getIsDraft()) {
+            $this->pdf->SetWatermarkText(__('DRAFT COPY. THIS IS NOT A FINAL REPORT.'), 0.05);
+            $this->pdf->showWatermarkText = true;
         }
     }
 
