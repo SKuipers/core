@@ -1,17 +1,34 @@
 <?php
+/*
+Gibbon, Flexible & Open School System
+Copyright (C) 2010, Ross Parker
 
-namespace Gibbon\Module\Reports;
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+
+namespace Gibbon\Module\Reports\Renderer;
 
 use Gibbon\Module\Reports\ReportData;
 use Gibbon\Module\Reports\ReportTemplate;
 use Gibbon\Module\Reports\ReportSection;
-use Gibbon\Module\Reports\ReportTCPDF;
+use Gibbon\Module\Reports\Renderer\ReportRendererInterface;
 use Mpdf\Mpdf as Mpdf;
 use Mpdf\Config\ConfigVariables;
-use Twig_Environment;
 use Mpdf\Config\FontVariables;
+use Twig_Environment;
 
-class ReportRenderer
+class MpdfRenderer implements ReportRendererInterface
 {
     const OUTPUT_TWO_SIDED = 0b0001;
     const OUTPUT_CONTINUOUS = 0b0010;
@@ -29,101 +46,48 @@ class ReportRenderer
     protected $preProcess = array();
     protected $postProcess = array();
 
-    protected $profile;
-    protected $microtime;
+    public function __construct(Twig_Environment $templateEngine)
+    {
+        $this->twig = $templateEngine;
+    }
 
-    public function __construct(ReportTemplate $template, Twig_Environment $templateEngine)
+    public function setMode(int $bitmask)
+    {
+        $this->mode |= $bitmask;
+    }
+
+    public function hasMode(int $bitmask)
+    {
+        return ($this->mode & $bitmask) == $bitmask;
+    }
+
+    public function addPreProcess(string $name, callable $callable)
+    {
+        if (is_callable($callable)) {
+            $this->preProcess[$name] = $callable;
+        }
+    }
+
+    public function addPostProcess(string $name, callable $callable)
+    {
+        if (is_callable($callable)) {
+            $this->postProcess[$name] = $callable;
+        }
+    }
+
+    public function render(ReportTemplate $template, array $input, string $output = '') 
     {
         $this->template = $template;
-        $this->microtime = microtime(true);
-
-        $this->twig = $templateEngine;
-
         $this->absolutePath = $template->getData('absolutePath');
-        $this->absoluteURL = $template->getData('absoluteURL');
         $this->customAssetPath = $template->getData('customAssetPath');
 
         $customTemplatePath = $this->absolutePath.$this->customAssetPath.'/templates';
         if (is_dir($customTemplatePath)) {
             $this->twig->getLoader()->prependPath($customTemplatePath);
         }
-    }
 
-    public function setMode($bitmask)
-    {
-        $this->mode |= $bitmask;
-    }
-
-    public function hasMode($bitmask)
-    {
-        return ($this->mode & $bitmask) == $bitmask;
-    }
-
-    public function renderToHTML($input) 
-    {
         $reports = (is_array($input))? $input : array($input);
-        $html = '';
-        $pages = [];
-        $pageNum = 1;
-        $this->template->addData([
-            'pageNum' => $pageNum,
-            'basePath' => $this->absoluteURL,
-            'assetPath' => $this->absoluteURL.$this->customAssetPath,
-            'isDraft' => $this->template->getIsDraft(),
-            'stylesheet' => ''
-        ]);
-
-        foreach ($reports as $reportData) {
-            
-            if ($header = $this->template->getHeader($pageNum)) {
-                $html .= '<header style="height: '.$header->height.'mm">'.$this->renderSectionToHTML($header, $reportData).'</header>';
-            }
-
-            $pageBreak = function ($html) use (&$pages, &$pageNum, &$reportData) {
-                if ($footer = $this->template->getFooter($pageNum)) {
-                    $html .= '<footer style="height: '.$footer->height.'mm">'.$this->renderSectionToHTML($footer, $reportData).'</footer>';
-                }
-
-                $pages[$pageNum] = $html;
-                $html = '';
-                $pageNum++;
-                $this->template->addData(['pageNum' => $pageNum]);
-                
-                if ($header = $this->template->getHeader($pageNum)) {
-                    $html .= '<header style="height: '.$header->height.'mm">'.$this->renderSectionToHTML($header, $reportData).'</header>';
-                }
-
-                return $html;
-            };
-
-            $sections = $this->template->getSections();
-            foreach ($sections as $section) {
-
-                if ($section->hasFlag(ReportSection::PAGE_BREAK_BEFORE)) {
-                    $html = $pageBreak($html);
-                }
-
-                $html .= '<section>'.$this->renderSectionToHTML($section, $reportData).'</section>';
-
-                if ($section->hasFlag(ReportSection::PAGE_BREAK_AFTER)) {
-                    $html = $pageBreak($html);
-                }
-            }
-
-            if ($footer = $this->template->getFooter($pageNum, true)) {
-                $html .= '<footer style="height: '.$footer->height.'mm">'.$this->renderSectionToHTML($footer, $reportData).'</footer>';
-            }
-            
-            $pages[$pageNum] = $html;
-        }
-
-        return $pages;
-    }
-
-    public function renderToPDF($input, $filename) 
-    {
-        $reports = (is_array($input))? $input : array($input);
-        $this->filename = $filename;
+        $this->filename = $output;
 
         $this->setupDocument();
         
@@ -139,20 +103,6 @@ class ReportRenderer
             $finalReport = end($reports);
             $outputPath = $this->getFilePath($finalReport);
             $this->finishDocument($outputPath);
-        }
-    }
-
-    public function addPreProcess($name, $callable)
-    {
-        if (is_callable($callable)) {
-            $this->preProcess[$name] = $callable;
-        }
-    }
-
-    public function addPostProcess($name, $callable)
-    {
-        if (is_callable($callable)) {
-            $this->postProcess[$name] = $callable;
         }
     }
 
@@ -177,54 +127,29 @@ class ReportRenderer
             }
         }
 
-        $this->profileStart();
+        $this->lastPage = $section->lastPage || $this->lastPage;
 
-        $this->lastPage = $section->lastPage;
-
-        $this->template->addData(['pageNum' => $this->pdf->getPageNumber()]);
-
-        if ($header = $this->template->getHeader($this->pdf->getPageNumber()+1, $this->lastPage)) {
-            $data = $reportData->getData(array_keys($header->sources));
-            $data = array_merge($data, $this->template->getData(), $header->getData());
-
-            $this->pdf->SetHTMLHeader($this->twig->render($header->template, $data));
-        } else {
-            $this->pdf->SetHTMLHeaderByName('html_default');
-        }
-
-        if ($footer = $this->template->getFooter($this->pdf->getPageNumber(), $this->lastPage)) {
-            $data = $reportData->getData(array_keys($footer->sources));
-            $data = array_merge($data, $this->template->getData(), $footer->getData());
-
-            $this->pdf->SetHTMLFooter($this->twig->render($footer->template, $data));
-        } else {
-            $this->pdf->SetHTMLFooterByName('html_default');
-        }
+        $this->setHeader();
 
         if ($section->hasFlag(ReportSection::PAGE_BREAK_BEFORE)) {
-            $this->pdf->AddPage();
+            $this->pdf->AddPageByArray([]);
         }
+        
+        $this->setFooter();
+
+        $this->template->addData(['pageNum' => $this->pdf->getPageNumber()]);
 
         $html = $this->renderSectionToHTML($section, $reportData);
 
         if ($section->x != null && $section->y != null) {
-            $this->pdf->WriteFixedPosHTML(
-                $html,
-                floatval($section->x),
-                floatval($section->y),
-                !empty($section->width) ? $section->width : '100%',
-                !empty($section->height) ? $section->height : '100%',
-                'visible'
-            );
+            $this->pdf->WriteFixedPosHTML($html, floatval($section->x), floatval($section->y), !empty($section->width) ? $section->width : '100%', !empty($section->height) ? $section->height : '100%', 'visible');
         } else {
             $this->pdf->writeHTML($html.'<br/>');
         }
 
         if ($section->hasFlag(ReportSection::PAGE_BREAK_AFTER)) {
-            $this->pdf->AddPage();
+            $this->pdf->AddPageByArray([]);
         }
-
-        $this->profileEnd($section->template);
     }
 
     protected function renderSectionToHTML(ReportSection &$section, ReportData &$reportData)
@@ -253,8 +178,6 @@ class ReportRenderer
 
         $defaultFontConfig = (new FontVariables())->getDefaults();
         $fontData = $defaultFontConfig['fontdata'] ?? [];
-
-        
 
         $config = [
             'mode' => 'utf-8',
@@ -289,7 +212,6 @@ class ReportRenderer
                 $config['defaultCssFile'] = $stylesheetPath;
             }
         }
-        
 
         $this->pdf = new Mpdf($config);
 
@@ -309,31 +231,25 @@ class ReportRenderer
 
         $this->runPreProcess($reportData);
 
-        if ($header = $this->template->getHeader(0)) {
+        // Define Headers
+        $this->headers = $this->template->getHeaders();
+        
+        foreach ($this->headers as $index => $header) {
             $data = $reportData->getData(array_keys($header->sources));
             $data = array_merge($data, $this->template->getData(), $header->getData());
 
-            $this->pdf->DefHTMLHeaderByName('html_default', $this->twig->render($header->template, $data));
+            $this->pdf->DefHTMLHeaderByName('html_header'.$index, $this->twig->render($header->template, $data));
         }
 
-        if ($header = $this->template->getHeader(1)) {
-            $data = $reportData->getData(array_keys($header->sources));
-            $data = array_merge($data, $this->template->getData(), $header->getData());
+        // Define Footers
+        $this->footers = $this->template->getFooters();
 
-            $this->pdf->SetHTMLHeader($this->twig->render($header->template, $data));
-        } else {
-            $this->pdf->SetHTMLHeaderByName('html_default');
-        }
-
-        if ($footer = $this->template->getFooter(0)) {
+        foreach ($this->footers as $index => $footer) {
             $data = $reportData->getData(array_keys($footer->sources));
             $data = array_merge($data, $this->template->getData(), $footer->getData());
 
-            $this->pdf->DefHTMLFooterByName('html_default', $this->twig->render($footer->template, $data));
-            $this->pdf->SetHTMLFooterByName('html_default');
+            $this->pdf->DefHTMLFooterByName('html_footer'.$index, $this->twig->render($footer->template, $data));
         }
-
-        $this->pdf->AddPageByArray(['resetpagenum' => 1]);
     }
 
     protected function finishDocument($outputPath)
@@ -353,14 +269,8 @@ class ReportRenderer
         $this->template->addData(['pageNum' => $this->pdf->getPageNumber(), 'lastPage' => true]);
         $this->lastPage = true;
         
-        // Determine the footer before writing the section? For last pages ...
-        if ($footer = $this->template->getFooter($this->pdf->getPageNumber(), $this->lastPage)) {
-            $data = $reportData->getData(array_keys($footer->sources));
-            $data = array_merge($data, $this->template->getData(), $footer->getData());
-
-            $this->pdf->DefHTMLFooterByName('html_lastPage', $this->twig->render($footer->template, $data));
-            $this->pdf->writeHTML('<sethtmlpagefooter name="html_lastPage" value="1" />');
-        }
+        $this->setHeader();
+        $this->setFooter();
 
         $this->runPostProcess($reportData);
 
@@ -376,8 +286,29 @@ class ReportRenderer
             $outputPath = $this->getFilePath($reportData);
             $this->finishDocument($outputPath);
         } else {
+            $this->pdf->AddPageByArray([
+                'resetpagenum' => 1,
+            ]);
             $this->lastPage = false;
         }
+    }
+
+    protected function setHeader()
+    {
+        $pageNum = $this->lastPage ? -1 : $this->pdf->getPageNumber() + 1;
+        $defaultHeader = isset($this->headers[0])? 'html_header0' : false;
+        $headerName = isset($this->headers[$pageNum])? 'html_header'.$pageNum : $defaultHeader;
+
+        $this->pdf->SetHTMLHeaderByName($headerName, $this->lastPage ? '0' : null, $this->lastPage);
+    }
+
+    protected function setFooter()
+    {
+        $pageNum = $this->lastPage ? -1 : $this->pdf->getPageNumber();
+        $defaultFooter = isset($this->footers[0])? 'html_footer0' : false;
+        $footerName = isset($this->footers[$pageNum])? 'html_footer'.$pageNum : $defaultFooter;
+
+        $this->pdf->SetHTMLFooterByName($footerName);
     }
 
     protected function runPreProcess(ReportData &$reportData)
@@ -422,22 +353,5 @@ class ReportRenderer
         }
 
         return $filename;
-    }
-
-    public function getProfile()
-    {
-        return $this->profile;
-    }
-
-    private function profileStart()
-    {
-        $this->microtime = microtime(true);
-    }
-
-    private function profileEnd($name)
-    {
-        if (!isset($this->profile[$name])) $this->profile[$name] = 0;
-
-        $this->profile[$name] += (microtime(true) - $this->microtime);
     }
 }
