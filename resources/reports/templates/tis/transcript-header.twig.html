@@ -7,7 +7,7 @@ sources:
     studentIB: IBDetails
     fields: CustomFields
 params:
-    height: 10
+    height: 56
 -->#}
 
 {{- stylesheet ? include(stylesheet) -}}
@@ -53,7 +53,7 @@ params:
 
     <table style="border: 0.6pt solid #000000; width: 52.0mm; font-size: 8pt;" cellpadding="8" cellspacing="0">
         <tr>
-            <td style="background-color: #B22630; color: #ffffff; text-align: center; line-height: 9pt; width: 100%;">
+            <td style="background-color: #B22630; color: #ffffff; text-align: center; line-height: 6.5pt; width: 100%;">
                 Diploma
             </td>
         </tr>
@@ -68,7 +68,7 @@ params:
             </td>
         </tr>
         <tr>
-            <td style="background-color: #B22630; color: #ffffff; text-align: center; line-height: 9pt; width: 100%;">
+            <td style="background-color: #B22630; color: #ffffff; text-align: center; line-height: 6.5pt; width: 100%;">
                 Credits
             </td>
         </tr>
@@ -79,12 +79,12 @@ params:
             </td>
         </tr>
         <tr>
-            <td style="background-color: #B22630; color: #ffffff; text-align: center; line-height: 9pt; width: 100%;">
+            <td style="background-color: #B22630; color: #ffffff; text-align: center; line-height: 6.5pt; width: 100%;">
                 Letter Grade Scale
             </td>
         </tr>
         <tr>
-            <td><table style="width: 100%; font-size: 7pt;">
+            <td><table style="width: 100%; ">
                 <tr><td style="width: 15%">{{- "A+:" -}}</td><td style="width: 85%;">{{- "100% - 95%" -}}</td>
                 <tr><td style="width: 15%">{{- "A:" -}}</td><td style="width: 85%;">{{- "94.9% - 85%" -}}</td>
                 <tr><td style="width: 15%">{{- "A-:" -}}</td><td style="width: 85%;">{{- "84.9% - 80%" -}}</td>
@@ -94,7 +94,7 @@ params:
                 <tr><td style="width: 15%">{{- "B-:" -}}</td><td style="width: 85%;">{{- "69.9% - 65%" -}}</td>
                 <tr><td colspan="2"></td></tr>
                 <tr><td style="width: 15%">{{- "C+:" -}}</td><td style="width: 85%;">{{- "64.9% - 60%" -}}</td>
-                <tr><td style="width: 15%">{{- "C:" -}}</td><td style="width: 85%;">{{- "C: 59.9% - 55%" -}}</td>
+                <tr><td style="width: 15%">{{- "C:" -}}</td><td style="width: 85%;">{{- "59.9% - 55%" -}}</td>
                 <tr><td style="width: 15%">{{- "C-:" -}}</td><td style="width: 85%;">{{- "54.9% - 50%" -}}</td>
                 <tr><td colspan="2"></td></tr>
                 <tr><td style="width: 15%">{{- "D:" -}}</td><td style="width: 85%;">{{- "49.9% - 0% (Fail)" -}}</td>
@@ -102,7 +102,7 @@ params:
             </td>
         </tr>
         <tr>
-            <td style="background-color: #B22630; color: #ffffff; text-align: center; line-height: 9pt; width: 100%;">
+            <td style="background-color: #B22630; color: #ffffff; text-align: center; line-height: 6.5pt; width: 100%;">
                 Legend
             </td>
         </tr>
@@ -114,7 +114,7 @@ params:
             </td>
         </tr>
         <tr>
-            <td style="background-color: #B22630; color: #ffffff; text-align: center; line-height: 9pt; width: 100%;">
+            <td style="background-color: #B22630; color: #ffffff; text-align: center; line-height: 6.5pt; width: 100%;">
                 Contacts
             </td>
         </tr>
@@ -129,11 +129,11 @@ params:
                 <tr><td style="font-size: 6pt;"></td></tr>
 
                 <tr><td style="text-align: left;width: 40%;height: 9mm;">{{- "Academic Counsellor:" -}}</td>
-                <td style="text-align: right;whitespace: nowrap;">{{- "Jody Hubert&nbsp;(A-H)" -}}</td></tr>
+                <td style="text-align: right;whitespace: nowrap;">{{- "Jody Hubert (A-H)" -}}</td></tr>
                 <tr><td style="font-size: 6pt;"></td></tr>
 
                 <tr><td style="text-align: left;width: 40%;height: 9mm;">{{- "Academic Counsellor:" -}}</td>
-                <td style="text-align: right;whitespace: nowrap;">{{- "Charles Wester&nbsp;(I-Z)" -}}</td></tr>
+                <td style="text-align: right;whitespace: nowrap;">{{- "Charles Wester (I-Z)" -}}</td></tr>
                 <tr><td style="font-size: 2pt;">&nbsp;</td></tr>
 
                 <tr><td style="text-align: left;" colspan="2">{{- "Email: tiscounselling@tis.edu.mo" -}}</td></tr>

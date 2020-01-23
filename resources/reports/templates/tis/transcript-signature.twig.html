@@ -3,8 +3,6 @@ name: Transcript Footer
 category: Transcript
 types: Footer
 icon: signature.svg
-sources:
-    reportingCycle: ReportingCycle
 params:
     height: 26
 config:
@@ -24,7 +22,7 @@ config:
             &nbsp; {{ config.signatureTitle|default("Academic Counsellor") }}
         </td>
         <td class="footer border" style="width:52.0mm; max-width:52.0mm; border: 0.6pt solid #000000;">
-            &nbsp; {{ reportingCycle.dateEnd|date("j F Y") }} 
+            &nbsp; {{ ""|date("j F Y") }} 
         </td>
     </tr>
 </table>

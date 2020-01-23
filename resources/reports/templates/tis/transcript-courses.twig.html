@@ -26,6 +26,7 @@ sources:
 
     <tbody>
     {% set totalCredits = 0 %}
+    
     {% for department, courses in transcript %}
 
         <tr>
@@ -34,18 +35,21 @@ sources:
             </td>
         </tr>
 
-        
+        {% set count = 0 %}
         {% for course in courses %}
-        <tr>
-            <td style="">{{ course.nameShort }}</td>
-            <td style="">{{ course.name }}</td>
-            <td style="text-align: center;">{{ course.year }}</td>
-            <td style="text-align: center;">{{ course.credits > 0 ? course.credits|round : '' }}</td>
-            <td style="text-align: center;">{{ course.interim ? course.grade|trim('%') : '' }}</td>
-            <td style="text-align: center;">{{ not course.interim ? course.grade|trim('%') : '' }}</td>
-        </tr>
+            {% set courseGrade = course.grade is not empty ? course.grade|round|trim('%') : '' %}
 
-        {% set totalCredits = totalCredits + course.credits %}
+            <tr style="background-color: {{ count % 2 == 0 ? '#ffffff' : '#f8f8f8' }}">
+                <td style="">{{ course.nameShort }}</td>
+                <td style="">{{ course.name }}</td>
+                <td style="text-align: center;">{{ course.year }}</td>
+                <td style="text-align: center;">{{ course.credits > 0 and not course.interim ? course.credits|round : '' }}</td>
+                <td style="text-align: center;">{{ course.interim ? courseGrade : '' }}</td>
+                <td style="text-align: center;">{{ not course.interim ? courseGrade : '' }}</td>
+            </tr>
+
+            {% set count = count + 1 %}
+            {% set totalCredits = not course.interim ? totalCredits + course.credits : totalCredits %}
         {% endfor %}
     {% endfor %}
 
