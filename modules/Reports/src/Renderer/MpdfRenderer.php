@@ -197,6 +197,8 @@ class MpdfRenderer implements ReportRendererInterface
             'fontDir' => array_merge($fontDirs, [
                 $this->absolutePath.'/resources/reports/fonts',
             ]),
+
+            'tempDir' =>  $this->absolutePath.'/uploads/reports/temp',
             'default_font' => 'sans-serif',
         ];
 
