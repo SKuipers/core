@@ -27,9 +27,6 @@ use Twig_Environment;
 
 class HtmlRenderer implements ReportRendererInterface
 {
-    const OUTPUT_TWO_SIDED = 0b0001;
-    const OUTPUT_CONTINUOUS = 0b0010;
-
     protected $template;
     protected $twig;
 
