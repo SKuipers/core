@@ -39,6 +39,6 @@ class IBDetails extends DataSource
                 JOIN ibProgrammeStudent ON (ibProgrammeStudent.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID)
                 WHERE gibbonStudentEnrolmentID=:gibbonStudentEnrolmentID";
 
-        return $this->db()->select($sql, $data)->fetchAll();
+        return $this->db()->select($sql, $data)->fetch();
     }
 }

@@ -36,7 +36,7 @@ class Transcript extends DataSource
         $data = ['gibbonStudentEnrolmentID' => $ids['gibbonStudentEnrolmentID'], 'gibbonYearGroupIDList' => $gibbonYearGroupIDList];
         $sql = "
             ( 
-                SELECT DISTINCT gibbonDepartment.name as department, gibbonSchoolYear.name as year, gibbonCourse.nameShort, gibbonCourse.name, gibbonCourse.credits, (CASE WHEN gibbonReportingCriteria.name LIKE '%Final%' THEN 0 ELSE 1 END) as interim, gibbonReportingValue.value as grade, 'Standard' as gradeType, gibbonSchoolYear.sequenceNumber as yearOrder, (CASE WHEN gibbonCourse.orderBy > 0 THEN gibbonCourse.orderBy ELSE 80 end) as courseOrder, gibbonDepartment.sequenceNumber as departmentOrder, gibbonReportingValue.gibbonReportingValueID as debug
+                SELECT DISTINCT gibbonDepartment.name as department, gibbonSchoolYear.name as year, gibbonCourse.nameShort, gibbonCourse.name, gibbonCourse.credits, (CASE WHEN gibbonReportingCriteria.name LIKE '%Final%' OR courseEnrolment.gibbonSchoolYearID<gibbonStudentEnrolment.gibbonSchoolYearID THEN 0 ELSE 1 END) as interim, gibbonReportingValue.value as grade, 'Standard' as gradeType, gibbonSchoolYear.sequenceNumber as yearOrder, (CASE WHEN gibbonCourse.orderBy > 0 THEN gibbonCourse.orderBy ELSE 80 end) as courseOrder, gibbonDepartment.sequenceNumber as departmentOrder, timestampCreated as timestamp, 'Reports' as debug
                 FROM gibbonStudentEnrolment
                 JOIN gibbonCourseClassPerson ON (gibbonCourseClassPerson.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID AND gibbonCourseClassPerson.role='Student')
                 JOIN gibbonCourseClass ON (gibbonCourseClass.gibbonCourseClassID=gibbonCourseClassPerson.gibbonCourseClassID)
@@ -58,8 +58,8 @@ class Transcript extends DataSource
             UNION ALL
             (
                 SELECT 
-                DISTINCT gibbonDepartment.name as department, gibbonSchoolYear.name as year, gibbonCourse.nameShort, gibbonCourse.name, (CASE WHEN (arrCriteria.criteriaType=4 OR arrCriteria.criteriaType=10) AND gradeID >= 50.0 THEN gibbonCourse.credits WHEN gradeID = '' THEN '' ELSE 0 END) as credits, 0 as interim, gradeID as grade, 'Standard' as gradeType, 
-                gibbonSchoolYear.sequenceNumber as yearOrder, (CASE WHEN gibbonCourse.orderBy > 0 THEN gibbonCourse.orderBy ELSE 80 end) as courseOrder, gibbonDepartment.sequenceNumber as departmentOrder, 'Reporting' as debug
+                DISTINCT gibbonDepartment.name as department, gibbonSchoolYear.name as year, gibbonCourse.nameShort, gibbonCourse.name, (CASE WHEN gradeID >= 50.0 THEN gibbonCourse.credits WHEN gradeID = '' THEN '' ELSE 0 END) as credits, 0 as interim, gradeID as grade, 'Standard' as gradeType, 
+                gibbonSchoolYear.sequenceNumber as yearOrder, (CASE WHEN gibbonCourse.orderBy > 0 THEN gibbonCourse.orderBy ELSE 80 end) as courseOrder, gibbonDepartment.sequenceNumber as departmentOrder, arrReportGrade.timestamp, 'Reporting' as debug
                 FROM gibbonStudentEnrolment
                 JOIN gibbonCourseClassPerson ON (gibbonCourseClassPerson.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID AND gibbonCourseClassPerson.role='Student')
                 JOIN gibbonCourseClass ON (gibbonCourseClass.gibbonCourseClassID=gibbonCourseClassPerson.gibbonCourseClassID)
@@ -68,7 +68,7 @@ class Transcript extends DataSource
                 JOIN gibbonDepartment ON (gibbonCourse.gibbonDepartmentID=gibbonDepartment.gibbonDepartmentID)
                 JOIN gibbonSchoolYear ON (gibbonCourse.gibbonSchoolYearID=gibbonSchoolYear.gibbonSchoolYearID)
                 JOIN arrCriteria ON (gibbonCourse.gibbonCourseID=arrCriteria.subjectID AND (
-                    (arrCriteria.reportID < 26 AND arrCriteria.criteriaType=4) OR (arrCriteria.reportID >= 26 AND arrCriteria.criteriaType=10))
+                    (arrCriteria.reportID < 26 AND (arrCriteria.criteriaType=4 || arrCriteria.criteriaType=2)) OR (arrCriteria.reportID >= 26 AND arrCriteria.criteriaType=10))
                 )
                 LEFT JOIN arrReportGrade ON (arrReportGrade.criteriaID=arrCriteria.criteriaID AND arrReportGrade.studentID = gibbonCourseClassPerson.gibbonPersonID )
                 LEFT JOIN arrReport ON (arrReport.reportID=arrReportGrade.reportID AND arrReport.schoolYearID=gibbonCourse.gibbonSchoolYearID )
@@ -79,7 +79,7 @@ class Transcript extends DataSource
             )
             UNION ALL
             (
-                SELECT DISTINCT gibbonDepartment.name as department, gibbonSchoolYear.name as year, gibbonCourse.nameShort, gibbonCourse.name, gibbonCourse.credits, 0 as interim, grade, gradeType, gibbonSchoolYear.sequenceNumber as yearOrder, (CASE WHEN gibbonCourse.orderBy > 0 THEN gibbonCourse.orderBy ELSE 80 end) as courseOrder, gibbonDepartment.sequenceNumber as departmentOrder, 'Legacy' as debug
+                SELECT DISTINCT gibbonDepartment.name as department, gibbonSchoolYear.name as year, gibbonCourse.nameShort, gibbonCourse.name, gibbonCourse.credits, 0 as interim, grade, gradeType, gibbonSchoolYear.sequenceNumber as yearOrder, (CASE WHEN gibbonCourse.orderBy > 0 THEN gibbonCourse.orderBy ELSE 80 end) as courseOrder, gibbonDepartment.sequenceNumber as departmentOrder, date as timestamp, 'Legacy' as debug
                 FROM gibbonStudentEnrolment
                 JOIN arrLegacyGrade ON (arrLegacyGrade.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID)
                 JOIN gibbonCourse ON (gibbonCourse.gibbonCourseID=arrLegacyGrade.gibbonCourseID)
@@ -88,7 +88,7 @@ class Transcript extends DataSource
                 JOIN gibbonSchoolYear ON (gibbonCourse.gibbonSchoolYearID=gibbonSchoolYear.gibbonSchoolYearID)
                 WHERE gibbonStudentEnrolment.gibbonStudentEnrolmentID=:gibbonStudentEnrolmentID
                 AND FIND_IN_SET(courseEnrolment.gibbonYearGroupID, :gibbonYearGroupIDList)
-            ) ORDER BY departmentOrder, yearOrder, courseOrder, nameShort
+            ) ORDER BY departmentOrder, yearOrder, courseOrder, nameShort, timestamp ASC
         ";
         
         $values = $this->db()->select($sql, $data)->fetchAll();
@@ -98,13 +98,18 @@ class Transcript extends DataSource
         foreach ($values as $course) {
             if (!$this->isTranscriptCourse($course['nameShort'])) continue;
 
-            if ($course['gradeType'] == 'Transfer') {
-                $course['name'] .= ' T';
-            } elseif ($course['gradeType'] == 'Retroactive') {
-                $course['name'] .= ' R';
+            // Append a T or R for non-standard credits
+            if ($course['gradeType'] == 'Transfer') $course['name'] .= ' T';
+            elseif ($course['gradeType'] == 'Retroactive') $course['name'] .= ' R';
+
+            // Account for semestered marks mid-year
+            if (isset($courses[$course['department']][$course['nameShort']])) {
+                if (empty($course['grade']) && !empty($courses[$course['department']][$course['nameShort']]['grade'])) {
+                    $course['grade'] = $courses[$course['department']][$course['nameShort']]['grade'];
+                }
             }
 
-            $courses[$course['department']][] = $course;
+            $courses[$course['department']][$course['nameShort']] = $course;
         }
 
         return $courses;

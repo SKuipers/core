@@ -38,6 +38,7 @@ sources:
         {% set count = 0 %}
         {% for course in courses %}
             {% set courseGrade = course.grade is not empty ? course.grade|round|trim('%') : '' %}
+            {% set courseGrade = course.grade == 'P' ? 'P' : courseGrade %}
 
             <tr style="background-color: {{ count % 2 == 0 ? '#ffffff' : '#f8f8f8' }}">
                 <td style="">{{ course.nameShort }}</td>
