@@ -38,6 +38,7 @@ class MpdfRenderer implements ReportRendererInterface
     protected $filename;
 
     protected $mode = 0;
+    protected $firstPage = true;
     protected $lastPage = false;
 
     protected $preProcess = array();
@@ -128,13 +129,11 @@ class MpdfRenderer implements ReportRendererInterface
 
         $this->setHeader();
 
-        if ($section->hasFlag(ReportSection::PAGE_BREAK_BEFORE)) {
-            $this->pdf->AddPageByArray([]);
+        if ($section->hasFlag(ReportSection::PAGE_BREAK_BEFORE) || $this->firstPage) {
+            $this->pdf->AddPageByArray(['suppress' => 'off']);
         }
         
         $this->setFooter();
-
-        $this->template->addData(['pageNum' => $this->pdf->getPageNumber()]);
 
         $html = $this->renderSectionToHTML($section, $reportData);
 
@@ -143,6 +142,8 @@ class MpdfRenderer implements ReportRendererInterface
         } else {
             $this->pdf->writeHTML($html.'<br/>');
         }
+
+        $this->firstPage = false;
 
         if ($section->hasFlag(ReportSection::PAGE_BREAK_AFTER)) {
             $this->pdf->AddPageByArray([]);
@@ -178,9 +179,10 @@ class MpdfRenderer implements ReportRendererInterface
 
         $config = [
             'mode' => 'utf-8',
-            'format' => [210, 297],
+            'format' => $this->template->getData('pageSize', 'A4') == 'letter' ? [215.9, 279.4] : [210, 297],
             'orientation' => $this->template->getData('orientation', 'P'),
             'useOddEven' => $this->hasMode(self::OUTPUT_TWO_SIDED) ? '1' : '0',
+            'mirrorMargins' => $this->hasMode(self::OUTPUT_TWO_SIDED) ? '1' : '0',
 
             'margin_top' => $this->template->getData('marginY', '10'),
             'margin_bottom' => $this->template->getData('marginY', '10'),
@@ -249,11 +251,14 @@ class MpdfRenderer implements ReportRendererInterface
 
             $this->pdf->DefHTMLFooterByName('html_footer'.$index, $this->twig->render($footer->template, $data));
         }
+
         // Watermark
         if ($this->template->getIsDraft()) {
             $this->pdf->SetWatermarkText(__('DRAFT COPY. THIS IS NOT A FINAL REPORT.'), 0.05);
             $this->pdf->showWatermarkText = true;
         }
+
+        
     }
 
     protected function finishDocument($outputPath)
@@ -270,7 +275,7 @@ class MpdfRenderer implements ReportRendererInterface
 
     protected function finishReport(ReportData &$reportData)
     {
-        $this->template->addData(['pageNum' => $this->pdf->getPageNumber(), 'lastPage' => true]);
+        $this->template->addData(['lastPage' => true]);
         $this->lastPage = true;
         
         $this->setHeader();
@@ -280,20 +285,24 @@ class MpdfRenderer implements ReportRendererInterface
 
         // Add a page with odd-numbered reports for two-sided printing
         if ($this->hasMode(self::OUTPUT_TWO_SIDED)) {
-            if ($this->pdf->getPageNumber(true) % 2 != 0) {
-                $this->pdf->AddPage();
-            }
+            $this->pdf->AddPageByArray([
+                'type' => 'ODD',
+                'resetpagenum' => 1,
+                'suppress' => 'on',
+                'odd-header-name' => '',
+                'even-header-name' => '',
+                'odd-footer-name' => '',
+                'even-footer-name' => '',
+            ]);
         }
         
-        // Finish the current page after a report for non-continuous output
-        if ($this->hasMode(self::OUTPUT_CONTINUOUS) == false) {
+        // Continue the current document after a report for continuous output
+        if ($this->hasMode(self::OUTPUT_CONTINUOUS)) {
+            $this->firstPage = true;
+            $this->lastPage = false;
+        } else {
             $outputPath = $this->getFilePath($reportData);
             $this->finishDocument($outputPath);
-        } else {
-            $this->pdf->AddPageByArray([
-                'resetpagenum' => 1,
-            ]);
-            $this->lastPage = false;
         }
     }
 
@@ -303,7 +312,11 @@ class MpdfRenderer implements ReportRendererInterface
         $defaultHeader = isset($this->headers[0])? 'html_header0' : false;
         $headerName = isset($this->headers[$pageNum])? 'html_header'.$pageNum : $defaultHeader;
 
-        $this->pdf->SetHTMLHeaderByName($headerName, $this->lastPage ? '0' : null, $this->lastPage);
+        if ($this->hasMode(self::OUTPUT_TWO_SIDED)) {
+            $this->pdf->SetHTMLHeaderByName($headerName, $pageNum % 2 == 0 || $this->firstPage ? 'O' : 'E', $this->lastPage);
+        } else {
+            $this->pdf->SetHTMLHeaderByName($headerName, 'O', $this->lastPage);
+        }
     }
 
     protected function setFooter()
@@ -312,7 +325,11 @@ class MpdfRenderer implements ReportRendererInterface
         $defaultFooter = isset($this->footers[0])? 'html_footer0' : false;
         $footerName = isset($this->footers[$pageNum])? 'html_footer'.$pageNum : $defaultFooter;
 
-        $this->pdf->SetHTMLFooterByName($footerName);
+        if ($this->hasMode(self::OUTPUT_TWO_SIDED)) {
+            $this->pdf->SetHTMLFooterByName($footerName, $pageNum % 2 == 0 ? 'E' : 'O');
+        } else {
+            $this->pdf->SetHTMLFooterByName($footerName);
+        }
     }
 
     protected function runPreProcess(ReportData &$reportData)
