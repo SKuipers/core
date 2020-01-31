@@ -1535,7 +1535,7 @@ class Mpdf implements \Psr\Log\LoggerAwareInterface
 	}
 
     public function getPageNumber() {
-        // return count($this->pages);
+        //return count($this->pages);
         return $this->docPageNum($this->page);
     }
 
