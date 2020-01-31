@@ -69,7 +69,7 @@ class TermGrades extends DataSource
     protected function getAllData($ids = [])
     {
         $data = array('gibbonStudentEnrolmentID' => $ids['gibbonStudentEnrolmentID']);
-        $sql = "SELECT gibbonReportingCycle.cycleNumber, gibbonReportingCycle.gibbonReportingCycleID, gibbonReportingValue.gibbonCourseClassID, gibbonReportingCriteriaType.name as criteriaType, gibbonReportingCriteriaType.valueType, gibbonReportingCriteria.name as criteriaName, gibbonReportingValue.value as gradeID, gibbonReportingValue.comment,  gibbonScaleGrade.descriptor, gibbonScaleGrade.value, gibbonCourse.weight, gibbonCourse.gibbonCourseID, gibbonReportingCriteriaType.gibbonScaleID as gradesetID
+        $sql = "SELECT gibbonReportingCycle.cycleNumber, gibbonReportingCycle.gibbonReportingCycleID, gibbonReportingValue.gibbonCourseClassID, gibbonReportingCriteriaType.name as criteriaType, gibbonReportingCriteriaType.valueType, gibbonReportingCriteria.category, gibbonReportingCriteria.name as criteriaName, gibbonReportingValue.value as gradeID, gibbonReportingValue.comment,  gibbonScaleGrade.descriptor, gibbonScaleGrade.value, gibbonCourse.weight, gibbonCourse.gibbonCourseID, gibbonReportingCriteriaType.gibbonScaleID as gradesetID
                 FROM gibbonStudentEnrolment
                 JOIN gibbonReportingCycle ON (gibbonReportingCycle.gibbonSchoolYearID=gibbonStudentEnrolment.gibbonSchoolYearID)
                 LEFT JOIN gibbonReportingValue ON (gibbonReportingValue.gibbonPersonIDStudent=gibbonStudentEnrolment.gibbonPersonID AND gibbonReportingValue.gibbonReportingCycleID=gibbonReportingCycle.gibbonReportingCycleID)
@@ -114,6 +114,10 @@ class TermGrades extends DataSource
                         'value' => $item['comment'],
                         'descriptor' => $item['criteriaName'],
                     ); 
+                } elseif (!empty($item['category'])) {
+                    $category = $item['category'];
+                    $criteria = $item['criteriaName'];
+                    $values[$class][$category][$criteria][$report] = !empty($item['descriptor'])? $item['descriptor'] : $item['gradeID'];
                 } else {
                     $criteria = strtolower($item['criteriaName']);
                     $values[$class][$report][$criteria] = array(

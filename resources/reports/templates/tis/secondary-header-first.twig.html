@@ -6,40 +6,66 @@ sources:
     school: School
     report: Report
     reportingCycle: ReportingCycle
+params:
+    height: 34
+config:
+    schoolName:
+        label: School Name
+        type: words
+        default: The International School of Macao
+    schoolAddress:
+        label: School Address
+        type: text
+        default: |-
+            Macau University of Science and Technology
+            Block K, Avenida Wai Long, Taipa, Macao
+            Tel: +853 2853 3700 Fax: +853 2853 3702
+    schoolLogo:
+        label: Logo
+        type: words
+        default: images/logo_tis.png
+    schoolLogoHeight:
+        label: Logo Height
+        type: number
+        default: 80
+    name1:
+        label: Name 1
+        type: words
+        default: Mr. Mark Lockwood
+    title1:
+        label: Title 1
+        type: words
+        default: Head of School
+    name2:
+        label: Name 2
+        type: words
+        default: Mr. Lorne Schmidt
+    title2:
+        label: Title 2
+        type: words
+        default: Secondary Principal
 -->#}
 {{- stylesheet ? include(stylesheet) -}}
-
-{%- set school = {
-    name: 'The International School of Macao',
-    address: 'Macau University of Science and Technology
-    Block K, Avenida Wai Long, Taipa, Macao
-    Tel: +853 2853 3700 Fax: +853 2853 3702',
-} -%}
-
-{%- set headOfSchool = {
-    name: 'Mr. Mark Lockwood',
-    title: 'Head of School',
-} -%}
-
-{%- set principal = {
-    name: 'Mr. Lorne Schmidt',
-    title: 'Secondary Principal',
-} -%}
 
 <table>
     <tr>
         <td style="width:40%;text-align:center;font-size:8pt;">&nbsp;<br/>
-            <span style="font-weight:bold;font-size:9pt;">{{- school.name -}}</span><br/>
-            {{- school.address|nl2br -}}
+            <span style="font-weight:bold;font-size:9pt;">{{- config.schoolName -}}</span><br/>
+            {{- config.schoolAddress|nl2br -}}
         </td>
         <td style="width:20%;text-align:center;">
             {% if true or school.logoSrc %}
-            <img src="{{ assetPath }}/images/logo_tis.png" alt="logo" height="80">
+            <img src="{{ assetPath }}/{{ config.schoolLogo|default('images/logo_tis.png') }}" alt="logo" height="{{ config.schoolLogoHeight|default(80)}}">
             {% endif %}
         </td>
         <td  style="width:40%;text-align:center;font-size:8pt;">&nbsp;<br/>
-            {{- headOfSchool.title }}: {{ headOfSchool.name -}}<br/>
-            {{- principal.title }}: {{ principal.name -}}<br/>
+            {% if config.name1 is not empty and config.name2 is empty %}
+            <span style="font-weight:bold;font-size: 9pt;">{{- config.name1 -}}</span><br/>
+            {{- config.title1 }}<br/><br/>
+            {% else %}
+                {{- config.title1 }}: {{ config.name1 -}}<br/>
+                {{- config.title2 }}: {{ config.name2 -}}<br/>
+            {% endif %}
             School Year: {{ report.schoolYear|replace({"-":" - "}) }}<br/>
             Report Date: {{ reportingCycle.dateEnd|date("F jS, Y") }} 
         </td>

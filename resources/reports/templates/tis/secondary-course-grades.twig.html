@@ -5,6 +5,27 @@ types: Body
 sources:
     reportingCycle: ReportingCycle
     courseList: CourseList
+config:
+    reportNames:
+        label: Report Names
+        type: text
+        default: Term 1 Interim,Term 1 End,Term 2 Interim,Term 2 End
+    classNotesFirst:
+        label: Class Notes First?
+        type: yesno
+        default: Y
+    marksHeading:
+        label: Marks & Effort Heading?
+        type: yesno
+        default: Y
+    effortColumn:
+        label: Effort Column?
+        type: yesno
+        default: Y
+    percentColumn:
+        label: Final Percent Column?
+        type: yesno
+        default: Y
 -->#}
 {{- stylesheet ? include(stylesheet) -}}<style>
     .header {
@@ -29,7 +50,7 @@ sources:
     .rowheader {
         font-size: 8pt ;
         text-align: center;
-        line-height: 4.25;
+        {{ config.marksHeading == 'Y' ? 'line-height: 4.25;' }}
     }
 
     .comment {
@@ -53,6 +74,7 @@ sources:
         </td>
     </tr>
 
+    {% if config.classNotesFirst == 'Y' %}
     <tr>
         <td class="border" colspan="13"><table cellpadding="6"><tr>
             {% if "1-" in (course.classes|first).classNameShort and course.comments.comment is empty %}
@@ -64,83 +86,102 @@ sources:
             </tr></table>
         </td>
     </tr>
+    {% endif %}
 
-    {% set reportNames = {
-        1: 'Term 1 Interim', 
-        2: 'Term 1 End ', 
-        3: 'Term 2 Interim', 
-        4: 'Term 2 End', 
-    } %}
-
+    {% set reportNames = config.reportNames|split(',') %}
     
     {% if course.classes %}
-    <tr>
-        <td class="header border rowheader" style="width:24%" rowspan="2">Course</td>
-        <td class="header border rowheader" style="width:13%" rowspan="2">ID</td>
-        <td class="header border rowheader" style="width:7%" rowspan="2"> Absent</td>
-        <td class="header border rowheader" style="width:7%" rowspan="2"> Late</td>
 
-        <td class="header border subheader" style="width:49%" colspan="9">Marks & Effort</td>
-    </tr>
-    <tr>
-        {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
-        <td class="header border subheader" style="width:11%" colspan="2">{{ reportNames[cycleNum]|replace({"Interim":"\nInterim", "End":"\nEnd"})|nl2br }}</td>
-        {% endfor %}
+        {% set colWidth = 44 / reportingCycle.cycleTotal|default(1) %}
+        {% set firstColWidth = config.percentColumn == 'Y' ? 24 : 29 %}
+        {% set rowspan = config.marksHeading == 'Y' ? 2 : 1 %}
+        <tr>
+            <td class="header border rowheader" style="width:{{ firstColWidth }}%" rowspan="{{ rowspan }}">Course</td>
+            <td class="header border rowheader" style="width:13%" rowspan="{{ rowspan }}">ID</td>
+            <td class="header border rowheader" style="width:7%" rowspan="{{ rowspan }}"> Absent</td>
+            <td class="header border rowheader" style="width:7%" rowspan="{{ rowspan }}"> Late</td>
 
-        <td class="header border subheader" style="width:5%"> %</td>
-    </tr>
+            {% if config.marksHeading == 'Y' %}
+            <td class="header border subheader" style="width:49%" colspan="9">Marks & Effort</td>
+            </tr>
+            <tr>
+            {% endif %}
 
-    {% set colWidth = 44 / reportingCycle.cycleTotal|default(1) %}
-    {% for class in course.classes %}
-    <tr>
-        <td class="border subheader" style="width:24%">{{ class.courseName }}</td>
-        <td class="border subheader" style="width:13%">{{ class.courseNameShort }}.{{ class.classNameShort }}</td>
-        <td class="border subheader" style="width:7%">{{ loop.first ? class.attendance.absent|default(0) : ' -' }}</td>
-        <td class="border subheader" style="width:7%">{{ loop.first ? class.attendance.late|default(0) : ' -' }}</td>
+            {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
+            <td class="header border subheader" style="width:{{ colWidth }}%" colspan="2">{{ reportNames[cycleNum-1]|replace({"Interim":"\nInterim"})|nl2br }}</td>
+            {% endfor %}
+
+            {% if config.percentColumn == 'Y' %}
+            <td class="header border subheader" style="width:5%"> %</td>
+            {% endif %}
+        </tr>
+
         
+        {% for class in course.classes %}
+        <tr>
+            <td class="border subheader" style="width:{{ firstColWidth }}%">{{ class.courseName }}</td>
+            <td class="border subheader" style="width:13%">{{ class.courseNameShort }}.{{ class.classNameShort }}</td>
+            <td class="border subheader" style="width:7%">{{ loop.first ? class.attendance.absent|default(0) : ' -' }}</td>
+            <td class="border subheader" style="width:7%">{{ loop.first ? class.attendance.late|default(0) : ' -' }}</td>
+            
+            {% set grades = class.grades %}
+            {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
+                {% set showGrade = grades[cycleNum].grade is not empty %}
+                {% set showEffort = grades[cycleNum].effort.value is not empty %}
+                {% set gradeValue = (grades[cycleNum]['final grade'] is not empty ? grades[cycleNum]['final grade'].value : grades[cycleNum]['term grade'].value) %}
+
+                {% if config.effortColumn == 'Y' %}
+                    <td class="border subheader" style="width:{{ colWidth / 2 }}%">{{ term.active and not showGrade ? ' -' : gradeValue }}</td>
+                    <td class="border subheader" style="width:{{ colWidth / 2 }}%">{{ term.active and not showEffort ? ' -' : grades[cycleNum].effort.value }}</td>
+                {% else %}
+                    <td class="border subheader" style="width:{{ colWidth }}%" colspan="2">{{ term.active and not showGrade ? ' -' : gradeValue }}</td>
+                {% endif %}
+            {% endfor %}
+
+            {% if config.percentColumn == 'Y' %}
+                <td class="border subheader" style="width:5%">
+                {% set finalGrade = grades | last %}
+                
+                {% if finalGrade.finalPercent is not empty %}
+                    {{ finalGrade.finalPercent }}
+                {% endif %}
+                </td>
+            {% endif %}
+        </tr>
         
 
-        {% set grades = class.grades %}
-        {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
-            {% set showGrade = grades[cycleNum].grade is not empty %}
-            {% set showEffort = grades[cycleNum].effort.value is not empty %}
-            {% set gradeValue = (grades[cycleNum]['final grade'] is not empty ? grades[cycleNum]['final grade'].value : grades[cycleNum]['term grade'].value) %}
 
-            <td class="border subheader" style="width:{{ colWidth / 2 }}%">{{ term.active and not showGrade ? ' -' : gradeValue }}</td>
-            <td class="border subheader" style="width:{{ colWidth / 2 }}%">{{ term.active and not showEffort ? ' -' : grades[cycleNum].effort.value }}</td>
-        {% endfor %}
+        {% if class.grades['Transferable Skills'] %}
+            <tr>
+                <td class="border-left border-top border-bottom subheader" style="width:{{ 27 + firstColWidth }}%; text-align: left;" colspan="2"><b>Transferable Skills</b></td>
+                <td class="border-right border-top border-bottom subheader" style="width:{{ config.percentColumn == 'Y' ? '49' : '44' }}%" colspan="{{ termDefaults|length * 2 }}"></td>
+            </tr>
+            
+            {% for outcome, values in class.grades['Transferable Skills'] %}
+            <tr>
+                <td class="border outcome" style="width:{{ 27 + firstColWidth }}%;" colspan="2">{{ outcome }}</td>
+                {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
+                    <td class="border outcome" style="width:{{ colWidth }}%; text-align: center;" colspan="2">{{ values[cycleNum] }}</td>
+                {% endfor %}
 
-        <td class="border subheader" style="width:5%">
-        {% set finalGrade = grades | last %}
-        
-        {% if finalGrade.finalPercent is not empty %}
-            {{ finalGrade.finalPercent }}
+                {% if config.percentColumn == 'Y' %}
+                <td class="border subheader" style="width:5%"></td>
+                {% endif %}
+            </tr>
+            {% endfor %}
         {% endif %}
+        
+        {% endfor %}
+
+    {% endif %}
+
+    {% if config.classNotesFirst == 'N' and course.comments.comment is not empty %}
+    <tr>
+        <td class="border" colspan="12" style="width:100%"><table cellpadding="6"><tr>
+            <td class="comment"><b>Course&nbsp;Description:</b> <span style="font-family:DroidSansFallback;">{{ course.comments.comment }}</span></td>
+            </tr></table>
         </td>
     </tr>
-    {% endfor %}
-
-
-    {% if course.outcomes %}
-        {# --- COMMENTED OUT FOR TIS ---
-        <tr>
-            <td class="border-left border-top border-bottom subheader" style="width:51%; text-align: left;" colspan="2"><b>Transferable Skills</b></td>
-            <td class="border-right border-top border-bottom subheader" style="width:49%" colspan="{{ termDefaults|length * 2 }}"></td>
-        </tr>
-        #}
-        
-        {% for outcome, grades in course.outcomes %}
-        <tr>
-            <td class="border outcome" style="width:51%;" colspan="2">{{ outcome }}</td>
-            {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
-                <td class="border outcome" style="width:{{ colWidth }}%; text-align: center;" colspan="2">{{ grades[cycleNum] }}</td>
-            {% endfor %}
-            <td class="border subheader" style="width:5%"></td>
-        </tr>
-        {% endfor %}
-    {% endif %}
-    
-
     {% endif %}
 
     {% if course.role != 'Student - Left' and (course.classes|first).grades[reportingCycle.cycleNumber].comment.value %}

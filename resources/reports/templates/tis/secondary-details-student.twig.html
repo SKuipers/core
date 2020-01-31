@@ -4,9 +4,15 @@ category: Secondary
 types: Body
 sources:
     student: Student
+    customFields: CustomFields
     report: Report
     reportingCycle: ReportingCycle
     tutors: Tutors
+config:
+    reportNames:
+        label: Report Names
+        type: text
+        default: Term 1 Interim,Term 1 End,Term 2 Interim,Term 2 End
 -->#}
 {{- stylesheet ? include(stylesheet) -}}
 <style>
@@ -46,30 +52,33 @@ sources:
 </table>
 <table cellspacing="0" cellpadding="4">
     <tr>
+        {% set colspan = 2 %}
         <td class="header border-top border-bottom border-left" style="width:25%" colspan="1"><b>Student ID:</b> {{ student.studentID }}</td>
+        {% if customFields["Alberta Student Number"] %}
+            <td class="header border-top border-bottom border-left" style="width:25%" colspan="1"><b>Alberta ID:</b> {{ customFields["Alberta Student Number"] }}</td>
+            {% set colspan = 1 %}
+        {% endif %}
         <td class="header border-top border-bottom" style="width:25%" colspan="1"><b>Class:</b> {{ student.rollGroupName }}</td>
-        <td class="header border-top border-bottom border-right" style="width:50%;text-align: right;" colspan="2">
+        <td class="header border-top border-bottom border-right" style="width:{{ colspan == 2 ? '50' : '25' }}%;text-align: right;" colspan="{{ colspan }}">
             {%- set advisor = tutors|first -%}
             <b>Advisor:</b> {{ advisor.title }} {{ advisor.preferredName|first }}. {{ advisor.surname }}
         </td>
     </tr>
     
     {% if reportingCycle %}
-    {% set reportNames = {
-        1: 'Term 1 Interim', 
-        2: 'Term 1 End ', 
-        3: 'Term 2 Interim', 
-        4: 'Term 2 End', 
-    } %}
+
+    {% set reportNames = config.reportNames|split(',') %}
 
     <tr>
         {% set grades = termGrades.terms %}
+        {% set colWidth = 100 / reportingCycle.cycleTotal|default(1) %}
+
         {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
-        <td class="border" style="width:25%"><table cellspacing="0" cellpadding="0">
+        <td class="border" style="width:{{ colWidth }}%"><table cellspacing="0" cellpadding="0">
                 <tr>
-                    <td colspan="2" class="term"><b>{{- reportNames[cycleNum] -}}</b></td>
+                    <td colspan="2" class="term"><b>{{- reportNames[cycleNum-1] -}}</b></td>
                 </tr>
-                {% if reportingCycle.cycleNumber > 1 %}
+                {% if reportingCycle.cycleNumber > 1 and grades[cycleNum] is not empty %}
                 <tr>
                     <td colspan="2" class="term" style="line-height:2.5">{% if grades[cycleNum].status and (cycleNum == 2 or cycleNum == 3 or cycleNum == 4)  %}{{- grades[cycleNum].status -}}{% endif %}</td>
                 </tr>
