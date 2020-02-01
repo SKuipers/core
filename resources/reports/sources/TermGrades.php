@@ -72,8 +72,8 @@ class TermGrades extends DataSource
         $sql = "SELECT gibbonReportingCycle.cycleNumber, gibbonReportingCycle.gibbonReportingCycleID, gibbonReportingValue.gibbonCourseClassID, gibbonReportingCriteriaType.name as criteriaType, gibbonReportingCriteriaType.valueType, gibbonReportingCriteria.category, gibbonReportingCriteria.name as criteriaName, gibbonReportingValue.value as gradeID, gibbonReportingValue.comment,  gibbonScaleGrade.descriptor, gibbonScaleGrade.value, gibbonCourse.weight, gibbonCourse.gibbonCourseID, gibbonReportingCriteriaType.gibbonScaleID as gradesetID
                 FROM gibbonStudentEnrolment
                 JOIN gibbonReportingCycle ON (gibbonReportingCycle.gibbonSchoolYearID=gibbonStudentEnrolment.gibbonSchoolYearID)
-                LEFT JOIN gibbonReportingValue ON (gibbonReportingValue.gibbonPersonIDStudent=gibbonStudentEnrolment.gibbonPersonID AND gibbonReportingValue.gibbonReportingCycleID=gibbonReportingCycle.gibbonReportingCycleID)
-                LEFT JOIN gibbonReportingCriteria ON (gibbonReportingCriteria.gibbonReportingCriteriaID=gibbonReportingValue.gibbonReportingCriteriaID)
+                JOIN gibbonReportingCriteria ON (gibbonReportingCriteria.gibbonReportingCycleID=gibbonReportingCycle.gibbonReportingCycleID )
+                LEFT JOIN gibbonReportingValue ON (gibbonReportingValue.gibbonPersonIDStudent=gibbonStudentEnrolment.gibbonPersonID AND gibbonReportingCriteria.gibbonReportingCriteriaID=gibbonReportingValue.gibbonReportingCriteriaID)
                 LEFT JOIN gibbonReportingCriteriaType ON (gibbonReportingCriteriaType.gibbonReportingCriteriaTypeID=gibbonReportingCriteria.gibbonReportingCriteriaTypeID)
                 LEFT JOIN gibbonCourse ON (gibbonCourse.gibbonCourseID=gibbonReportingCriteria.gibbonCourseID)
                 LEFT JOIN gibbonScaleGrade ON (gibbonScaleGrade.gibbonScaleID=gibbonReportingCriteriaType.gibbonScaleID AND      

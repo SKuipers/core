@@ -55,7 +55,7 @@ config:
         {% set colspan = 2 %}
         <td class="header border-top border-bottom border-left" style="width:25%" colspan="1"><b>Student ID:</b> {{ student.studentID }}</td>
         {% if customFields["Alberta Student Number"] %}
-            <td class="header border-top border-bottom border-left" style="width:25%" colspan="1"><b>Alberta ID:</b> {{ customFields["Alberta Student Number"] }}</td>
+            <td class="header border-top border-bottom" style="width:25%" colspan="1"><b>Alberta ID:</b> {{ customFields["Alberta Student Number"] }}</td>
             {% set colspan = 1 %}
         {% endif %}
         <td class="header border-top border-bottom" style="width:25%" colspan="1"><b>Class:</b> {{ student.rollGroupName }}</td>

@@ -10,6 +10,10 @@ config:
         label: Report Names
         type: text
         default: Term 1 Interim,Term 1 End,Term 2 Interim,Term 2 End
+    commentSize:
+        label: Comment Size
+        type: number
+        default: 9.5
     classNotesFirst:
         label: Class Notes First?
         type: yesno
@@ -54,7 +58,7 @@ config:
     }
 
     .comment {
-        font-size: 9.5pt ;
+        font-size: {{ config.commentSize|default(9.5) }}pt;
         line-height: 1.4;
         text-align: justified;
     }
@@ -176,8 +180,8 @@ config:
     {% endif %}
 
     {% if config.classNotesFirst == 'N' and course.comments.comment is not empty %}
-    <tr>
-        <td class="border" colspan="12" style="width:100%"><table cellpadding="6"><tr>
+    <tr nobr="true">
+        <td class="border" colspan="13" style="width:100%"><table cellpadding="6"><tr>
             <td class="comment"><b>Course&nbsp;Description:</b> <span style="font-family:DroidSansFallback;">{{ course.comments.comment }}</span></td>
             </tr></table>
         </td>

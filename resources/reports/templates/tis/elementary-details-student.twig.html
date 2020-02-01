@@ -4,6 +4,7 @@ category: Elementary
 types: Body
 sources:
     student: Student
+    customFields: CustomFields
     report: Report
     tutors: Tutors
 -->#}
@@ -50,8 +51,14 @@ sources:
 </table>
 <table cellspacing="0" cellpadding="4">
     <tr>
-        <td class="header border-top border-bottom border-left" style="width:50%" colspan="1"><b>Class:</b> {{ student.rollGroupName }}</td>
-        <td class="header border-top border-bottom border-right" style="width:50%;text-align: right;" colspan="1">
+        {% set colspan = 2 %}
+        <td class="header border-top border-bottom border-left" style="width:25%" colspan="1"><b>Student ID:</b> {{ student.studentID }}</td>
+        {% if customFields["Alberta Student Number"] %}
+            <td class="header border-top border-bottom" style="width:25%" colspan="1"><b>Alberta ID:</b> {{ customFields["Alberta Student Number"] }}</td>
+            {% set colspan = 1 %}
+        {% endif %}
+        <td class="header border-top border-bottom" style="width:25%" colspan="1"><b>Class:</b> {{ student.rollGroupName }}</td>
+        <td class="header border-top border-bottom border-right" style="width:{{ colspan == 2 ? '50' : '25' }}%;text-align: right;" colspan="{{ colspan }}">
             <b>Homeroom Teacher:</b> 
             {% set teacher = tutors|first %}
             {{ teacher.title }} {{ teacher.preferredName|first }}. {{ teacher.surname }}

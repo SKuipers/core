@@ -91,7 +91,7 @@ class CourseList extends DataSource
                 $ids['gibbonCourseClassID'] = $course['gibbonCourseClassID'];
 
                 $course['name'] = $this->filterCourseName($course['name']);
-                // $course['comments'] = $this->getFactory()->get('CourseComments')->getData($ids);
+                $course['comments'] = $this->getFactory()->get('CourseComments')->getData($ids);
                 $course['teachers'] = $this->getFactory()->get('ClassTeachers')->getData($ids);
                 // $course['outcomes'] = $this->getFactory()->get('ClassOutcomes')->getData($ids);
 

@@ -1,0 +1,38 @@
+{#<!--
+name: Indicators of Achievement
+category: Headers & Footers
+types: Body
+config:
+    type:
+        label: Type
+        type: select
+        options: [Kindergarten,Elementary,Middle School]
+        default: One
+-->#}
+{{- stylesheet ? include(stylesheet) -}}
+<table cellpadding="8">
+    <tr>
+        <td class="border" style="width:100%;" colspan="2"><strong style="font-size:9pt;">Indicators of Achievement</strong><br/>
+        <span class="emphasis">The level at which your child is demonstrating learning <b>in relation to the expectation for this time in the school year</b> is reported by the following indicators:</span><br/>
+
+        {% if config.type == 'Kindergarten' %}
+            <span class="indicator">Beginning</span> - is being exposed to and supported to learn the learning outcome.<br/>
+            <span class="indicator">Developing</span> - is starting to demonstrate the learning outcome; can demonstrate performance with support or assistance.<br/>
+            <span class="indicator">Achieved</span> - is demonstrating consistent performance and understanding of a learning outcome. Does not require support.<br/>
+            <span class="indicator">IEP</span> - is working on an Individual Education Plan.
+        {% elseif config.type == 'Middle School' %}
+            <span class="indicator">Achieving</span> - Demonstrates exceptional performance and understanding of learning outcomes and/or exceeds expectations. <br/>
+            <span class="indicator">Approaching</span> - Demonstrates consistent performance and understanding of learning outcomes and/or expectations.<br/>
+            <span class="indicator">Emerging</span> - Demonstrates inconsistent performance and understanding of learning outcomes and/or expectations.<br/>
+            <span class="indicator">Not Yet</span> - Demonstrates minimal performance and understanding of learning outcomes and/or expectations.<br/>
+            <span class="indicator">IEP</span> - Student is working on an Individual Education Plan.
+        {% else %}
+            <span class="indicator">Excelling</span> - Demonstrates exceptional performance and understanding of learning outcomes and/or exceeds expectations. <br/>
+            <span class="indicator">Meeting</span> - Demonstrates consistent performance and understanding of learning outcomes and/or expectations.<br/>
+            <span class="indicator">Approaching</span> - Demonstrates inconsistent performance and understanding of learning outcomes and/or expectations.<br/>
+            <span class="indicator">Not Yet</span> - Demonstrates minimal performance and understanding of learning outcomes and/or expectations.<br/>
+            <span class="indicator">IEP</span> - Student is working on an Individual Education Plan.
+        {% endif %} 
+        </td>
+    </tr>
+</table>
