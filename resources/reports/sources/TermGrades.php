@@ -80,6 +80,7 @@ class TermGrades extends DataSource
                     gibbonScaleGrade.gibbonScaleGradeID=gibbonReportingValue.gibbonScaleGradeID)
                 WHERE gibbonStudentEnrolment.gibbonStudentEnrolmentID=:gibbonStudentEnrolmentID
                 AND FIND_IN_SET(gibbonStudentEnrolment.gibbonYearGroupID, gibbonReportingCycle.gibbonYearGroupIDList)
+                AND gibbonReportingCriteria.target='Per Student'
                 ORDER BY gibbonReportingCycle.cycleNumber";
 
         $result = $this->db()->executeQuery($data, $sql);

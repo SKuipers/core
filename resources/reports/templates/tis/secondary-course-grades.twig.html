@@ -130,9 +130,14 @@ config:
             
             {% set grades = class.grades %}
             {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
-                {% set showGrade = grades[cycleNum].grade is not empty %}
+            
+                {% set showGrade = grades[cycleNum] is not empty %}
                 {% set showEffort = grades[cycleNum].effort.value is not empty %}
                 {% set gradeValue = (grades[cycleNum]['final grade'] is not empty ? grades[cycleNum]['final grade'].value : grades[cycleNum]['term grade'].value) %}
+
+                {% if gradeValue is empty and grades[cycleNum]['academic progress'].descriptor is not empty %}
+                    {% set gradeValue = grades[cycleNum]['academic progress'].descriptor %}
+                {% endif %}
 
                 {% if config.effortColumn == 'Y' %}
                     <td class="border subheader" style="width:{{ colWidth / 2 }}%">{{ term.active and not showGrade ? ' -' : gradeValue }}</td>

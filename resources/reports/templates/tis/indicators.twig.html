@@ -6,7 +6,7 @@ config:
     type:
         label: Type
         type: select
-        options: [Kindergarten,Elementary,Middle School]
+        options: [Preschool,Kindergarten,Elementary,Middle School]
         default: One
 -->#}
 {{- stylesheet ? include(stylesheet) -}}
@@ -14,8 +14,13 @@ config:
     <tr>
         <td class="border" style="width:100%;" colspan="2"><strong style="font-size:9pt;">Indicators of Achievement</strong><br/>
         <span class="emphasis">The level at which your child is demonstrating learning <b>in relation to the expectation for this time in the school year</b> is reported by the following indicators:</span><br/>
-
-        {% if config.type == 'Kindergarten' %}
+        
+        {% if config.type == 'Preschool' %}
+            <span class="indicator">Meeting</span> - Consistently meets age appropriate expectations<br/>
+            <span class="indicator">Approaching</span> - Requires some assistance to meet expectations<br/>
+            <span class="indicator">Needs Support </span> - Does not meet age appropriate expectations without frequent assistance  
+            <br/>
+        {% elseif config.type == 'Kindergarten' %}
             <span class="indicator">Beginning</span> - is being exposed to and supported to learn the learning outcome.<br/>
             <span class="indicator">Developing</span> - is starting to demonstrate the learning outcome; can demonstrate performance with support or assistance.<br/>
             <span class="indicator">Achieved</span> - is demonstrating consistent performance and understanding of a learning outcome. Does not require support.<br/>
