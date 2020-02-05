@@ -83,11 +83,11 @@ class Transcript extends DataSource
                 FROM gibbonStudentEnrolment
                 JOIN arrLegacyGrade ON (arrLegacyGrade.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID)
                 JOIN gibbonCourse ON (gibbonCourse.gibbonCourseID=arrLegacyGrade.gibbonCourseID)
-                JOIN gibbonStudentEnrolment as courseEnrolment ON (courseEnrolment.gibbonSchoolYearID=gibbonCourse.gibbonSchoolYearID AND courseEnrolment.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID)
-                JOIN gibbonDepartment ON (gibbonCourse.gibbonDepartmentID=gibbonDepartment.gibbonDepartmentID)
+                JOIN gibbonYearGroup ON (FIND_IN_SET(gibbonYearGroup.gibbonYearGroupID, gibbonCourse.gibbonYearGroupIDList))
                 JOIN gibbonSchoolYear ON (gibbonCourse.gibbonSchoolYearID=gibbonSchoolYear.gibbonSchoolYearID)
+                LEFT JOIN gibbonDepartment ON (gibbonCourse.gibbonDepartmentID=gibbonDepartment.gibbonDepartmentID)
                 WHERE gibbonStudentEnrolment.gibbonStudentEnrolmentID=:gibbonStudentEnrolmentID
-                AND FIND_IN_SET(courseEnrolment.gibbonYearGroupID, :gibbonYearGroupIDList)
+                AND FIND_IN_SET(gibbonYearGroup.gibbonYearGroupID, :gibbonYearGroupIDList)
             ) ORDER BY departmentOrder, yearOrder, courseOrder, nameShort, timestamp ASC
         ";
         
