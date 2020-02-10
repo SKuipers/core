@@ -27,6 +27,7 @@ class Student extends DataSource
     {
         $gender = rand(0, 99) > 50 ? 'female' : 'male';
         return [
+            'gibbonPersonID'     => ['randomNumber', 8],
             'surname'            => ['lastName'],
             'firstName'          => ['firstName', $gender],
             'preferredName'      => ['sameAs', 'firstName'],
@@ -54,6 +55,7 @@ class Student extends DataSource
     {
         $data = ['gibbonStudentEnrolmentID' => $ids['gibbonStudentEnrolmentID']];
         $sql = "SELECT 
+                gibbonPerson.gibbonPersonID,
                 gibbonPerson.surname,
                 gibbonPerson.firstName,
                 gibbonPerson.preferredName,

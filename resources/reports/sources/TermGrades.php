@@ -71,11 +71,13 @@ class TermGrades extends DataSource
         $data = array('gibbonStudentEnrolmentID' => $ids['gibbonStudentEnrolmentID']);
         $sql = "SELECT gibbonReportingCycle.cycleNumber, gibbonReportingCycle.gibbonReportingCycleID, gibbonReportingValue.gibbonCourseClassID, gibbonReportingCriteriaType.name as criteriaType, gibbonReportingCriteriaType.valueType, gibbonReportingCriteria.category, gibbonReportingCriteria.name as criteriaName, gibbonReportingValue.value as gradeID, gibbonReportingValue.comment,  gibbonScaleGrade.descriptor, gibbonScaleGrade.value, gibbonCourse.weight, gibbonCourse.gibbonCourseID, gibbonReportingCriteriaType.gibbonScaleID as gradesetID
                 FROM gibbonStudentEnrolment
-                JOIN gibbonReportingCycle ON (gibbonReportingCycle.gibbonSchoolYearID=gibbonStudentEnrolment.gibbonSchoolYearID)
-                JOIN gibbonReportingCriteria ON (gibbonReportingCriteria.gibbonReportingCycleID=gibbonReportingCycle.gibbonReportingCycleID )
+                JOIN gibbonCourseClassPerson ON (gibbonStudentEnrolment.gibbonPersonID=gibbonCourseClassPerson.gibbonPersonID)
+                JOIN gibbonCourseClass ON (gibbonCourseClass.gibbonCourseClassID=gibbonCourseClassPerson.gibbonCourseClassID)
+                JOIN gibbonCourse ON (gibbonCourse.gibbonCourseID=gibbonCourseClass.gibbonCourseID AND gibbonCourse.gibbonSchoolYearID=gibbonStudentEnrolment.gibbonSchoolYearID )
+                JOIN gibbonReportingCycle ON (gibbonReportingCycle.gibbonSchoolYearID=gibbonCourse.gibbonSchoolYearID)
+                JOIN gibbonReportingCriteria ON (gibbonReportingCriteria.gibbonReportingCycleID=gibbonReportingCycle.gibbonReportingCycleID AND gibbonCourse.gibbonCourseID=gibbonReportingCriteria.gibbonCourseID)
                 LEFT JOIN gibbonReportingValue ON (gibbonReportingValue.gibbonPersonIDStudent=gibbonStudentEnrolment.gibbonPersonID AND gibbonReportingCriteria.gibbonReportingCriteriaID=gibbonReportingValue.gibbonReportingCriteriaID)
                 LEFT JOIN gibbonReportingCriteriaType ON (gibbonReportingCriteriaType.gibbonReportingCriteriaTypeID=gibbonReportingCriteria.gibbonReportingCriteriaTypeID)
-                LEFT JOIN gibbonCourse ON (gibbonCourse.gibbonCourseID=gibbonReportingCriteria.gibbonCourseID)
                 LEFT JOIN gibbonScaleGrade ON (gibbonScaleGrade.gibbonScaleID=gibbonReportingCriteriaType.gibbonScaleID AND      
                     gibbonScaleGrade.gibbonScaleGradeID=gibbonReportingValue.gibbonScaleGradeID)
                 WHERE gibbonStudentEnrolment.gibbonStudentEnrolmentID=:gibbonStudentEnrolmentID
@@ -95,17 +97,7 @@ class TermGrades extends DataSource
                 $reports[$report] = $item['gibbonReportingCycleID'];
                 $values[$class][$report]['weight'] = $item['weight'];
 
-                if ($item['criteriaType'] == 2) { // Term Grade
-                    $values[$class][$report]['grade'] = ($item['gradesetID'] == 1 || $item['gradesetID'] == 4)? $item['gradeID'] : $item['value']; 
-                } else if ($item['criteriaType'] == 7) { // Percent Grade
-                    $values[$class][$report]['percent'] = $item['gradeID']; 
-                } else if ($item['criteriaType'] == 1) { // Final Exam
-                    $values[$class][$report]['exam'] = $item['gradeID']; 
-                } else if ($item['criteriaType'] == 4) { // Final Grade
-                    $values[$class][$report]['final'] = ($item['gradesetID'] == 1 || $item['gradesetID'] == 4)? $item['gradeID'] : $item['value'];
-                } else if ($item['criteriaType'] == 10) { // Final Percent
-                    $values[$class][$report]['finalPercent'] = $item['gradeID'];
-                } else if ($item['criteriaType'] == 'Secondary Effort') { // Effort
+                if ($item['criteriaType'] == 'Secondary Effort') { // Effort
                     $values[$class][$report]['effort'] = array(
                         'value' => $item['value'],
                         'descriptor' => $item['descriptor'],

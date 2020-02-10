@@ -25,6 +25,7 @@ use Gibbon\Module\Reports\Domain\ReportArchiveGateway;
 use Gibbon\Module\Reports\Domain\ReportArchiveEntryGateway;
 use Gibbon\Module\Reports\Renderer\MpdfRenderer;
 use Gibbon\Module\Reports\Renderer\TcpdfRenderer;
+use Gibbon\Module\Reports\ReportProcessor;
 
 require_once '../../gibbon.php';
 
@@ -64,6 +65,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reports_generate_b
     
     $template = $reportBuilder->buildTemplate($report['gibbonReportTemplateID'], $status == 'Draft');
     $renderer = $container->get($template->getData('flags') == 1 ? MpdfRenderer::class : TcpdfRenderer::class);
+
+    if (stripos($report['name'], 'Secondary') !== false) {
+        $processor = $container->get(ReportProcessor::class);
+        $renderer->addPreProcess('calculateGPA', array($processor, 'calculateGPA'));
+    }
 
     foreach ($identifiers as $identifier) {
 

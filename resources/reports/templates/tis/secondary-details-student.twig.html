@@ -8,6 +8,7 @@ sources:
     report: Report
     reportingCycle: ReportingCycle
     tutors: Tutors
+    termGrades: TermGrades
 config:
     reportNames:
         label: Report Names
@@ -67,7 +68,7 @@ config:
     
     {% if reportingCycle %}
 
-    {% set reportNames = config.reportNames|split(',') %}
+    {% set reportNames = config.reportNames|default('Term 1 Interim,Term 1 End,Term 2 Interim,Term 2 End')|split(',') %}
 
     <tr>
         {% set grades = termGrades.terms %}

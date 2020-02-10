@@ -32,6 +32,7 @@ use Gibbon\Module\Reports\Renderer\MpdfRenderer;
 use Gibbon\Module\Reports\Renderer\TcpdfRenderer;
 use League\Container\ContainerAwareInterface;
 use League\Container\ContainerAwareTrait;
+use Gibbon\Module\Reports\ReportProcessor;
 
 /**
  * GenerateReportProcess
@@ -76,10 +77,16 @@ class GenerateReportProcess extends BackgroundProcess implements ContainerAwareI
             $renderer = $this->container->get($template->getData('flags') == 1 ? MpdfRenderer::class : TcpdfRenderer::class);
             $renderer->setMode(ReportRendererInterface::OUTPUT_CONTINUOUS | ReportRendererInterface::OUTPUT_TWO_SIDED);
 
+            if (stripos($report['name'], 'Secondary') !== false) {
+                $processor = $this->container->get(ReportProcessor::class);
+                $renderer->addPreProcess('calculateGPA', array($processor, 'calculateGPA'));
+            }
+
             // Render the Report: Batch
             $path = $archiveFile->getBatchFilePath($gibbonReportID, $contextData);
             $renderer->render($template, $reports, $this->absolutePath.$archive['path'].'/'.$path);
-
+            $renderer->setMode(0);
+            
             // Update the Archive: Batch
             $reportArchiveEntryGateway->insertAndUpdate([
                 'reportIdentifier'      => $report['name'],
