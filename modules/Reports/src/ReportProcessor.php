@@ -17,11 +17,6 @@ class ReportProcessor
     {
         $reports = $data->getField('termGrades', 'reports');
 
-        echo '<pre>';
-        print_r($reports);
-        echo '</pre>';
-
-
         $terms = array_reduce(array_keys($reports), function ($group, $reportNum) use (&$data, &$reports) {
             $group[$reportNum] = $this->calculateTermGPA($data, $reportNum, $reports[$reportNum]);
             return $group;

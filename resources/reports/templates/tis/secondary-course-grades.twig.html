@@ -82,12 +82,16 @@ config:
     {% if config.classNotesFirst == 'Y' %}
     <tr>
         <td class="border" colspan="13"><table cellpadding="6"><tr>
-            {% if "1-" in (course.classes|first).classNameShort and course.comments.comment is empty %}
+            {% set defaultComment = "" %}
+
+            {% if "GR7" in course.nameShort or "GR8" in course.nameShort or "GR9" in course.nameShort %}
+                {% set defaultComment = reportingCycle.cycleNumber <= 2 ? "This course was not completed this semester, it will be completed in semester 2." : "This course was completed in semester 1." %}
+            {% elseif "1-" in (course.classes|first).classNameShort %}
                 {% set defaultComment = "This course was completed last semester. Please refer to the Semester 1 report for details." %}
-            {% elseif "2-" in (course.classes|first).classNameShort and course.comments.comment is empty  %}
+            {% elseif "2-" in (course.classes|first).classNameShort  %}
                 {% set defaultComment = "This course will begin later in the Academic Year. No comments or grades are available at this time." %}
             {% endif %}
-            <td class="comment"><b>Course&nbsp;Description:</b> <span style="font-family:DroidSansFallback;">{{ course.comments.comment|default(defaultComment) }}</span></td>
+            <td class="comment"><b>Course&nbsp;Description:</b> <span style="font-family:DroidSansFallback;">{{ course.comments.comment is not empty ? course.comments.comment : defaultComment }}</span></td>
             </tr></table>
         </td>
     </tr>
