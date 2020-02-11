@@ -17,7 +17,7 @@ class CourseComments extends DataSource
 
     public function getData($ids = [])
     {
-        $data = ['gibbonReportingCycleID' => $ids['gibbonReportingCycleID'], 'gibbonCourseID' => $ids['gibbonCourseID']];
+        $data = ['gibbonReportingCycleID' => $ids['gibbonReportingCycleID'], 'gibbonCourseID' => $ids['gibbonCourseID'], 'gibbonCourseClassID' => $ids['gibbonCourseClassID']];
         $sql = "SELECT gibbonReportingCriteria.name as criteriaName, gibbonReportingCriteria.description as criteriaDescription, gibbonReportingValue.value, gibbonReportingValue.comment, gibbonReportingCriteriaType.valueType
                 FROM gibbonReportingCriteria 
                 JOIN gibbonReportingValue ON (gibbonReportingCriteria.gibbonReportingCriteriaID=gibbonReportingValue.gibbonReportingCriteriaID)
@@ -27,6 +27,7 @@ class CourseComments extends DataSource
                 AND gibbonReportingScope.scopeType='Course'
                 AND gibbonReportingCriteria.target='Per Group'
                 AND gibbonReportingCriteria.gibbonCourseID=:gibbonCourseID
+                AND gibbonReportingValue.gibbonCourseClassID=:gibbonCourseClassID
                 ORDER BY gibbonReportingScope.sequenceNumber, gibbonReportingCriteria.sequenceNumber";
 
         return $this->db()->select($sql, $data)->fetch();
