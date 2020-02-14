@@ -53,6 +53,10 @@ sources:
             3: 'Term 2 Interim', 
             4: 'Term 2 End', 
         } %}
+
+        {% set absent = 0 %}
+        {% set late = 0 %}
+
         <tr nobr="true">
             {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
             <td class="header border attendance" style="width:25%" colspan="2">{{- reportNames[cycleNum] }} Attendance</td>
@@ -66,8 +70,11 @@ sources:
         </tr>
         <tr nobr="true">
             {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
-            <td class="border attendance" style="width:12.5%">{{ cycleNum? attendance[cycleNum].absent|default('')  }}</td>
-            <td class="border attendance" style="width:12.5%">{{ cycleNum? attendance[cycleNum].late|default('')  }}</td>
+            {% set absent = absent + attendance[cycleNum].absent %}
+            {% set late = late + attendance[cycleNum].late %}
+
+            <td class="border attendance" style="width:12.5%">{{ cycleNum <= reportingCycle.cycleNumber? absent|default('')  }}</td>
+            <td class="border attendance" style="width:12.5%">{{ cycleNum  <= reportingCycle.cycleNumber? late|default('')  }}</td>
             {% endfor %}
         </tr>
     {% endif %}
