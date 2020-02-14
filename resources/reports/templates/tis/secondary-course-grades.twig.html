@@ -63,7 +63,7 @@ config:
         line-height: 1.4;
         text-align: justified;
     }
-</style>{% for course in courseList %}<table cellspacing="0" cellpadding="4" nobr="true">
+</style>{%- for course in courseList %}<table cellspacing="0" cellpadding="4" nobr="true">
     <tr>
         <td class="header border-top border-bottom border-left" style="width:50%" colspan="6">{{ course.name|upper }}</td>
         <td class="header border-top border-bottom border-right" style="width:50%;text-align:right;" colspan="7">
@@ -82,14 +82,16 @@ config:
     {% if config.classNotesFirst == 'Y' %}
     <tr>
         <td class="border" colspan="13"><table cellpadding="6"><tr>
-            {% set defaultComment = "" %}
-
-            {% if "GR7" in course.nameShort or "GR8" in course.nameShort or "GR9" in course.nameShort %}
+            {% if "GR7" in course.nameShort|upper or "GR8" in course.nameShort|upper or "GR9" in course.nameShort|upper %}
                 {% set defaultComment = reportingCycle.cycleNumber <= 2 ? "This course was not completed this semester, it will be completed in semester 2." : "This course was completed in semester 1." %}
             {% elseif "1-" in (course.classes|first).classNameShort %}
                 {% set defaultComment = "This course was completed last semester. Please refer to the Semester 1 report for details." %}
             {% elseif "2-" in (course.classes|first).classNameShort  %}
                 {% set defaultComment = "This course will begin later in the Academic Year. No comments or grades are available at this time." %}
+            {% elseif course.gibbonCourseIDParent is not empty and course.comments.comment is empty %}
+                {% set defaultComment = "This module course is part of a larger Career & Technology Studies course." %}
+            {% else %}
+                {% set defaultComment = "" %}
             {% endif %}
             <td class="comment"><b>Course&nbsp;Description:</b> <span style="font-family:DroidSansFallback;">{{ course.comments.comment is not empty ? course.comments.comment : defaultComment }}</span></td>
             </tr></table>
@@ -136,19 +138,22 @@ config:
             {% set grades = class.grades %}
             {% for cycleNum in range(1, reportingCycle.cycleTotal|default(1)) %}
             
-                {% set showGrade = grades[cycleNum] is not empty %}
+                {% set cycleActive = cycleNum <= reportingCycle.cycleNumber %}
+                
                 {% set showEffort = grades[cycleNum].effort.value is not empty %}
                 {% set gradeValue = (grades[cycleNum]['final grade'] is not empty ? grades[cycleNum]['final grade'].value : grades[cycleNum]['term grade'].value) %}
+
+                {% set defaultGrade = cycleActive and class.gibbonCourseIDParent is empty ? ' -' : '' %}
 
                 {% if gradeValue is empty and grades[cycleNum]['academic progress'].descriptor is not empty %}
                     {% set gradeValue = grades[cycleNum]['academic progress'].descriptor %}
                 {% endif %}
 
                 {% if config.effortColumn == 'Y' %}
-                    <td class="border subheader" style="width:{{ colWidth / 2 }}%">{{ term.active and not showGrade ? ' -' : gradeValue }}</td>
-                    <td class="border subheader" style="width:{{ colWidth / 2 }}%">{{ term.active and not showEffort ? ' -' : grades[cycleNum].effort.value }}</td>
+                    <td class="border subheader" style="width:{{ colWidth / 2 }}%">{{ cycleActive ? gradeValue|default(defaultGrade) }}</td>
+                    <td class="border subheader" style="width:{{ colWidth / 2 }}%">{{ cycleActive ? grades[cycleNum].effort.value|default(defaultGrade) }}</td>
                 {% else %}
-                    <td class="border subheader" style="width:{{ colWidth }}%" colspan="2">{{ term.active and not showGrade ? ' -' : gradeValue }}</td>
+                    <td class="border subheader" style="width:{{ colWidth }}%" colspan="2">{{ cycleActive ? gradeValue|default(defaultGrade) }}</td>
                 {% endif %}
             {% endfor %}
 
@@ -206,7 +211,7 @@ config:
         </td>
     </tr>
     {% endif %}
-</table><table cellspacing="0" cellpadding="0" style="height: 3.5mm;font-size: 3.5mm;">
-<tr><td></td></tr>
 </table>
-{% endfor %}
+<div style="height: 3.5mm;font-size: 3.5mm;" nobr="false">&nbsp;
+</div>
+{% endfor -%}

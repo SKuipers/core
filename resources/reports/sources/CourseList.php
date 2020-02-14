@@ -39,7 +39,6 @@ class CourseList extends DataSource
                 AND gibbonReportingCycle.gibbonReportingCycleID=:gibbonReportingCycleID
                 AND gibbonCourse.gibbonSchoolYearID=gibbonStudentEnrolment.gibbonSchoolYearID
                 AND gibbonCourse.nameShort NOT LIKE '%TAP' AND gibbonCourse.nameShort NOT LIKE '%Advisor'
-                AND (gibbonCourseClass.nameShort NOT LIKE '1-%' AND gibbonCourseClass.nameShort NOT LIKE '2-%')
                 AND gibbonCourseClass.reportable='Y'
                 AND gibbonCourseClassPerson.role = 'Student'
                 ORDER BY (CASE WHEN gibbonCourse.orderBy > 0 THEN gibbonCourse.orderBy ELSE 80 end), gibbonCourse.nameShort";
@@ -61,6 +60,7 @@ class CourseList extends DataSource
                     $courses[$item['gibbonCourseID']]['description'] = strip_tags(html_entity_decode($item['description']));
                     $courses[$item['gibbonCourseID']]['gibbonCourseID'] = $item['gibbonCourseID'];
                     $courses[$item['gibbonCourseID']]['gibbonCourseClassID'] = $item['gibbonCourseClassID'];
+                    $courses[$item['gibbonCourseID']]['gibbonCourseIDParent'] = $item['gibbonCourseIDParent'];
                     $courses[$item['gibbonCourseID']]['role'] = $item['role'];
                     $courses[$item['gibbonCourseID']]['hasCredits'] = $item['hasCredits'] && !empty(intval($item['credits']));
                     $courses[$item['gibbonCourseID']]['classes'][] = $item;
