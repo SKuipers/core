@@ -49,22 +49,29 @@ class ReportProcessor
             $cumulative += ($grade * $weight);
         }
 
-        if (empty($total) || empty($cumulative) ) return array();
+        if (empty($total) && empty($cumulative)) return array();
 
         // Calculate the GPA
         $gpa = ( $cumulative / $total );
         $gpa = round( min(100.0, max(0.0, $gpa)), 1);
 
-        if ($gpa >= 95.0) {
+        if ($gpa >= 94.5) {
             $status = 'Scholars';
-        } else if ($gpa >= 90.0) {
+        } else if ($gpa >= 89.5) {
             $status = 'Distinction';
-        } else if ($gpa >= 80.0) {
+        } else if ($gpa >= 79.5) {
             $status = 'Honours';
         } else if ($gpa >= 60.0) {
             $status = 'Good Standing';
         } else {
             $status = 'At Risk';
+        }
+
+        // HACK!!! :(
+        // Kugar Ho (8-1), Jessie Casey (9-2), Harris Ling (9-1)
+        $gibbonPersonID = $data->getField('student', 'gibbonPersonID');
+        if ($reportID == 4 && ($gibbonPersonID == 2426 || $gibbonPersonID == 3577 || $gibbonPersonID == 4021)) {
+            $status = '';
         }
 
         // Store this in the database, for easy lookup
