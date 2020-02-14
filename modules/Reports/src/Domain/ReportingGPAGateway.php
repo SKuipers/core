@@ -31,7 +31,7 @@ CREATE TABLE `gibbonReportingGPA` (
     `gibbonYearGroupID` INT(3) UNSIGNED ZEROFILL NOT NULL,
     `gpa` VARCHAR(30) NULL,
     `status` VARCHAR(90) NULL,
-    `timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `timestamp` TIMESTAMP on update CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`gibbonReportingGPAID`),
     UNIQUE KEY (`gibbonReportingCycleID`, `gibbonPersonIDStudent`)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;end
