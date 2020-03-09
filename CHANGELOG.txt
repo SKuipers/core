@@ -28,8 +28,11 @@ v20.0.00
     Security
 
     Tweaks & Additions
+        System: added Argentine Peso as a currency option
         Departments: added drag-drop ordering to Departments in School Admin
         Finance: added Student ID, where set, to invoices and receipts
+        Planner: enhanced Smart Block display in Lesson Planner
+        Planner: removed bold from Chat comment in lesson plan view
         Reports: added a Proof Read by Form Group option
         Reports: added an option to select the PDF rendering library in Template Builder
         Students: added an Exclude Left Students checkbox to Student Enrolment Trends, off by default
@@ -37,12 +40,15 @@ v20.0.00
     Bug Fixes
         System: fixed module uninstall to also remove notification events
         System: fixed Quick File Upload trimming filename by first period
+        System: fixed paragraph spacing in copy-pasted Messenger emails
+        Finance: fixed fee name bug in issued Invoices where fee name changed
         Planner: changed spelling of Publically to Publicly
         Students: fixed emergency data report not showing parents column
         Students: fixed Tutors and EAs set to Left showing on Student Profile
         Reports: fixed Course scope Per Group criteria not saving per-class
         Reports: suppressed TCPDF deprecation messages when generating PDFs
         Reports: fixed pronoun switching not applied globally in some browsers
+        Reports: fixed Student Info template to omit empty student photos
         System: fixed the first and last day of the selected school year
 
 v19.0.00

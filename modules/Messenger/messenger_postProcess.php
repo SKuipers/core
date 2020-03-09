@@ -2084,7 +2084,10 @@ else {
 								}
 							}
 							$bodyOut = $studentNames.$bodyOut;
-						}
+                        }
+                        
+                        // Turn copy-pasted div breaks into paragraph breaks
+                        $bodyOut = str_replace('<div></div>', '<p></p>', $bodyOut);
 
 						$mail->renderBody('mail/email.twig.html', [
 							'title'  => $subject,
