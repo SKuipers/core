@@ -6,6 +6,7 @@ sources:
     student: Student
     customFields: CustomFields
     report: Report
+    school: School
     tutors: Tutors
 -->#}
 {{- stylesheet ? include(stylesheet) -}}
@@ -26,17 +27,17 @@ sources:
     .student {
         font-size: 11.4pt ;
         text-align: left;
-        line-height: 4;
+        line-height: 2.0;
     }
 </style>
 <table cellspacing="0" cellpadding="0">
     <tr>
         <td class="title">
-            {%- if 'PK' in student.yearGroupNameShort -%}
+            {%- if 'TIS' in school.organisationNameShort and 'PK' in student.yearGroupNameShort -%}
                 Pre-{{ report.name }} Progress Report
-            {%- elseif 'JK' in student.yearGroupNameShort -%}
+            {%- elseif 'TIS' in school.organisationNameShort and 'JK' in student.yearGroupNameShort -%}
                 Junior {{ report.name }} Progress Report
-            {%- elseif 'SK' in student.yearGroupNameShort -%}
+            {%- elseif 'TIS' in school.organisationNameShort and 'SK' in student.yearGroupNameShort -%}
                 Senior {{ report.name }} Progress Report
             {%- else -%}
                 {{ report.name }} Progress Report
@@ -45,9 +46,16 @@ sources:
     </tr>
 </table>
 <table cellspacing="0" cellpadding="0">
+    <tr><td style="height: 3.5mm;font-size: 3.5mm;"></td></tr>
     <tr>
-        <td class="student"><b>Student:</b> {{ student.surname }}, {{ student.firstName }} {% if student.firstName != student.preferredName %}({{ student.preferredName }}){% endif %}</td>
+        <td class="student"><b>Student:</b> {{ student.surname }}, {{ student.firstName }} {% if student.firstName != student.preferredName %}({{ student.preferredName }}){% endif %}
+
+            {%- if student.dayType and ('K' in student.yearGroupNameShort or 'N' in student.yearGroupNameShort) %}
+            <br/><b>Class:</b> {{ student.dayType }}
+            {% endif -%}
+        </td>
     </tr>
+    <tr><td style="height: 3.5mm;font-size: 3.5mm;"></td></tr>
 </table>
 <table cellspacing="0" cellpadding="4">
     <tr>
@@ -73,7 +81,7 @@ sources:
     {% endif %}
 </table>
 
-{% if 'PK' in student.yearGroupNameShort or 'JK' in student.yearGroupNameShort %}
+{% if 'TIS' in school.organisationNameShort and ('PK' in student.yearGroupNameShort or 'JK' in student.yearGroupNameShort) %}
 <table cellspacing="0" cellpadding="0" style="height: 3.5mm;font-size: 3.5mm;">
 <tr><td></td></tr>
 </table>

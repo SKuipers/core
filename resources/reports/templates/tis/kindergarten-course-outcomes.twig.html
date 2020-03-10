@@ -31,7 +31,7 @@ sources:
         font-size: 9pt;
         vertical-align: middle;
     }
-</style>{% for course in courseOutcomes %}<table cellspacing="0" cellpadding="4" nobr="true">
+</style>{% for course in courseOutcomes if course.outcomes  %}<table cellspacing="0" cellpadding="4" nobr="true">
     <tr>
         <td class="headerOutcome border-top border-bottom border-left" style="width:69.95%;line-height:1.6;" colspan="1" rowspan="2">
             {{- course.name|upper|replace({"PK ": "", "JK ": "", "SK ": ""}) -}}

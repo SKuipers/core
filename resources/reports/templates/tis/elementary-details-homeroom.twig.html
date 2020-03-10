@@ -13,7 +13,7 @@ sources:
     .header {
         font-size: 9pt ;
         font-weight: bold;
-        background-color: {{ 'K' in student.yearGroupNameShort ? '#bee4fa' : '#AAAAAA' }};
+        background-color: {{ 'N' in student.yearGroupNameShort or 'K' in student.yearGroupNameShort ? '#bee4fa' : '#AAAAAA' }};
         vertical-align: middle;
     }
 
@@ -23,6 +23,7 @@ sources:
         text-align: justified;
     }
 </style>
+{% if homeroom %}
 <table cellspacing="0" cellpadding="4">
     <tr>
         <td class="header border-top border-bottom border-left" style="width:50%;line-height:3;" colspan="1">  HOMEROOM COMMENTS</td>
@@ -32,7 +33,7 @@ sources:
         </td>
     </tr>
 
-    {% if homeroom %}
+    
     <tr>
         <td class="border" colspan="2"><table cellpadding="6" >
             {% for criteria in homeroom %}
@@ -66,7 +67,7 @@ sources:
             {% endif %}
         </table></td>
     </tr>
-    {% endif %}
-
-    
+      
 </table>
+
+{% endif %}
