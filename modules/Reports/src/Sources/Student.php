@@ -37,6 +37,7 @@ class Student extends DataSource
             'email'              => ['safeEmail'],
             'nameInCharacters'   => 'TEST',
             'studentID'          => ['randomNumber', 8],
+            'dayType'            => ['randomElement', ['Full Day', 'Half Day']],
 
             '#'                  => ['randomDigit'], // Random Year Group Number
             '%'                  => ['randomDigit'], // Random Roll Group Number
@@ -65,6 +66,7 @@ class Student extends DataSource
                 gibbonPerson.email,
                 gibbonPerson.nameInCharacters,
                 gibbonPerson.studentID,
+                gibbonPerson.dayType,
                 gibbonYearGroup.gibbonYearGroupID,
                 gibbonYearGroup.name as yearGroupName,
                 gibbonYearGroup.nameShort as yearGroupNameShort,
