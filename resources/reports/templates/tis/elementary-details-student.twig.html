@@ -67,7 +67,7 @@ sources:
         {% endif %}
         <td class="header border-top border-bottom" style="width:25%" colspan="1"><b>Class:</b> {{ student.rollGroupName }}</td>
         <td class="header border-top border-bottom border-right" style="width:{{ colspan == 2 ? '50' : '25' }}%;text-align: right;" colspan="{{ colspan }}">
-            <b>Homeroom Teacher:</b> 
+            <b>Teacher:</b> 
             {% set teacher = tutors|first %}
             {{ teacher.title }} {{ teacher.preferredName|first }}. {{ teacher.surname }}
         </td>

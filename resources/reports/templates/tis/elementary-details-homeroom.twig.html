@@ -7,6 +7,19 @@ sources:
     families: Families
     homeroom: RollGroupCriteria
     tutors: Tutors
+config:
+    showIfEmpty:
+        label: Show if empty?
+        type: yesno
+        default: Y
+    homeLanguages:
+        label: Show home languages?
+        type: yesno
+        default: Y
+    fontSize:
+        label: Font Size
+        type: number
+        default: 11.4
 -->#}
 {{- stylesheet ? include(stylesheet) -}}
 <style>
@@ -18,12 +31,12 @@ sources:
     }
 
     .comment {
-        font-size: 11.4pt ;
+        font-size: {{ config.fontSize|default(11.4) }}pt ;
         line-height: 1.4;
         text-align: justified;
     }
 </style>
-{% if homeroom %}
+{% if homeroom or config.showIfEmpty == 'Y' %}
 <table cellspacing="0" cellpadding="4">
     <tr>
         <td class="header border-top border-bottom border-left" style="width:50%;line-height:3;" colspan="1">  HOMEROOM COMMENTS</td>
@@ -33,20 +46,18 @@ sources:
         </td>
     </tr>
 
-    
     <tr>
         <td class="border" colspan="2"><table cellpadding="6" >
-            {% for criteria in homeroom %}
-                {% if criteria.valueType == 'Comment' %}
-                    <tr nobr="true">
-                        <td class="comment">{%- if criteria.criteriaName %}<b>{{ criteria.criteriaName|title }}:</b><br/>{% endif -%}
-                        <span style="font-family:DroidSansFallback;">{{ criteria.comment -}}</span></td>
-                    </tr>
-                {% endif %}
-            {% endfor %}
+            {%- set studentComment = homeroom.perStudent|first -%}
+            {% if studentComment.valueType == 'Comment' %}
+                <tr nobr="true">
+                    <td class="comment">{%- if studentComment.criteriaName %}<b>{{ studentComment.criteriaName|title }}:</b><br/>{% endif -%}
+                    <span style="font-family:DroidSansFallback;">{{ studentComment.comment -}}</span></td>
+                </tr>
+            {% endif %}
 
             {% set family = families|first %}
-            {% if family.languageHomePrimary %}
+            {% if confing.homeLanguages == 'Y' and family.languageHomePrimary %}
             <tr nobr="true">
                 <td class="comment"><b>Home Language:</b><br/>
                 <span style="font-family:DroidSansFallback;">
@@ -69,5 +80,4 @@ sources:
     </tr>
       
 </table>
-
 {% endif %}

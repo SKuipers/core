@@ -60,12 +60,14 @@ sources:
     {% endfor %}
 
     {% for criteria in course.criteria %}
+        {% if criteria.comment is not empty %}
         <tr>
             <td class="border" colspan="{{ 4 }}" style="width:100%;"><table cellpadding="6"><tr>
-                <td style="font-size: 9pt"><b>{{ criteria.name }}:</b> <span style="font-family:DroidSansFallback;">{{ criteria.comment }}</span></td>
+                <td style="font-size: 9pt; line-height: 1.4"><b>{{ criteria.name }}:</b> <span style="font-family:DroidSansFallback;">{{ criteria.comment }}</span></td>
                 </tr></table>
             </td>
         </tr>
+        {% endif %}
     {% endfor %}
 </table><table cellspacing="0" cellpadding="0" style="height: 3.5mm;font-size: 3.5mm;">
 <tr><td></td></tr>

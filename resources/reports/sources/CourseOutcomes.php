@@ -44,21 +44,30 @@ class CourseOutcomes extends DataSource
 
     public function getData($ids = [])
     {
-        $data = array('gibbonStudentEnrolmentID' => $ids['gibbonStudentEnrolmentID']);
+        $data = array('gibbonStudentEnrolmentID' => $ids['gibbonStudentEnrolmentID'], 'gibbonReportID' => $ids['gibbonReportID']);
         $sql = "SELECT gibbonCourse.gibbonCourseID, gibbonCourse.gibbonCourseIDParent, gibbonCourseClass.gibbonCourseClassID, gibbonCourse.name as courseName, gibbonCourse.nameShort as courseNameShort, gibbonCourse.description, gibbonCourseClass.name as className, gibbonCourseClass.nameShort as classNameShort, gibbonCourseClassPerson.role as role, gibbonReportingCriteriaType.name as criteriaType, gibbonReportingCriteriaType.valueType as valueType, gibbonReportingCriteria.category, gibbonReportingCriteria.gibbonReportingCriteriaID as criteriaID, gibbonReportingCriteria.name as criteriaName, gibbonReportingValue.comment, gibbonReportingValue.value, gibbonScaleGrade.descriptor, gibbonReportingCycle.cycleNumber as reportNum, gibbonReportingCycle.gibbonReportingCycleID as reportID
-                FROM gibbonStudentEnrolment
+                FROM gibbonReport
+                JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonSchoolYearID=gibbonReport.gibbonSchoolYearID)
                 JOIN gibbonCourseClassPerson ON (gibbonStudentEnrolment.gibbonPersonID=gibbonCourseClassPerson.gibbonPersonID)
                 JOIN gibbonCourseClass ON (gibbonCourseClass.gibbonCourseClassID=gibbonCourseClassPerson.gibbonCourseClassID)
                 JOIN gibbonCourse ON (gibbonCourse.gibbonCourseID=gibbonCourseClass.gibbonCourseID)
                 LEFT JOIN gibbonReportingCriteria ON (gibbonReportingCriteria.gibbonCourseID=gibbonCourse.gibbonCourseID)
                 LEFT JOIN gibbonReportingCriteriaType ON (gibbonReportingCriteriaType.gibbonReportingCriteriaTypeID=gibbonReportingCriteria.gibbonReportingCriteriaTypeID)
-                LEFT JOIN gibbonReportingValue ON (gibbonReportingValue.gibbonPersonIDStudent=gibbonStudentEnrolment.gibbonPersonID AND gibbonReportingValue.gibbonReportingCriteriaID=gibbonReportingCriteria.gibbonReportingCriteriaID)
+                LEFT JOIN gibbonReportingValue ON (
+                    gibbonReportingValue.gibbonReportingCriteriaID=gibbonReportingCriteria.gibbonReportingCriteriaID
+                    AND
+                    (
+                        (gibbonReportingCriteria.target='Per Student' AND gibbonReportingValue.gibbonPersonIDStudent=gibbonStudentEnrolment.gibbonPersonID) 
+                        OR (gibbonReportingCriteria.target='Per Group' AND gibbonReportingValue.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID)
+                    ))
                 LEFT JOIN gibbonScaleGrade ON (gibbonScaleGrade.gibbonScaleID=gibbonReportingCriteriaType.gibbonScaleID AND gibbonScaleGrade.gibbonScaleGradeID=gibbonReportingValue.gibbonScaleGradeID)
-                LEFT JOIN gibbonReportingCycle ON (gibbonReportingCycle.gibbonReportingCycleID=gibbonReportingValue.gibbonReportingCycleID)
-                WHERE gibbonStudentEnrolment.gibbonStudentEnrolmentID=:gibbonStudentEnrolmentID
+                LEFT JOIN gibbonReportingCycle ON (gibbonReportingCycle.gibbonReportingCycleID=gibbonReportingCriteria.gibbonReportingCycleID)
+                WHERE gibbonReport.gibbonReportID=:gibbonReportID
+                AND gibbonStudentEnrolment.gibbonStudentEnrolmentID=:gibbonStudentEnrolmentID
                 AND gibbonCourse.gibbonSchoolYearID=gibbonStudentEnrolment.gibbonSchoolYearID
                 AND gibbonCourseClass.reportable='Y'
                 AND (gibbonCourseClassPerson.role = 'Student')
+                AND (valueType IS NULL OR valueType <> 'Comment' OR (valueType = 'Comment' AND gibbonReportingCriteria.gibbonReportingCycleID=gibbonReport.gibbonReportingCycleID))
                 ORDER BY gibbonCourse.orderBy, gibbonCourse.nameShort, gibbonReportingCriteria.sequenceNumber";
 
         $result = $this->db()->select($sql, $data);
@@ -79,7 +88,7 @@ class CourseOutcomes extends DataSource
                 $courses[$id]['role'] = $item['role'];
                 $courses[$id]['reportID'] = !empty($item['reportID'])? $item['reportID'] : ($courses[$id]['reportID'] ?? '');
 
-                if ($item['criteriaType'] == 'Elementary Indicator' || $item['criteriaType'] == 'Kindergarten Indicator' || $item['criteriaType'] == 'Preschool Skills' || $item['criteriaType'] == 'Elementary Skills') {
+                if ($item['criteriaType'] == 'Elementary Indicator' || $item['criteriaType'] == 'Kindergarten Indicator' || $item['criteriaType'] == 'Preschool Skills' || $item['criteriaType'] == 'Elementary Skills'  || $item['criteriaType'] == 'ELL Skills') {
                     $courses[$id]['outcomes'][$item['criteriaName']]['name'] = $item['criteriaName'];
                     $courses[$id]['outcomes'][$item['criteriaName']]['category'] = $item['category'];
                     $courses[$id]['outcomes'][$item['criteriaName']]['values'][$reportNum] = $item['descriptor'];
