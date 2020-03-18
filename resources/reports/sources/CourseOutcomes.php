@@ -88,7 +88,7 @@ class CourseOutcomes extends DataSource
                 $courses[$id]['role'] = $item['role'];
                 $courses[$id]['reportID'] = !empty($item['reportID'])? $item['reportID'] : ($courses[$id]['reportID'] ?? '');
 
-                if ($item['criteriaType'] == 'Elementary Indicator' || $item['criteriaType'] == 'Kindergarten Indicator' || $item['criteriaType'] == 'Preschool Skills' || $item['criteriaType'] == 'Elementary Skills'  || $item['criteriaType'] == 'ELL Skills') {
+                if ($item['criteriaType'] == 'Elementary Indicator' || $item['criteriaType'] == 'Kindergarten Indicator' || $item['criteriaType'] == 'Preschool Skills' || $item['criteriaType'] == 'Kindergarten Skills' || $item['criteriaType'] == 'Elementary Skills'  || $item['criteriaType'] == 'ELL Skills') {
                     $courses[$id]['outcomes'][$item['criteriaName']]['name'] = $item['criteriaName'];
                     $courses[$id]['outcomes'][$item['criteriaName']]['category'] = $item['category'];
                     $courses[$id]['outcomes'][$item['criteriaName']]['values'][$reportNum] = $item['descriptor'];
