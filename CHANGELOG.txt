@@ -29,6 +29,7 @@ v20.0.00
 
     Tweaks & Additions
         System: added Argentine Peso as a currency option
+        System: updated Tailwind 1.2.0 dependencies via npm
         Departments: added drag-drop ordering to Departments in School Admin
         Finance: added Student ID, where set, to invoices and receipts
         Planner: enhanced Smart Block display in Lesson Planner
@@ -38,11 +39,13 @@ v20.0.00
         Reports: added hooks for custom criteria types in the report writing screen
         Reports: added the ability to select fonts in Template Builder
         Students: added an Exclude Left Students checkbox to Student Enrolment Trends, off by default
+        User Admin: added rich text editors to the Application Form Settings
 
     Bug Fixes
         System: fixed module uninstall to also remove notification events
         System: fixed Quick File Upload trimming filename by first period
         System: fixed paragraph spacing in copy-pasted Messenger emails
+        System: fixed hourly cache refresh for pinned messages
         Finance: fixed fee name bug in issued Invoices where fee name changed
         Planner: changed spelling of Publically to Publicly
         Students: fixed emergency data report not showing parents column
@@ -52,6 +55,7 @@ v20.0.00
         Reports: fixed pronoun switching not applied globally in some browsers
         Reports: fixed Student Info template to omit empty student photos
         System: fixed the first and last day of the selected school year
+        Timetable: escaped calendar event names in timetable tooltips
 
 v19.0.00
 --------
