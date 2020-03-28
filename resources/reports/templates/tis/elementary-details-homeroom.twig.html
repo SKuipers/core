@@ -57,11 +57,11 @@ config:
             {% endif %}
 
             {% set family = families|first %}
-            {% if confing.homeLanguages == 'Y' and family.languageHomePrimary %}
+            {% if config.homeLanguages == 'Y' and family.languageHomePrimary %}
             <tr nobr="true">
                 <td class="comment"><b>Home Language:</b><br/>
                 <span style="font-family:DroidSansFallback;">
-                    {%- if family.languageHomePrimary and family.languageHomeSecondary -%}
+                    {%- if family.languageHomePrimary and family.languageHomeSecondary and (family.languageHomePrimary != family.languageHomeSecondary) -%}
                         In {{ student.preferredName }}’s home the following languages are spoken: {{ family.languageHomePrimary }} and {{ family.languageHomeSecondary }}.
                     {%- else -%}
                         In {{ student.preferredName }}’s home the following language is spoken: {{ family.languageHomePrimary }}.
