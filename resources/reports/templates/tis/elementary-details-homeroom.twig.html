@@ -56,6 +56,14 @@ config:
                 </tr>
             {% endif %}
 
+            {%- set studentComment2 = homeroom.perStudent[1] -%}
+            {% if studentComment2.valueType == 'Comment' %}
+                <tr nobr="true">
+                    <td class="comment">{%- if studentComment2.criteriaName %}<b>{{ studentComment2.criteriaName|title }}:</b><br/>{% endif -%}
+                    <span style="font-family:DroidSansFallback;">{{ studentComment2.comment -}}</span></td>
+                </tr>
+            {% endif %}
+
             {% set family = families|first %}
             {% if config.homeLanguages == 'Y' and family.languageHomePrimary %}
             <tr nobr="true">

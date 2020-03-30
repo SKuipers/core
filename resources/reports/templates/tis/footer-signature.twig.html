@@ -27,11 +27,11 @@ config:
         <td class="footer border-left border-top border-bottom" style="width:15%;">
             <b>Signature:</b>
         </td> 
-        <td class="border-right border-top border-bottom" style="width:30%; vertical-align: middle;">
+        <td class="border-right border-top border-bottom" style="width:30%; vertical-align: middle; line-height: 1;">
             {% if isDraft %}
                 <span style="color: #cccccc; font-size: 22px; font-weight: bold; line-height:1.9;">DRAFT COPY</span>
             {% elseif config.signatureImage %}
-                <img src="{{ basePath }}/{{ config.signatureImage }}" style="display: inline-block; width: 220px; height: 80px;" width="220" height="50">
+                <img src="{{ basePath }}/{{ config.signatureImage }}" style="display: inline-block; max-height: 12mm; width: auto" width="240" height="80">
             {% endif %}
         </td> 
         <td class="footer border" style="width:30%;">
