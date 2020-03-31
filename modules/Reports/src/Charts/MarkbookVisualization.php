@@ -80,7 +80,7 @@ class MarkbookVisualization
                 'height' => '70',
                 'scales' => [
                     'yAxes' => [[
-                        'ticks'     => ['stepSize' => 1, 'min' => 1, 'max' => 7],
+                        'ticks'     => ['stepSize' => 1, 'min' => 0, 'max' => 7],
                         'gridLines' => ['display' => false]
                     ]],
                     'xAxes' => [[
@@ -149,10 +149,13 @@ class MarkbookVisualization
             $metaData = [];
 
             foreach ($this->markbookEntries as $markbookType => $entries) {
-                $chartData = [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0, 6 => 0, 7 => 0];
+                $chartData = ['0/INC' => 0, 1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0, 6 => 0, 7 => 0];
 
                 foreach ($entries as $entry) {
-                    if (!is_numeric($entry['attainmentValue'])) {
+                    if ($entry['attainmentValue'] == 0 || $entry['attainmentValue'] == 'INC' || $entry['attainmentValue'] == 'Incomplete') {
+                        $entry['name'] .= ' = '.$entry['attainmentValue'];
+                        $entry['attainmentValue'] = '0/INC';
+                    } elseif (!is_numeric($entry['attainmentValue'])) {
                         continue;
                     }
 
@@ -183,20 +186,23 @@ class MarkbookVisualization
             $charts[] = $barGraph;
         } else {
             foreach ($this->markbookEntries as $markbookType => $entries) {
-                $chartData = [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0, 6 => 0, 7 => 0];
+                $chartData = ['0/INC' => 0, 1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0, 6 => 0, 7 => 0];
                 $metaData = [];
 
                 $entries = array_filter($entries, function ($item) {
-                    return !empty($item['attainmentValue']) && intval($item['gibbonScaleIDAttainment']) == 1;
+                    return isset($item['attainmentValue']) && intval($item['gibbonScaleIDAttainment']) == 1;
                 });
 
                 foreach ($entries as $entry) {
-                    if (!is_numeric($entry['attainmentValue'])) {
+                    if ($entry['attainmentValue'] == 0 || $entry['attainmentValue'] == 'INC' || $entry['attainmentValue'] == 'Incomplete') {
+                        $entry['name'] .= ' = '.$entry['attainmentValue'];
+                        $entry['attainmentValue'] = '0/INC';
+                    } elseif (!is_numeric($entry['attainmentValue'])) {
                         continue;
                     }
 
                     $chartData[$entry['attainmentValue']]++;
-                    $metaData[0][$entry['attainmentValue']][] = $entry['description'];
+                    $metaData[0][$entry['attainmentValue']][] = $entry['name'];
                 }
 
                 $total = array_sum(array_column($entries, 'attainmentValue'));
