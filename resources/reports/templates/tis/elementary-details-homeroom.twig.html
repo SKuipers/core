@@ -48,21 +48,15 @@ config:
 
     <tr>
         <td class="border" colspan="2"><table cellpadding="6" >
-            {%- set studentComment = homeroom.perStudent|first -%}
-            {% if studentComment.valueType == 'Comment' %}
-                <tr nobr="true">
-                    <td class="comment">{%- if studentComment.criteriaName %}<b>{{ studentComment.criteriaName|title }}:</b><br/>{% endif -%}
-                    <span style="font-family:DroidSansFallback;">{{ studentComment.comment -}}</span></td>
-                </tr>
-            {% endif %}
 
-            {%- set studentComment2 = homeroom.perStudent[1] -%}
-            {% if studentComment2.valueType == 'Comment' and 'K' not in student.yearGroupNameShort %}
-                <tr nobr="true">
-                    <td class="comment">{%- if studentComment2.criteriaName %}<b>{{ studentComment2.criteriaName|title }}:</b><br/>{% endif -%}
-                    <span style="font-family:DroidSansFallback;">{{ studentComment2.comment -}}</span></td>
-                </tr>
-            {% endif %}
+            {% for criteria in homeroom.perStudent %}
+                {% if criteria.valueType == 'Comment' %}
+                    <tr nobr="true">
+                        <td class="comment">{%- if criteria.criteriaName %}<b>{{ criteria.criteriaName|title }}:</b><br/>{% endif -%}
+                        <span style="font-family:DroidSansFallback;">{{ criteria.comment -}}</span></td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
 
             {% set family = families|first %}
             {% if config.homeLanguages == 'Y' and family.languageHomePrimary %}
