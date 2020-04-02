@@ -251,6 +251,7 @@ class StudentGateway extends QueryableGateway
                 JOIN gibbonCourseClass ON (studentClass.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID)
                 JOIN gibbonCourse ON (gibbonCourseClass.gibbonCourseID=gibbonCourse.gibbonCourseID)
                 WHERE teacher.status='Full' AND teacherClass.role='Teacher' AND studentClass.role='Student' AND student.gibbonPersonID=:gibbonPersonID AND gibbonCourse.gibbonSchoolYearID=:gibbonSchoolYearID 
+                AND (gibbonCourse.gibbonCourseIDParent IS NULL OR gibbonCourse.gibbonCourseIDParent = '')
                 ORDER BY teacher.preferredName, teacher.surname, teacher.email
             )
             UNION
