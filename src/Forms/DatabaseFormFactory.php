@@ -505,15 +505,22 @@ class DatabaseFormFactory extends FormFactory
             'labelMode' => 'value',
         ), $params);
 
-        $valueQuery = ($params['valueMode'] == 'id')? 'gibbonScaleGradeID as value' : 'value';
-        $labelQuery = ($params['labelMode'] == 'descriptor')? 'descriptor' : 'value';
-
         $data = array('gibbonScaleID' => $gibbonScaleID);
-        $sql = "SELECT {$valueQuery}, {$labelQuery} as name, isDefault FROM gibbonScaleGrade WHERE gibbonScaleID=:gibbonScaleID ORDER BY sequenceNumber";
+        $sql = "SELECT gibbonScaleGradeID, value, descriptor, isDefault FROM gibbonScaleGrade WHERE gibbonScaleID=:gibbonScaleID ORDER BY sequenceNumber";
         $results = $this->pdo->executeQuery($data, $sql);
 
         $grades = ($results->rowCount() > 0)? $results->fetchAll() : array();
-        $gradeOptions = array_combine(array_column($grades, 'value'), array_column($grades, 'name'));
+        $gradeOptions = array_reduce($grades, function ($group, $item) use ($params) {
+            $identifier = $params['valueMode'] == 'id' ? 'gibbonScaleGradeID' : 'value';
+            $value = $params['labelMode'] == 'descriptor' ? $item['descriptor'] : $item['value'];
+
+            if ($params['labelMode'] == 'both') {
+                $value = $item['value'] == $item['descriptor'] ? $item['value'] : $item['value'].' - '.$item['descriptor'];
+            }
+
+            $group[$item[$identifier]] = $value;
+            return $group;
+        }, []);
 
         $default = array_search('Y', array_column($grades, 'isDefault'));
         $selected = ($params['honourDefault'] && !empty($default))? $grades[$default]['value'] : '';
@@ -535,6 +542,13 @@ class DatabaseFormFactory extends FormFactory
                 ORDER BY scope, category, name";
 
         return $this->createSelect($name)->fromQuery($this->pdo, $sql, $data, 'groupBy')->placeholder();
+    }
+
+    public function createSelectReportingCycle($name)
+    {
+        $sql = "SELECT gibbonSchoolYear.name as schoolYear, gibbonReportingCycleID as value, gibbonReportingCycle.name FROM gibbonReportingCycle JOIN gibbonSchoolYear ON (gibbonSchoolYear.gibbonSchoolYearID=gibbonReportingCycle.gibbonSchoolYearID) ORDER BY gibbonSchoolYear.sequenceNumber DESC, gibbonReportingCycle.sequenceNumber";
+
+        return $this->createSelect($name)->fromQuery($this->pdo, $sql, [], 'schoolYear')->placeholder();
     }
 
     public function createPhoneNumber($name)

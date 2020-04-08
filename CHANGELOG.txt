@@ -16,10 +16,62 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 CHANGELOG
 =========
+v20.0.00
+--------
+    Headlines
+
+    Changes With Important Notices
+
+    Significant Changes
+        Added Español - Mexico as an available locale
+        Students: added a Withdraw Student page with the option to notify staff
+
+    Security
+
+    Tweaks & Additions
+        System: added Argentine Peso as a currency option
+        System: updated Tailwind 1.2.0 dependencies via npm
+        Departments: added drag-drop ordering to Departments in School Admin
+        Finance: added Student ID, where set, to invoices and receipts
+        Planner: enhanced Smart Block display in Lesson Planner
+        Planner: removed bold from Chat comment in lesson plan view
+        Reports: added a Proof Read by Form Group option
+        Reports: added an option to select the PDF rendering library in Template Builder
+        Reports: added hooks for custom criteria types in the report writing screen
+        Reports: added the ability to select fonts in Template Builder
+        Reports: added the option to generate single reports for Left students
+        Staff: added an option to edit or delete staff coverage dates
+        Staff: added Family and Activities subpages to Staff Profile
+        Staff: added notificaton events for New and Left staff
+        Students: added an Exclude Left Students checkbox to Student Enrolment Trends, off by default
+        Students: added option allowing the referee email field in the Application Form to be set to option
+        Students: added a grid view of student's teachers to Student Profile
+        User Admin: added rich text editors to the Application Form Settings
+        User Admin: added an option to enter a departure reason for final year students in Rollover
+        User Admin: added an option to create a linked staff record for new users
+
+    Bug Fixes
+        System: fixed module uninstall to also remove notification events
+        System: fixed Quick File Upload trimming filename by first period
+        System: fixed paragraph spacing in copy-pasted Messenger emails
+        System: fixed hourly cache refresh for pinned messages
+        Finance: fixed fee name bug in issued Invoices where fee name changed
+        Planner: changed spelling of Publically to Publicly
+        Staff: fixed Left staff appearing in Weekly Absences report
+        Students: fixed emergency data report not showing parents column
+        Students: fixed Tutors and EAs set to Left showing on Student Profile
+        Reports: fixed Course scope Per Group criteria not saving per-class
+        Reports: suppressed TCPDF deprecation messages when generating PDFs
+        Reports: fixed pronoun switching not applied globally in some browsers
+        Reports: fixed Student Info template to omit empty student photos
+        System: fixed the first and last day of the selected school year
+        Timetable: escaped calendar event names in timetable tooltips
+        Timetable: incremented gibbonTTImport course and class name field lengths 
+
 v19.0.00
 --------
     Headlines
-        Reports module enables users to write reports, proofread comments, generate PDFs, and view report archives
+        Reports module enables users to write reports, proof read comments, generate PDFs, and view report archives
         Individual Needs Investigations functionality allows data gathering around students with individual needs
         Messages can now be pinned to the top of the message wall, and optionally displayed above the dashboard
         Expanded Staff Directory replaces View Staff Profiles
@@ -34,8 +86,6 @@ v19.0.00
         System: added Year Switcher to staff homepage sidebar
         Planner: added "View Only" sub-action to Lesson Planner
         User Admin: added a View Role page in Manage Roles to display all actions and users per role
-
-    Security
 
     Tweaks & Additions
         System: added Maldivian Rufiyaa and Malagasy Ariary as a currency options
@@ -54,7 +104,7 @@ v19.0.00
         Attendance: added Consecutive Absence report to list all students who have been absent for the last N school days
         Attendance: updated Student History to still display class attendance when countClassAsSchool in N
         Attendance: added a Students Not In Class report
-        Behaviour: new Copy To Notes feature
+        Behaviour: added a Copy To Notes feature
         Behaviour: added settings to toggle notifications for Tutors and Education Assistants
         Form Groups: added staff-only summary of Year Groups after Form Group listing
         Messenger: added a Copy to Next Year bulk-option for Manage Groups
@@ -78,13 +128,13 @@ v19.0.00
         Students: added template setting for Description field in First Aid Record
         Students: turned First Aid Record Followup into a non-editable log
         Timetable Admin: included student reportable flag in student enrolment
-        Timetable Admin: enable users who can search All Users to also see Left students
+        Timetable Admin: enabled users who can search All Users to also see Left students
         User Admin: increased Student ID field max length to 15
         User Admin: added Citizenship 1 and Citizenship 2 Passport Expiry date fields
         User Admin: added a Login Troubleshooting section to Reset Password page
 
     Bug Fixes
-        System: fix installer bug where passwords are unnecessarily encoded
+        System: fixed installer bug where passwords are unnecessarily encoded
         System: fixed date picker validation error for Polish language
         System: fixed Notification Events to only send to users who have status Full
         System: adjusted date formats for German language
@@ -104,13 +154,14 @@ v19.0.00
         Finance: fixed Manage Invoices bulk actions not refreshing after changing filters
         Finance: fixed inactive fees showing up in dropdown lists
         Library: set Bookable to No by default on Add record screen
+        Library: fixed Status field not being set when not borrowable
         Markbook: implemented unit ordering and date ordering for unit and lesson fields
         Messenger: fixed bug when sending parent and student SMS for Attendance status
         Messenger: fixed bug where users could create a message with no available delivery options
         Planner: fixed non-functional Smart Block Template setting
         Planner: fixed Unit Planner bug causing actions to appear in Classes table for newly created units
         Planner: implemented unit ordering field in Lesson Planner
-        Rubrics: fixed bug where non-english locales displayed rubric visualization as gray 
+        Rubrics: fixed bug where non-english locales displayed rubric visualization as gray
         School Admin: fixed Browse Library BG Image field length bug
         School Admin: fixed typo to use instead instead of isntead
         Staff: fixed Cancel Coverage button not available for future coverage

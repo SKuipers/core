@@ -17,22 +17,19 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-use Gibbon\Forms\Form;
-use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Services\Format;
 use Gibbon\Tables\DataTable;
-use Gibbon\Domain\User\UserGateway;
+use Gibbon\Forms\Form;
+use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Domain\Students\StudentGateway;
+use Gibbon\Domain\System\HookGateway;
 use Gibbon\Module\Reports\Forms\ReportingSidebarForm;
 use Gibbon\Module\Reports\Forms\CommentEditor;
 use Gibbon\Module\Reports\Domain\ReportingCycleGateway;
 use Gibbon\Module\Reports\Domain\ReportingAccessGateway;
 use Gibbon\Module\Reports\Domain\ReportingScopeGateway;
 use Gibbon\Module\Reports\Domain\ReportingProgressGateway;
-use Gibbon\Module\Reports\Charts\MarkbookVisualization;
-use Gibbon\Domain\Markbook\MarkbookEntryGateway;
-use Gibbon\Domain\Markbook\MarkbookWeightGateway;
+use Gibbon\Domain\User\UserGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_write_byStudent.php') == false) {
     // Access denied
@@ -154,18 +151,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_write_by
         'params' => $urlParams,
     ]);
 
-    // MARKBOOK VISUALIZATION
-    if ($reportingScope['scopeType'] == 'Course' && $reportingScope['markbookVisual'] == 'Y') {
-        $markbookEntries = $container->get(MarkbookEntryGateway::class)->selectMarkbookEntriesByClassAndStudent($urlParams['scopeTypeID'], $gibbonPersonIDStudent)->fetchGrouped();
-        $markbookWeights = $container->get(MarkbookWeightGateway::class)->selectMarkbookWeightingsByClass($urlParams['scopeTypeID'])->fetchGroupedUnique();
-
-        $visualization = new MarkbookVisualization($markbookEntries, $markbookWeights);
-        echo $page->fetchFromTemplate('ui/reportingMarkbookVisual.twig.html', $visualization->getCharts() + [
-            'name' => $scopeDetails['nameShort'],
-            'gibbonCourseClassID' => $urlParams['scopeTypeID'],
-        ]);
-    }
-
     // PER STUDENT CRITERIA
     $reportingCriteria = $reportingAccessGateway->selectReportingCriteriaByStudentAndScope($reportingScope['gibbonReportingScopeID'], $reportingScope['scopeType'], $urlParams['scopeTypeID'], $gibbonPersonIDStudent)->fetchAll();
 
@@ -185,6 +170,21 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_write_by
 
     $form->addRow()->addClass('reportStatus')->addContent($scopeDetails['name'])->wrap('<h4 class="mt-3 p-0">', '</h4>');
 
+    // HOOKS
+    // Custom hooks can replace form fields by criteria type using a custom include.
+    // Includes are loaded inside a function to limit their variable scope.
+    $hooks = $container->get(HookGateway::class)->selectHooksByType('Report Writing')->fetchKeyPair();
+    $hookInclude = function ($options, $criteria) use (&$gibbon, &$container, &$form, $student, $canWriteReport) {
+        $options = json_decode($options, true);
+        $includePath = $gibbon->session->get('absolutePath').'/modules/'.$options['sourceModuleName'].'/'.$options['sourceModuleInclude'];
+
+        if (!empty($options) && is_file($includePath)) {
+            include $includePath;
+            return true;
+        }
+
+        return false;
+    };
 
     $lastCategory = '';
     foreach ($reportingCriteria as $criteria) {
@@ -195,7 +195,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_write_by
             $row = $form->addRow()->addContent($criteria['category'])->wrap('<h5 class="my-2 p-0 text-sm normal-case border-0">', '</h5>');
         }
 
-        if ($criteria['valueType'] == 'Comment' || $criteria['valueType'] == 'Remark') {
+        if ($criteria['valueType'] == 'Hook' && isset($hooks[$criteria['criteriaName']])) {
+            // Attempt to load a hook, otherwise display an alert.
+            if (!$hookInclude($hooks[$criteria['criteriaName']], $criteria)) {
+                $form->addHiddenValue($fieldName, $criteria['value']);
+                $form->addRow()->addAlert(__('Failed to load {name}', [
+                    'name' => $criteria['criteriaName'],
+                ]), 'error');
+            }
+
+        } elseif ($criteria['valueType'] == 'Comment' || $criteria['valueType'] == 'Remark') {
             $col = $form->addRow()->addColumn();
             $col->addLabel($fieldName, $criteria['name'])->description($criteria['description']);
             $col->addElement(new CommentEditor($fieldName))
@@ -211,11 +220,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_write_by
             $row->addLabel($fieldName, $criteria['name'])->description($criteria['description'])->setClass('font-normal');
 
             if ($criteria['valueType'] == 'Grade Scale') {
-                $gradeSelect = $row->addSelectGradeScaleGrade($fieldName, $criteria['gibbonScaleID'], ['valueMode' => 'value', 'labelMode' => 'descriptor', 'honourDefault' => true])
+                $gradeSelect = $row->addSelectGradeScaleGrade($fieldName, $criteria['gibbonScaleID'], ['valueMode' => 'value', 'labelMode' => 'both', 'honourDefault' => true])
                     ->addClass('reportCriteria')
                     ->setID($fieldID)
-                    ->readonly(!$canWriteReport)
-                    ->selected($criteria['value']);
+                    ->readonly(!$canWriteReport);
+
+                if (!is_null($criteria['gibbonReportingValueID'])) {
+                    $gradeSelect->selected($criteria['value']);
+                }
             } elseif ($criteria['valueType'] == 'Yes/No') {
                 $row->addYesNo($fieldName)
                     ->addClass('reportCriteria')
