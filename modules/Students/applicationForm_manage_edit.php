@@ -37,7 +37,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
     $gibbonApplicationFormID = $_GET['gibbonApplicationFormID'] ?? '';
     $gibbonSchoolYearID = $_GET['gibbonSchoolYearID'] ?? '';
     $search = $_GET['search'] ?? '';
-    $countryName = (isset($_SESSION[$guid]['country']))? $_SESSION[$guid]['country'].' ' : '';
+    $countryName = (isset($_SESSION[$guid]['country']))? __($_SESSION[$guid]['country']).' ' : '';
 
     $page->breadcrumbs
         ->add(__('Manage Applications'), 'applicationForm_manage.php', ['gibbonSchoolYearID' => $gibbonSchoolYearID])
@@ -315,7 +315,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
 
         $row = $form->addRow();
             $row->addLabel('officialName', __('Official Name'))->description(__('Full name as shown in ID documents.'));
-            $row->addTextField('officialName')->required()->maxLength(150)->setTitle('Please enter full name as shown in ID documents');
+            $row->addTextField('officialName')->required()->maxLength(150)->setTitle(__('Please enter full name as shown in ID documents'));
 
         $row = $form->addRow();
             $row->addLabel('nameInCharacters', __('Name In Characters'))->description(__('Chinese or other character-based name.'));
