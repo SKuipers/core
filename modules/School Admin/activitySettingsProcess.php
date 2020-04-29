@@ -34,8 +34,6 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/activitySetti
     }
     $access = $_POST['access'];
     $payment = $_POST['payment'];
-    $enrolmentType = $_POST['enrolmentType'];
-    $backupChoice = $_POST['backupChoice'];
     $activityTypes = '';
     foreach (explode(',', $_POST['activityTypes']) as $type) {
         $activityTypes .= trim($type).',';
@@ -45,7 +43,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/activitySetti
     $hideExternalProviderCost = $_POST['hideExternalProviderCost'];
 
     //Validate Inputs
-    if ($dateType == '' or $access == '' or $payment == '' or $enrolmentType == '' or $backupChoice == '' or $disableExternalProviderSignup == '' or $hideExternalProviderCost == '') {
+    if ($dateType == '' or $access == '' or $payment == '' or $disableExternalProviderSignup == '' or $hideExternalProviderCost == '') {
         $URL .= '&return=error3';
         header("Location: {$URL}");
     } else {
@@ -82,24 +80,6 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/activitySetti
         try {
             $data = array('value' => $payment);
             $sql = "UPDATE gibbonSetting SET value=:value WHERE scope='Activities' AND name='payment'";
-            $result = $connection2->prepare($sql);
-            $result->execute($data);
-        } catch (PDOException $e) {
-            $fail = true;
-        }
-
-        try {
-            $data = array('value' => $enrolmentType);
-            $sql = "UPDATE gibbonSetting SET value=:value WHERE scope='Activities' AND name='enrolmentType'";
-            $result = $connection2->prepare($sql);
-            $result->execute($data);
-        } catch (PDOException $e) {
-            $fail = true;
-        }
-
-        try {
-            $data = array('value' => $backupChoice);
-            $sql = "UPDATE gibbonSetting SET value=:value WHERE scope='Activities' AND name='backupChoice'";
             $result = $connection2->prepare($sql);
             $result->execute($data);
         } catch (PDOException $e) {
