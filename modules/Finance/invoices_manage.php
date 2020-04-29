@@ -37,7 +37,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/invoices_manage.ph
     $page->breadcrumbs->add(__('Manage Invoices'));
 
     if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, array('success0' => 'Your request was completed successfully.', 'success1' => 'Your request was completed successfully, but one or more requested emails could not be sent.', 'error3' => 'Some elements of your request failed, but others were successful.'));
+        returnProcess($guid, $_GET['return'], null, array('success1' => __('Your request was completed successfully, but one or more requested emails could not be sent.'), 'error3' => __('Some elements of your request failed, but others were successful.')));
     }
 
     echo '<p>';
@@ -154,7 +154,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/invoices_manage.ph
         // QUERY
         $invoiceGateway = $container->get(InvoiceGateway::class);
 
-        $criteria = $invoiceGateway->newQueryCriteria()
+        $criteria = $invoiceGateway->newQueryCriteria(true)
             ->sortBy(['defaultSortOrder', 'invoiceIssueDate', 'surname', 'preferredName'])
             ->filterBy('status', $request['status'])
             ->filterBy('invoicee', $request['gibbonFinanceInvoiceeID'])
@@ -232,10 +232,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/invoices_manage.ph
         $table->addExpandableColumn('notes');
 
         $table->addColumn('student', __('Student'))
+            ->description(__('Invoice To'))
             ->sortable(['surname', 'preferredName'])
             ->format(function($invoice) {
                 $output = '<b>'.Format::name('', $invoice['preferredName'], $invoice['surname'], 'Student', true).'</b>';
-                $output .= '<br/><span class="small emphasis">'.$invoice['invoiceTo'].'</span>';
+                $output .= '<br/><span class="small emphasis">'.__($invoice['invoiceTo']).'</span>';
                 return $output;
             });
 
@@ -244,11 +245,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/invoices_manage.ph
         $table->addColumn('status', __('Status'))
             ->format(function ($invoice) {
                 if ($invoice['status'] == 'Issued' && $invoice['invoiceDueDate'] < date('Y-m-d')) {
-                    return 'Issued - Overdue';
+                    return __('Issued - Overdue');
                 } else if ($invoice['status'] == 'Paid' && $invoice['invoiceDueDate'] < $invoice['paidDate']) {
-                    return 'Paid - Late';
+                    return __('Paid - Late');
                 }
-                return $invoice['status'];
+                return __($invoice['status']);
             });
 
         $table->addColumn('billingSchedule', __('Schedule'));

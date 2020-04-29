@@ -20,6 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Module\Attendance\AttendanceView;
+use Gibbon\Services\Format;
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -67,7 +68,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/report_students
         $row->addSelect('sort')->fromArray(array('surname' => __('Surname'), 'preferredName' => __('Preferred Name'), 'rollGroup' => __('Roll Group')))->selected($sort)->required();
 
     $row = $form->addRow();
-        $row->addLabel('allStudents', __('All Students'))->description('Include all students, even those where attendance has not yet been recorded.');
+        $row->addLabel('allStudents', __('All Students'))->description(__('Include all students, even those where attendance has not yet been recorded.'));
         $row->addCheckbox('allStudents')->checked($allStudents);
 
     $row = $form->addRow();
@@ -229,7 +230,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/report_students
                         echo $row['rollGroupName'];
                     echo '</td>';
                     echo '<td>';
-                        echo formatName('', $row['preferredName'], $row['surname'], 'Student', ($sort != 'preferredName') );
+                        echo Format::name('', $row['preferredName'], $row['surname'], 'Student', ($sort != 'preferredName') );
                     echo '</td>';
                     echo '<td>';
                     $rowRollAttendance = null;

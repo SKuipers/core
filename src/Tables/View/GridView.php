@@ -29,7 +29,7 @@ use Gibbon\Tables\Renderer\RendererInterface;
  * @version v18
  * @since   v18
  */
-class GridView extends DataTableView implements RendererInterface
+class GridView extends PaginatedView implements RendererInterface
 {
     /**
      * Render the table to HTML.
@@ -40,17 +40,7 @@ class GridView extends DataTableView implements RendererInterface
      */
     public function renderTable(DataTable $table, DataSet $dataSet)
     {
-        $this->addData('table', $table);
-        $this->addData('blankSlate', $table->getMetaData('blankSlate'));
-
-        if ($dataSet->count() > 0) {
-            $this->addData([
-                'columns' => $table->getColumns(),
-                'dataSet' => $dataSet,
-                'gridHeader' => $table->getMetaData('gridHeader'),
-                'gridFooter' => $table->getMetaData('gridFooter'),
-            ]);
-        }
+        parent::preparePageData($table, $dataSet);
 
         return $this->render('components/gridTable.twig.html');
     }

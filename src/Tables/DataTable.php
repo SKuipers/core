@@ -27,9 +27,12 @@ use Gibbon\Tables\Columns\Column;
 use Gibbon\Tables\Columns\ActionColumn;
 use Gibbon\Tables\Columns\CheckboxColumn;
 use Gibbon\Tables\Columns\ExpandableColumn;
+use Gibbon\Tables\Columns\DraggableColumn;
 use Gibbon\Tables\Renderer\RendererInterface;
 use Gibbon\Tables\View\DataTableView;
 use Gibbon\Tables\View\PaginatedView;
+use Gibbon\View\View;
+use Gibbon\Tables\View\DetailsView;
 
 /**
  * DataTable
@@ -74,6 +77,11 @@ class DataTable implements OutputableInterface
         global $container;
 
         $renderer = !empty($renderer) ? $renderer : $container->get(DataTableView::class);
+
+        // This is a temporary workaround to prevent overflow on pages that have a refactored table.
+        // This enables the sticky headers to work for DataTables without breaking legacy tables.
+        $container->get('page')->addData('preventOverflow', true);
+        if ($renderer instanceof View) $renderer->addData('preventOverflow', true);
         
         return (new static($renderer))->setID($id);
     }
@@ -88,10 +96,29 @@ class DataTable implements OutputableInterface
     public static function createPaginated($id, QueryCriteria $criteria)
     {
         global $container;
-
+        
         $renderer = $container->get(PaginatedView::class)->setCriteria($criteria);
 
+        // This is a temporary workaround to prevent overflow on pages that have a refactored table.
+        // This enables the sticky headers to work for DataTables without breaking legacy tables.
+        $container->get('page')->addData('preventOverflow', true);
+        if ($renderer instanceof View) $renderer->addData('preventOverflow', true);
+
         return (new static($renderer))->setID($id)->setRenderer($renderer);
+    }
+
+    /**
+     * Helper method to create a details table.
+     *
+     * @param string $id
+     * @return self
+     */
+    public static function createDetails($id)
+    {
+        global $container;
+
+        $renderer = $container->get(DetailsView::class);
+        return (new static($renderer))->setID($id);
     }
 
     /**
@@ -246,6 +273,18 @@ class DataTable implements OutputableInterface
     }
 
     /**
+     * Add a drag handle for drag-drop sorting.
+     *
+     * @return DraggableColumn
+     */
+    public function addDraggableColumn($id, $ajaxURL, $data = [])
+    {
+        $this->columns[$id] = new DraggableColumn($id, $ajaxURL, $data, $this);
+
+        return $this->columns[$id];
+    }
+
+    /**
      * Remove a column by id.
      *
      * @param string $id
@@ -370,7 +409,9 @@ class DataTable implements OutputableInterface
      */
     public function addMetaData($name, $value)
     {
-        $this->meta[$name] = isset($this->meta[$name])? array_replace($this->meta[$name], $value) : $value;
+        $this->meta[$name] = isset($this->meta[$name]) && is_array($this->meta[$name]) && is_array($value)
+            ? array_replace($this->meta[$name], $value)
+            : $value;
 
         return $this;
     }
@@ -412,12 +453,13 @@ class DataTable implements OutputableInterface
     /**
      * Render the data table, either with the supplied renderer or default to the built-in one.
      *
-     * @param DataSet $dataSet
+     * @param DataSet|array $dataSet
      * @param RendererInterface $renderer
      * @return string
      */
-    public function render(DataSet $dataSet, RendererInterface $renderer = null)
+    public function render($dataSet, RendererInterface $renderer = null)
     {
+        $dataSet = is_array($dataSet) ? new DataSet($dataSet) : $dataSet;
         $renderer = isset($renderer)? $renderer : $this->renderer;
 
         return $renderer->renderTable($this, $dataSet);

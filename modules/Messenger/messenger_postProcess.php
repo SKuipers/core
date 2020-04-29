@@ -19,6 +19,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Contracts\Comms\Mailer;
 use Gibbon\Contracts\Comms\SMS;
+use Gibbon\Services\Format;
+use Gibbon\Comms\NotificationSender;
+use Gibbon\Domain\System\NotificationGateway;
 
 include '../../gibbon.php';
 
@@ -70,6 +73,7 @@ else {
 		if ($messageWall!="Y") {
 			$messageWall="N" ;
 		}
+		$messageWallPin = ($messageWall == "Y" && isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_manage.php", "Manage Messages_all") & !empty($_POST['messageWallPin'])) ? $_POST['messageWallPin'] : 'N' ;
 		$date1=NULL ;
 		if (isset($_POST["date1"])) {
 			if ($_POST["date1"]!="") {
@@ -95,14 +99,17 @@ else {
 		if ($sms!="Y") {
 			$sms="N" ;
 		}
+		$smsCreditBalance = ($sms == "Y" && !empty($_POST["smsCreditBalance"])) ? $_POST["smsCreditBalance"] : null;
 		$subject=$_POST["subject"] ;
 		$body=stripslashes($_POST["body"]) ;
 		$emailReceipt = $_POST["emailReceipt"] ;
 		$emailReceiptText = null;
-		if (isset($_POST["emailReceiptText"]))
+		if (isset($_POST["emailReceiptText"])) {
 			$emailReceiptText = $_POST["emailReceiptText"] ;
+		}
+		$individualNaming = $_POST["individualNaming"] ;
 
-		if ($subject == "" OR $body == "" OR ($email == "Y" AND $from == "") OR $emailReceipt == '' OR ($emailReceipt == "Y" AND $emailReceiptText == "")) {
+		if ($subject == "" OR $body == "" OR ($email == "Y" AND $from == "") OR $emailReceipt == '' OR ($emailReceipt == "Y" AND $emailReceiptText == "") OR $individualNaming == "") {
 			//Fail 3
 			$URL.="&addReturn=fail3" ;
 			header("Location: {$URL}");
@@ -137,8 +144,8 @@ else {
 
 			//Write to database
 			try {
-				$data=array("email"=>$email, "messageWall"=>$messageWall, "messageWall_date1"=>$date1, "messageWall_date2"=>$date2, "messageWall_date3"=>$date3, "sms"=>$sms, "subject"=>$subject, "body"=>$body, "emailReceipt" => $emailReceipt, "emailReceiptText" => $emailReceiptText, "gibbonPersonID"=>$_SESSION[$guid]["gibbonPersonID"], "timestamp"=>date("Y-m-d H:i:s"));
-				$sql="INSERT INTO gibbonMessenger SET email=:email, messageWall=:messageWall, messageWall_date1=:messageWall_date1, messageWall_date2=:messageWall_date2, messageWall_date3=:messageWall_date3, sms=:sms, subject=:subject, body=:body, emailReceipt=:emailReceipt, emailReceiptText=:emailReceiptText, gibbonPersonID=:gibbonPersonID, timestamp=:timestamp" ;
+				$data=array("email"=>$email, "messageWall"=>$messageWall, "messageWallPin" => $messageWallPin, "messageWall_date1"=>$date1, "messageWall_date2"=>$date2, "messageWall_date3"=>$date3, "sms"=>$sms, "subject"=>$subject, "body"=>$body, "emailReceipt" => $emailReceipt, "emailReceiptText" => $emailReceiptText, "gibbonPersonID"=>$_SESSION[$guid]["gibbonPersonID"], "timestamp"=>date("Y-m-d H:i:s"));
+				$sql="INSERT INTO gibbonMessenger SET email=:email, messageWall=:messageWall, messageWallPin=:messageWallPin, messageWall_date1=:messageWall_date1, messageWall_date2=:messageWall_date2, messageWall_date3=:messageWall_date3, sms=:sms, subject=:subject, body=:body, emailReceipt=:emailReceipt, emailReceiptText=:emailReceiptText, gibbonPersonID=:gibbonPersonID, timestamp=:timestamp" ;
 				$result=$connection2->prepare($sql);
 				$result->execute($data);
 			}
@@ -160,6 +167,15 @@ else {
 				exit() ;
 			}
 
+			//SMS Credit notification
+			if ($smsCreditBalance != null && $smsCreditBalance < 1000) {
+				$notificationGateway = new NotificationGateway($pdo);
+			  $notificationSender = new NotificationSender($notificationGateway, $gibbon->session);
+				$organisationAdministrator = getSettingByScope($connection2, 'System', 'organisationAdministrator');
+				$notificationString = __('Low SMS credit warning.');
+				$notificationSender->addNotification($organisationAdministrator, $notificationString, "Messenger", "/index.php?q=/modules/Messenger/messenger_post.php");
+				$notificationSender->sendNotifications();
+			}
 			//TARGETS
 			$partialFail=FALSE ;
 			$report = array();
@@ -423,7 +439,7 @@ else {
 								if ($parents=="Y") {
 									try {
 										$dataStudents=array("gibbonSchoolYearID"=>$_SESSION[$guid]["gibbonSchoolYearID"], "gibbonYearGroupID"=>$t);
-										$sqlStudents="SELECT gibbonPerson.gibbonPersonID FROM gibbonPerson JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE status='Full' AND (dateStart IS NULL OR dateStart<='" . date("Y-m-d") . "') AND (dateEnd IS NULL  OR dateEnd>='" . date("Y-m-d") . "') AND gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonYearGroupID=:gibbonYearGroupID" ;
+										$sqlStudents="SELECT gibbonPerson.gibbonPersonID, surname, preferredName FROM gibbonPerson JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE status='Full' AND (dateStart IS NULL OR dateStart<='" . date("Y-m-d") . "') AND (dateEnd IS NULL  OR dateEnd>='" . date("Y-m-d") . "') AND gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonYearGroupID=:gibbonYearGroupID" ;
 										$resultStudents=$connection2->prepare($sqlStudents);
 										$resultStudents->execute($dataStudents);
 									}
@@ -445,7 +461,7 @@ else {
 											}
 											catch(PDOException $e) { }
 											while ($rowEmail=$resultEmail->fetch()) {
-												$report = reportAdd($report, $emailReceipt, $rowEmail['gibbonPersonID'], 'Year Group', $t, 'Email', $rowEmail["email"]);
+												$report = reportAdd($report, $emailReceipt, $rowEmail['gibbonPersonID'], 'Year Group', $t, 'Email', $rowEmail["email"], $rowStudents['gibbonPersonID'], Format::name('', $rowStudents['preferredName'], $rowStudents['surname'], 'Student'));
 											}
 										}
 									}
@@ -581,7 +597,7 @@ else {
 								if ($parents=="Y") {
 									try {
 										$dataStudents=array("gibbonSchoolYearID"=>$_SESSION[$guid]["gibbonSchoolYearID"], "gibbonRollGroupID"=>$t);
-										$sqlStudents="SELECT DISTINCT gibbonPerson.gibbonPersonID FROM gibbonPerson JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE status='Full' AND (dateStart IS NULL OR dateStart<='" . date("Y-m-d") . "') AND (dateEnd IS NULL  OR dateEnd>='" . date("Y-m-d") . "') AND gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonRollGroupID=:gibbonRollGroupID" ;
+										$sqlStudents="SELECT DISTINCT gibbonPerson.gibbonPersonID, surname, preferredName FROM gibbonPerson JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE status='Full' AND (dateStart IS NULL OR dateStart<='" . date("Y-m-d") . "') AND (dateEnd IS NULL  OR dateEnd>='" . date("Y-m-d") . "') AND gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonRollGroupID=:gibbonRollGroupID" ;
 										$resultStudents=$connection2->prepare($sqlStudents);
 										$resultStudents->execute($dataStudents);
 									}
@@ -603,7 +619,7 @@ else {
 											}
 											catch(PDOException $e) { }
 											while ($rowEmail=$resultEmail->fetch()) {
-												$report = reportAdd($report, $emailReceipt, $rowEmail['gibbonPersonID'], 'Roll Group', $t, 'Email', $rowEmail["email"]);
+												$report = reportAdd($report, $emailReceipt, $rowEmail['gibbonPersonID'], 'Roll Group', $t, 'Email', $rowEmail["email"], $rowStudents['gibbonPersonID'], Format::name('', $rowStudents['preferredName'], $rowStudents['surname'], 'Student'));
 											}
 										}
 									}
@@ -739,7 +755,7 @@ else {
 								if ($parents=="Y") {
 									try {
 										$dataStudents=array("gibbonCourseID"=>$t);
-										$sqlStudents="SELECT DISTINCT gibbonPerson.gibbonPersonID FROM gibbonPerson JOIN gibbonCourseClassPerson ON (gibbonCourseClassPerson.gibbonPersonID=gibbonPerson.gibbonPersonID) JOIN gibbonCourseClass ON (gibbonCourseClassPerson.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) JOIN gibbonCourse ON (gibbonCourseClass.gibbonCourseID=gibbonCourse.gibbonCourseID) WHERE role='Student' AND status='Full' AND (dateStart IS NULL OR dateStart<='" . date("Y-m-d") . "') AND (dateEnd IS NULL  OR dateEnd>='" . date("Y-m-d") . "') AND gibbonCourse.gibbonCourseID=:gibbonCourseID" ;
+										$sqlStudents="SELECT DISTINCT gibbonPerson.gibbonPersonID, surname, preferredName FROM gibbonPerson JOIN gibbonCourseClassPerson ON (gibbonCourseClassPerson.gibbonPersonID=gibbonPerson.gibbonPersonID) JOIN gibbonCourseClass ON (gibbonCourseClassPerson.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) JOIN gibbonCourse ON (gibbonCourseClass.gibbonCourseID=gibbonCourse.gibbonCourseID) WHERE role='Student' AND status='Full' AND (dateStart IS NULL OR dateStart<='" . date("Y-m-d") . "') AND (dateEnd IS NULL  OR dateEnd>='" . date("Y-m-d") . "') AND gibbonCourse.gibbonCourseID=:gibbonCourseID" ;
 										$resultStudents=$connection2->prepare($sqlStudents);
 										$resultStudents->execute($dataStudents);
 									}
@@ -761,7 +777,7 @@ else {
 											}
 											catch(PDOException $e) { }
 											while ($rowEmail=$resultEmail->fetch()) {
-												$report = reportAdd($report, $emailReceipt, $rowEmail['gibbonPersonID'], 'Course', $t, 'Email', $rowEmail["email"]);
+												$report = reportAdd($report, $emailReceipt, $rowEmail['gibbonPersonID'], 'Course', $t, 'Email', $rowEmail["email"], $rowStudents['gibbonPersonID'], Format::name('', $rowStudents['preferredName'], $rowStudents['surname'], 'Student'));
 											}
 										}
 									}
@@ -923,7 +939,7 @@ else {
 								if ($parents=="Y") {
 									try {
 										$dataStudents=array("gibbonCourseClassID"=>$t);
-										$sqlStudents="SELECT DISTINCT gibbonPerson.gibbonPersonID FROM gibbonPerson JOIN gibbonCourseClassPerson ON (gibbonCourseClassPerson.gibbonPersonID=gibbonPerson.gibbonPersonID) JOIN gibbonCourseClass ON (gibbonCourseClassPerson.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) JOIN gibbonCourse ON (gibbonCourseClass.gibbonCourseID=gibbonCourse.gibbonCourseID) WHERE role='Student' AND status='Full' AND (dateStart IS NULL OR dateStart<='" . date("Y-m-d") . "') AND (dateEnd IS NULL  OR dateEnd>='" . date("Y-m-d") . "') AND gibbonCourseClass.gibbonCourseClassID=:gibbonCourseClassID" ;
+										$sqlStudents="SELECT DISTINCT gibbonPerson.gibbonPersonID, surname, preferredName FROM gibbonPerson JOIN gibbonCourseClassPerson ON (gibbonCourseClassPerson.gibbonPersonID=gibbonPerson.gibbonPersonID) JOIN gibbonCourseClass ON (gibbonCourseClassPerson.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) JOIN gibbonCourse ON (gibbonCourseClass.gibbonCourseID=gibbonCourse.gibbonCourseID) WHERE role='Student' AND status='Full' AND (dateStart IS NULL OR dateStart<='" . date("Y-m-d") . "') AND (dateEnd IS NULL  OR dateEnd>='" . date("Y-m-d") . "') AND gibbonCourseClass.gibbonCourseClassID=:gibbonCourseClassID" ;
 										$resultStudents=$connection2->prepare($sqlStudents);
 										$resultStudents->execute($dataStudents);
 									}
@@ -945,7 +961,7 @@ else {
 											}
 											catch(PDOException $e) { }
 											while ($rowEmail=$resultEmail->fetch()) {
-												$report = reportAdd($report, $emailReceipt, $rowEmail['gibbonPersonID'], 'Class', $t, 'Email', $rowEmail["email"]);
+												$report = reportAdd($report, $emailReceipt, $rowEmail['gibbonPersonID'], 'Class', $t, 'Email', $rowEmail["email"], $rowStudents['gibbonPersonID'], Format::name('', $rowStudents['preferredName'], $rowStudents['surname'], 'Student'));
 											}
 										}
 									}
@@ -1107,7 +1123,7 @@ else {
 								if ($parents=="Y") {
 									try {
 										$dataStudents=array("gibbonActivityID"=>$t);
-										$sqlStudents="SELECT DISTINCT gibbonPerson.gibbonPersonID FROM gibbonPerson JOIN gibbonActivityStudent ON (gibbonActivityStudent.gibbonPersonID=gibbonPerson.gibbonPersonID) JOIN gibbonActivity ON (gibbonActivityStudent.gibbonActivityID=gibbonActivity.gibbonActivityID) WHERE gibbonPerson.status='Full' AND (dateStart IS NULL OR dateStart<='" . date("Y-m-d") . "') AND (dateEnd IS NULL  OR dateEnd>='" . date("Y-m-d") . "') AND gibbonActivityStudent.status='Accepted' AND gibbonActivity.gibbonActivityID=:gibbonActivityID" ;
+										$sqlStudents="SELECT DISTINCT gibbonPerson.gibbonPersonID, surname, preferredName FROM gibbonPerson JOIN gibbonActivityStudent ON (gibbonActivityStudent.gibbonPersonID=gibbonPerson.gibbonPersonID) JOIN gibbonActivity ON (gibbonActivityStudent.gibbonActivityID=gibbonActivity.gibbonActivityID) WHERE gibbonPerson.status='Full' AND (dateStart IS NULL OR dateStart<='" . date("Y-m-d") . "') AND (dateEnd IS NULL  OR dateEnd>='" . date("Y-m-d") . "') AND gibbonActivityStudent.status='Accepted' AND gibbonActivity.gibbonActivityID=:gibbonActivityID" ;
 										$resultStudents=$connection2->prepare($sqlStudents);
 										$resultStudents->execute($dataStudents);
 									}
@@ -1129,7 +1145,7 @@ else {
 											}
 											catch(PDOException $e) { }
 											while ($rowEmail=$resultEmail->fetch()) {
-												$report = reportAdd($report, $emailReceipt, $rowEmail['gibbonPersonID'], 'Activity', $t, 'Email', $rowEmail["email"]);
+												$report = reportAdd($report, $emailReceipt, $rowEmail['gibbonPersonID'], 'Activity', $t, 'Email', $rowEmail["email"], $rowStudents['gibbonPersonID'], Format::name('', $rowStudents['preferredName'], $rowStudents['surname'], 'Student'));
 											}
 										}
 									}
@@ -1216,7 +1232,9 @@ else {
 
 			//Applicants
 			if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_applicants")) {
-				if ($_POST["applicants"]=="Y") {
+				if ($_POST["applicants"] == "Y") {
+					$applicantsWhere = "AND NOT status IN ('Waiting List', 'Rejected', 'Withdrawn', 'Pending')";
+
 					$choices=$_POST["applicantList"] ;
 					if ($choices!="") {
 						foreach ($choices as $t) {
@@ -1234,7 +1252,7 @@ else {
 								//Get applicant emails
 								try {
 									$dataEmail=array("gibbonSchoolYearIDEntry"=>$t);
-									$sqlEmail="SELECT DISTINCT email FROM gibbonApplicationForm WHERE NOT email='' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry AND NOT status='Rejected' AND NOT status='Withdrawn'" ;
+									$sqlEmail="SELECT DISTINCT email FROM gibbonApplicationForm WHERE NOT email='' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry $applicantsWhere" ;
 									$resultEmail=$connection2->prepare($sqlEmail);
 									$resultEmail->execute($dataEmail);
 								}
@@ -1246,31 +1264,31 @@ else {
 								//Get parent 1 emails
 								try {
 									$dataEmail=array("gibbonSchoolYearIDEntry"=>$t);
-									$sqlEmail="SELECT DISTINCT parent1email FROM gibbonApplicationForm WHERE NOT parent1email='' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry AND NOT status='Rejected' AND NOT status='Withdrawn'" ;
+									$sqlEmail="SELECT DISTINCT parent1email FROM gibbonApplicationForm WHERE NOT parent1email='' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry $applicantsWhere" ;
 									$resultEmail=$connection2->prepare($sqlEmail);
 									$resultEmail->execute($dataEmail);
 								}
 								catch(PDOException $e) { }
 								while ($rowEmail=$resultEmail->fetch()) {
-									$report = reportAdd($report, $emailReceipt, NULL, 'Applicants', $t, 'Email', $rowEmail["email"]);
+									$report = reportAdd($report, $emailReceipt, NULL, 'Applicants', $t, 'Email', $rowEmail["parent1email"]);
 								}
 
 								//Get parent 2 emails
 								try {
 									$dataEmail=array("gibbonSchoolYearIDEntry"=>$t);
-									$sqlEmail="SELECT DISTINCT parent2email FROM gibbonApplicationForm WHERE NOT parent2email='' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry AND NOT status='Rejected' AND NOT status='Withdrawn'" ;
+									$sqlEmail="SELECT DISTINCT parent2email FROM gibbonApplicationForm WHERE NOT parent2email='' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry $applicantsWhere" ;
 									$resultEmail=$connection2->prepare($sqlEmail);
 									$resultEmail->execute($dataEmail);
 								}
 								catch(PDOException $e) { }
 								while ($rowEmail=$resultEmail->fetch()) {
-									$report = reportAdd($report, $emailReceipt, NULL, 'Applicants', $t, 'Email', $rowEmail["email"]);
+									$report = reportAdd($report, $emailReceipt, NULL, 'Applicants', $t, 'Email', $rowEmail["parent2email"]);
 								}
 
 								//Get parent ID emails (when no family in system, but user is in system)
 								try {
 									$dataEmail=array("gibbonSchoolYearIDEntry"=>$t);
-									$sqlEmail="SELECT gibbonPerson.email, gibbonPerson.gibbonPersonID FROM gibbonApplicationForm JOIN gibbonPerson ON (gibbonApplicationForm.parent1gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE NOT parent1gibbonPersonID='' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry AND NOT gibbonApplicationForm.status='Rejected' AND NOT gibbonApplicationForm.status='Withdrawn'" ;
+									$sqlEmail="SELECT gibbonPerson.email, gibbonPerson.gibbonPersonID FROM gibbonApplicationForm JOIN gibbonPerson ON (gibbonApplicationForm.parent1gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE NOT parent1gibbonPersonID='' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry $applicantsWhere" ;
 									$resultEmail=$connection2->prepare($sqlEmail);
 									$resultEmail->execute($dataEmail);
 								}
@@ -1282,7 +1300,7 @@ else {
 								//Get family emails
 								try {
 									$dataEmail=array("gibbonSchoolYearIDEntry"=>$t);
-									$sqlEmail="SELECT * FROM gibbonApplicationForm WHERE NOT gibbonFamilyID='' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry AND NOT gibbonApplicationForm.status='Rejected' AND NOT gibbonApplicationForm.status='Withdrawn'" ;
+									$sqlEmail="SELECT * FROM gibbonApplicationForm WHERE NOT gibbonFamilyID='' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry $applicantsWhere" ;
 									$resultEmail=$connection2->prepare($sqlEmail);
 									$resultEmail->execute($dataEmail);
 								}
@@ -1304,8 +1322,8 @@ else {
 								//Get applicant phone numbers
 								try {
 									$dataEmail=array("gibbonSchoolYearIDEntry"=>$t);
-									$sqlEmail="(SELECT phone1 AS phone, phone1CountryCode AS countryCode FROM gibbonApplicationForm WHERE NOT phone1='' AND phone1Type='Mobile' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry AND NOT status='Rejected' AND NOT status='Withdrawn')" ;
-									$sqlEmail.=" UNION (SELECT phone2 AS phone, phone2CountryCode AS countryCode FROM gibbonApplicationForm WHERE NOT phone2='' AND phone2Type='Mobile' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry AND NOT status='Rejected' AND NOT status='Withdrawn')" ;
+									$sqlEmail="(SELECT phone1 AS phone, phone1CountryCode AS countryCode FROM gibbonApplicationForm WHERE NOT phone1='' AND phone1Type='Mobile' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry $applicantsWhere)" ;
+									$sqlEmail.=" UNION (SELECT phone2 AS phone, phone2CountryCode AS countryCode FROM gibbonApplicationForm WHERE NOT phone2='' AND phone2Type='Mobile' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry $applicantsWhere)" ;
 									$resultEmail=$connection2->prepare($sqlEmail);
 									$resultEmail->execute($dataEmail);
 								}
@@ -1320,8 +1338,8 @@ else {
 								//Get parent 1 numbers
 								try {
 									$dataEmail=array("gibbonSchoolYearIDEntry"=>$t);
-									$sqlEmail="(SELECT CONCAT(parent1phone1CountryCode,parent1phone1) AS phone FROM gibbonApplicationForm WHERE NOT parent1phone1='' AND parent1phone1Type='Mobile' AND parent1phone1CountryCode='$countryCode' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry AND NOT status='Rejected' AND NOT status='Withdrawn')" ;
-									$sqlEmail.=" UNION (SELECT CONCAT(parent1phone2CountryCode,parent1phone2) AS phone FROM gibbonApplicationForm WHERE NOT parent1phone2='' AND parent1phone2Type='Mobile' AND parent1phone2CountryCode='$countryCode' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry AND NOT status='Rejected' AND NOT status='Withdrawn')" ;
+									$sqlEmail="(SELECT CONCAT(parent1phone1CountryCode,parent1phone1) AS phone, parent1phone1CountryCode AS countryCode FROM gibbonApplicationForm WHERE NOT parent1phone1='' AND parent1phone1Type='Mobile' AND parent1phone1CountryCode='$countryCode' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry $applicantsWhere)" ;
+									$sqlEmail.=" UNION (SELECT CONCAT(parent1phone2CountryCode,parent1phone2) AS phone, parent1phone2CountryCode AS countryCode FROM gibbonApplicationForm WHERE NOT parent1phone2='' AND parent1phone2Type='Mobile' AND parent1phone2CountryCode='$countryCode' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry $applicantsWhere)" ;
 									$resultEmail=$connection2->prepare($sqlEmail);
 									$resultEmail->execute($dataEmail);
 								}
@@ -1336,8 +1354,8 @@ else {
 								//Get parent 2 numbers
 								try {
 									$dataEmail=array("gibbonSchoolYearIDEntry"=>$t);
-									$sqlEmail="(SELECT CONCAT(parent2phone1CountryCode,parent2phone1) AS phone FROM gibbonApplicationForm WHERE NOT parent2phone1='' AND parent2phone1Type='Mobile' AND parent2phone1CountryCode='$countryCode' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry AND NOT status='Rejected' AND NOT status='Withdrawn')" ;
-									$sqlEmail.=" UNION (SELECT CONCAT(parent2phone2CountryCode,parent2phone2) AS phone FROM gibbonApplicationForm WHERE NOT parent2phone2='' AND parent2phone2Type='Mobile' AND parent2phone2CountryCode='$countryCode' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry AND NOT status='Rejected' AND NOT status='Withdrawn')" ;
+									$sqlEmail="(SELECT CONCAT(parent2phone1CountryCode,parent2phone1) AS phone, parent2phone1CountryCode AS countryCode FROM gibbonApplicationForm WHERE NOT parent2phone1='' AND parent2phone1Type='Mobile' AND parent2phone1CountryCode='$countryCode' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry $applicantsWhere)" ;
+									$sqlEmail.=" UNION (SELECT CONCAT(parent2phone2CountryCode,parent2phone2) AS phone, parent2phone2CountryCode AS countryCode FROM gibbonApplicationForm WHERE NOT parent2phone2='' AND parent2phone2Type='Mobile' AND parent2phone2CountryCode='$countryCode' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry $applicantsWhere)" ;
 									$resultEmail=$connection2->prepare($sqlEmail);
 									$resultEmail->execute($dataEmail);
 								}
@@ -1352,10 +1370,10 @@ else {
 								//Get parent ID numbers (when no family in system, but user is in system)
 								try {
 									$dataEmail=array("gibbonSchoolYearIDEntry"=>$t);
-									$sqlEmail="(SELECT CONCAT(gibbonPerson.phone1CountryCode,gibbonPerson.phone1) AS phone, gibbonPerson.gibbonPersonID FROM gibbonApplicationForm JOIN gibbonPerson ON (gibbonApplicationForm.parent1gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE NOT gibbonPerson.phone1='' AND gibbonPerson.phone1Type='Mobile' AND gibbonPerson.phone1CountryCode='$countryCode' AND NOT parent1gibbonPersonID='' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry AND NOT gibbonApplicationForm.status='Rejected' AND NOT gibbonApplicationForm.status='Withdrawn')" ;
-									$sqlEmail.=" UNION (SELECT CONCAT(gibbonPerson.phone2CountryCode,gibbonPerson.phone2) AS phone, gibbonPerson.gibbonPersonID FROM gibbonApplicationForm JOIN gibbonPerson ON (gibbonApplicationForm.parent1gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE NOT gibbonPerson.phone2='' AND gibbonPerson.phone2Type='Mobile' AND gibbonPerson.phone2CountryCode='$countryCode' AND NOT parent1gibbonPersonID='' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry AND NOT gibbonApplicationForm.status='Rejected' AND NOT gibbonApplicationForm.status='Withdrawn')" ;
-									$sqlEmail.=" UNION (SELECT CONCAT(gibbonPerson.phone3CountryCode,gibbonPerson.phone3) AS phone, gibbonPerson.gibbonPersonID FROM gibbonApplicationForm JOIN gibbonPerson ON (gibbonApplicationForm.parent1gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE NOT gibbonPerson.phone3='' AND gibbonPerson.phone3Type='Mobile' AND gibbonPerson.phone3CountryCode='$countryCode' AND NOT parent1gibbonPersonID='' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry AND NOT gibbonApplicationForm.status='Rejected' AND NOT gibbonApplicationForm.status='Withdrawn')" ;
-									$sqlEmail.=" UNION (SELECT CONCAT(gibbonPerson.phone4CountryCode,gibbonPerson.phone4) AS phone, gibbonPerson.gibbonPersonID FROM gibbonApplicationForm JOIN gibbonPerson ON (gibbonApplicationForm.parent1gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE NOT gibbonPerson.phone4='' AND gibbonPerson.phone4Type='Mobile' AND gibbonPerson.phone4CountryCode='$countryCode' AND NOT parent1gibbonPersonID='' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry AND NOT gibbonApplicationForm.status='Rejected' AND NOT gibbonApplicationForm.status='Withdrawn')" ;
+									$sqlEmail="(SELECT CONCAT(gibbonPerson.phone1CountryCode,gibbonPerson.phone1) AS phone, gibbonPerson.gibbonPersonID FROM gibbonApplicationForm JOIN gibbonPerson ON (gibbonApplicationForm.parent1gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE NOT gibbonPerson.phone1='' AND gibbonPerson.phone1Type='Mobile' AND gibbonPerson.phone1CountryCode='$countryCode' AND NOT parent1gibbonPersonID='' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry $applicantsWhere)" ;
+									$sqlEmail.=" UNION (SELECT CONCAT(gibbonPerson.phone2CountryCode,gibbonPerson.phone2) AS phone, gibbonPerson.gibbonPersonID FROM gibbonApplicationForm JOIN gibbonPerson ON (gibbonApplicationForm.parent1gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE NOT gibbonPerson.phone2='' AND gibbonPerson.phone2Type='Mobile' AND gibbonPerson.phone2CountryCode='$countryCode' AND NOT parent1gibbonPersonID='' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry $applicantsWhere)" ;
+									$sqlEmail.=" UNION (SELECT CONCAT(gibbonPerson.phone3CountryCode,gibbonPerson.phone3) AS phone, gibbonPerson.gibbonPersonID FROM gibbonApplicationForm JOIN gibbonPerson ON (gibbonApplicationForm.parent1gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE NOT gibbonPerson.phone3='' AND gibbonPerson.phone3Type='Mobile' AND gibbonPerson.phone3CountryCode='$countryCode' AND NOT parent1gibbonPersonID='' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry $applicantsWhere)" ;
+									$sqlEmail.=" UNION (SELECT CONCAT(gibbonPerson.phone4CountryCode,gibbonPerson.phone4) AS phone, gibbonPerson.gibbonPersonID FROM gibbonApplicationForm JOIN gibbonPerson ON (gibbonApplicationForm.parent1gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE NOT gibbonPerson.phone4='' AND gibbonPerson.phone4Type='Mobile' AND gibbonPerson.phone4CountryCode='$countryCode' AND NOT parent1gibbonPersonID='' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry $applicantsWhere)" ;
 									$resultEmail=$connection2->prepare($sqlEmail);
 									$resultEmail->execute($dataEmail);
 								}
@@ -1370,7 +1388,7 @@ else {
 								//Get family numbers
 								try {
 									$dataEmail=array("gibbonSchoolYearIDEntry"=>$t);
-									$sqlEmail="SELECT * FROM gibbonApplicationForm WHERE NOT gibbonFamilyID='' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry AND NOT gibbonApplicationForm.status='Rejected' AND NOT gibbonApplicationForm.status='Withdrawn'" ;
+									$sqlEmail="SELECT * FROM gibbonApplicationForm WHERE NOT gibbonFamilyID='' AND gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry $applicantsWhere" ;
 									$resultEmail=$connection2->prepare($sqlEmail);
 									$resultEmail->execute($dataEmail);
 								}
@@ -1501,7 +1519,7 @@ else {
 								if ($parents=="Y") {
 									try {
 										$dataStudents=array("gibbonSchoolYearID"=>$_SESSION[$guid]["gibbonSchoolYearID"], "transport"=>$t);
-										$sqlStudents="SELECT gibbonPerson.gibbonPersonID FROM gibbonPerson JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE status='Full' AND (dateStart IS NULL OR dateStart<='" . date("Y-m-d") . "') AND (dateEnd IS NULL  OR dateEnd>='" . date("Y-m-d") . "') AND gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID AND transport=:transport" ;
+										$sqlStudents="SELECT gibbonPerson.gibbonPersonID, surname, preferredName FROM gibbonPerson JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE status='Full' AND (dateStart IS NULL OR dateStart<='" . date("Y-m-d") . "') AND (dateEnd IS NULL  OR dateEnd>='" . date("Y-m-d") . "') AND gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID AND transport=:transport" ;
 										$resultStudents=$connection2->prepare($sqlStudents);
 										$resultStudents->execute($dataStudents);
 									}
@@ -1523,7 +1541,7 @@ else {
 											}
 											catch(PDOException $e) { }
 											while ($rowEmail=$resultEmail->fetch()) {
-												$report = reportAdd($report, $emailReceipt, $rowEmail['gibbonPersonID'], 'Transport', $t, 'Email', $rowEmail["email"]);
+												$report = reportAdd($report, $emailReceipt, $rowEmail['gibbonPersonID'], 'Transport', $t, 'Email', $rowEmail["email"], $rowStudents['gibbonPersonID'], Format::name('', $rowStudents['preferredName'], $rowStudents['surname'], 'Student'));
 											}
 										}
 									}
@@ -1636,10 +1654,7 @@ else {
                         }
                         catch(PDOException $e) { }
 
-                        if ($result->rowCount()<1) { //Check we have some attendance logs for this date
-                        //No attendance data
-                        }
-                        else { //Log the personIDs of the students whose latest attendance log is in list of choices submitted by user
+                        if ($result->rowCount()>=1) { //Log the personIDs of the students whose latest attendance log is in list of choices submitted by user
                           $selectedStudents=array();
                           $currentStudent="";
                           $lastStudent="";
@@ -1651,47 +1666,46 @@ else {
                             $lastStudent=$currentStudent ;
                           }
 
-                          if (count($selectedStudents)<1) {
-                          //If we have no students
-                          }
-                          else {
-                            if ($parents=="Y" AND ($email=="Y" OR ($sms=="Y" AND $countryCode!=""))) {
-                              try { //Get the familyIDs for each student logged
-                                $dataFamily=array();
-                                $sqlFamily="SELECT DISTINCT gibbonFamilyID FROM gibbonFamilyChild WHERE gibbonPersonID IN (".implode(",",$selectedStudents).")" ;
-                                $resultFamily=$connection2->prepare($sqlFamily);
-                                $resultFamily->execute($dataFamily);
-
-                                $resultFamilies = $resultFamily->fetchAll();
-                              }
-                              catch(PDOException $e) { }
-                            }
-
+                          if (count($selectedStudents)>=1) {
                             //Get emails
                             if ($email=="Y") {
                               if ($parents=="Y") {
-                                foreach ($resultFamilies as $rowFamily) { //Get the emails for each familyID
-                                  try {
-                                    $dataEmail=array("gibbonFamilyID"=>$rowFamily["gibbonFamilyID"] );
-                                    $sqlEmail="SELECT DISTINCT email, gibbonPerson.gibbonPersonID FROM gibbonPerson JOIN gibbonFamilyAdult ON (gibbonFamilyAdult.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE NOT email='' AND status='Full' AND gibbonFamilyAdult.gibbonFamilyID=:gibbonFamilyID AND contactEmail='Y'" ;
-                                    $resultEmail=$connection2->prepare($sqlEmail);
-                                    $resultEmail->execute($dataEmail);
-                                  }
-                                  catch(PDOException $e) { }
-                                  while ($rowEmail=$resultEmail->fetch()) { //Add emails to list of receivers
-                                    $report = reportAdd($report, $emailReceipt, $rowEmail['gibbonPersonID'], 'Attendance', $t, 'Email', $rowEmail["email"]);
-                                  }
+								try {
+									$dataEmail=array("gibbonSchoolYearID"=>$_SESSION[$guid]["gibbonSchoolYearID"], "gibbonPersonIDs"=>implode(",",$selectedStudents));
+									$sqlEmail="SELECT DISTINCT parent.email, parent.gibbonPersonID, student.gibbonPersonID AS gibbonPersonIDStudent, student.surname, student.preferredName
+										FROM gibbonPerson AS student
+											JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=student.gibbonPersonID)
+											JOIN gibbonFamilyChild ON (gibbonFamilyChild.gibbonPersonID=student.gibbonPersonID)
+											JOIN gibbonFamily ON (gibbonFamilyChild.gibbonFamilyID=gibbonFamily.gibbonFamilyID)
+											JOIN gibbonFamilyAdult ON (gibbonFamilyAdult.gibbonFamilyID=gibbonFamily.gibbonFamilyID)
+											JOIN gibbonPerson AS parent ON (gibbonFamilyAdult.gibbonPersonID=parent.gibbonPersonID)
+										WHERE
+											NOT parent.email=''
+											AND student.status='Full'
+											AND (student.dateStart IS NULL OR student.dateStart<='" . date("Y-m-d") . "')
+											AND (student.dateEnd IS NULL  OR student.dateEnd>='" . date("Y-m-d") . "')
+											AND gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID
+											AND FIND_IN_SET(student.gibbonPersonID, :gibbonPersonIDs)
+											AND parent.status='Full'
+											AND contactEmail='Y'" ;
+									$resultEmail=$connection2->prepare($sqlEmail);
+									$resultEmail->execute($dataEmail);
+								}
+								catch(PDOException $e) { echo $e->getMessage();}
+
+								while ($rowEmail=$resultEmail->fetch()) { //Add emails to list of receivers
+									$report = reportAdd($report, $emailReceipt, $rowEmail['gibbonPersonID'], 'Attendance', $t, 'Email', $rowEmail["email"], $rowEmail['gibbonPersonIDStudent'], Format::name('', $rowEmail['preferredName'], $rowEmail['surname'], 'Student'));
                                 }
                               }
                               if ($students=="Y") {
                                 try { //Get the email for each student
-                                  $dataEmail=array("gibbonSchoolYearID"=>$_SESSION[$guid]["gibbonSchoolYearID"], "gibbonPersonIDs"=>join(",",$selectedStudents));
-                                  $sqlEmail="SELECT DISTINCT email, gibbonPerson.gibbonPersonID FROM gibbonPerson JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE NOT email='' AND status='Full' AND (dateStart IS NULL OR dateStart<='" . date("Y-m-d") . "') AND (dateEnd IS NULL  OR dateEnd>='" . date("Y-m-d") . "') AND gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonPerson.gibbonPersonID IN (:gibbonPersonIDs)" ;
+                                  $dataEmail=array("gibbonSchoolYearID"=>$_SESSION[$guid]["gibbonSchoolYearID"], "gibbonPersonIDs"=>implode(",", $selectedStudents));
+                                  $sqlEmail="SELECT DISTINCT email, gibbonPerson.gibbonPersonID FROM gibbonPerson JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE NOT email='' AND status='Full' AND (dateStart IS NULL OR dateStart<='" . date("Y-m-d") . "') AND (dateEnd IS NULL  OR dateEnd>='" . date("Y-m-d") . "') AND gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonPerson.gibbonPersonID AND FIND_IN_SET(gibbonPerson.gibbonPersonID, :gibbonPersonIDs)";
                                   $resultEmail=$connection2->prepare($sqlEmail);
                                   $resultEmail->execute($dataEmail);
                                 }
                                 catch(PDOException $e) { }
-                                while ($rowEmail=$resultEmail->fetch()) { //Add emails to list of receivers
+								while ($rowEmail=$resultEmail->fetch()) { //Add emails to list of receivers
                                   $report = reportAdd($report, $emailReceipt, $rowEmail['gibbonPersonID'], 'Attendance', $t, 'Email', $rowEmail["email"]);
                                 }
                               }
@@ -1699,6 +1713,15 @@ else {
                             //Get SMS
                             if ($sms=="Y" AND $countryCode!="") {
                               if ($parents=="Y") {
+								try { //Get the familyIDs for each student logged
+								$dataFamily=array();
+								$sqlFamily="SELECT DISTINCT gibbonFamilyID FROM gibbonFamilyChild WHERE gibbonPersonID IN (".implode(",",$selectedStudents).")" ;
+								$resultFamily=$connection2->prepare($sqlFamily);
+								$resultFamily->execute($dataFamily);
+								$resultFamilies = $resultFamily->fetchAll();
+								}
+								catch(PDOException $e) { }
+
                                 foreach ($resultFamilies as $rowFamily) { //Get the people for each familyID
                                   try {
                                     $dataPerson=array("gibbonFamilyID"=>$rowFamily["gibbonFamilyID"] );
@@ -1720,9 +1743,9 @@ else {
                                     catch(PDOException $e) { }
                                     while ($rowSMS=$resultSMS->fetch()) {
 										$countryCodeTemp = $countryCode;
-	  									  if ($rowEmail["countryCode"]=="")
-	  										  $countryCodeTemp = $rowEmail["countryCode"];
-	  									  $report = reportAdd($report, $emailReceipt, $rowEmail['gibbonPersonID'], 'Role', $t, 'Attendance', $countryCodeTemp.$rowEmail["phone"]);
+	  									  if ($rowSMS["countryCode"]=="")
+	  										  $countryCodeTemp = $rowSMS["countryCode"];
+	  									  $report = reportAdd($report, $emailReceipt, $rowSMS['gibbonPersonID'], 'Attendance', $t, 'SMS', $countryCodeTemp.$rowSMS["phone"]);
                                     }
                                   }
                                 }
@@ -1742,9 +1765,9 @@ else {
                                 catch(PDOException $e) { }
                                 while ($rowSMS=$resultSMS->fetch()) {
 									$countryCodeTemp = $countryCode;
-	   								 if ($rowEmail["countryCode"]=="")
-	   									 $countryCodeTemp = $rowEmail["countryCode"];
-	   								 $report = reportAdd($report, $emailReceipt, $rowEmail['gibbonPersonID'], 'Attendance', $t, 'SMS', $countryCodeTemp.$rowEmail["phone"]);
+	   								 if ($rowSMS["countryCode"]=="")
+	   									 $countryCodeTemp = $rowSMS["countryCode"];
+	   								 $report = reportAdd($report, $emailReceipt, $rowSMS['gibbonPersonID'], 'Attendance', $t, 'SMS', $countryCodeTemp.$rowSMS["phone"]);
                                 }
                               }
                             } //END SMS
@@ -1806,15 +1829,41 @@ else {
 								if ($parents=="Y") {
 									try {
 										$dataEmail=array("gibbonGroupID"=>$t, 'gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], "gibbonGroupID2"=>$t);
-										$sqlEmail="(SELECT DISTINCT email, gibbonPerson.gibbonPersonID FROM gibbonPerson JOIN gibbonGroupPerson ON (gibbonGroupPerson.gibbonPersonID=gibbonPerson.gibbonPersonID) JOIN gibbonGroup ON (gibbonGroupPerson.gibbonGroupID=gibbonGroup.gibbonGroupID) JOIN gibbonFamilyAdult ON (gibbonFamilyAdult.gibbonPersonID=gibbonPerson.gibbonPersonID) JOIN gibbonFamily ON (gibbonFamilyAdult.gibbonFamilyID=gibbonFamily.gibbonFamilyID) WHERE NOT email='' AND contactEmail='Y' AND gibbonPerson.status='Full' AND gibbonGroup.gibbonGroupID=:gibbonGroupID)
+										$sqlEmail="(SELECT DISTINCT email, gibbonPerson.gibbonPersonID, NULL AS gibbonPersonIDStudent, NULL AS surname, NULL AS preferredName
+											FROM gibbonPerson
+												JOIN gibbonGroupPerson ON (gibbonGroupPerson.gibbonPersonID=gibbonPerson.gibbonPersonID)
+												JOIN gibbonGroup ON (gibbonGroupPerson.gibbonGroupID=gibbonGroup.gibbonGroupID)
+												JOIN gibbonFamilyAdult ON (gibbonFamilyAdult.gibbonPersonID=gibbonPerson.gibbonPersonID)
+												JOIN gibbonFamily ON (gibbonFamilyAdult.gibbonFamilyID=gibbonFamily.gibbonFamilyID)
+											WHERE
+												NOT email=''
+												AND contactEmail='Y'
+												AND gibbonPerson.status='Full'
+												AND gibbonGroup.gibbonGroupID=:gibbonGroupID)
 											UNION
-											(SELECT DISTINCT email, gibbonPerson.gibbonPersonID FROM gibbonGroupPerson JOIN gibbonGroup ON (gibbonGroupPerson.gibbonGroupID=gibbonGroup.gibbonGroupID) JOIN gibbonFamilyChild ON (gibbonFamilyChild.gibbonPersonID=gibbonGroupPerson.gibbonPersonID) JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=gibbonFamilyChild.gibbonPersonID) JOIN gibbonFamily ON (gibbonFamilyChild.gibbonFamilyID=gibbonFamily.gibbonFamilyID) JOIN gibbonFamilyAdult ON (gibbonFamilyAdult.gibbonFamilyID=gibbonFamily.gibbonFamilyID) JOIN gibbonPerson ON (gibbonFamilyAdult.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE NOT email='' AND contactEmail='Y' AND gibbonPerson.status='Full' AND gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonGroup.gibbonGroupID=:gibbonGroupID2)" ;
+											(SELECT DISTINCT parent.email, parent.gibbonPersonID, student.gibbonPersonID AS gibbonPersonIDStudent, student.surname, student.preferredName
+												FROM gibbonGroupPerson
+													JOIN gibbonGroup ON (gibbonGroupPerson.gibbonGroupID=gibbonGroup.gibbonGroupID)
+													JOIN gibbonFamilyChild ON (gibbonFamilyChild.gibbonPersonID=gibbonGroupPerson.gibbonPersonID)
+													JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=gibbonFamilyChild.gibbonPersonID)
+													JOIN gibbonPerson AS student ON (gibbonStudentEnrolment.gibbonPersonID=student.gibbonPersonID)
+													JOIN gibbonFamily ON (gibbonFamilyChild.gibbonFamilyID=gibbonFamily.gibbonFamilyID)
+													JOIN gibbonFamilyAdult ON (gibbonFamilyAdult.gibbonFamilyID=gibbonFamily.gibbonFamilyID)
+													JOIN gibbonPerson AS parent ON (gibbonFamilyAdult.gibbonPersonID=parent.gibbonPersonID)
+												WHERE
+													NOT parent.email=''
+													AND contactEmail='Y'
+													AND parent.status='Full'
+													AND gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID
+													AND gibbonGroup.gibbonGroupID=:gibbonGroupID2)" ;
 										$resultEmail=$connection2->prepare($sqlEmail);
 										$resultEmail->execute($dataEmail);
 									}
-									catch(PDOException $e) {}
+									catch(PDOException $e) { }
+
 									while ($rowEmail=$resultEmail->fetch()) {
-										$report = reportAdd($report, $emailReceipt, $rowEmail['gibbonPersonID'], 'Group', $t, 'Email', $rowEmail["email"]);
+										$paddedID = ($rowEmail['gibbonPersonIDStudent'] == '') ? NULL : str_pad($rowEmail['gibbonPersonIDStudent'], 10, '0', STR_PAD_LEFT);
+										$report = reportAdd($report, $emailReceipt, $rowEmail['gibbonPersonID'], 'Group', $t, 'Email', $rowEmail["email"], $paddedID, Format::name('', $rowEmail['preferredName'], $rowEmail['surname'], 'Student'));
 									}
 								}
 							}
@@ -1997,6 +2046,7 @@ else {
 						$emailCount ++;
 						$mail->ClearAddresses();
 						$mail->AddAddress($reportEntry[4]);
+
 						//Deal with email receipt and body finalisation
 						if ($emailReceipt == 'Y') {
 							$bodyReadReceipt = "<a target='_blank' href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Messenger/messenger_emailReceiptConfirm.php&gibbonMessengerID=$AI&gibbonPersonID=".$reportEntry[0]."&key=".$reportEntry[5]."'>".$emailReceiptText."</a>";
@@ -2010,6 +2060,26 @@ else {
 						else {
 							$bodyOut = $body;
 						}
+
+						//Deal with student names
+						if ($individualNaming == "Y") {
+							$studentNames = '';
+							if ($reportEntry[7] != '') {
+								$lastComma = strrpos($reportEntry[7], ',');
+								if ($lastComma != false) {
+									$reportEntry[7] = substr_replace($reportEntry[7], ' &', $lastComma, 1);
+									$studentNames = '<i>'.__('This email relates to the following students: ').$reportEntry[7].'</i><br/><br/>';
+								}
+								else {
+									$studentNames = '<i>'.__('This email relates to the following student: ').$reportEntry[7].'</i><br/><br/>';
+								}
+							}
+							$bodyOut = $studentNames.$bodyOut;
+                        }
+                        
+                        // Turn copy-pasted div breaks into paragraph breaks
+                        $bodyOut = str_replace(['<div ', '<div>', '</div>'], ['<p ', '<p>', '</p>'], $bodyOut);
+
 						$mail->renderBody('mail/email.twig.html', [
 							'title'  => $subject,
 							'body'   => $bodyOut
@@ -2034,7 +2104,7 @@ else {
                         $mail->AddBCC($recipient, '');
                     }
 
-                    $sender = formatName('', $_SESSION[$guid]['preferredName'], $_SESSION[$guid]['surname'], 'Staff');
+                    $sender = Format::name('', $_SESSION[$guid]['preferredName'], $_SESSION[$guid]['surname'], 'Staff');
                     $date = dateConvertBack($guid, date('Y-m-d')).' '.date('H:i:s');
 
                     $mail->renderBody('mail/email.twig.html', [
@@ -2077,10 +2147,11 @@ else {
 			foreach ($report as $reportEntry) {
 				try {
 					$confirmed = null ;
-					if ($reportEntry[5] != '')
+					if ($reportEntry[5] != '') {
 						$confirmed = 'N';
-					$data=array("gibbonMessengerID"=>$AI, "gibbonPersonID"=>$reportEntry[0], "targetType"=>$reportEntry[1], "targetID"=>$reportEntry[2], "contactType"=>$reportEntry[3], "contactDetail"=>$reportEntry[4], "key"=>$reportEntry[5], "confirmed" => $confirmed);
-					$sql="INSERT INTO gibbonMessengerReceipt SET gibbonMessengerID=:gibbonMessengerID, gibbonPersonID=:gibbonPersonID, targetType=:targetType, targetID=:targetID, contactType=:contactType, contactDetail=:contactDetail, `key`=:key, confirmed=:confirmed" ;
+					}
+					$data=array("gibbonMessengerID"=>$AI, "gibbonPersonID"=>$reportEntry[0], "targetType"=>$reportEntry[1], "targetID"=>$reportEntry[2], "contactType"=>$reportEntry[3], "contactDetail"=>$reportEntry[4], "key"=>$reportEntry[5], "confirmed" => $confirmed, "gibbonPersonIDListStudent" => $reportEntry[6]);
+					$sql="INSERT INTO gibbonMessengerReceipt SET gibbonMessengerID=:gibbonMessengerID, gibbonPersonID=:gibbonPersonID, targetType=:targetType, targetID=:targetID, contactType=:contactType, contactDetail=:contactDetail, `key`=:key, confirmed=:confirmed, gibbonPersonIDListStudent=:gibbonPersonIDListStudent" ;
 					$result=$connection2->prepare($sql);
 					$result->execute($data);
 				}

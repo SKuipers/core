@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Domain\Activities\ActivityGateway;
@@ -36,7 +37,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
         ->add(__('Edit Activity'));
     
     if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, array('error3' => 'Your request failed due to an attachment error.'));
+        returnProcess($guid, $_GET['return'], null, array('error3' => __('Your request failed due to an attachment error.')));
     }
 
     //Check if school year specified
@@ -192,7 +193,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
                 $table = $form->addRow()->addTable()->addClass('colorOddEven');
 
                 $header = $table->addHeaderRow();
-                $header->addContent(__('Name'));
+                $header->addContent(__('Day'));
                 $header->addContent(__('Time'));
                 $header->addContent(__('Location'));
                 $header->addContent(__('Action'));
@@ -200,66 +201,66 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
                 while ($slot = $results->fetch()) {
                     $row = $table->addRow();
 
-                    $row->addContent($slot['name']);
+                    $row->addContent(__($slot['name']));
                     $row->addContent(substr($slot['timeStart'], 0, 5).' - '.substr($slot['timeEnd'], 0, 5));
-					$row->addContent(!empty($slot['locationInternal'])? $slot['locationInternal'] : $slot['locationExternal']);
-					$row->addWebLink('<img title="'.__('Delete').'" src="./themes/'.$_SESSION[$guid]['gibbonThemeName'].'/img/garbage.png"/></a>')
-						->setURL($_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/activities_manage_edit_slot_deleteProcess.php')
-						->addParam('address', $_GET['q'])
-						->addParam('gibbonActivitySlotID', $slot['gibbonActivitySlotID'])
-						->addParam('gibbonActivityID', $gibbonActivityID)
-						->addParam('search', $search)
-						->addParam('gibbonSchoolYearTermID', $gibbonSchoolYearTermID)
-						->addConfirmation(__('Are you sure you wish to delete this record?'));
+                    $row->addContent(!empty($slot['locationInternal'])? $slot['locationInternal'] : $slot['locationExternal']);
+                    $row->addWebLink('<img title="'.__('Delete').'" src="./themes/'.$_SESSION[$guid]['gibbonThemeName'].'/img/garbage.png"/></a>')
+                            ->setURL($_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/activities_manage_edit_slot_deleteProcess.php')
+                            ->addParam('address', $_GET['q'])
+                            ->addParam('gibbonActivitySlotID', $slot['gibbonActivitySlotID'])
+                            ->addParam('gibbonActivityID', $gibbonActivityID)
+                            ->addParam('search', $search)
+                            ->addParam('gibbonSchoolYearTermID', $gibbonSchoolYearTermID)
+                            ->addConfirmation(__('Are you sure you wish to delete this record?'));
                 }
             }
 
-			$form->addRow()->addHeading(__('New Time Slots'));
+            $form->addRow()->addHeading(__('New Time Slots'));
 
-			$sqlWeekdays = "SELECT gibbonDaysOfWeekID as value, name FROM gibbonDaysOfWeek ORDER BY sequenceNumber";
-			$sqlSpaces = "SELECT gibbonSpaceID as value, name FROM gibbonSpace ORDER BY name";
-			$locations = array(
-				'Internal' => __('Internal'),
-				'External' => __('External'),
-			);
+            $sqlWeekdays = "SELECT gibbonDaysOfWeekID as value, name FROM gibbonDaysOfWeek ORDER BY sequenceNumber";
+            $sqlSpaces = "SELECT gibbonSpaceID as value, name FROM gibbonSpace ORDER BY name";
+            $locations = array(
+                    'Internal' => __('Internal'),
+                    'External' => __('External'),
+            );
 
-			for ($i = 1; $i <= 2; ++$i) {
+            for ($i = 1; $i <= 2; ++$i) {
 				$form->addRow()->addSubheading(__('Slot').' '.$i)->addClass("slotRow{$i}");
-
-				$row = $form->addRow()->addClass("slotRow{$i}");
+           
+                $row = $form->addRow()->addClass("slotRow{$i}");
 					$row->addLabel("gibbonDaysOfWeekID{$i}", sprintf(__('Slot %1$d Day'), $i));
-					$row->addSelect("gibbonDaysOfWeekID{$i}")->fromQuery($pdo, $sqlWeekdays)->placeholder();
+                        $row->addSelect("gibbonDaysOfWeekID{$i}")->fromQuery($pdo, $sqlWeekdays)->placeholder();
 
-				$row = $form->addRow()->addClass("slotRow{$i}");
+                $row = $form->addRow()->addClass("slotRow{$i}");
 					$row->addLabel('timeStart'.$i, sprintf(__('Slot %1$d Start Time'), $i));
 					$row->addTime('timeStart'.$i);
 
-				$row = $form->addRow()->addClass("slotRow{$i}");
-					$row->addLabel("timeEnd{$i}", sprintf(__('Slot %1$d End Time'), $i));
+                $row = $form->addRow()->addClass("slotRow{$i}");
+                        $row->addLabel("timeEnd{$i}", sprintf(__('Slot %1$d End Time'), $i));
 					$row->addTime("timeEnd{$i}")->chainedTo('timeStart'.$i);
 
-				$row = $form->addRow()->addClass("slotRow{$i}");
+                $row = $form->addRow()->addClass("slotRow{$i}");
 					$row->addLabel("slot{$i}Location", sprintf(__('Slot %1$d Location'), $i));
-					$row->addRadio("slot{$i}Location")->fromArray($locations)->inline();
+                        $row->addRadio("slot{$i}Location")->fromArray($locations)->inline();
 
-				$form->toggleVisibilityByClass("slotRow{$i}Internal")->onRadio("slot{$i}Location")->when('Internal');
-				$row = $form->addRow()->addClass("slotRow{$i}Internal");
-					$row->addSelect("gibbonSpaceID{$i}")->fromQuery($pdo, $sqlSpaces)->placeholder();
+                $form->toggleVisibilityByClass("slotRow{$i}Internal")->onRadio("slot{$i}Location")->when('Internal');
+                $row = $form->addRow()->addClass("slotRow{$i}Internal");
+                        $row->addSelect("gibbonSpaceID{$i}")->fromQuery($pdo, $sqlSpaces)->placeholder();
 
-				$form->toggleVisibilityByClass("slotRow{$i}External")->onRadio("slot{$i}Location")->when('External');
-				$row = $form->addRow()->addClass("slotRow{$i}External");
-					$row->addTextField("location{$i}External")->maxLength(50);
+                $form->toggleVisibilityByClass("slotRow{$i}External")->onRadio("slot{$i}Location")->when('External');
+                $row = $form->addRow()->addClass("slotRow{$i}External");
+                        $row->addTextField("location{$i}External")->maxLength(50);
 
-				if ($i == 1) {
-					$form->toggleVisibilityByClass("slot{$i}ButtonRow")->onRadio("slot{$i}Location")->when(array('Internal', 'External'));
-					$row = $form->addRow()->addClass("slotRow{$i} slot{$i}ButtonRow");
-					$row->addButton(__('Add Another Slot'))
-						->onClick("$('.slotRow2').show();$('.slot1ButtonRow').hide();")
-						->addClass('right buttonAsLink');
-				}
-			}
+                if ($i == 1) {
+                        $form->toggleVisibilityByClass("slot{$i}ButtonRow")->onRadio("slot{$i}Location")->when(array('Internal', 'External'));
+                        $row = $form->addRow()->addClass("slotRow{$i} slot{$i}ButtonRow");
+                        $row->addButton(__('Add Another Slot'))
+                                ->onClick("$('.slotRow2').show();$('.slot1ButtonRow').hide();")
+                                ->addClass('right buttonAsLink');
+                }
+            }
 
-			$form->addRow()->addHeading(__('Current Staff'));
+            $form->addRow()->addHeading(__('Current Staff'));
 
             $data = array('gibbonActivityID' => $gibbonActivityID);
             $sql = "SELECT preferredName, surname, gibbonActivityStaff.* FROM gibbonActivityStaff JOIN gibbonPerson ON (gibbonActivityStaff.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonActivityID=:gibbonActivityID AND gibbonPerson.status='Full' ORDER BY surname, preferredName";
@@ -280,16 +281,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
 
                 while ($staff = $results->fetch()) {
                     $row = $table->addRow();
-                    $row->addContent(formatName('', $staff['preferredName'], $staff['surname'], 'Staff', true, true));
-					$row->addContent($staff['role']);
-					$row->addWebLink('<img title="'.__('Delete').'" src="./themes/'.$_SESSION[$guid]['gibbonThemeName'].'/img/garbage.png"/></a>')
-						->setURL($_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/activities_manage_edit_staff_deleteProcess.php')
-						->addParam('address', $_GET['q'])
-						->addParam('gibbonActivityStaffID', $staff['gibbonActivityStaffID'])
-						->addParam('gibbonActivityID', $gibbonActivityID)
-						->addParam('search', $search)
-						->addParam('gibbonSchoolYearTermID', $gibbonSchoolYearTermID)
-						->addConfirmation(__('Are you sure you wish to delete this record?'));
+                        $row->addContent(Format::name('', $staff['preferredName'], $staff['surname'], 'Staff', true, true));
+			$row->addContent(__($staff['role']));
+			$row->addWebLink('<img title="'.__('Delete').'" src="./themes/'.$_SESSION[$guid]['gibbonThemeName'].'/img/garbage.png"/></a>')
+			    ->setURL($_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/activities_manage_edit_staff_deleteProcess.php')
+			    ->addParam('address', $_GET['q'])
+			    ->addParam('gibbonActivityStaffID', $staff['gibbonActivityStaffID'])
+			    ->addParam('gibbonActivityID', $gibbonActivityID)
+			    ->addParam('search', $search)
+			    ->addParam('gibbonSchoolYearTermID', $gibbonSchoolYearTermID)
+			    ->addConfirmation(__('Are you sure you wish to delete this record?'));
                 }
             }
 
@@ -307,7 +308,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
 			);
 
 			$row = $form->addRow();
-				$row->addLabel('role', 'Role');
+				$row->addLabel('role', __('Role'));
 				$row->addSelect('role')->fromArray($staffRoles);
 
 			$row = $form->addRow();

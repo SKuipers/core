@@ -41,15 +41,20 @@ abstract class QueryableGateway extends Gateway
      */
     private static $queryFactory;
 
+    private static $pageSize = null;
+
     /**
      * Creates a new QueryCriteria instance.
      *
      * @param array $values
      * @return QueryCriteria
      */
-    public function newQueryCriteria()
+    public function newQueryCriteria($defaultPageSize = false)
     {
-        return new QueryCriteria();
+        if ($defaultPageSize && is_null(self::$pageSize)) {
+            self::$pageSize = $this->db()->selectOne("SELECT value FROM gibbonSetting WHERE scope='System' AND name='pagination' LIMIT 1");
+        }
+        return (new QueryCriteria())->pageSize($defaultPageSize ? self::$pageSize : 0);
     }
 
     /**
@@ -91,7 +96,7 @@ abstract class QueryableGateway extends Gateway
      */
     protected function runQuery(SelectInterface $query, QueryCriteria $criteria)
     {
-        $query = $this->applyCriteria($query, $criteria);
+        $query = $this->applyCriteria($query, $criteria, true);
 
         $result = $this->db()->select($query->getStatement(), $query->getBindValues());
 
@@ -121,6 +126,16 @@ abstract class QueryableGateway extends Gateway
         return $this->db()->delete($query->getStatement(), $query->getBindValues());
     }
 
+    protected function unionWithCriteria(SelectInterface $query, QueryCriteria $criteria)
+    {
+        return $this->applyCriteria($query, $criteria)->union();
+    }
+
+    protected function unionAllWithCriteria(SelectInterface $query, QueryCriteria $criteria)
+    {
+        return $this->applyCriteria($query, $criteria)->unionAll();
+    }
+
     /**
      * Applies a set of criteria to an existing query and returns the resulting query.
      *
@@ -128,7 +143,7 @@ abstract class QueryableGateway extends Gateway
      * @param QueryCriteria $criteria
      * @return SelectInterface
      */
-    private function applyCriteria(SelectInterface $query, QueryCriteria $criteria)
+    private function applyCriteria(SelectInterface $query, QueryCriteria $criteria, $closeQuery = false)
     {
         $criteria->addFilterRules($this->getDefaultFilterRules($criteria));
 
@@ -145,7 +160,7 @@ abstract class QueryableGateway extends Gateway
         if ($criteria->hasSearchColumn() && $criteria->hasSearchText()) {
             $searchable = $this->getSearchableColumns();
 
-            $query->where(function($query) use ($criteria, $searchable) {
+            $query->where(function ($query) use ($criteria, $searchable) {
                 $searchText = $criteria->getSearchText();
                 foreach ($criteria->getSearchColumns() as $count => $column) {
                     if (!in_array($column, $searchable)) continue;
@@ -158,7 +173,7 @@ abstract class QueryableGateway extends Gateway
         }
         
         // Sort By
-        if ($criteria->hasSort()) {
+        if ($criteria->hasSort() && $closeQuery) {
             foreach ($criteria->getSortBy() as $column => $direction) {
                 $column = $this->escapeIdentifier($column);
                 $query->orderBy(["{$column} {$direction}"]);
@@ -166,8 +181,10 @@ abstract class QueryableGateway extends Gateway
         }
 
         // Pagination
-        $query->setPaging($criteria->getPageSize());
-        $query->page($criteria->getPage());
+        if ($closeQuery) {
+            $query->setPaging($criteria->getPageSize());
+            $query->page($criteria->getPage());
+        }
 
         return $query;
     }

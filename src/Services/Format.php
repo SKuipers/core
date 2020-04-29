@@ -21,6 +21,7 @@ namespace Gibbon\Services;
 
 use DateTime;
 use Gibbon\Session;
+use DateTimeImmutable;
 
 /**
  * Format values based on locale and system settings.
@@ -117,7 +118,7 @@ class Format
      * @param DateTime|string $dateString
      * @return string
      */
-    public static function dateReadable($dateString, $format = '%b %e, %G')
+    public static function dateReadable($dateString, $format = '%b %e, %Y')
     {
         $date = static::createDateTime($dateString);
         return mb_convert_case(strftime($format, $date->format('U')), MB_CASE_TITLE);
@@ -129,7 +130,7 @@ class Format
      * @param DateTime|string $dateString
      * @return string
      */
-    public static function dateTimeReadable($dateString, $format = '%b %e, %G %H:%M')
+    public static function dateTimeReadable($dateString, $format = '%b %e, %Y %H:%M')
     {
         $date = static::createDateTime($dateString);
         return mb_convert_case(strftime($format, $date->format('U')), MB_CASE_TITLE);
@@ -166,13 +167,13 @@ class Format
         $endTime = $endDate->getTimestamp();
 
         if ($startDate->format('Y-m-d') == $endDate->format('Y-m-d')) {
-            $output = strftime('%b %e, %G', $startTime);
+            $output = strftime('%b %e, %Y', $startTime);
         } elseif ($startDate->format('Y-m') == $endDate->format('Y-m')) {
-            $output = strftime('%b %e', $startTime).' - '.strftime('%e, %G', $endTime);
+            $output = strftime('%b %e', $startTime).' - '.strftime('%e, %Y', $endTime);
         } elseif ($startDate->format('Y') == $endDate->format('Y')) {
-            $output = strftime('%b %e', $startTime).' - '.strftime('%b %e, %G', $endTime);
+            $output = strftime('%b %e', $startTime).' - '.strftime('%b %e, %Y', $endTime);
         } else {
-            $output = strftime('%b %e, %G', $startTime).' - '.strftime('%b %e, %G', $endTime);
+            $output = strftime('%b %e, %Y', $startTime).' - '.strftime('%b %e, %Y', $endTime);
         }
 
         return mb_convert_case($output, MB_CASE_TITLE);
@@ -207,7 +208,7 @@ class Format
         $seconds = abs($timeDifference);
 
         switch ($seconds) {
-            case ($seconds < 60):
+            case ($seconds < 60 || empty($seconds)):
                 $time = __('Less than 1 min');
                 break;
             case ($seconds >= 60 && $seconds < 3600):
@@ -457,9 +458,26 @@ class Format
      */
     public static function address($address, $addressDistrict, $addressCountry)
     {
-        if (empty($address)) return '';
+        if (stripos($address, PHP_EOL) === false) {
+            // If the address has no line breaks, collapse lines by comma separation,
+            // breaking up long address lines over 30 characters.
+            $collapseAddress = function ($list, $line = '') use (&$collapseAddress) {
+                $line .= array_shift($list);
 
-        return $address . ($addressDistrict? ', '.$addressDistrict : '') . ($addressCountry? ', '.$addressCountry : '');
+                if (empty($list)) return $line;
+
+                return strlen($line.', '.current($list)) > 30
+                    ? $line.'<br/>'.$collapseAddress($list, '')
+                    : $collapseAddress($list, $line.', ');
+            };
+
+            $addressLines = array_filter(array_map('trim', explode(',', $address)));
+            $address = $collapseAddress($addressLines);
+        } else {
+            $address = nl2br($address);
+        }
+
+        return ($address? $address.'<br/>' : '') . ($addressDistrict? $addressDistrict.'<br/>' : '') . ($addressCountry? $addressCountry.'<br/>' : '');
     }
 
     /**
@@ -522,13 +540,57 @@ class Format
     }
 
     /**
-     * Returns an HTML <img> based on the supplied photo path, using a placeholder image if none exists. Size may be either 75 or 240 at this time.
+     * Returns an HTML <img> based on the supplied photo path, using a placeholder image if none exists. Size may be either 75 or 240 at this time. Works using local images or linked images using HTTP(S)
      *
      * @param string $path
      * @param int|string $size
      * @param string $class
      * @return string
      */
+    public static function photo($path, $size = 75, $class = '')
+    {
+        $class .= ' inline-block shadow bg-white border border-gray-600 ';
+        switch ($size) {
+            case 240:
+            case 'lg':  $class .= 'w-48 sm:w-64 max-w-full p-1 mx-auto';
+                        $imageSize = 240;
+                        break;
+            case 75:
+            case 'md':  $class .= 'w-20 lg:w-24 p-1';
+                        $imageSize = 75;
+                        break;
+
+            case 'sm':  $class .= 'w-12 sm:w-20 p-px sm:p-1';
+                        $imageSize = 75;
+                        break;
+
+            default:    $imageSize = $size;
+        }
+
+        if (preg_match('/^http[s]*/',$path))
+        {
+            return sprintf('<img class="%1$s" src="%2$s">', $class, $path);
+        }
+        else
+        {
+            if (empty($path) or file_exists(static::$settings['absolutePath'].'/'.$path) == false)
+            {
+                $path = '/themes/'.static::$settings['gibbonThemeName'].'/img/anonymous_'.$imageSize.'.jpg';
+            }
+
+            return sprintf('<img class="%1$s" src="%2$s">', $class, static::$settings['absoluteURL'].'/'.$path);
+
+        } 
+    }
+
+    /**
+     * Returns an HTML <img> based on the supplied photo path, using a placeholder image if none exists. Size may be either 75 or 240 at this time.
+     *
+     * @param string $path
+     * @param int|string $size
+     * @param string $class
+     * @return string
+     */ 
     public static function userPhoto($path, $size = 75, $class = '')
     {
         $class .= ' inline-block shadow bg-white border border-gray-600 ';
@@ -619,7 +681,7 @@ class Format
 
     private static function createDateTime($dateOriginal, $expectedFormat = null, $timezone = null)
     {
-        if ($dateOriginal instanceof DateTime) return $dateOriginal;
+        if ($dateOriginal instanceof DateTime || $dateOriginal instanceof DateTimeImmutable) return $dateOriginal;
 
         return !empty($expectedFormat)
             ? DateTime::createFromFormat($expectedFormat, $dateOriginal, $timezone)

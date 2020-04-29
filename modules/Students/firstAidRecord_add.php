@@ -43,7 +43,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/firstAidRecord_ad
 
         $gibbonRollGroupID = $_GET['gibbonRollGroupID'] ?? '';
         $gibbonYearGroupID = $_GET['gibbonYearGroupID'] ?? '';
-    
+
         $editLink = '';
         $editID = '';
         if (isset($_GET['editID'])) {
@@ -51,7 +51,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/firstAidRecord_ad
             $editID = $_GET['editID'];
         }
         if (isset($_GET['return'])) {
-            returnProcess($guid, $_GET['return'], $editLink, array('warning1' => 'Your request was successful, but some data was not properly saved.', 'success1' => 'Your request was completed successfully. You can now add extra information below if you wish.'));
+            returnProcess($guid, $_GET['return'], $editLink, array('warning1' => __('Your request was successful, but some data was not properly saved.'), 'success1' => __('Your request was completed successfully. You can now add extra information below if you wish.')));
         }
 
         $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/firstAidRecord_addProcess.php?gibbonRollGroupID='.$gibbonRollGroupID.'&gibbonYearGroupID='.$gibbonYearGroupID);
@@ -59,6 +59,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/firstAidRecord_ad
         $form->setFactory(DatabaseFormFactory::create($pdo));
 
         $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+
+        $row = $form->addRow()->addHeading(__('Basic Information'));
 
         $row = $form->addRow();
             $row->addLabel('gibbonPersonID', __('Patient'));
@@ -76,16 +78,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/firstAidRecord_ad
             $row->addLabel('timeIn', __('Time In'))->description("Format: hh:mm (24hr)");
             $row->addTime('timeIn')->setValue(date("H:i"))->required();
 
+        $firstAidDescriptionTemplate = getSettingByScope($connection2, 'Students', 'firstAidDescriptionTemplate');
         $row = $form->addRow();
             $column = $row->addColumn();
             $column->addLabel('description', __('Description'));
-            $column->addTextArea('description')->setRows(8)->setClass('fullWidth');
+            $column->addTextArea('description')->setRows(8)->setClass('fullWidth')->setValue($firstAidDescriptionTemplate);
 
         $row = $form->addRow();
             $column = $row->addColumn();
             $column->addLabel('actionTaken', __('Action Taken'));
             $column->addTextArea('actionTaken')->setRows(8)->setClass('fullWidth');
 
+        $row = $form->addRow()->addHeading(__('Follow Up'));
+        
         $row = $form->addRow();
             $column = $row->addColumn();
             $column->addLabel('followUp', __('Follow Up'));

@@ -34,6 +34,7 @@ class ActivityGateway extends QueryableGateway
     use TableAware;
 
     private static $tableName = 'gibbonActivity';
+    private static $primaryKey = 'gibbonActivityID';
 
     private static $searchableColumns = ['gibbonActivity.name', 'gibbonActivity.type'];
     
@@ -105,6 +106,11 @@ class ActivityGateway extends QueryableGateway
                 if ($status == 'pending') $query->having('pending > 0');
                 return $query;
             },
+            'yearGroup' => function ($query, $gibbonYearGroupID) {
+                return $query
+                    ->where('FIND_IN_SET(:gibbonYearGroupID, gibbonActivity.gibbonYearGroupIDList)')
+                    ->bindValue('gibbonYearGroupID', $gibbonYearGroupID);
+            },
         ]);
 
         return $this->runQuery($query, $criteria);
@@ -123,7 +129,6 @@ class ActivityGateway extends QueryableGateway
             ->bindValue('gibbonSchoolYearID', $gibbonSchoolYearID)
             ->where('gibbonActivityStudent.gibbonPersonID = :gibbonPersonID')
             ->bindValue('gibbonPersonID', $gibbonPersonID);
-            // ->orderBy(['gibbonActivity.name']);
 
         $query->unionAll()
             ->from($this->getTableName())
@@ -135,7 +140,6 @@ class ActivityGateway extends QueryableGateway
             ->bindValue('gibbonSchoolYearID', $gibbonSchoolYearID)
             ->where('gibbonActivityStaff.gibbonPersonID = :gibbonPersonID')
             ->bindValue('gibbonPersonID', $gibbonPersonID);
-            // ->orderBy(['gibbonActivity.name']);
 
         return $this->runQuery($query, $criteria);
     }

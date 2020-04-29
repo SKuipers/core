@@ -7,7 +7,9 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 -->#}
 
 {% if table.getTitle %}
+    {% block title %}
     <h2>{{ table.getTitle }}</h2>
+    {% endblock title %}
 {% endif %}
 
 {% if table.getDescription %}
@@ -30,31 +32,28 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
         {% endblock header %}
     </header>
 
-    {% if not rows and not isFiltered %}
-        <div class="rounded-sm border overflow-hidden">
-            {% block blankslate %}
-            <div class="w-full h-48 flex flex-col items-center justify-center bg-gray-100 shadow-inner text-gray-600 text-lg">
-                {% if isFiltered %}
-                    {{ __('No results matched your search.') }}
-                {% elseif blankSlate %}
-                    {{ blankSlate|raw }}
-                {% else %}
-                    {{ __('There are no records to display.') }}
-                {% endif %}
-            </div>
-            {% endblock blankslate %}
-        </div>
+    <div id="{{ table.getID }}" class="dataTable {{ not preventOverflow ? 'overflow-x-auto overflow-y-visible' }}">
+
+   
+    {% if not rows and not isFiltered and dataSet.getResultCount == 0 %}
+    <div class="h-48 rounded-sm border bg-gray-100 shadow-inner overflow-hidden">
+        {% block blankslate %}
+        {{ include('components/blankSlate.twig.html') }}
+        {% endblock blankslate %}
+    </div>
     {% else %}
 
-    <div class="overflow-x-auto overflow-y-visible">
-        <table class="{{ class }} w-full" cellspacing=0>
+    {% block tableInner %}
+    
+        <table class="{{ class }} w-full" cellspacing=0 {% if draggable %}data-drag-url="{{ draggable.url }}" data-drag-data="{{ draggable.data }}"{% endif %}>
             <thead>
-            {% for headerRow in headers %}
+            {% for rowIndex, headerRow in headers %}
+
                 <tr class="head text-xs">
                 {% for columnIndex, column in columns %}
                     {% set th = headerRow[columnIndex] %}
                     {% if th %}
-                    <th {{ th.getAttributeString|raw }} style="width: {{ column.getWidth }}">
+                    <th {{ th.getAttributeString|raw }} style="width: {{ column.getWidth }}; {{ rowIndex > 0 ? 'top: '~(2.83 * rowIndex)~'rem' }}">
                         {{ th.getOutput|raw }}
 
                         {% if th.getData('description') %}
@@ -69,7 +68,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
             <tbody>
             {% if not rows and isFiltered %}
-                <tr class="">
+                <tr class="h-48 bg-gray-100 shadow-inner">
                     <td class="p-0" colspan="{{ columns|length }}">
                     {{ block('blankslate') }}
                     </td>
@@ -85,7 +84,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
                     {% for columnIndex, column in columns %}
                         {% set cell = rowData.cells[columnIndex] %}
                         
-                        <td {{ cell.getAttributeString|raw }}>
+                        <td {{ cell.getAttributeString|raw }} style="width: {{ column.getWidth }}">
                             {{ cell.getPrepended|raw }}
 
                             {% if column.getID == "actions" %} 
@@ -120,8 +119,10 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
             {% endfor %}
             </tbody>
         </table>
-    </div>
+    {% endblock tableInner %}
     {% endif %}
+
+    </div>
 
     <footer>
     {% block footer %}

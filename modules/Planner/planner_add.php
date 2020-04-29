@@ -173,13 +173,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_add.php') 
 
             if ($viewBy == 'class') {
                 $data = array('gibbonCourseClassID' => $values['gibbonCourseClassID']);
-                $sql = "SELECT gibbonCourseClassID AS chainedTo, gibbonUnit.gibbonUnitID as value, name FROM gibbonUnit JOIN gibbonUnitClass ON (gibbonUnit.gibbonUnitID=gibbonUnitClass.gibbonUnitID) WHERE gibbonCourseClassID=:gibbonCourseClassID AND active='Y' AND running='Y' ORDER BY name";
+                $sql = "SELECT gibbonCourseClassID AS chainedTo, gibbonUnit.gibbonUnitID as value, name FROM gibbonUnit JOIN gibbonUnitClass ON (gibbonUnit.gibbonUnitID=gibbonUnitClass.gibbonUnitID) WHERE gibbonCourseClassID=:gibbonCourseClassID AND active='Y' AND running='Y' ORDER BY ordering, name";
                 $row = $form->addRow();
                     $row->addLabel('gibbonUnitID', __('Unit'));
                     $row->addSelect('gibbonUnitID')->fromQuery($pdo, $sql, $data)->placeholder();
             }
             else {
-                $sql = "SELECT GROUP_CONCAT(gibbonCourseClassID SEPARATOR ' ') AS chainedTo, gibbonUnit.gibbonUnitID as value, name FROM gibbonUnit JOIN gibbonUnitClass ON (gibbonUnit.gibbonUnitID=gibbonUnitClass.gibbonUnitID) WHERE active='Y' AND running='Y'  GROUP BY gibbonUnit.gibbonUnitID ORDER BY name";
+                $sql = "SELECT GROUP_CONCAT(gibbonCourseClassID SEPARATOR ' ') AS chainedTo, gibbonUnit.gibbonUnitID as value, name FROM gibbonUnit JOIN gibbonUnitClass ON (gibbonUnit.gibbonUnitID=gibbonUnitClass.gibbonUnitID) WHERE active='Y' AND running='Y'  GROUP BY gibbonUnit.gibbonUnitID ORDER BY ordering, name";
                 $row = $form->addRow();
                     $row->addLabel('gibbonUnitID', __('Unit'));
                     $row->addSelect('gibbonUnitID')->fromQueryChained($pdo, $sql, [], 'gibbonCourseClassID')->placeholder();
@@ -253,12 +253,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_add.php') 
 
             $nextTimeStart = (isset($nextTimeStart)) ? substr($nextTimeStart, 0, 5) : null;
             $row = $form->addRow();
-                $row->addLabel('timeStart', __('Start Time'))->description("Format: hh:mm (24hr)");
+                $row->addLabel('timeStart', __('Start Time'))->description(__("Format: hh:mm (24hr)"));
                 $row->addTime('timeStart')->setValue($nextTimeStart)->required();
 
             $nextTimeEnd = (isset($nextTimeEnd)) ? substr($nextTimeEnd, 0, 5) : null;
             $row = $form->addRow();
-                $row->addLabel('timeEnd', __('End Time'))->description("Format: hh:mm (24hr)");
+                $row->addLabel('timeEnd', __('End Time'))->description(__("Format: hh:mm (24hr)"));
                 $row->addTime('timeEnd')->setValue($nextTimeEnd)->required();
 
             $form->addRow()->addHeading(__('Lesson Content'));
@@ -288,7 +288,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_add.php') 
                 $row->addDate('homeworkDueDate')->required();
 
             $row = $form->addRow()->addClass('homework');
-                $row->addLabel('homeworkDueDateTime', __('Homework Due Date Time'))->description("Format: hh:mm (24hr)");
+                $row->addLabel('homeworkDueDateTime', __('Homework Due Date Time'))->description(__('Format: hh:mm (24hr)'));
                 $row->addTime('homeworkDueDateTime');
 
             $row = $form->addRow()->addClass('homework');
@@ -355,7 +355,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_add.php') 
 
             $form->toggleVisibilityByClass('homework')->onRadio('homework')->when('Y');
             $row = $form->addRow();
-                $row->addLabel('markbook', __('Create Markbook Column?'))->description('Linked to this lesson by default.');
+                $row->addLabel('markbook', __('Create Markbook Column?'))->description(__('Linked to this lesson by default.'));
                 $row->addRadio('markbook')->fromArray(array('Y' => __('Yes'), 'N' => __('No')))->required()->checked('N')->inline(true);
 
             //ADVANCED
@@ -363,7 +363,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_add.php') 
 
             $form->toggleVisibilityByClass('advanced')->onCheckbox('advanced')->when('Y');
             $row = $form->addRow();
-                $row->addCheckbox('advanced')->setValue('Y')->description('Show Advanced Options');
+                $row->addCheckbox('advanced')->setValue('Y')->description(__('Show Advanced Options'));
 
             //Access
             $form->addRow()->addHeading(__('Access'))->addClass('advanced');
@@ -399,9 +399,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_add.php') 
 
             $row = $form->addRow();
                 $row->addFooter();
-                $row->addCheckbox('notify')->description('Notify all class participants');
+                $row->addCheckbox('notify')->description(__('Notify all class participants'));
                 $row->addSubmit();
-                
+
             echo $form->getOutput();
         }
 

@@ -67,7 +67,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_students_l
             $row->addDate('endDateTo')->setValue($endDateTo)->required();
 
         $row = $form->addRow()->addClass('dateRange');
-            $row->addLabel('ignoreStatus', __('Ignore Status'))->description('This is useful for picking up students who have not yet left, but have an End Date set.');
+            $row->addLabel('ignoreStatus', __('Ignore Status'))->description(__('This is useful for picking up students who have not yet left, but have an End Date set.'));
             $row->addCheckbox('ignoreStatus')->checked($ignoreStatus);
 
         $row = $form->addRow();
@@ -85,7 +85,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_students_l
     $familyGateway = $container->get(FamilyGateway::class);
 
     // CRITERIA
-    $criteria = $reportGateway->newQueryCriteria()
+    $criteria = $reportGateway->newQueryCriteria(true)
         ->sortBy(['rollGroup', 'gibbonPerson.surname', 'gibbonPerson.preferredName'])
         ->pageSize(!empty($viewMode) ? 0 : 50)
         ->fromPOST();

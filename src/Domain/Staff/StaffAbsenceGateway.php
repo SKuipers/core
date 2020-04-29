@@ -102,6 +102,14 @@ class StaffAbsenceGateway extends QueryableGateway
 
         $criteria->addFilterRules($this->getSharedFilterRules());
 
+        $criteria->addFilterRules([
+            'schoolYear' => function ($query, $gibbonSchoolYearID) {
+                return $query
+                    ->where('gibbonStaffAbsence.gibbonSchoolYearID = :gibbonSchoolYearID')
+                    ->bindValue('gibbonSchoolYearID', $gibbonSchoolYearID);
+            }
+        ]);
+
         return $this->runQuery($query, $criteria);
     }
 
@@ -152,6 +160,7 @@ class StaffAbsenceGateway extends QueryableGateway
             ->leftJoin('gibbonPerson AS coverage', 'gibbonStaffCoverage.gibbonPersonIDCoverage=coverage.gibbonPersonID')
             ->where('gibbonStaffAbsenceDate.date BETWEEN :dateStart AND :dateEnd')
             ->where("gibbonStaffAbsence.status = 'Approved'")
+            ->where("gibbonPerson.status = 'Full'")
             ->bindValue('dateStart', $dateStart)
             ->bindValue('dateEnd', $dateEnd);
 

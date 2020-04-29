@@ -19,6 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
+use Gibbon\Services\Format;
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -166,7 +167,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
 						return $carry;
 					}
 				}
-				$carry[$item['gibbonRoleID']] = $item['name'];
+				$carry[$item['gibbonRoleID']] = __($item['name']);
 				return $carry;
 			}, array());
 
@@ -289,7 +290,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
 					$table = $row->addTable()->setClass('standardWidth');
 
                     while ($rowAddress = $resultAddress->fetch()) {
-                        $adressee = formatName($rowAddress['title'], $rowAddress['preferredName'], $rowAddress['surname'], $rowAddress['category']).' ('.$rowAddress['category'].')';
+                        $adressee = Format::name($rowAddress['title'], $rowAddress['preferredName'], $rowAddress['surname'], $rowAddress['category']).' ('.$rowAddress['category'].')';
 
                         $row = $table->addRow()->addClass('address');
                         $row->addTextField($addressCount.'-matchAddressLabel')->readOnly()->setValue($adressee)->setClass('fullWidth');
@@ -436,7 +437,11 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
 
 			$row = $form->addRow();
 				$row->addLabel('citizenship1Passport', __('Citizenship 1 Passport Number'));
-				$row->addTextField('citizenship1Passport')->maxLength(30);
+                $row->addTextField('citizenship1Passport')->maxLength(30);
+                
+            $row = $form->addRow();
+                $row->addLabel('citizenship1PassportExpiry', __('Citizenship 1 Passport Expiry Date'));
+                $row->addDate('citizenship1PassportExpiry');
 
 			$row = $form->addRow();
 				$row->addLabel('citizenship1PassportScan', __('Citizenship 1 Passport Scan'))->description(__('Less than 1440px by 900px').'. '.__('Accepts PDF files.'));
@@ -455,13 +460,17 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
 
 			$row = $form->addRow();
 				$row->addLabel('citizenship2Passport', __('Citizenship 2 Passport Number'));
-				$row->addTextField('citizenship2Passport')->maxLength(30);
+                $row->addTextField('citizenship2Passport')->maxLength(30);
+                
+            $row = $form->addRow();
+                $row->addLabel('citizenship2PassportExpiry', __('Citizenship 2 Passport Expiry Date'));
+                $row->addDate('citizenship2PassportExpiry');
 
 			if (!empty($_SESSION[$guid]['country'])) {
-				$nationalIDCardNumberLabel = $_SESSION[$guid]['country'].' '.__('ID Card Number');
-				$nationalIDCardScanLabel = $_SESSION[$guid]['country'].' '.__('ID Card Scan');
-				$residencyStatusLabel = $_SESSION[$guid]['country'].' '.__('Residency/Visa Type');
-				$visaExpiryDateLabel = $_SESSION[$guid]['country'].' '.__('Visa Expiry Date');
+				$nationalIDCardNumberLabel = __($_SESSION[$guid]['country']).' '.__('ID Card Number');
+				$nationalIDCardScanLabel = __($_SESSION[$guid]['country']).' '.__('ID Card Scan');
+				$residencyStatusLabel = __($_SESSION[$guid]['country']).' '.__('Residency/Visa Type');
+				$visaExpiryDateLabel = __($_SESSION[$guid]['country']).' '.__('Visa Expiry Date');
 			} else {
 				$nationalIDCardNumberLabel = __('National ID Card Number');
 				$nationalIDCardScanLabel = __('National ID Card Scan');
@@ -561,7 +570,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
             if ($student) {
                 $row = $form->addRow();
                 	$row->addLabel('studentID', __('Student ID'))->description(__('Must be unique if set.'));
-                	$row->addTextField('studentID')->maxLength(10);
+                	$row->addTextField('studentID')->maxLength(15);
             }
 
 			if ($student || $staff) {
@@ -601,7 +610,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
 
 					$row = $form->addRow();
 						$row->addLabel('privacyOptions[]', __('Privacy'))->description(__('Check to indicate which privacy options are required.'));
-						$row->addCheckbox('privacyOptions[]')->fromArray($options)->checked($values['privacyOptions']);
+						$row->addCheckbox('privacyOptions[]')->fromArray($options)->checked($values['privacyOptions'])->addClass('md:max-w-lg');
 				}
 
 				$studentAgreementOptions = getSettingByScope($connection2, 'School Admin', 'studentAgreementOptions');

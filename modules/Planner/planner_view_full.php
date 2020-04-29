@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\View\View;
 use Gibbon\Forms\Form;
 use Gibbon\Services\Format;
 
@@ -113,7 +114,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full.
             } elseif ($highestAction == 'Lesson Planner_viewMyClasses') {
                 $data = array('date' => $date, 'gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID'], 'gibbonPlannerEntryID' => $gibbonPlannerEntryID);
                 $sql = "(SELECT gibbonPlannerEntry.gibbonPlannerEntryID, gibbonCourseClass.gibbonCourseClassID, gibbonUnitID, gibbonPlannerEntry.gibbonCourseClassID, gibbonPlannerEntry.name, gibbonCourse.nameShort AS course, gibbonCourseClass.nameShort AS class, date, timeStart, timeEnd, summary, gibbonPlannerEntry.description, teachersNotes, homework, homeworkDueDateTime, homeworkDetails, viewableStudents, viewableParents, role, homeworkSubmission, homeworkSubmissionDateOpen, homeworkSubmissionDrafts, homeworkSubmissionType, homeworkSubmissionRequired, gibbonCourseClass.attendance FROM gibbonPlannerEntry JOIN gibbonCourseClass ON (gibbonPlannerEntry.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) JOIN gibbonCourseClassPerson ON (gibbonCourseClass.gibbonCourseClassID=gibbonCourseClassPerson.gibbonCourseClassID) JOIN gibbonCourse ON (gibbonCourse.gibbonCourseID=gibbonCourseClass.gibbonCourseID) WHERE gibbonCourseClassPerson.gibbonPersonID=:gibbonPersonID AND NOT role='Student - Left' AND NOT role='Teacher - Left' AND gibbonPlannerEntry.gibbonPlannerEntryID=$gibbonPlannerEntryID) UNION (SELECT gibbonPlannerEntry.gibbonPlannerEntryID, gibbonCourseClass.gibbonCourseClassID, gibbonUnitID, gibbonPlannerEntry.gibbonCourseClassID, gibbonPlannerEntry.name, gibbonCourse.nameShort AS course, gibbonCourseClass.nameShort AS class, date, timeStart, timeEnd, summary, gibbonPlannerEntry.description, teachersNotes, homework, homeworkDueDateTime, homeworkDetails, viewableStudents, viewableParents, role, homeworkSubmission, homeworkSubmissionDateOpen, homeworkSubmissionDrafts, homeworkSubmissionType, homeworkSubmissionRequired, gibbonCourseClass.attendance FROM gibbonPlannerEntry JOIN gibbonCourseClass ON (gibbonPlannerEntry.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) JOIN gibbonPlannerEntryGuest ON (gibbonPlannerEntryGuest.gibbonPlannerEntryID=gibbonPlannerEntry.gibbonPlannerEntryID) JOIN gibbonCourse ON (gibbonCourse.gibbonCourseID=gibbonCourseClass.gibbonCourseID) WHERE date=:date AND gibbonPlannerEntryGuest.gibbonPersonID=".$_SESSION[$guid]['gibbonPersonID'].' AND gibbonPlannerEntry.gibbonPlannerEntryID=:gibbonPlannerEntryID) ORDER BY date, timeStart';
-            } elseif ($highestAction == 'Lesson Planner_viewEditAllClasses' or $highestAction == 'Lesson Planner_viewAllEditMyClasses') {
+            } elseif ($highestAction == 'Lesson Planner_viewOnly') {
+                $sql = "SELECT gibbonCourse.gibbonCourseID, gibbonPlannerEntry.gibbonPlannerEntryID, gibbonCourseClass.gibbonCourseClassID, gibbonUnitID, gibbonPlannerEntry.gibbonCourseClassID, gibbonPlannerEntry.name, gibbonCourse.nameShort AS course, gibbonCourseClass.nameShort AS class, date, timeStart, timeEnd, summary, gibbonPlannerEntry.description, teachersNotes, homework, homeworkDueDateTime, homeworkDetails, viewableStudents, viewableParents, 'Other' AS role, homeworkSubmission, homeworkSubmissionDateOpen, homeworkSubmissionDrafts, homeworkSubmissionType, homeworkSubmissionRequired, gibbonDepartmentID, gibbonCourseClass.attendance FROM gibbonPlannerEntry JOIN gibbonCourseClass ON (gibbonPlannerEntry.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) JOIN gibbonCourse ON (gibbonCourse.gibbonCourseID=gibbonCourseClass.gibbonCourseID) WHERE gibbonPlannerEntry.gibbonPlannerEntryID=$gibbonPlannerEntryID ORDER BY date, timeStart";
+                $teacher = false;
+            }
+            elseif ($highestAction == 'Lesson Planner_viewEditAllClasses' or $highestAction == 'Lesson Planner_viewAllEditMyClasses'  or $highestAction == 'Lesson Planner_viewOnly') {
                 $sql = "SELECT gibbonCourse.gibbonCourseID, gibbonPlannerEntry.gibbonPlannerEntryID, gibbonCourseClass.gibbonCourseClassID, gibbonUnitID, gibbonPlannerEntry.gibbonCourseClassID, gibbonPlannerEntry.name, gibbonCourse.nameShort AS course, gibbonCourseClass.nameShort AS class, date, timeStart, timeEnd, summary, gibbonPlannerEntry.description, teachersNotes, homework, homeworkDueDateTime, homeworkDetails, viewableStudents, viewableParents, 'Teacher' AS role, homeworkSubmission, homeworkSubmissionDateOpen, homeworkSubmissionDrafts, homeworkSubmissionType, homeworkSubmissionRequired, gibbonDepartmentID, gibbonCourseClass.attendance FROM gibbonPlannerEntry JOIN gibbonCourseClass ON (gibbonPlannerEntry.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) JOIN gibbonCourse ON (gibbonCourse.gibbonCourseID=gibbonCourseClass.gibbonCourseID) WHERE gibbonPlannerEntry.gibbonPlannerEntryID=$gibbonPlannerEntryID ORDER BY date, timeStart";
                 $teacher = false;
                 try {
@@ -194,6 +199,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full.
                     $params['subView'] = $subView;
                     $paramsVar = '&' . http_build_query($params); // for backward compatibile uses below (should be get rid of)
 
+                    $roleCategory = getRoleCategory($_SESSION[$guid]['gibbonRoleIDCurrent'], $connection2);
+
                     $page->breadcrumbs
                         ->add(__('Planner for {classDesc}', [
                             'classDesc' => $target,
@@ -239,7 +246,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full.
                             echo "<p style='text-align: right; margin-top: 10px'>";
                             echo "<span style='font-size: 85%'>".__('For this class:').'</span><br/>';
                             try {
-                                if ($row['role'] == 'Teacher') {
+                                if ($row['role'] == 'Teacher' or $highestAction == 'Lesson Planner_viewOnly') {
                                     $dataPrevious = array('gibbonCourseClassID' => $row['gibbonCourseClassID'], 'date1' => $row['date'], 'date2' => $row['date'], 'timeStart' => $row['timeStart']);
                                     $sqlPrevious = "SELECT gibbonPlannerEntry.gibbonCourseClassID, gibbonPlannerEntryID, gibbonUnitID, gibbonCourse.nameShort AS course, gibbonCourseClass.nameShort AS class, gibbonPlannerEntry.name, timeStart, timeEnd, viewableStudents, viewableParents, homework, 'Teacher' AS role FROM gibbonPlannerEntry JOIN gibbonCourseClass ON (gibbonPlannerEntry.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) JOIN gibbonCourse ON (gibbonCourse.gibbonCourseID=gibbonCourseClass.gibbonCourseID) WHERE gibbonPlannerEntry.gibbonCourseClassID=:gibbonCourseClassID AND (date<:date1 OR (date=:date2 AND timeStart<:timeStart)) ORDER BY date DESC, timeStart DESC";
                                 } else {
@@ -266,7 +273,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full.
                             echo ' | ';
 
                             try {
-                                if ($row['role'] == 'Teacher') {
+                                if ($row['role'] == 'Teacher' or $highestAction == 'Lesson Planner_viewOnly') {
                                     $dataNext = array('gibbonCourseClassID' => $row['gibbonCourseClassID'], 'date1' => $row['date'], 'date2' => $row['date'], 'timeStart' => $row['timeStart']);
                                     $sqlNext = "SELECT gibbonPlannerEntry.gibbonCourseClassID, gibbonPlannerEntryID, gibbonUnitID, gibbonCourse.nameShort AS course, gibbonCourseClass.nameShort AS class, gibbonPlannerEntry.name, timeStart, timeEnd, viewableStudents, viewableParents, homework, 'Teacher' AS role FROM gibbonPlannerEntry JOIN gibbonCourseClass ON (gibbonPlannerEntry.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) JOIN gibbonCourse ON (gibbonCourse.gibbonCourseID=gibbonCourseClass.gibbonCourseID) WHERE gibbonPlannerEntry.gibbonCourseClassID=:gibbonCourseClassID AND (date>:date1 OR (date=:date2 AND timeStart>:timeStart)) ORDER BY date, timeStart";
                                 } else {
@@ -467,7 +474,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full.
                             }
                         if ($row['description'] != '') {
                             echo '<tr>';
-                            echo "<td style='text-align: justify; padding-top: 5px; width: 33%; vertical-align: top' colspan=3>";
+                            echo "<td class='unit-block text-base' style='text-align: justify; padding-top: 5px; width: 33%; vertical-align: top' colspan=3>";
                             echo $row['description'];
                             echo '</td>';
                             echo '</tr>';
@@ -476,7 +483,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full.
                             echo '<tr>';
                             echo "<td style='text-align: justify; padding-top: 5px; width: 33%; vertical-align: top' colspan=3>";
                             if ($row['role'] == 'Teacher' and $teacher == true) {
-                                echo "<div class='odd' style='padding: 5px; margin-top: 0px; text-align: right; border-bottom: 1px solid #666; border-top: 1px solid #666'>";
+                                echo "<div style='padding: 12px 5px; margin-top: 0px; text-align: right; border-bottom: 1px solid #666; border-top: 1px solid #666'>";
                                 echo '<i>'.__('Smart Blocks').'</i>: ';
                                 if ($resultBlocks->rowCount() > 0) {
                                     echo "<a class='active' href='#' id='viewBlocks'>".__('View')."</a> | <a href='#' id='editBlocks'>".__('Edit Blocks').'</a> | ';
@@ -551,56 +558,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full.
 								}
                                 echo "<div id='smartView' class='hiddenReveal'>";
                                 echo "<form method='post' action='".$_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/planner_view_full_smartProcess.php'>";
+                                $templateView = $container->get(View::class);
                                 $blockCount = 0;
-                                while ($rowBlocksView = $resultBlocksView->fetch()) {
-                                    if ($rowBlocksView['title'] != '' or $rowBlocksView['type'] != '' or $rowBlocksView['length'] != '') {
-                                        echo "<div class='blockView' style='min-height: 35px'>";
-                                        if ($rowBlocksView['type'] != '' or $rowBlocksView['length'] != '') {
-                                            $width = '69%';
-                                        } else {
-                                            $width = '100%';
-                                        }
-                                        echo "<div style='padding-left: 3px; width: $width; float: left;'>";
-                                        if ($rowBlocksView['title'] != '') {
-                                            echo "<h5 style='padding-bottom: 2px'>".$rowBlocksView['title'].'</h5>';
-                                        }
-                                        echo '</div>';
-                                        if ($rowBlocksView['type'] != '' or $rowBlocksView['length'] != '') {
-                                            echo "<div style='float: right; width: 29%; padding-right: 3px; height: 35px'>";
-                                            echo "<div style='text-align: right; font-size: 85%; font-style: italic; margin-top: 2px; border-bottom: 1px solid #ddd; height: 21px; padding-top: 4px'>";
-                                            if ($rowBlocksView['type'] != '') {
-                                                echo $rowBlocksView['type'];
-                                                if ($rowBlocksView['length'] != '') {
-                                                    echo ' | ';
-                                                }
-                                            }
-                                            if ($rowBlocksView['length'] != '') {
-                                                echo $rowBlocksView['length'].' min';
-                                            }
-                                            echo '</div>';
-                                            echo '</div>';
-                                        }
-                                        echo '</div>';
-                                    }
-                                    if ($rowBlocksView['contents'] != '') {
-                                        echo "<div style='padding: 15px 3px 10px 3px; width: 98%; text-align: justify; border-bottom: 1px solid #ddd'>".$rowBlocksView['contents'].'</div>';
-                                    }
-                                    if ($rowBlocksView['teachersNotes'] != '' and ($highestAction == 'Lesson Planner_viewAllEditMyClasses' or $highestAction == 'Lesson Planner_viewEditAllClasses') and ($row['role'] == 'Teacher' or $row['role'] == 'Assistant' or $row['role'] == 'Technician')) {
-                                        echo "<div class='teachersNotes' style='background-color: #F6CECB; display: none; padding: 0px 3px 10px 3px; width: 98%; text-align: justify; border-bottom: 1px solid #ddd'><i>".__("Teacher's Notes").':</i> '.$rowBlocksView['teachersNotes'].'</div>';
-                                    }
+                                $blocks = $resultBlocksView->fetchAll();
+                                foreach ($blocks as $block) {
                                     $checked = '';
-                                    if ($rowBlocksView['complete'] == 'Y') {
+                                    if ($block['complete'] == 'Y') {
                                         $checked = 'checked';
                                     }
-                                    if ($row['role'] == 'Teacher' and $teacher == true) {
-                                        echo "<div style='text-align: right; font-weight: bold; margin-top: 20px'>".__('Complete?')." <input name='complete$blockCount' style='margin-right: 2px' type='checkbox' $checked></div>";
-                                    } else {
-                                        echo "<div style='text-align: right; font-weight: bold; margin-top: 20px'>".__('Complete?')." <input disabled name='complete$blockCount' style='margin-right: 2px' type='checkbox' $checked></div>";
-                                    }
-                                    echo "<input type='hidden' name='gibbonUnitClassBlockID[]' value='".$rowBlocksView['gibbonUnitClassBlockID']."'>";
-
-                                    echo "<div style='padding: 3px 3px 3px 0px ; width: 100%; text-align: justify; border-bottom: 1px solid #666' ></div>";
-                                    ++$blockCount;
+                                    echo $templateView->fetchFromTemplate('ui/unitBlock.twig.html', $block + [
+                                        'roleCategory' => $roleCategory, 'gibbonPersonID' => $_SESSION[$guid]['username'] ?? '', 'blockCount' => $blockCount, 'checked' => $checked, 'role' => $row['role'], 'teacher' => $teacher
+                                    ]);
+                                    $blockCount++;
                                 }
                                 if ($row['role'] == 'Teacher' and $teacher == true) {
                                     echo "<div style='text-align: right; margin-top: 3px'>";
@@ -608,7 +577,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full.
                                     echo "<input type='hidden' name='params' value='$paramsVar'>";
                                     echo "<input type='hidden' name='gibbonPlannerEntryID' value='$gibbonPlannerEntryID'>";
                                     echo "<input type='hidden' name='address' value='".$_SESSION[$guid]['address']."'>";
-                                    echo "<input type='submit' value='Submit'>";
+                                    echo "<input type='submit' style='margin: 0 10px 10px 0' value='Submit'>";
                                     echo '</div>';
                                 }
                                 echo '</form>';
@@ -1036,7 +1005,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full.
 													?>
 
 														<td>
-															<?php echo "<a href='index.php?q=/modules/Students/student_view_details.php&gibbonPersonID=".$rowClass['gibbonPersonID']."'>".formatName('', $rowClass['preferredName'], $rowClass['surname'], 'Student', true).'</a>' ?><br/>
+															<?php echo "<a href='index.php?q=/modules/Students/student_view_details.php&gibbonPersonID=".$rowClass['gibbonPersonID']."'>".Format::name('', $rowClass['preferredName'], $rowClass['surname'], 'Student', true).'</a>' ?><br/>
 														</td>
 
 														<?php
@@ -1142,7 +1111,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full.
                         echo '</tr>';
 
                         if ($row['role'] == 'Student') { //MY HOMEWORK
-                            $roleCategory = getRoleCategory($_SESSION[$guid]['gibbonRoleIDCurrent'], $connection2);
                             $myHomeworkFail = false;
                             try {
                                 if ($roleCategory != 'Student') { //Parent
@@ -1399,34 +1367,40 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full.
                         }
                         echo '</table>';
 
-                        echo "<a name='chat'></a>";
-                        echo "<h2 style='padding-top: 30px'>".__('Chat').'</h2>';
-                        echo "<table class='smallIntBorder' cellspacing='0' style='width: 100%;'>";
-                        echo '<tr>';
-                        echo "<td style='text-align: justify; padding-top: 5px; width: 33%; vertical-align: top; max-width: 752px!important;' colspan=3>";
+                        if ($highestAction != 'Lesson Planner_viewOnly') {
 
-                        echo "<div style='margin: 0px' class='linkTop'>";
-                        echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/planner_view_full.php$paramsVar#chat'>".__('Refresh')."<img style='margin-left: 5px' title='".__('Refresh')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/refresh.png'/></a> <a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Planner/planner_view_full_post.php&gibbonPlannerEntryID=$gibbonPlannerEntryID&viewBy=$viewBy&subView=$subView&gibbonCourseClassID=$gibbonCourseClassID&date=$date&search=".$gibbonPersonID."'>".__('Add')."<img style='margin-left: 5px' title='".__('Add')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/page_new.png'/></a> ";
-                        echo '</div>';
+                          echo "<a name='chat'></a>";
+                          echo "<h2 style='padding-top: 30px'>".__('Chat').'</h2>';
+                          echo "<table class='smallIntBorder' cellspacing='0' style='width: 100%;'>";
+                          echo '<tr>';
+                          echo "<td style='text-align: justify; padding-top: 5px; width: 33%; vertical-align: top; max-width: 752px!important;' colspan=3>";
 
-						//Get discussion
-						echo getThread($guid, $connection2, $gibbonPlannerEntryID, null, 0, null, $viewBy, $subView, $date, @$class, $gibbonCourseClassID, $gibbonPersonID, $row['role']);
+                              echo "<div style='margin: 0px' class='linkTop'>";
+                              echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q'])."/planner_view_full.php$paramsVar#chat'>".__('Refresh')."<img style='margin-left: 5px' title='".__('Refresh')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/refresh.png'/></a> <a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Planner/planner_view_full_post.php&gibbonPlannerEntryID=$gibbonPlannerEntryID&viewBy=$viewBy&subView=$subView&gibbonCourseClassID=$gibbonCourseClassID&date=$date&search=".$gibbonPersonID."'>".__('Add')."<img style='margin-left: 5px' title='".__('Add')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/page_new.png'/></a> ";
+                              echo '</div>';
 
-                        echo '</td>';
-                        echo '</tr>';
+                              //Get discussion
+                              echo getThread($guid, $connection2, $gibbonPlannerEntryID, null, 0, null, $viewBy, $subView, $date, @$class, $gibbonCourseClassID, $gibbonPersonID, $row['role']);
+
+                          echo '</td>';
+                          echo '</tr>';
+                        }
                         echo '</table>';
 
                         //Participants & Attendance
                         $gibbonCourseClassID = $row['gibbonCourseClassID'];
                         $columns = 2;
 
-                        $canAccessProfile = (isActionAccessible($guid, $connection2, '/modules/Students/student_view.php', 'View Student Profile_brief') || isActionAccessible($guid, $connection2, '/modules/Students/student_view.php', 'View Student Profile_full') || isActionAccessible($guid, $connection2, '/modules/Students/student_view.php', 'View Student Profile_fullNoNotes') ) ;
+                        $highestAction = getHighestGroupedAction($guid, '/modules/Students/student_view_details.php', $connection2);
+
+                        $canAccessProfile = ($highestAction == 'View Student Profile_brief' || $highestAction == 'View Student Profile_full' || $highestAction == 'View Student Profile_fullNoNotes' || $highestAction == 'View Student Profile_fullEditAllNotes') ;
 
                         // Only show certain options if Class Attendance is Enabled school-wide, and for this particular class
                         $attendanceEnabled = isActionAccessible($guid, $connection2, "/modules/Attendance/attendance_take_byCourseClass.php") && $row['attendance'] == 'Y';
 
                         // Get attendance pre-fill and default settings
                         $defaultAttendanceType = getSettingByScope($connection2, 'Attendance', 'defaultClassAttendanceType');
+                        $crossFillClasses = getSettingByScope($connection2, 'Attendance', 'crossFillClasses');
 
                         $attendance = new Gibbon\Module\Attendance\AttendanceView($gibbon, $pdo);
 
@@ -1465,7 +1439,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full.
                                     $_SESSION[$guid]['sidebarExtra'] .= __('Attendance has been taken at the following times for this lesson:');
                                     $_SESSION[$guid]['sidebarExtra'] .= "<ul style='margin-left: 20px'>";
                                     while ($rowLog = $resultLog->fetch()) {
-                                        $_SESSION[$guid]['sidebarExtra'] .= '<li><a style="color:inherit;" href="'.$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Attendance/attendance_take_byCourseClass.php&gibbonCourseClassID='.$gibbonCourseClassID.'&currentDate='.dateConvertBack($guid, $row['date'] ).'">'.substr($rowLog['timestampTaken'], 11, 5).' '.dateConvertBack($guid, substr($rowLog['timestampTaken'], 0, 10)).' '.__('by').' '.formatName($rowLog['title'], $rowLog['preferredName'], $rowLog['surname'], 'Staff', false, true).'</a></li>';
+                                        $_SESSION[$guid]['sidebarExtra'] .= '<li><a style="color:inherit;" href="'.$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Attendance/attendance_take_byCourseClass.php&gibbonCourseClassID='.$gibbonCourseClassID.'&currentDate='.dateConvertBack($guid, $row['date'] ).'">'.substr($rowLog['timestampTaken'], 11, 5).' '.dateConvertBack($guid, substr($rowLog['timestampTaken'], 0, 10)).' '.__('by').' '.Format::name('', $rowLog['preferredName'], $rowLog['surname'], 'Student', true).'</a></li>';
                                     }
                                     $_SESSION[$guid]['sidebarExtra'] .= '</ul>';
                                     $_SESSION[$guid]['sidebarExtra'] .= '</div>';
@@ -1512,9 +1486,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full.
                                     $sqlLog = "SELECT type, reason, comment, context, timestampTaken FROM gibbonAttendanceLogPerson
                                             JOIN gibbonPerson ON (gibbonAttendanceLogPerson.gibbonPersonID=gibbonPerson.gibbonPersonID)
                                             WHERE gibbonAttendanceLogPerson.gibbonPersonID=:gibbonPersonID
-                                            AND date LIKE :date
-                                            AND NOT context='Class'
-                                            ORDER BY timestampTaken DESC";
+                                            AND date LIKE :date";
+                                    if ($crossFillClasses == "N") {
+                                        $sqlLog .= " AND NOT context='Class'";
+                                    }
+                                    $sqlLog .= " ORDER BY timestampTaken DESC";
                                     $resultLog = $pdo->executeQuery($dataLog, $sqlLog);
 
                                     if ($resultLog && $resultLog->rowCount() > 0 ) {
@@ -1580,12 +1556,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full.
                             }
 
                             if ($rowClassGroup['role'] == 'Student' && $canAccessProfile) {
-                                $_SESSION[$guid]['sidebarExtra'] .= "<div style='padding-top: 5px'><b><a href='index.php?q=/modules/Students/student_view_details.php&gibbonPersonID=".$rowClassGroup['gibbonPersonID']."'>".formatName('', $rowClassGroup['preferredName'], $rowClassGroup['surname'], 'Student').'</a></b><br/>';
+                                $_SESSION[$guid]['sidebarExtra'] .= "<div style='padding-top: 5px'><b><a href='index.php?q=/modules/Students/student_view_details.php&gibbonPersonID=".$rowClassGroup['gibbonPersonID']."'>".Format::name('', $rowClassGroup['preferredName'], $rowClassGroup['surname'], 'Student').'</a></b><br/>';
+                            } else if ($rowClassGroup['role'] == 'Student') {
+                                $_SESSION[$guid]['sidebarExtra'] .= "<div style='padding-top: 5px'><b>".Format::name('', $rowClassGroup['preferredName'], $rowClassGroup['surname'], 'Student').'</b><br/>';
                             } else {
-                                $_SESSION[$guid]['sidebarExtra'] .= "<div style='padding-top: 5px'><b>".formatName($rowClassGroup['title'], $rowClassGroup['preferredName'], $rowClassGroup['surname'], 'Staff').'</b><br/>';
+                                $_SESSION[$guid]['sidebarExtra'] .= "<div style='padding-top: 5px'><b>".Format::name($rowClassGroup['title'], $rowClassGroup['preferredName'], $rowClassGroup['surname'], 'Staff').'</b><br/>';
                             }
 
-                            $_SESSION[$guid]['sidebarExtra'] .= '<i>'.$rowClassGroup['role'].'</i><br/><br/></div>';
+                            $_SESSION[$guid]['sidebarExtra'] .= '<i>'.__($rowClassGroup['role']).'</i><br/><br/></div>';
                             $_SESSION[$guid]['sidebarExtra'] .= '</td>';
 
                             if ($count % $columns == ($columns - 1)) {
@@ -1648,7 +1626,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full.
 
                                 $_SESSION[$guid]['sidebarExtra'] .= getUserPhoto($guid, $rowClassGroup['image_240'], 75);
 
-                                $_SESSION[$guid]['sidebarExtra'] .= "<div style='padding-top: 5px'><b>".formatName($rowClassGroup['title'], $rowClassGroup['preferredName'], $rowClassGroup['surname'], 'Staff').'</b><br/>';
+                                $_SESSION[$guid]['sidebarExtra'] .= "<div style='padding-top: 5px'><b>".Format::name($rowClassGroup['title'], $rowClassGroup['preferredName'], $rowClassGroup['surname'], 'Staff').'</b><br/>';
 
                                 $_SESSION[$guid]['sidebarExtra'] .= '<i>'.$rowClassGroup['role'].'</i><br/><br/></div>';
                                 $_SESSION[$guid]['sidebarExtra'] .= '</td>';

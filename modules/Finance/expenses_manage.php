@@ -19,6 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Form;
 use Gibbon\Forms\Prefab\BulkActionForm;
+use Gibbon\Services\Format;
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -40,7 +41,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenses_manage.ph
         $page->breadcrumbs->add(__('Manage Expenses'));
 
         if (isset($_GET['return'])) {
-            returnProcess($guid, $_GET['return'], null, array('success0' => 'Your request was completed successfully.', 'success1' => 'Your request was completed successfully, but notifications could not be sent out.'));
+            returnProcess($guid, $_GET['return'], null, array('success0' => __('Your request was completed successfully.'), 'success1' => __('Your request was completed successfully, but notifications could not be sent out.')));
         }
 
         echo '<p>';
@@ -282,7 +283,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenses_manage.ph
 
                         if ($budgetsActionAccess) {
                             $bulkActions = array('export' => __('Export'));
-                            $row = $form->addBulkActionRow($bulkActions);
+                            $row = $form->addBulkActionRow($bulkActions)->addClass('flex justify-end');
                                 $row->addSubmit(__('Go'));
                         }
 
@@ -317,7 +318,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenses_manage.ph
                                 $row->addContent($expense['title'])
                                     ->wrap('<b>', '</b>')
                                     ->append('<br/><span class="small emphasis">'.$expense['budget'].'</span>');
-                                $row->addContent(formatName('', $expense['preferredName'], $expense['surname'], 'Staff', false, true));
+                                $row->addContent(Format::name('', $expense['preferredName'], $expense['surname'], 'Staff', false, true));
                                 $row->addContent($expense['status'])
                                     ->append('<br/><span class="small emphasis">'.$expense['paymentReimbursementStatus'].'</span>');
                                 $row->addContent(number_format($expense['cost'], 2, '.', ','));
@@ -352,7 +353,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenses_manage.ph
                                     }
                                 }
                             
-                                $row->addCheckbox('gibbonFinanceExpenseIDs[]')->setValue($expense['gibbonFinanceExpenseID'])->setClass('textCenter');
+                                $row->addCheckbox('gibbonFinanceExpenseIDs[]')->setValue($expense['gibbonFinanceExpenseID'])->alignCenter();
                             }
                         }
 

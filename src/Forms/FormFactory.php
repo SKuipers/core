@@ -75,6 +75,11 @@ class FormFactory implements FormFactoryInterface
         return new Layout\Grid($this, $id, $columns);
     }
 
+    public function createDetails($id = '')
+    {
+        return new Layout\Details($this, $id);
+    }
+
     public function createTrigger($selector = '')
     {
         return new Layout\Trigger($selector);
@@ -180,12 +185,12 @@ class FormFactory implements FormFactoryInterface
 
     public function createCheckbox($name)
     {
-        return (new Input\Checkbox($name))->setClass('right');
+        return (new Input\Checkbox($name));
     }
 
     public function createRadio($name)
     {
-        return (new Input\Radio($name))->setClass('right');
+        return (new Input\Radio($name));
     }
 
     public function createSelect($name)
@@ -281,7 +286,7 @@ class FormFactory implements FormFactoryInterface
 
     public function createCheckAll($name = 'checkall')
     {
-        return $this->createCheckbox($name)->setClass('floatNone textCenter checkall');
+        return $this->createCheckbox($name)->setClass('floatNone checkall')->alignCenter();
     }
 
     public function createSelectTitle($name)
@@ -369,6 +374,7 @@ class FormFactory implements FormFactoryInterface
             'es_ES' => 'Español',
             'fr_FR' => 'Français - France',
             'he_IL' => 'עברית - ישראל',
+            'hr_HR' => 'Hrvatski - Hrvatska',
             'it_IT' => 'Italiano - Italia',
             'pl_PL' => 'Język polski - Polska',
             'pt_BR' => 'Português - Brasil',
@@ -391,6 +397,7 @@ class FormFactory implements FormFactoryInterface
         // I hate doing this ... was there a YAML file at one point?
         $currencies = array(
             'PAYPAL SUPPORTED' => array(
+                'ARS $' => 'Argentine Peso (ARS$)',
                 'AUD $' => 'Australian Dollar (A$)',
                 'BRL R$' => 'Brazilian Real (R$)',
                 'GBP £' => 'British Pound (£)',
@@ -416,6 +423,7 @@ class FormFactory implements FormFactoryInterface
                 'USD $' => 'U.S. Dollar ($)',
                 ),
             'OTHERS' => array(
+                'ALL L' => 'Albanian Lek (L)',
                 'BDT ó' => 'Bangladeshi Taka (ó)',
                 'BTC' => 'Bitcoin',
                 'BGN лв.' => 'Bulgarian Lev (лв.)',
@@ -430,8 +438,9 @@ class FormFactory implements FormFactoryInterface
                 'IDR Rp' => 'Indonesian Rupiah (Rp)',
                 'JMD $' => 'Jamaican Dollar ($)',
                 'KES KSh' => 'Kenyan Shilling (KSh)',
-                'LKR Rs' => 'Sri Lankan Rupee (Rs)',
                 'MOP' => 'Macanese Pataca (MOP)',
+                'MGA' => 'Malagasy Ariary (Ar)',
+                'MVR Rf' => 'Maldivian Rufiyaa (Rf)',
                 'MMK K' => 'Myanmar Kyat (K)',
                 'MAD' => 'Moroccan Dirham (MAD)',
                 'NAD N$' => 'Namibian Dollar (N$)',
@@ -442,13 +451,16 @@ class FormFactory implements FormFactoryInterface
                 'RUB ₽' => 'Russian Ruble (₽)',
                 'SAR ﷼‎' => 'Saudi Riyal (﷼‎)',
                 'ZAR R‎' => 'South African Rand (R‎)',
+                'LKR Rs' => 'Sri Lankan Rupee (Rs)',
                 'TZS TSh' => 'Tanzania Shilling (TSh)',
                 'TTD $' => 'Trinidad & Tobago Dollar (TTD)',
                 'TRY ₺' => 'Turkish Lira (₺)',
+                'UAH ₴' => 'Українська гривня (₴)',
                 'AED د.إ' => 'United Arab Emirates Dirham (د.إ)',
                 'VND ₫‎' => 'Vietnamese Dong (₫‎)',
                 'XCD $' => 'Eastern Caribbean Dollars ($)',
-                'XOF FCFA' => 'West African Francs (FCFA)'
+                'XOF FCFA' => 'West African Francs (FCFA)',
+                'ZMW ZK' => 'Zambian Kwacha (ZMW)',
             ),
         );
 

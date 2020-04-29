@@ -21,6 +21,7 @@ use Gibbon\Forms\Form;
 use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
 use Gibbon\Domain\Activities\ActivityGateway;
+use Gibbon\Services\Format;
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -38,10 +39,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
         echo __('The highest grouped action cannot be determined.');
         echo '</div>';
     } else {
-        $page->breadcrumbs->add(__('View Activities'));          
+        $page->breadcrumbs->add(__('View Activities'));
 
         if (isset($_GET['return'])) {
-            returnProcess($guid, $_GET['return'], null, array('success0' => 'Registration was successful.', 'success1' => 'Unregistration was successful.', 'success2' => 'Registration was successful, but the activity is full, so you are on the waiting list.'));
+            returnProcess($guid, $_GET['return'], null, array('success0' => __('Registration was successful.'), 'success1' => __('Unregistration was successful.'), 'success2' => __('Registration was successful, but the activity is full, so you are on the waiting list.')));
         }
 
         //Get current role category
@@ -65,7 +66,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
             $disableExternalProviderSignup = getSettingByScope($connection2, 'Activities', 'disableExternalProviderSignup');
             if ($disableExternalProviderSignup == 'Y') {
                 echo "<div class='warning'>";
-                echo __('Registration for activities offered by outside providers is disabled. Check activity details for instructions on how to register for such acitvities.');
+                echo __('Please check activity details for instructions on how to register for activities offered by outside providers.');
                 echo '</div>';
             }
 
@@ -78,10 +79,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
             //IF PARENT, SET UP LIST OF CHILDREN
             $countChild = 0;
             if ($roleCategory == 'Parent' and $highestAction == 'View Activities_studentRegisterByParent') {
-                
-                if (isset($_GET['gibbonPersonID'])) {
-                    $gibbonPersonID = $_GET['gibbonPersonID'];
-                }
+                $gibbonPersonID = $_GET['gibbonPersonID'] ?? '';
                 try {
                     $data = array('gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID']);
                     $sql = "SELECT * FROM gibbonFamilyAdult WHERE gibbonPersonID=:gibbonPersonID AND childDataAccess='Y'";
@@ -108,7 +106,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                         }
                         if ($resultChild->rowCount() > 0) {
                             while ($rowChild = $resultChild->fetch()) {
-                                $options[$rowChild['gibbonPersonID']] = formatName('', $rowChild['preferredName'], $rowChild['surname'], 'Student', true);
+                                $options[$rowChild['gibbonPersonID']] = Format::name('', $rowChild['preferredName'], $rowChild['surname'], 'Student', true);
                                 ++$countChild;
                             }
                         }
@@ -130,7 +128,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
             echo __('Filter & Search');
             echo '</h2>';
 
-            $search = isset($_GET['search'])? $_GET['search'] : null;
+            $search = $_GET['search'] ?? '';
 
             $form = Form::create('searchForm', $_SESSION[$guid]['absoluteURL'].'/index.php','get');
             $form->setClass('noIntBorder fullWidth');
@@ -139,7 +137,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
 
             if ($countChild > 0 and $roleCategory == 'Parent' and $highestAction == 'View Activities_studentRegisterByParent') {
                 $row = $form->addRow();
-                    $row->addLabel('gibbonPersonID', __('Child'))->description('Choose the child you are registering for.');
+                    $row->addLabel('gibbonPersonID', __('Child'))->description(__('Choose the child you are registering for.'));
                     $row->addSelect('gibbonPersonID')->fromArray($options)->selected($gibbonPersonID)->placeholder(($countChild > 1)? '' : null);
             }
 
@@ -332,13 +330,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                 }
 
                 $table->addColumn('name', __('Activity'))
-                    ->format(function($activity) {
+                    ->format(function ($activity) {
                         return $activity['name'].'<br/><span class="small emphasis">'.$activity['type'].'</span>';
                     });
 
                 $table->addColumn('provider', __('Provider'))
                     ->width('10%')
-                    ->format(function($activity) use ($guid) {
+                    ->format(function ($activity) use ($guid) {
                         return ($activity['provider'] == 'School')? $_SESSION[$guid]['organisationNameShort'] : __('External');
                     });
 
@@ -346,7 +344,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                     ->width('18%')
                     ->description(__('Days'))
                     ->sortable($dateType != 'Date' ? ['gibbonSchoolYearTermIDList'] : ['programStart', 'programEnd'])
-                    ->format(function($activity) use ($dateType, $schoolTerms, $activityGateway) {
+                    ->format(function ($activity) use ($dateType, $schoolTerms, $activityGateway) {
                         if (empty($schoolTerms)) return '';
 
                         $output = '';
@@ -373,7 +371,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
 
                 $table->addColumn('yearGroups', __('Years'))
                     ->width('15%')
-                    ->format(function($activity) use ($yearGroups) {
+                    ->format(function ($activity) use ($yearGroups) {
                         return ($activity['yearGroupCount'] >= count($yearGroups)/2)? '<i>'.__('All').'</i>' : $activity['yearGroups'];
                     });
 
@@ -381,7 +379,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                     $table->addColumn('payment', __('Cost'))
                         ->width('15%')
                         ->description($_SESSION[$guid]['currency'])
-                        ->format(function($activity) {
+                        ->format(function ($activity) {
                             $payment = ($activity['payment'] > 0) 
                                 ? Format::currency($activity['payment']) . '<br/>' . __($activity['paymentType'])
                                 : '<i>'.__('None').'</i>';
@@ -394,7 +392,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                 if ($canAccessRegistration) {
                     $table->addColumn('enrolmentAvailable', __('Enrolment'))
                         ->sortable(false)
-                        ->format(function($activity) use ($disableExternalProviderSignup) {
+                        ->format(function ($activity) use ($disableExternalProviderSignup) {
                             if ($activity['provider'] == 'External' and $disableExternalProviderSignup == 'Y') {
                                 return '<i>'.__('See activity details').'</i>';
                             } else if (!empty($activity['currentEnrolment'])) {

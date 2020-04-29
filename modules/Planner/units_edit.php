@@ -189,7 +189,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit.php') =
                             } else {
                                 $classCount = 0;
 
-                                // Add the firstLesson date to each class, and 
+                                // Add the firstLesson date to each class, and
                                 $resultClass->transform(function (&$class) use ($pdo, &$classCount, &$form) {
                                     if ($class['running'] == 'Y') {
                                         $dataDate = array('gibbonCourseClassID' => $class['gibbonCourseClassID'], 'gibbonUnitID' => $class['gibbonUnitID']);
@@ -234,7 +234,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit.php') =
                                     ->addParam('gibbonCourseClassID')
                                     ->addParam('gibbonUnitClassID')
                                     ->format(function ($class, $actions) {
-                                        if ($class['running'] == 'N') return;
+                                        if ($class['running'] == 'N' || empty($class['running'])) return;
 
                                         $actions->addAction('edit', __('Edit Unit'))
                                                 ->setURL(empty($class['firstLesson'])
@@ -253,7 +253,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit.php') =
                                         $actions->addAction('copyForward', __('Copy Forward'))
                                                 ->setIcon('copyforward')
                                                 ->setURL('/modules/Planner/units_edit_copyForward.php');
-                                                
+
                                         $actions->addAction('smartBlockify', __('Smart Blockify'))
                                                 ->setIcon('run')
                                                 ->setURL('/modules/Planner/units_edit_smartBlockify.php');
@@ -265,7 +265,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit.php') =
                                 $row->addAlert(__('You are currently not logged into the current year and/or are looking at units in another year, and so you cannot access your classes. Please log back into the current school year, and look at units in the current year.'), 'warning');
                         }
 
-                        $form->addHiddenValue('classCount', $classCount);
+                        $form->addHiddenValue('classCount', $classCount ?? 0);
 
                         //UNIT OUTLINE
                         $form->addRow()->addHeading(__('Unit Outline'));
@@ -294,7 +294,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit.php') =
                             $ext .= "'.".$rowExt['extension']."',";
                         }
                         $row = $form->addRow();
-                            $row->addLabel('file', __('Downloadable Unit Outline'))->description("Available to most users.");
+                            $row->addLabel('file', __('Downloadable Unit Outline'))->description(__("Available to most users."));
                             $row->addFileUpload('file')
                                 ->accepts(substr($ext, 0, -2))
                                 ->setAttachment('attachment', $_SESSION[$guid]['absoluteURL'], $values['attachment']);
@@ -357,13 +357,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit.php') =
                             "Public Domain" => __("Public Domain")
                         );
                         $row = $form->addRow();
-                            $row->addLabel('license', 'License')->description(__('Under what conditions can this work be reused?'));
+                            $row->addLabel('license', __('License'))->description(__('Under what conditions can this work be reused?'));
                             $row->addSelect('license')->fromArray($licences)->placeholder();
 
                         $makeUnitsPublic = getSettingByScope($connection2, 'Planner', 'makeUnitsPublic');
                         if ($makeUnitsPublic == 'Y') {
                             $row = $form->addRow();
-                                $row->addLabel('sharedPublic', __('Shared Publically'))->description(__('Share this unit via the public listing of units? Useful for building MOOCS.'));
+                                $row->addLabel('sharedPublic', __('Shared Publicly'))->description(__('Share this unit via the public listing of units? Useful for building MOOCS.'));
                                 $row->addYesNo('sharedPublic')->required();
                         }
 

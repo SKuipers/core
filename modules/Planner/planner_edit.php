@@ -188,7 +188,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_edit.php')
                     $row->addLabel('gibbonCourseClassID', __('Class'));
                     $row->addSelect('gibbonCourseClassID')->fromQuery($pdo, $sql, $data)->required()->placeholder();
 
-                $sql = "SELECT GROUP_CONCAT(gibbonCourseClassID SEPARATOR ' ') AS chainedTo, gibbonUnit.gibbonUnitID as value, name FROM gibbonUnit JOIN gibbonUnitClass ON (gibbonUnit.gibbonUnitID=gibbonUnitClass.gibbonUnitID) WHERE active='Y' AND running='Y'  GROUP BY gibbonUnit.gibbonUnitID ORDER BY name";
+                $sql = "SELECT GROUP_CONCAT(gibbonCourseClassID SEPARATOR ' ') AS chainedTo, gibbonUnit.gibbonUnitID as value, name FROM gibbonUnit JOIN gibbonUnitClass ON (gibbonUnit.gibbonUnitID=gibbonUnitClass.gibbonUnitID) WHERE active='Y' AND running='Y'  GROUP BY gibbonUnit.gibbonUnitID ORDER BY ordering, name";
                 $row = $form->addRow();
                     $row->addLabel('gibbonUnitID', __('Unit'));
                     $row->addSelect('gibbonUnitID')->fromQueryChained($pdo, $sql, [], 'gibbonCourseClassID')->placeholder();
@@ -207,12 +207,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_edit.php')
 
                 $nextTimeStart = (isset($nextTimeStart)) ? substr($nextTimeStart, 0, 5) : null;
                 $row = $form->addRow();
-                    $row->addLabel('timeStart', __('Start Time'))->description("Format: hh:mm (24hr)");
+                    $row->addLabel('timeStart', __('Start Time'))->description(__("Format: hh:mm (24hr)"));
                     $row->addTime('timeStart')->required();
 
                 $nextTimeEnd = (isset($nextTimeEnd)) ? substr($nextTimeEnd, 0, 5) : null;
                 $row = $form->addRow();
-                    $row->addLabel('timeEnd', __('End Time'))->description("Format: hh:mm (24hr)");
+                    $row->addLabel('timeEnd', __('End Time'))->description(__("Format: hh:mm (24hr)"));
                     $row->addTime('timeEnd')->required();
 
 
@@ -271,7 +271,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_edit.php')
 
                 $values['homeworkDueDateTime'] = substr($values['homeworkDueDateTime'], 11, 5);
                 $row = $form->addRow()->addClass('homework');
-                    $row->addLabel('homeworkDueDateTime', __('Homework Due Date Time'))->description("Format: hh:mm (24hr)");
+                    $row->addLabel('homeworkDueDateTime', __('Homework Due Date Time'))->description(__("Format: hh:mm (24hr)"));
                     $row->addTime('homeworkDueDateTime');
 
                 $row = $form->addRow()->addClass('homework');
@@ -315,8 +315,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_edit.php')
                             $column->addCheckbox('homeworkCrowdAssessClassmatesRead')->setValue('Y')->description(__('Classmates'));
                             $column->addCheckbox('homeworkCrowdAssessOtherStudentsRead')->setValue('Y')->description(__('Other Students'));
                             $column->addCheckbox('homeworkCrowdAssessOtherTeachersRead')->setValue('Y')->description(__('Other Teachers'));
-                            $column->addCheckbox('homeworkCrowdAssessSubmitterParentsRead')->setValue('Y')->description(__('Submitter\'s Parents'));
-                            $column->addCheckbox('homeworkCrowdAssessClassmatesParentsRead')->setValue('Y')->description(__('Classmates\'s Parents'));
+                            $column->addCheckbox('homeworkCrowdAssessSubmitterParentsRead')->setValue('Y')->description(__("Submitter's Parents"));
+                            $column->addCheckbox('homeworkCrowdAssessClassmatesParentsRead')->setValue('Y')->description(__("Classmates's Parents"));
                             $column->addCheckbox('homeworkCrowdAssessOtherParentsRead')->setValue('Y')->description(__('Other Parents'));
                 }
 
@@ -381,7 +381,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_edit.php')
 
                     while ($staff = $results->fetch()) {
                         $row = $table->addRow();
-                        $row->addContent(formatName('', $staff['preferredName'], $staff['surname'], 'Staff', true, true));
+                        $row->addContent(Format::name('', $staff['preferredName'], $staff['surname'], 'Staff', true, true));
                         $row->addContent($staff['role']);
                         $row->addContent("<a onclick='return confirm(\"".__('Are you sure you wish to delete this record?')."\")' href='".$_SESSION[$guid]['absoluteURL']."/modules/".$_SESSION[$guid]['module']."/planner_edit_guest_deleteProcess.php?gibbonPlannerEntryGuestID=".$staff['gibbonPlannerEntryGuestID']."&gibbonPlannerEntryID=".$gibbonPlannerEntryID."&viewBy=$viewBy&subView=$subView&gibbonCourseClassID=$gibbonCourseClassID&date=$date&address=".$_GET['q']."'><img title='".__('Delete')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/garbage.png'/></a>");
                     }
@@ -407,7 +407,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_edit.php')
 
                 $row = $form->addRow();
                     $row->addFooter();
-                    $row->addCheckbox('notify')->description('Notify all class participants');
+                    $row->addCheckbox('notify')->description(__('Notify all class participants'));
                     $row->addSubmit();
 
                 $form->loadAllValuesFrom($values);

@@ -46,16 +46,17 @@ class DataTableView extends View implements RendererInterface
     {
         $this->addData('table', $table);
         $this->addData('blankSlate', $table->getMetaData('blankSlate'));
+        $this->addData('draggable', $table->getMetaData('draggable'));
 
         if ($dataSet->count() > 0) {
             $this->preProcessTable($table);
-
-            $this->addData([
-                'headers'    => $this->getTableHeaders($table),
-                'columns'    => $table->getColumns(),
-                'rows'       => $this->getTableRows($table, $dataSet),
-            ]);
         }
+
+        $this->addData([
+            'headers'    => $this->getTableHeaders($table),
+            'columns'    => $table->getColumns(),
+            'rows'       => $this->getTableRows($table, $dataSet),
+        ]);
 
         return $this->render('components/dataTable.twig.html');
     }
@@ -157,7 +158,7 @@ class DataTableView extends View implements RendererInterface
         $th = new TableCell($column->getLabel());
 
         $th->setTitle($column->getTitle())
-           ->setClass('column')
+           ->setClass('column sticky top-0 z-10')
            ->addData('description', $column->getDescription());
 
         $this->applyContexts($column, $th);

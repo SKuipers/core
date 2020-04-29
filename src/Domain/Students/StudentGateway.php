@@ -34,6 +34,7 @@ class StudentGateway extends QueryableGateway
     use SharedUserLogic;
 
     private static $tableName = 'gibbonStudentEnrolment';
+    private static $primaryKey = 'gibbonStudentEnrolmentID';
 
     private static $searchableColumns = ['gibbonPerson.preferredName', 'gibbonPerson.surname', 'gibbonPerson.username', 'gibbonPerson.email', 'gibbonPerson.emailAlternate', 'gibbonPerson.studentID', 'gibbonPerson.phone1', 'gibbonPerson.vehicleRegistration'];
     
@@ -141,7 +142,7 @@ class StudentGateway extends QueryableGateway
         return $this->runQuery($query, $criteria);
     }
 
-    public function queryStudentsAndTeachersBySchoolYear(QueryCriteria $criteria, $gibbonSchoolYearID) 
+    public function queryStudentsAndTeachersBySchoolYear(QueryCriteria $criteria, $gibbonSchoolYearID, $gibbonRoleIDCurrentCategory = null) 
     {
         $query = $this
             ->newQuery()
@@ -159,9 +160,7 @@ class StudentGateway extends QueryableGateway
             
             ->groupBy(['gibbonPerson.gibbonPersonID']);
 
-        if ($criteria->hasFilter('all')) {
-            $query->where("(gibbonPerson.status = 'Full' OR gibbonPerson.status = 'Expected')");
-        } else {
+        if (!$criteria->hasFilter('all') || $gibbonRoleIDCurrentCategory != 'Staff') {
             $query->where("(gibbonStudentEnrolment.gibbonStudentEnrolmentID IS NOT NULL OR (gibbonStaff.gibbonStaffID IS NOT NULL AND gibbonRole.category='Staff') )")
                   ->where("gibbonPerson.status = 'Full'")
                   ->where('(gibbonPerson.dateStart IS NULL OR gibbonPerson.dateStart <= :today)')
@@ -199,7 +198,7 @@ class StudentGateway extends QueryableGateway
     public function selectActiveStudentByPerson($gibbonSchoolYearID, $gibbonPersonID)
     {
         $data = array('gibbonSchoolYearID' => $gibbonSchoolYearID, 'gibbonPersonID' => $gibbonPersonID, 'today' => date('Y-m-d'));
-        $sql = "SELECT gibbonPerson.gibbonPersonID, title, surname, preferredName, image_240, gibbonYearGroup.gibbonYearGroupID, gibbonYearGroup.nameShort AS yearGroup, gibbonRollGroup.gibbonRollGroupID, gibbonRollGroup.nameShort AS rollGroup, 'Student' as roleCategory
+        $sql = "SELECT gibbonPerson.gibbonPersonID, title, surname, preferredName, image_240, gender, gibbonStudentEnrolment.gibbonSchoolYearID, gibbonYearGroup.gibbonYearGroupID, gibbonYearGroup.nameShort AS yearGroup, gibbonRollGroup.gibbonRollGroupID, gibbonRollGroup.nameShort AS rollGroup, 'Student' as roleCategory, gibbonPerson.privacy
                 FROM gibbonPerson
                 JOIN gibbonStudentEnrolment ON (gibbonPerson.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID)
                 JOIN gibbonYearGroup ON (gibbonStudentEnrolment.gibbonYearGroupID=gibbonYearGroup.gibbonYearGroupID)
@@ -237,5 +236,58 @@ class StudentGateway extends QueryableGateway
                 AND status='FULL' AND (dateStart IS NULL OR dateStart<=:today) AND (dateEnd IS NULL  OR dateEnd>=:today)";
 
         return $this->db()->selectOne($sql, $data);
+    }
+
+    public function selectAllRelatedUsersByStudent($gibbonSchoolYearID, $gibbonYearGroupID, $gibbonRollGroupID, $gibbonPersonID)
+    {
+        $data = array('gibbonSchoolYearID' => $gibbonSchoolYearID, 'gibbonPersonID' => $gibbonPersonID, 'gibbonYearGroupID' => $gibbonYearGroupID, 'gibbonRollGroupID' => $gibbonRollGroupID);
+        $sql = "
+            (
+                SELECT DISTINCT gibbonCourseClass.gibbonCourseClassID as classID, teacher.gibbonPersonID, teacher.surname, teacher.preferredName, teacher.email, teacher.image_240, gibbonCourse.name as type, 4 as listOrder 
+                FROM gibbonPerson AS teacher 
+                JOIN gibbonCourseClassPerson AS teacherClass ON (teacherClass.gibbonPersonID=teacher.gibbonPersonID)
+                JOIN gibbonCourseClassPerson AS studentClass ON (studentClass.gibbonCourseClassID=teacherClass.gibbonCourseClassID)
+                JOIN gibbonPerson AS student ON (studentClass.gibbonPersonID=student.gibbonPersonID)
+                JOIN gibbonCourseClass ON (studentClass.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID)
+                JOIN gibbonCourse ON (gibbonCourseClass.gibbonCourseID=gibbonCourse.gibbonCourseID)
+                WHERE teacher.status='Full' AND teacherClass.role='Teacher' AND studentClass.role='Student' AND student.gibbonPersonID=:gibbonPersonID AND gibbonCourse.gibbonSchoolYearID=:gibbonSchoolYearID 
+                ORDER BY teacher.preferredName, teacher.surname, teacher.email
+            )
+            UNION
+            (
+                SELECT DISTINCT '' as classID, gibbonPerson.gibbonPersonID, surname, preferredName, email, image_240, 'Head of Year' as type, 1 as listOrder 
+                FROM gibbonPerson 
+                JOIN gibbonYearGroup ON (gibbonYearGroup.gibbonPersonIDHOY=gibbonPersonID) 
+                WHERE status='Full' AND gibbonYearGroupID=:gibbonYearGroupID
+            )
+            UNION
+            (
+                SELECT DISTINCT '' as classID, gibbonPerson.gibbonPersonID, surname, preferredName, email, image_240, 'IN Assistant' as type, 2 as listOrder
+                FROM gibbonPerson
+                    JOIN gibbonINAssistant ON (gibbonINAssistant.gibbonPersonIDAssistant=gibbonPerson.gibbonPersonID)
+                WHERE status='Full'
+                    AND gibbonPersonIDStudent=:gibbonPersonID
+            )
+            UNION
+            (
+                SELECT DISTINCT '' as classID, gibbonPerson.gibbonPersonID, surname, preferredName, email, image_240,  'Educational Assistant' as type, 2 as listOrder
+                FROM gibbonPerson
+                JOIN gibbonRollGroup ON (gibbonRollGroup.gibbonPersonIDEA=gibbonPerson.gibbonPersonID OR gibbonRollGroup.gibbonPersonIDEA2=gibbonPerson.gibbonPersonID OR gibbonRollGroup.gibbonPersonIDEA3=gibbonPerson.gibbonPersonID)
+                JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonRollGroupID=gibbonRollGroup.gibbonRollGroupID)
+                JOIN gibbonSchoolYear ON (gibbonStudentEnrolment.gibbonSchoolYearID=gibbonSchoolYear.gibbonSchoolYearID)
+                WHERE gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID
+                AND gibbonStudentEnrolment.gibbonPersonID=:gibbonPersonID
+                AND gibbonPerson.status='Full'
+            )
+            UNION
+            (
+                SELECT DISTINCT '' as classID, gibbonPerson.gibbonPersonID, surname, preferredName, email, image_240, 'Form Tutor' as type, 0 as listOrder 
+                FROM gibbonRollGroup 
+                JOIN gibbonPerson ON (gibbonRollGroup.gibbonPersonIDTutor=gibbonPerson.gibbonPersonID OR gibbonRollGroup.gibbonPersonIDTutor2=gibbonPerson.gibbonPersonID OR gibbonRollGroup.gibbonPersonIDTutor3=gibbonPerson.gibbonPersonID) 
+                WHERE gibbonRollGroupID=:gibbonRollGroupID AND gibbonPerson.status='Full'
+            )
+            ORDER BY listOrder, preferredName, surname, email";
+
+        return $this->db()->select($sql, $data);
     }
 }

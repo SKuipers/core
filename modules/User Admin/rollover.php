@@ -19,6 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
+use Gibbon\Services\Format;
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -213,11 +214,11 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                         $count++;
                         $form->addHiddenValue($count."-expect-gibbonPersonID", $rowExpect['gibbonPersonID']);
                         $row = $form->addRow();
-                            $row->addColumn()->addContent(formatName('', $rowExpect['preferredName'], $rowExpect['surname'], 'Student', true));
+                            $row->addColumn()->addContent(Format::name('', $rowExpect['preferredName'], $rowExpect['surname'], 'Student', true));
                             $row->addColumn()->addContent(__($rowExpect['name']));
                             $row->addColumn()->addContent(__('Expected'));
                             $column = $row->addColumn();
-                                $column->addSelect($count."-expect-status")->fromArray($statuses)->required()->setClass('shortWidth floatNone');
+                                $column->addSelect($count."-expect-status")->fromArray($statuses)->required()->setClass('shortWidth floatNone')->selected('Full');
                     }
                     $form->addHiddenValue("expect-count", $count);
                 }
@@ -253,7 +254,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                             $count++;
                             $form->addHiddenValue($count."-enrol-gibbonPersonID", $rowEnrol['gibbonPersonID']);
                             $row = $form->addRow();
-                                $row->addColumn()->addContent(formatName('', $rowEnrol['preferredName'], $rowEnrol['surname'], 'Student', true));
+                                $row->addColumn()->addContent(Format::name('', $rowEnrol['preferredName'], $rowEnrol['surname'], 'Student', true));
                                 $row->addColumn()->addContent(__($rowEnrol['name']));
                                 $column = $row->addColumn();
                                     $column->addCheckbox($count."-enrol-enrol")->setValue('Y')->checked('Y');
@@ -345,7 +346,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
 
                                 $form->addHiddenValue($count."-enrolFull-gibbonPersonID", $student[0]);
                                 $row = $form->addRow();
-                                    $row->addColumn()->addContent(formatName('', $student[2], $student[1], 'Student', true));
+                                    $row->addColumn()->addContent(Format::name('', $student[2], $student[1], 'Student', true));
                                     $row->addColumn()->addContent(__($student[3]));
                                     $column = $row->addColumn();
                                         $column->addCheckbox($count."-enrolFull-enrol")->setValue('Y')->checked('Y');
@@ -414,7 +415,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
 
                             $form->addHiddenValue($count."-reenrol-gibbonPersonID", $rowReenrol['gibbonPersonID']);
                             $row = $form->addRow();
-                                $row->addColumn()->addContent(formatName('', $rowReenrol['preferredName'], $rowReenrol['surname'], 'Student', true));
+                                $row->addColumn()->addContent(Format::name('', $rowReenrol['preferredName'], $rowReenrol['surname'], 'Student', true));
                                 $row->addColumn()->addContent(__($rowReenrol['name']));
                                 $column = $row->addColumn();
                                     $column->addCheckbox($count."-reenrol-enrol")->setValue('Y')->checked('Y');
@@ -452,17 +453,18 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                         $row->addColumn()->addContent(__('Primary Role'));
                         $row->addColumn()->addContent(__('Current Status'));
                         $row->addColumn()->addContent(__('New Status'));
+                        $row->addColumn()->addContent(__('Departure Reason'));
 
                     $count = 0;
                     while ($rowFinal = $resultFinal->fetch()) {
                         $count++;
                         $form->addHiddenValue($count."-final-gibbonPersonID", $rowFinal['gibbonPersonID']);
                         $row = $form->addRow();
-                            $row->addColumn()->addContent(formatName('', $rowFinal['preferredName'], $rowFinal['surname'], 'Student', true));
-                            $row->addColumn()->addContent(__($rowFinal['name']));
-                            $row->addColumn()->addContent(__('Full'));
-                            $column = $row->addColumn();
-                                $column->addSelect($count."-final-status")->fromArray($statuses)->required()->setClass('shortWidth floatNone')->selected('Left');
+                            $row->addContent(Format::name('', $rowFinal['preferredName'], $rowFinal['surname'], 'Student', true));
+                            $row->addContent(__($rowFinal['name']));
+                            $row->addContent(__('Full'));
+                            $row->addSelect($count."-final-status")->fromArray($statuses)->required()->setClass('shortWidth floatNone')->selected('Left');
+                            $row->addTextField($count.'-departureReason')->setValue(__('Graduated'))->setSize(12);
                     }
                     $form->addHiddenValue("final-count", $count);
                 }
@@ -494,7 +496,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                         $count++;
                         $form->addHiddenValue($count."-register-gibbonPersonID", $rowRegister['gibbonPersonID']);
                         $row = $form->addRow();
-                            $row->addColumn()->addContent(formatName('', $rowRegister['preferredName'], $rowRegister['surname'], 'Student', true));
+                            $row->addColumn()->addContent(Format::name('', $rowRegister['preferredName'], $rowRegister['surname'], 'Student', true));
                             $row->addColumn()->addContent(__($rowRegister['name']));
                             $column = $row->addColumn();
                                 $column->addCheckbox($count."-register-enrol")->setValue('Y')->checked('Y');
@@ -1029,12 +1031,13 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                             for ($i = 1; $i <= $count; ++$i) {
                                 $gibbonPersonID = $_POST["$i-final-gibbonPersonID"];
                                 $status = $_POST["$i-final-status"];
+                                $departureReason = $_POST["$i-departureReason"];
 
                                 //Write to database
                                 $left = true;
                                 try {
-                                    $data = array('gibbonPersonID' => $gibbonPersonID, 'dateEnd' => $dateEnd, 'status' => $status);
-                                    $sql = 'UPDATE gibbonPerson SET status=:status, dateEnd=:dateEnd WHERE gibbonPersonID=:gibbonPersonID';
+                                    $data = array('gibbonPersonID' => $gibbonPersonID, 'dateEnd' => $dateEnd, 'status' => $status, 'departureReason' => $departureReason);
+                                    $sql = 'UPDATE gibbonPerson SET status=:status, dateEnd=:dateEnd, departureReason=:departureReason WHERE gibbonPersonID=:gibbonPersonID';
                                     $result = $connection2->prepare($sql);
                                     $result->execute($data);
                                 } catch (PDOException $e) {
