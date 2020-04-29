@@ -17,27 +17,23 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Forms\PrefabFormFactory;
-
-@session_start();
+use Gibbon\Forms\Prefab\DeleteForm;
 
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/activitySettings_type_delete.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
-    //Proceed!
+    // Proceed!
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], null, null);
     }
 
-    //Check if school year specified
-    $gibbonActivityTypeID = (isset($_GET['gibbonActivityTypeID']))? $_GET['gibbonActivityTypeID'] : NULL;
-    if ($gibbonActivityTypeID == '') {
-        echo "<div class='error'>";
-        echo __('You have not specified one or more required parameters.');
-        echo '</div>';
+    $gibbonActivityTypeID = $_GET['gibbonActivityTypeID'] ?? null;
+
+    if (empty($gibbonActivityTypeID)) {
+        $page->addError(__('You have not specified one or more required parameters.'));
     } else {
-        $form = PrefabFormFactory::createDeleteForm($_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/activitySettings_type_deleteProcess.php?gibbonActivityTypeID=$gibbonActivityTypeID", true);
+        $form = DeleteForm::createForm($_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/activitySettings_type_deleteProcess.php?gibbonActivityTypeID=$gibbonActivityTypeID", true);
         echo $form->getOutput();
     }
 }

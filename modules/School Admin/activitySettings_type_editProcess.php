@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\Activities\ActivityTypeGateway;
+
 include '../../gibbon.php';
 
 $gibbonActivityTypeID = isset($_GET['gibbonActivityTypeID'])? $_GET['gibbonActivityTypeID'] : '';
@@ -26,50 +28,39 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/activitySetti
     $URL .= '&return=error0';
     header("Location: {$URL}");
 } else {
-    //Proceed!
-    //Validate Inputs
-    $description = (isset($_POST['description']))? $_POST['description'] : NULL;
-    $access = (isset($_POST['access']))? $_POST['access'] : NULL;
-    $enrolmentType = (isset($_POST['enrolmentType']))? $_POST['enrolmentType'] : NULL;
-    $maxPerStudent = (isset($_POST['maxPerStudent']))? $_POST['maxPerStudent'] : 0;
-    $waitingList = (isset($_POST['waitingList']))? $_POST['waitingList'] : 'Y';
-    $backupChoice = (isset($_POST['backupChoice']))? $_POST['backupChoice'] : 'Y';
+    // Proceed!
+    $data = [
+        'description' =>  $_POST['description'] ?? '',
+        'access' =>  $_POST['access'] ?? '',
+        'enrolmentType' =>  $_POST['enrolmentType'] ?? '',
+        'maxPerStudent' =>  $_POST['maxPerStudent'] ?? 0,
+        'waitingList' =>  $_POST['waitingList'] ?? 'Y',
+        'backupChoice' =>  $_POST['backupChoice'] ?? 'Y',
+    ];
 
-    if (empty($gibbonActivityTypeID) || $access == '' || $enrolmentType == '' || $backupChoice == '') {
+    $activityTypeGateway = $container->get(ActivityTypeGateway::class);
+
+    // Validate the required values are present
+    if (empty($data['access']) || empty($data['enrolmentType'] || empty($data['backupChoice']))) {
         $URL .= '&return=error1';
         header("Location: {$URL}");
-    } else {
-        //Check unique inputs for uniquness in current school year
-        try {
-            $data = array('gibbonActivityTypeID' => $gibbonActivityTypeID);
-            $sql = 'SELECT name FROM gibbonActivityType WHERE gibbonActivityTypeID=:gibbonActivityTypeID';
-            $result = $connection2->prepare($sql);
-            $result->execute($data);
-        } catch (PDOException $e) {
-            $URL .= '&return=error2';
-            header("Location: {$URL}");
-            exit();
-        }
-
-        if ($result->rowCount() == 0) {
-            $URL .= '&return=error3';
-            header("Location: {$URL}");
-        } else {
-            //Write to database
-            try {
-                $data = array('gibbonActivityTypeID' => $gibbonActivityTypeID, 'description' => $description, 'access' => $access, 'enrolmentType' => $enrolmentType, 'maxPerStudent' => $maxPerStudent, 'waitingList' => $waitingList, 'backupChoice' => $backupChoice);
-                $sql = "UPDATE gibbonActivityType SET description=:description, access=:access, enrolmentType=:enrolmentType, maxPerStudent=:maxPerStudent, waitingList=:waitingList, backupChoice=:backupChoice WHERE gibbonActivityTypeID=:gibbonActivityTypeID";
-
-                $result = $connection2->prepare($sql);
-                $result->execute($data);
-            } catch (PDOException $e) {
-                $URL .= '&return=error2';
-                header("Location: {$URL}");
-                exit();
-            }
-
-            $URL .= "&return=success0";
-            header("Location: {$URL}");
-        }
+        exit;
     }
+
+    // Validate the database relationships exist
+    $values = $activityTypeGateway->getByID($gibbonActivityTypeID);
+    if (empty($values)) {
+        $URL .= '&return=error2';
+        header("Location: {$URL}");
+        exit;
+    }
+
+    // Update the record
+    $updated = $activityTypeGateway->update($gibbonActivityTypeID, $data);
+
+    $URL .= !$updated
+        ? "&return=error2"
+        : "&return=success0";
+
+    header("Location: {$URL}");
 }

@@ -19,18 +19,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Form;
 
-@session_start();
-
-//Module includes
-include './modules/'.$_SESSION[$guid]['module'].'/moduleFunctions.php';
-
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/activitySettings_type_add.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
-    //Proceed!
+    // Proceed!
     $page->breadcrumbs
-        ->add(__('Manage Activity Settings'), 'activitySettings.php')
+        ->add(__('Activity Settings'), 'activitySettings.php')
         ->add(__('Add'));
 
     $editLink = '';
@@ -41,12 +36,12 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/activitySetti
         returnProcess($guid, $_GET['return'], $editLink, null);
     }
     
-    $form = Form::create('activityType', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/activitySettings_type_addProcess.php');
+    $form = Form::create('activityType', $_SESSION[$guid]['absoluteURL'].'/modules/School Admin/activitySettings_type_addProcess.php');
     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
 
     $row = $form->addRow();
         $row->addLabel('name', __('Name'))->description(__('Must be unique.'));
-        $row->addTextField('name')->isRequired()->maxLength(60);
+        $row->addTextField('name')->required()->maxLength(60);
 
     $row = $form->addRow();
         $row->addLabel('description', __('Description'));
@@ -55,14 +50,14 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/activitySetti
     $access = getSettingByScope($connection2, 'Activities', 'access');
     $accessTypes = array('None' => __('None'), 'View' => __('View'), 'Register' => __('Register'));
     $row = $form->addRow();
-        $row->addLabel('access', __('Access'))->description(__('System-wide access control'));
-        $row->addSelect('access')->fromArray($accessTypes)->isRequired()->selected($access);
+        $row->addLabel('access', __('Access'));
+        $row->addSelect('access')->fromArray($accessTypes)->required()->selected($access);
 
     $enrolmentType = getSettingByScope($connection2, 'Activities', 'enrolmentType');
     $enrolmentTypes = array('Competitive' => __('Competitive'), 'Selection' => __('Selection'));
     $row = $form->addRow();
         $row->addLabel('enrolmentType', __('Enrolment Type'))->description(__('Enrolment process type'));
-        $row->addSelect('enrolmentType')->fromArray($enrolmentTypes)->isRequired()->selected($enrolmentType);
+        $row->addSelect('enrolmentType')->fromArray($enrolmentTypes)->required()->selected($enrolmentType);
 
     $row = $form->addRow();
         $row->addLabel('maxPerStudent', __('Max per Student'))->description(__('The most a student can sign up for in this activity type. Set to 0 for unlimited.'));
@@ -70,17 +65,16 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/activitySetti
 
     $row = $form->addRow();
         $row->addLabel('waitingList', __('Waiting List'))->description(__('Should students be placed on a waiting list if the enroled activity is full.'));
-        $row->addYesNo('waitingList')->isRequired()->selected('Y');
+        $row->addYesNo('waitingList')->required()->selected('Y');
 
     $backupChoice = getSettingByScope($connection2, 'Activities', 'backupChoice');
     $row = $form->addRow();
         $row->addLabel('backupChoice', __('Backup Choice'))->description(__('Allow students to choose a backup, in case enroled activity is full.'));
-        $row->addYesNo('backupChoice')->isRequired()->selected($backupChoice);
+        $row->addYesNo('backupChoice')->required()->selected($backupChoice);
 
     $row = $form->addRow();
         $row->addFooter();
         $row->addSubmit();
 
     echo $form->getOutput();
-
 }

@@ -18,11 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
-
-@session_start();
-
-//Module includes
-include './modules/'.$_SESSION[$guid]['module'].'/moduleFunctions.php';
+use Gibbon\Domain\Activities\ActivityTypeGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/activitySettings_type_edit.php') == false) {
     // Access denied
@@ -30,7 +26,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/activitySetti
 } else {
     // Proceed!
     $page->breadcrumbs
-        ->add(__('Manage Activity Settings'), 'activitySettings.php')
+        ->add(__('Activity Settings'), 'activitySettings.php')
         ->add(__('Edit'));
 
     $editLink = '';
@@ -41,63 +37,54 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/activitySetti
         returnProcess($guid, $_GET['return'], $editLink, null);
     }
 
-    $gibbonActivityTypeID = isset($_GET['gibbonActivityTypeID'])? $_GET['gibbonActivityTypeID'] : '';
-    
-    try {
-        $data = array('gibbonActivityTypeID' => $gibbonActivityTypeID);
-        $sql = 'SELECT * FROM gibbonActivityType WHERE gibbonActivityTypeID=:gibbonActivityTypeID';
-        $result = $connection2->prepare($sql);
-        $result->execute($data);
-    } catch (PDOException $e) {
-        echo "<div class='error'>".$e->getMessage().'</div>';
-    }
+    $activityTypeGateway = $container->get(ActivityTypeGateway::class);
 
-    if ($result->rowCount() != 1) {
-        echo '<div class="error">';
-        echo __('The selected record does not exist, or you do not have access to it.');
-        echo '</div>';
-    } else {
-        $values = $result->fetch();
+    $gibbonActivityTypeID = $_GET['gibbonActivityTypeID'] ?? '';
+    $values = $activityTypeGateway->getByID($gibbonActivityTypeID);
+
+    if (empty($values)) {
+        $page->addError(__('The selected record does not exist, or you do not have access to it.'));
+        return;
+    }
         
-        $form = Form::create('activityType', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/activitySettings_type_editProcess.php?gibbonActivityTypeID='.$gibbonActivityTypeID);
-        $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+    $form = Form::create('activityType', $_SESSION[$guid]['absoluteURL'].'/modules/School Admin/activitySettings_type_editProcess.php?gibbonActivityTypeID='.$gibbonActivityTypeID);
+    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
 
-        $row = $form->addRow();
-            $row->addLabel('name', __('Name'));
-            $row->addTextField('name')->isRequired()->maxLength(60)->readOnly();
+    $row = $form->addRow();
+        $row->addLabel('name', __('Name'));
+        $row->addTextField('name')->isRequired()->maxLength(60)->readOnly();
 
-        $row = $form->addRow();
-            $row->addLabel('description', __('Description'));
-            $row->addTextArea('description');
+    $row = $form->addRow();
+        $row->addLabel('description', __('Description'));
+        $row->addTextArea('description');
 
-        $accessTypes = array('None' => __('None'), 'View' => __('View'), 'Register' => __('Register'));
-        $row = $form->addRow();
-            $row->addLabel('access', __('Access'))->description(__('System-wide access control'));
-            $row->addSelect('access')->fromArray($accessTypes)->isRequired();
+    $accessTypes = array('None' => __('None'), 'View' => __('View'), 'Register' => __('Register'));
+    $row = $form->addRow();
+        $row->addLabel('access', __('Access'));
+        $row->addSelect('access')->fromArray($accessTypes)->isRequired();
 
-        $enrolmentTypes = array('Competitive' => __('Competitive'), 'Selection' => __('Selection'));
-        $row = $form->addRow();
-            $row->addLabel('enrolmentType', __('Enrolment Type'))->description(__('Enrolment process type'));
-            $row->addSelect('enrolmentType')->fromArray($enrolmentTypes)->isRequired();
+    $enrolmentTypes = array('Competitive' => __('Competitive'), 'Selection' => __('Selection'));
+    $row = $form->addRow();
+        $row->addLabel('enrolmentType', __('Enrolment Type'))->description(__('Enrolment process type'));
+        $row->addSelect('enrolmentType')->fromArray($enrolmentTypes)->isRequired();
 
-        $row = $form->addRow();
-            $row->addLabel('maxPerStudent', __('Max per Student'))->description(__('The most a student can sign up for in this activity type. Set to 0 for unlimited.'));
-            $row->addNumber('maxPerStudent')->minimum(0)->maximum(99);
+    $row = $form->addRow();
+        $row->addLabel('maxPerStudent', __('Max per Student'))->description(__('The most a student can sign up for in this activity type. Set to 0 for unlimited.'));
+        $row->addNumber('maxPerStudent')->minimum(0)->maximum(99);
 
-        $row = $form->addRow();
-            $row->addLabel('waitingList', __('Waiting List'))->description(__('Should students be placed on a waiting list if the enroled activity is full.'));
-            $row->addYesNo('waitingList')->isRequired();
+    $row = $form->addRow();
+        $row->addLabel('waitingList', __('Waiting List'))->description(__('Should students be placed on a waiting list if the enroled activity is full.'));
+        $row->addYesNo('waitingList')->isRequired();
 
-        $row = $form->addRow();
-            $row->addLabel('backupChoice', __('Backup Choice'))->description(__('Allow students to choose a backup, in case enroled activity is full.'));
-            $row->addYesNo('backupChoice')->isRequired();
+    $row = $form->addRow();
+        $row->addLabel('backupChoice', __('Backup Choice'))->description(__('Allow students to choose a backup, in case enroled activity is full.'));
+        $row->addYesNo('backupChoice')->isRequired();
 
-        $row = $form->addRow();
-        $row->addFooter();
-        $row->addSubmit();
+    $row = $form->addRow();
+    $row->addFooter();
+    $row->addSubmit();
 
-        $form->loadAllValuesFrom($values);
+    $form->loadAllValuesFrom($values);
 
-        echo $form->getOutput();
-    }
+    echo $form->getOutput();
 }
