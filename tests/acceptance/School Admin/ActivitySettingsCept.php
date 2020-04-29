@@ -16,8 +16,6 @@ $newFormValues = array(
     'maxPerTerm'                    => '3',
     'access'                        => 'View',
     'payment'                       => 'Single + Per Activity',
-    'enrolmentType'                 => 'Selection',
-    'backupChoice'                  => 'Y',
     'disableExternalProviderSignup' => 'Y',
     'hideExternalProviderCost'      => 'Y',
 );
