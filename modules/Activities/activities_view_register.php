@@ -183,7 +183,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
 
                                 if (!empty($values['access']) && $values['access'] != 'Register') {
                                     echo "<div class='error'>";
-                                    echo __($guid, 'Registration is closed, or you do not have permission to register.');
+                                    echo __('Registration is closed, or you do not have permission to register.');
                                     echo '</div>';
                                 } else if ($resultReg->rowCount() > 0) {
                                     echo "<div class='error'>";
@@ -215,10 +215,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
 
                                     $activityCountByType = getStudentActivityCountByType($pdo, $values['type'], $gibbonPersonID);
                                     if ($values['maxPerStudent'] > 0 && $activityCountByType >= $values['maxPerStudent']) {
-                                        $proceed = false;
-                                    }
-
-                                    if ($proceed == false) {
+                                        echo "<div class='error'>";
+                                        echo __('You have subscribed for the maximum number of activities of this type, and so cannot register for this activity.');
+                                        echo '</div>';
+                                    } elseif ($proceed == false) {
                                         echo "<div class='error'>";
                                         echo __('You have subscribed for the maximum number of activities in a term, and so cannot register for this activity.');
                                         echo '</div>';
@@ -229,9 +229,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
 
                                         echo '<p>';
                                         if ($enrolment == 'Selection') {
-                                            echo __($guid, 'After you press the Register button below, your application will be considered by a member of staff who will decide whether or not there is space for you in this program.');
+                                            echo __('After you press the Register button below, your application will be considered by a member of staff who will decide whether or not there is space for you in this program.');
                                         } else if ($values['waitingList'] == 'Y') {
-                                            echo __($guid, 'If there is space on this program you will be accepted immediately upon pressing the Register button below. If there is not, then you will be placed on a waiting list.');
+                                            echo __('If there is space on this program you will be accepted immediately upon pressing the Register button below. If there is not, then you will be placed on a waiting list.');
                                         }
                                         echo '</p>';
 
@@ -352,7 +352,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
 
                                 if (!empty($values['access']) && $values['access'] != 'Register') {
                                     echo "<div class='error'>";
-                                    echo __($guid, 'Registration is closed, or you do not have permission to register.');
+                                    echo __('Registration is closed, or you do not have permission to register.');
                                     echo '</div>';
                                 } elseif ($resultReg->rowCount() < 1) {
                                     echo "<div class='error'>";
