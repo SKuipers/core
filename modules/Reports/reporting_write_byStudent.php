@@ -17,12 +17,10 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-use Gibbon\Forms\Form;
-use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Services\Format;
 use Gibbon\Tables\DataTable;
-use Gibbon\Domain\User\UserGateway;
+use Gibbon\Forms\Form;
+use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Domain\Students\StudentGateway;
 use Gibbon\Domain\System\HookGateway;
 use Gibbon\Module\Reports\Forms\ReportingSidebarForm;
@@ -31,10 +29,7 @@ use Gibbon\Module\Reports\Domain\ReportingCycleGateway;
 use Gibbon\Module\Reports\Domain\ReportingAccessGateway;
 use Gibbon\Module\Reports\Domain\ReportingScopeGateway;
 use Gibbon\Module\Reports\Domain\ReportingProgressGateway;
-use Gibbon\Module\Reports\Charts\MarkbookVisualization;
-use Gibbon\Domain\Markbook\MarkbookEntryGateway;
-use Gibbon\Domain\Markbook\MarkbookWeightGateway;
-use Gibbon\Module\Reports\Forms\GradesSlider;
+use Gibbon\Domain\User\UserGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_write_byStudent.php') == false) {
     // Access denied
