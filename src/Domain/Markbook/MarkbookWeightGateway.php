@@ -26,8 +26,8 @@ use Gibbon\Domain\QueryableGateway;
 /**
  * Markbook Weight Gateway
  *
- * @version v19
- * @since   v19
+ * @version v20
+ * @since   v20
  */
 class MarkbookWeightGateway extends QueryableGateway
 {

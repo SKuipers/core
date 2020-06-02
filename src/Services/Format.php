@@ -120,6 +120,7 @@ class Format
      */
     public static function dateReadable($dateString, $format = '%b %e, %Y')
     {
+        if (empty($dateString)) return '';
         $date = static::createDateTime($dateString);
         return mb_convert_case(strftime($format, $date->format('U')), MB_CASE_TITLE);
     }
@@ -132,6 +133,7 @@ class Format
      */
     public static function dateTimeReadable($dateString, $format = '%b %e, %Y %H:%M')
     {
+        if (empty($dateString)) return '';
         $date = static::createDateTime($dateString);
         return mb_convert_case(strftime($format, $date->format('U')), MB_CASE_TITLE);
     }
@@ -504,15 +506,19 @@ class Format
             $output = preg_replace_callback('/\[+([^\]]*)\]+/u',
                 function ($matches) use ($title, $preferredName, $surname) {
                     list($token, $length) = array_pad(explode(':', $matches[1], 2), 2, false);
-                    return isset($$token)
-                        ? (!empty($length)? mb_substr($$token, 0, intval($length)) : $$token)
-                        : '';
+                    if ($$token) {
+                        return (!empty($length)? mb_substr($$token, 0, intval($length)) : 
+                            (($token == 'title') ? __($$token) : $$token));
+                    }
+                    else{
+                        return '';
+                    }
                 },
             $format);
 
         } elseif ($roleCategory == 'Parent') {
             $format = (!$informal? '%1$s ' : '') . ($reverse? '%3$s, %2$s' : '%2$s %3$s');
-            $output = sprintf($format, $title, $preferredName, $surname);
+            $output = sprintf($format, __($title), $preferredName, $surname);
         } elseif ($roleCategory == 'Student') {
             $format = $reverse ? '%2$s, %1$s' : '%1$s %2$s';
             $output = sprintf($format, $preferredName, $surname);
