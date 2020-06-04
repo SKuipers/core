@@ -179,19 +179,22 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/import_userPhot
                                         //Upload file with unique name
                                         $fileUploadFail = false;
                                         $filePath = '';
-                                        $unique = false;
-                                        $count = 0;
-                                        while ($unique == false and $count < 100) {
-                                            if ($count == 0) {
-                                                $filePath = 'uploads/'.$year.'/'.$month.'/'.$username.strrchr($filename, '.');
-                                            } else {
-                                                $filePath = 'uploads/'.$year.'/'.$month.'/'.$username."_$count".strrchr($filename, '.');
-                                            }
-                                            if (!(file_exists($_SESSION[$guid]['absolutePath'].'/'.$filePath))) {
-                                                $unique = true;
-                                            }
-                                            ++$count;
-                                        }
+                                        // $unique = false;
+                                        // $count = 0;
+                                        // while ($unique == false and $count < 100) {
+                                        //     if ($count == 0) {
+                                        //         // $filePath = 'uploads/'.$year.'/'.$month.'/'.$username.strrchr($filename, '.');
+                                        //     } else {
+                                        //         // $filePath = 'uploads/'.$year.'/'.$month.'/'.$username."_$count".strrchr($filename, '.');
+                                        //     }
+                                        //     if (!(file_exists($_SESSION[$guid]['absolutePath'].'/'.$filePath))) {
+                                        //         $unique = true;
+                                        //     }
+                                        //     ++$count;
+                                        // }
+
+                                        $filePath = 'uploads/photos/'.$username.'.jpg';
+                                        
                                         if (!(@copy('zip://'.$path.'#'.$filename, $filePath))) {
                                             $fileUploadFail = true;
                                             echo "<div class='error'>";
