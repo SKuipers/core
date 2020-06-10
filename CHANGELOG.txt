@@ -43,6 +43,7 @@ v20.0.00
         Departments: added drag-drop ordering to Departments in School Admin
         Finance: added Student ID, where set, to invoices and receipts
         Finance: apply email template to invoices, receipts, and reminders
+        Messenger: added Parent and Student options to Applicants target in New Message
         Planner: enhanced Smart Block display in Lesson Planner
         Planner: removed bold from Chat comment in lesson plan view
         Reports: added a Proof Read by Form Group option
@@ -62,9 +63,12 @@ v20.0.00
         Students: added an Exclude Left Students checkbox to Student Enrolment Trends, off by default
         Students: added option allowing the referee email field in the Application Form to be set to option
         Students: added a grid view of student's teachers to Student Profile
+        Timetable: added Bookings into View Available Facilities report
         User Admin: added rich text editors to the Application Form Settings
         User Admin: added an option to enter a departure reason for final year students in Rollover
         User Admin: added an option to create a linked staff record for new users
+        User Admin: added no record warning to View Role
+        User Admin: switched from warning to message in Edit User
 
     Bug Fixes
         System: fixed module uninstall to also remove notification events
@@ -78,6 +82,7 @@ v20.0.00
         Planner: removed debug code from homework submission
         Planner: removed ability for students and parents to be granted Lesson Planner_viewAllEditMyClasses
         Staff: fixed Left staff appearing in Weekly Absences report
+        Staff: fixed Staff Directory only exporting first 50 staff members
         Students: fixed emergency data report not showing parents column
         Students: fixed Tutors and EAs set to Left showing on Student Profile
         Students: fixed past enrolments showing up in Students by Form Group
@@ -96,6 +101,7 @@ v20.0.00
         Timetable: escaped calendar event names in timetable tooltips
         Timetable: incremented gibbonTTImport course and class name field lengths
         Timetable Admin: implemented bulk Tie Days to Dates duplicate checking
+        Timetable Admin: fixed Course Enrolment by Class unable to delete duplicate entries
 
 v19.0.00
 --------
