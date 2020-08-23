@@ -1047,17 +1047,34 @@ function getAlertBar($guid, $connection2, $gibbonPersonID, $privacy = '', $divEx
             }
         }
 
-        // Custom Field Flags
+        
+
+        // Get Person Data
         try {
             $dataPersonField = array('gibbonPersonID' => $gibbonPersonID);
-            $sqlPersonField = 'SELECT fields FROM gibbonPerson WHERE gibbonPersonID=:gibbonPersonID LIMIT 1';
+            $sqlPersonField = 'SELECT fields, dayType FROM gibbonPerson WHERE gibbonPersonID=:gibbonPersonID LIMIT 1';
             $resultPersonField = $connection2->prepare($sqlPersonField);
             $resultPersonField->execute($dataPersonField);
         } catch (PDOException $e) {}
 
-        if ($resultPersonField->rowCount() > 0) {
+        $rowPersonField = ($resultPersonField->rowCount() > 0) ? $resultPersonField->fetch() : [];
 
-            $rowPersonField = $resultPersonField->fetch();
+
+        // Day-type Options
+        $dayTypeOptions = getSettingByScope($connection2, 'User Admin', 'dayTypeOptions');
+        if (!empty($dayTypeOptions) && !empty($rowPersonField['dayType']) && $rowPersonField['dayType'] != 'Full') {
+            $alerts[] = [
+                'highestLevel'    => __('Day Type'),
+                'highestColour'   => '7f67a2',
+                'highestColourBG' => 'ebdcf9',
+                'tag'             => __('D'),
+                'title'           => sprintf(__('Day Type: %1$s'),$rowPersonField['dayType']),
+                'link'            => './index.php?q=/modules/Students/student_view_details.php&gibbonPersonID='.$gibbonPersonID,
+            ];
+        }
+
+        // Custom Field Flags
+        if (!empty($rowPersonField['fields'])) {
             $userFields = unserialize( $rowPersonField['fields'] );
 
             if (!empty($userFields)) {
