@@ -38,7 +38,7 @@ class UserGateway extends QueryableGateway
     private static $tableName = 'gibbonPerson';
     private static $primaryKey = 'gibbonPersonID';
 
-    private static $searchableColumns = ['preferredName', 'surname', 'username', 'studentID', 'email', 'emailAlternate', 'phone1', 'phone2', 'phone3', 'phone4', 'vehicleRegistration', 'gibbonRole.name'];
+    private static $searchableColumns = ['preferredName', 'surname', 'firstName', 'username', 'studentID', 'email', 'emailAlternate', 'phone1', 'phone2', 'phone3', 'phone4', 'vehicleRegistration', 'gibbonRole.name'];
     
     /**
      * Queries the list of users for the Manage Users page.
