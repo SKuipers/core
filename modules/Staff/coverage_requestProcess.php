@@ -46,6 +46,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
 
     $requestDates = $_POST['requestDates'] ?? [];
     $substituteTypes = $_POST['substituteTypes'] ?? [];
+    $timetableClasses = $_POST['timetableClasses'] ?? [];
 
     // Validate the database relationships exist
     $absence = $container->get(StaffAbsenceGateway::class)->getByID($gibbonStaffAbsenceID);
