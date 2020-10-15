@@ -161,7 +161,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_add.php') =
     }
 
     // Redirect to coverage request
-    if ($data['coverageRequired'] == 'Y') {
+    $canRequestCoverage = isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php');
+    if ($data['coverageRequired'] == 'Y' && $canRequestCoverage) {
         $URL = $_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Staff/coverage_request.php&coverage=Y&gibbonStaffAbsenceID=$gibbonStaffAbsenceID";
         $URL .= '&return=success1';
         header("Location: {$URL}");
