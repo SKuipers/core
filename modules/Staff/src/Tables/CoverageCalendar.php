@@ -54,12 +54,13 @@ class CoverageCalendar
             $group[$item['date']][] = $item;
             return $group;
         }, []);
-    
+
         foreach ($dateRange as $month) {
             $days = [];
             for ($dayCount = 1; $dayCount <= $month->format('t'); $dayCount++) {
                 $date = new DateTime($month->format('Y-m').'-'.$dayCount);
                 $coverageListByDay = $coverageByDate[$date->format('Y-m-d')] ?? [];
+
                 $coverageCount = count($coverageListByDay);
     
                 $days[$dayCount] = [
@@ -97,7 +98,7 @@ class CoverageCalendar
                 ->notSortable()
                 ->format(function ($month) use ($dayCount) {
                     $day = $month['days'][$dayCount] ?? null;
-                    if (empty($day) || ($day['count'] <= 0 && !$day['exception'])) return '';
+                    if (empty($day['coverage']) || ($day['count'] <= 0 && !$day['exception'])) return '';
     
                     $coverage = $day['coverage'];
     
