@@ -48,7 +48,7 @@ $isLoggedIn = $session->has('username') && $session->has('gibbonRoleIDCurrent');
  */
 if ($isLoggedIn && $module = $page->getModule()) {
     $page->breadcrumbs->setBaseURL('index.php?q=/modules/'.$module->name.'/');
-    $page->breadcrumbs->add(__($module->name), $module->entryURL);
+    $page->breadcrumbs->add($module->type == 'Core' ? __($module->name) : __m($module->name), $module->entryURL);
 }
 
 /**
@@ -274,6 +274,7 @@ $javascriptConfig = [
         'datepicker' => [
             'locale' => $datepickerLocale,
             'dateFormat' => str_replace('yyyy', 'yy', $session->get('i18n')['dateFormat']),
+            'firstDay' => $gibbon->session->get('firstDayOfTheWeek') == 'Monday'? 1 : 0,
         ],
         'thickbox' => [
             'pathToImage' => $session->get('absoluteURL').'/lib/thickbox/loadingAnimation.gif',
@@ -364,12 +365,12 @@ if (getSettingByScope($connection2, 'User Admin', 'personalBackground') == 'Y' &
     $backgroundScroll = 'repeat fixed center top';
 } else {
     $backgroundImage = $session->get('absoluteURL').'/themes/'.$session->get('gibbonThemeName').'/img/backgroundPage.jpg';
-    $backgroundScroll = 'no-repeat fixed center top #626cd3!important;';
+    $backgroundScroll = 'repeat fixed center top';
 }
 
 $page->stylesheets->add(
     'personal-background',
-    'body { background: url('.$backgroundImage.') '.$backgroundScroll.' }',
+    'body { background: url("'.$backgroundImage.'") '.$backgroundScroll.' #626cd3!important; }',
     ['type' => 'inline']
 );
 

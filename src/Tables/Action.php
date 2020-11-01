@@ -54,7 +54,7 @@ class Action extends WebLink
                             break;
             case 'edit':    $this->setIcon('config');
                             break;
-            case 'delete':  $this->setIcon('garbage')->modalWindow(650, 135);
+            case 'delete':  $this->setIcon('garbage')->modalWindow(650, 250);
                             break;
             case 'print':   $this->setIcon('print');
                             break;
@@ -174,7 +174,7 @@ class Action extends WebLink
     {
         $this->modal = true;
 
-        $this->setClass('thickbox')
+        $this->addClass('thickbox')
             ->addParam('width', $width)
             ->addParam('height', $height);
 
