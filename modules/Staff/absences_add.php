@@ -156,7 +156,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_add.php') =
         // Pre-fill the last approver from the one most recently used
         $gibbonPersonIDApproval = $staffAbsenceGateway->getMostRecentApproverByPerson($gibbonPersonID);
 
-        $form->addRow()->addHeading(__('Requires Approval'))->addClass('approvalRequired');
+        $form->addRow()->addClass('approvalRequired')->addHeading(__('Requires Approval'))->addClass('approvalRequired');
 
         $row = $form->addRow()->addClass('approvalRequired');
         $row->addLabel('gibbonPersonIDApproval', __('Approver'));
@@ -217,7 +217,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_add.php') =
     if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_my.php')) {
         $form->toggleVisibilityByClass('coverageRequest')->onSelect('gibbonStaffAbsenceTypeID')->whenNot('Please select...');
 
-        $form->addRow()->addHeading(__('Coverage'))->addClass('coverageRequest');
+        $form->addRow()->addClass('coverageRequest')->addHeading(__('Coverage'))->addClass('coverageRequest');
 
         $row = $form->addRow()->addClass('coverageRequest');
             $row->addLabel('coverageRequired', __('Substitute Required'));
