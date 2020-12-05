@@ -24,10 +24,8 @@ use Gibbon\Services\Format;
 use Gibbon\Tables\DataTable;
 
 if (isActionAccessible($guid, $connection2, '/modules/User Admin/family_manage_edit.php') == false) {
-    //Acess denied
-    echo "<div class='error'>";
-    echo __('You do not have access to this action.');
-    echo '</div>';
+    // Access denied
+    $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed!
     $page->breadcrumbs
@@ -277,7 +275,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/family_manage_e
             $table->addColumn('name', __('Name'))
                 ->format(function ($adult) use ($guid) {
                     $name = Format::name($adult['title'], $adult['preferredName'], $adult['surname'], 'Parent');
-                    return Format::link('./index.php?q=/modules/' . $_SESSION[$guid]['module'] . '/family_manage_edit_editAdult.php&gibbonPersonID=' . $adult['gibbonPersonID'], $name);
+                    return Format::link('./index.php?q=/modules/User Admin/user_manage_edit.php&gibbonPersonID=' . $adult['gibbonPersonID'], $name);
                 });
 
             $table->addColumn('status', __('Status'));

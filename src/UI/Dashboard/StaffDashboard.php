@@ -73,6 +73,8 @@ class StaffDashboard implements OutputableInterface
 
         $return = false;
 
+        $homeworkNameSingular = getSettingByScope($connection2, 'Planner', 'homeworkNameSingular');
+
         //GET PLANNER
         $planner = false;
         $date = date('Y-m-d');
@@ -131,7 +133,7 @@ class StaffDashboard implements OutputableInterface
             $planner .= "<span style='font-size: 85%; font-style: italic'>".__('Unit').'</span>';
             $planner .= '</th>';
             $planner .= '<th>';
-            $planner .= __('Homework');
+            $planner .= __($homeworkNameSingular);
             $planner .= '</th>';
             $planner .= '<th>';
             $planner .= __('Summary');
@@ -226,14 +228,11 @@ class StaffDashboard implements OutputableInterface
         $rollGroups = array();
         $rollGroupCount = 0;
         $count = 0;
-        try {
+        
             $dataRollGroups = array('gibbonPersonIDTutor' => $_SESSION[$guid]['gibbonPersonID'], 'gibbonPersonIDTutor2' => $_SESSION[$guid]['gibbonPersonID'], 'gibbonPersonIDTutor3' => $_SESSION[$guid]['gibbonPersonID'], 'gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID']);
             $sqlRollGroups = 'SELECT * FROM gibbonRollGroup WHERE (gibbonPersonIDTutor=:gibbonPersonIDTutor OR gibbonPersonIDTutor2=:gibbonPersonIDTutor2 OR gibbonPersonIDTutor3=:gibbonPersonIDTutor3) AND gibbonSchoolYearID=:gibbonSchoolYearID';
             $resultRollGroups = $connection2->prepare($sqlRollGroups);
             $resultRollGroups->execute($dataRollGroups);
-        } catch (PDOException $e) {
-            echo "<div class='error'>".$e->getMessage().'</div>';
-        }
 
         $attendanceAccess = isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_take_byRollGroup.php');
 
@@ -393,26 +392,21 @@ class StaffDashboard implements OutputableInterface
 
         //GET HOOKS INTO DASHBOARD
         $hooks = array();
-        try {
+        
             $dataHooks = array();
             $sqlHooks = "SELECT * FROM gibbonHook WHERE type='Staff Dashboard'";
             $resultHooks = $connection2->prepare($sqlHooks);
             $resultHooks->execute($dataHooks);
-        } catch (PDOException $e) {
-            echo "<div class='error'>".$e->getMessage().'</div>';
-        }
         if ($resultHooks->rowCount() > 0) {
             $count = 0;
             while ($rowHooks = $resultHooks->fetch()) {
                 $options = unserialize($rowHooks['options']);
                 //Check for permission to hook
-                try {
+                
                     $dataHook = array('gibbonRoleIDCurrent' => $_SESSION[$guid]['gibbonRoleIDCurrent'], 'sourceModuleName' => $options['sourceModuleName']);
                     $sqlHook = "SELECT gibbonHook.name, gibbonModule.name AS module, gibbonAction.name AS action FROM gibbonHook JOIN gibbonModule ON (gibbonHook.gibbonModuleID=gibbonModule.gibbonModuleID) JOIN gibbonAction ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) JOIN gibbonPermission ON (gibbonPermission.gibbonActionID=gibbonAction.gibbonActionID) WHERE gibbonAction.gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE gibbonPermission.gibbonRoleID=:gibbonRoleIDCurrent AND name=:sourceModuleName) AND gibbonHook.type='Staff Dashboard'  AND gibbonAction.name='".$options['sourceModuleAction']."' AND gibbonModule.name='".$options['sourceModuleName']."' ORDER BY name";
                     $resultHook = $connection2->prepare($sqlHook);
                     $resultHook->execute($dataHook);
-                } catch (PDOException $e) {
-                }
                 if ($resultHook->rowCount() == 1) {
                     $rowHook = $resultHook->fetch();
                     $hooks[$count]['name'] = $rowHooks['name'];

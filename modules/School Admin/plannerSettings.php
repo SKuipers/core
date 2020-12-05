@@ -20,10 +20,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Forms\Form;
 
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/plannerSettings.php') == false) {
-    //Acess denied
-    echo "<div class='error'>";
-    echo __('You do not have access to this action.');
-    echo '</div>';
+    // Access denied
+    $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed!
     $page->breadcrumbs->add(__('Planner Settings'));
@@ -57,6 +55,18 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/plannerSettin
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addTextArea($setting['name'])->setRows(10)->setValue($setting['value']);
+
+    $form->addRow()->addHeading(__('Interface'));
+    
+    $setting = getSettingByScope($connection2, 'Planner', 'homeworkNameSingular', true);
+    $row = $form->addRow();
+        $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
+        $row->addTextField($setting['name'])->required()->setValue($setting['value']);
+
+    $setting = getSettingByScope($connection2, 'Planner', 'homeworkNamePlural', true);
+    $row = $form->addRow();
+        $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
+        $row->addTextField($setting['name'])->required()->setValue($setting['value']);
 
     $form->addRow()->addHeading(__('Access Settings'));
 

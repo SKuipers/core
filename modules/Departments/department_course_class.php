@@ -35,7 +35,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Departments/department_cou
     $gibbonCourseClassID = $_GET['gibbonCourseClassID'] ?? '';
     $gibbonCourseID = $_GET['gibbonCourseID'] ?? '';
     $gibbonDepartmentID = $_GET['gibbonDepartmentID'] ?? '';
-    $currentDate = $_GET['currentDate'] ?? '';
+    $currentDate = $_GET['currentDate'] ?? Format::date(date('Y-m-d'));
 
     if (empty($gibbonCourseClassID)) {
         $page->addError(__('You have not specified one or more required parameters.'));
@@ -114,8 +114,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Departments/department_cou
             }
             // Homework
             if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_deadlines.php')) {
+                $homeworkNamePlural = getSettingByScope($connection2, 'Planner', 'homeworkNamePlural');
                 $menuItems[] = [
-                    'name' => __('Homework'),
+                    'name' => __($homeworkNamePlural),
                     'url'  => './index.php?q=/modules/Planner/planner_deadlines.php&gibbonCourseClassIDFilter='.$gibbonCourseClassID,
                     'icon' => 'homework_large.png',
                 ];

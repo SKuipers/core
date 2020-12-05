@@ -67,6 +67,8 @@ class StudentDashboard implements OutputableInterface
         $connection2 = $this->db->getConnection();
         $gibbonPersonID = $this->session->get('gibbonPersonID');
 
+        $homeworkNameSingular = getSettingByScope($connection2, 'Planner', 'homeworkNameSingular');
+
         $return = false;
 
         //GET PLANNER
@@ -117,7 +119,7 @@ class StudentDashboard implements OutputableInterface
             $planner .= "<span style='font-size: 85%; font-style: italic'>".__('Unit').'</span>';
             $planner .= '</th>';
             $planner .= '<th>';
-            $planner .= __('Homework');
+            $planner .=  __($homeworkNameSingular);
             $planner .= '</th>';
             $planner .= '<th>';
             $planner .= __('Summary');
@@ -210,26 +212,21 @@ class StudentDashboard implements OutputableInterface
 
         //GET HOOKS INTO DASHBOARD
         $hooks = array();
-        try {
+        
             $dataHooks = array();
             $sqlHooks = "SELECT * FROM gibbonHook WHERE type='Student Dashboard'";
             $resultHooks = $connection2->prepare($sqlHooks);
             $resultHooks->execute($dataHooks);
-        } catch (PDOException $e) {
-            echo "<div class='error'>".$e->getMessage().'</div>';
-        }
         if ($resultHooks->rowCount() > 0) {
             $count = 0;
             while ($rowHooks = $resultHooks->fetch()) {
                 $options = unserialize($rowHooks['options']);
                 //Check for permission to hook
-                try {
+                
                     $dataHook = array('gibbonRoleIDCurrent' => $_SESSION[$guid]['gibbonRoleIDCurrent'], 'sourceModuleName' => $options['sourceModuleName']);
                     $sqlHook = "SELECT gibbonHook.name, gibbonModule.name AS module, gibbonAction.name AS action FROM gibbonHook JOIN gibbonModule ON (gibbonHook.gibbonModuleID=gibbonModule.gibbonModuleID) JOIN gibbonAction ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) JOIN gibbonPermission ON (gibbonPermission.gibbonActionID=gibbonAction.gibbonActionID) WHERE gibbonAction.gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name=:sourceModuleName) AND gibbonPermission.gibbonRoleID=:gibbonRoleIDCurrent AND gibbonHook.type='Student Dashboard' AND gibbonAction.name='".$options['sourceModuleAction']."' AND gibbonModule.name='".$options['sourceModuleName']."' ORDER BY name";
                     $resultHook = $connection2->prepare($sqlHook);
                     $resultHook->execute($dataHook);
-                } catch (PDOException $e) {
-                }
                 if ($resultHook->rowCount() == 1) {
                     $rowHook = $resultHook->fetch();
                     $hooks[$count]['name'] = $rowHooks['name'];

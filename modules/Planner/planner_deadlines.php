@@ -29,15 +29,14 @@ $style = '';
 
 $highestAction = getHighestGroupedAction($guid, $_GET['q'], $connection2);
 if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_deadlines.php') == false) {
-    //Acess denied
-    echo "<div class='error'>";
-    echo __('You do not have access to this action.');
-    echo '</div>';
+    // Access denied
+    $page->addError(__('You do not have access to this action.'));
 } else {
     //Set variables
     $today = date('Y-m-d');
 
     $plannerGateway = $container->get(PlannerEntryGateway::class);
+    $homeworkNamePlural = getSettingByScope($connection2, 'Planner', 'homeworkNamePlural');
 
     //Proceed!
     //Get viewBy, date and class variables
@@ -104,17 +103,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_deadlines.
 
         $page->breadcrumbs
             ->add(__('My Children\'s Classes'), 'planner.php')
-            ->add(__('Homework + Deadlines'));
+            ->add(__('{homeworkName} + Due Dates', ['homeworkName' => __($homeworkNamePlural)]));
 
         //Test data access field for permission
-        try {
+        
             $data = array('gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID']);
             $sql = "SELECT * FROM gibbonFamilyAdult WHERE gibbonPersonID=:gibbonPersonID AND childDataAccess='Y'";
             $result = $connection2->prepare($sql);
             $result->execute($data);
-        } catch (PDOException $e) {
-            echo "<div class='error'>".$e->getMessage().'</div>';
-        }
         if ($result->rowCount() < 1) {
             echo "<div class='error'>";
             echo __('Access denied.');
@@ -124,14 +120,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_deadlines.
             $count = 0;
             $options = array();
             while ($row = $result->fetch()) {
-                try {
+                
                     $dataChild = array('gibbonFamilyID' => $row['gibbonFamilyID'], 'gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID']);
                     $sqlChild = "SELECT * FROM gibbonFamilyChild JOIN gibbonPerson ON (gibbonFamilyChild.gibbonPersonID=gibbonPerson.gibbonPersonID) JOIN gibbonStudentEnrolment ON (gibbonPerson.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID) JOIN gibbonRollGroup ON (gibbonStudentEnrolment.gibbonRollGroupID=gibbonRollGroup.gibbonRollGroupID) WHERE gibbonFamilyID=:gibbonFamilyID AND gibbonPerson.status='Full' AND (dateStart IS NULL OR dateStart<='".date('Y-m-d')."') AND (dateEnd IS NULL  OR dateEnd>='".date('Y-m-d')."') AND gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID ORDER BY surname, preferredName ";
                     $resultChild = $connection2->prepare($sqlChild);
                     $resultChild->execute($dataChild);
-                } catch (PDOException $e) {
-                    echo "<div class='error'>".$e->getMessage().'</div>';
-                }
 
                 while ($rowChild = $resultChild->fetch()) {
                     $options[$rowChild['gibbonPersonID']] = Format::name('', $rowChild['preferredName'], $rowChild['surname'], 'Student');
@@ -178,14 +171,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_deadlines.
 
             if ($gibbonPersonID != '' and $count > 0) {
                 //Confirm access to this student
-                try {
+                
                     $dataChild = array('gibbonPersonID' => $gibbonPersonID, 'gibbonPersonID2' => $_SESSION[$guid]['gibbonPersonID']);
                     $sqlChild = "SELECT * FROM gibbonFamilyChild JOIN gibbonFamily ON (gibbonFamilyChild.gibbonFamilyID=gibbonFamily.gibbonFamilyID) JOIN gibbonFamilyAdult ON (gibbonFamilyAdult.gibbonFamilyID=gibbonFamily.gibbonFamilyID) JOIN gibbonPerson ON (gibbonFamilyChild.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonPerson.status='Full' AND (dateStart IS NULL OR dateStart<='".date('Y-m-d')."') AND (dateEnd IS NULL  OR dateEnd>='".date('Y-m-d')."') AND gibbonFamilyChild.gibbonPersonID=:gibbonPersonID AND gibbonFamilyAdult.gibbonPersonID=:gibbonPersonID2 AND childDataAccess='Y'";
                     $resultChild = $connection2->prepare($sqlChild);
                     $resultChild->execute($dataChild);
-                } catch (PDOException $e) {
-                    echo "<div class='error'>".$e->getMessage().'</div>';
-                }
                 if ($resultChild->rowCount() < 1) {
                     echo "<div class='error'>";
                     echo __('The selected record does not exist, or you do not have access to it.');
@@ -200,14 +190,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_deadlines.
                         if ($gibbonCourseClassID == '') {
                             $proceed = false;
                         } else {
-                            try {
+                            
                                 $data = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'gibbonPersonID' => $gibbonPersonID, 'gibbonCourseClassID' => $gibbonCourseClassID);
                                 $sql = "SELECT gibbonCourse.gibbonCourseID, gibbonCourseClass.gibbonCourseClassID, gibbonCourse.nameShort AS course, gibbonCourseClass.nameShort AS class FROM gibbonCourseClassPerson JOIN gibbonCourseClass ON (gibbonCourseClassPerson.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) JOIN gibbonCourse ON (gibbonCourseClass.gibbonCourseID=gibbonCourse.gibbonCourseID) WHERE gibbonCourse.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonPersonID=:gibbonPersonID AND gibbonCourseClass.gibbonCourseClassID=:gibbonCourseClassID AND role='Teacher' ORDER BY course, class";
                                 $result = $connection2->prepare($sql);
                                 $result->execute($data);
-                            } catch (PDOException $e) {
-                                echo "<div class='error'>".$e->getMessage().'</div>';
-                            }
                             if ($result->rowCount() != 1) {
                                 $proceed = false;
                             }
@@ -229,7 +216,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_deadlines.
 
                         // HOMEWORK TABLE
                         $table = $container->get(HomeworkTable::class)->create($gibbon->session->get('gibbonSchoolYearID'), $gibbonPersonID, 'Parent');
-                        $table->setTitle(__('All Homework'));
+                        $table->setTitle($homeworkNamePlural);
 
                         echo $table->getOutput();
                     }
@@ -243,7 +230,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_deadlines.
 
         $page->breadcrumbs
             ->add(__('Planner'), 'planner.php', $params)
-            ->add(__('Homework + Deadlines'));
+            ->add(__('{homeworkName} + Due Dates', ['homeworkName' => __($homeworkNamePlural)]));
 
         //Proceed!
         if (isset($_GET['return'])) {
@@ -294,7 +281,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_deadlines.
 
             // HOMEWORK TABLE
             $table = $container->get(HomeworkTable::class)->create($gibbon->session->get('gibbonSchoolYearID'), $gibbonPersonID, $category);
-            $table->setTitle(__('All Homework'));
+            $table->setTitle($homeworkNamePlural);
 
             echo $table->getOutput();
         }

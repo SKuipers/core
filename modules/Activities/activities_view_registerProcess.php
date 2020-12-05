@@ -163,14 +163,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                                     $status = 'Pending';
                                 } else {
                                     //Check number of people registered for this activity (if we ignore status it stops people jumping the queue when someone unregisters)
-                                    try {
-                                        $dataNumberRegistered = array('gibbonActivityID' => $gibbonActivityID, 'date' => date('Y-m-d'));
-                                        $sqlNumberRegistered = "SELECT * FROM gibbonActivityStudent JOIN gibbonPerson ON (gibbonActivityStudent.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonPerson.status='Full' AND (dateEnd IS NULL  OR dateEnd>=:date) AND gibbonActivityID=:gibbonActivityID";
-                                        $resultNumberRegistered = $connection2->prepare($sqlNumberRegistered);
-                                        $resultNumberRegistered->execute($dataNumberRegistered);
-                                    } catch (PDOException $e) {
-                                        echo "<div class='error'>".$e->getMessage().'</div>';
-                                    }
+                                    
+                                    $dataNumberRegistered = array('gibbonActivityID' => $gibbonActivityID, 'date' => date('Y-m-d'));
+                                    $sqlNumberRegistered = "SELECT * FROM gibbonActivityStudent JOIN gibbonPerson ON (gibbonActivityStudent.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonPerson.status='Full' AND (dateEnd IS NULL  OR dateEnd>=:date) AND gibbonActivityID=:gibbonActivityID";
+                                    $resultNumberRegistered = $connection2->prepare($sqlNumberRegistered);
+                                    $resultNumberRegistered->execute($dataNumberRegistered);
 
                                     //If activity is full...
                                     if ($resultNumberRegistered->rowCount() >= $row['maxParticipants']) {
@@ -202,11 +199,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                                 setLog($connection2, $_SESSION[$guid]['gibbonSchoolYearIDCurrent'], $gibbonModuleID, $_SESSION[$guid]['gibbonPersonID'], 'Activities - Student Registered', array('gibbonPersonIDStudent' => $gibbonPersonID));
 
                                 //Unlock locked database tables
-                                try {
+                                
                                     $sql = 'UNLOCK TABLES';
                                     $result = $connection2->query($sql);
-                                } catch (PDOException $e) {
-                                }
 
                                 // Get the start and end date of the activity, depending on which dateType we're using
                                 $activityTimespan = getActivityTimespan($connection2, $gibbonActivityID, $row['gibbonSchoolYearTermIDList']);
@@ -305,7 +300,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                                 //Check to see who is registering in system
                                 $studentRegistration = false;
                                 $parentRegistration = false ;
-                                try {
+                                
                                     $dataAccess = array();
                                     $sqlAccess = "SELECT
                                             gibbonAction.name, gibbonRole.category
@@ -317,7 +312,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                                             AND gibbonRole.category IN ('Parent','Student')";
                                     $resultAccess = $connection2->prepare($sqlAccess);
                                     $resultAccess->execute($dataAccess);
-                                } catch (PDOException $e) {}
                                 while ($rowAccess = $resultAccess->fetch()) {
                                     if ($rowAccess['name'] == 'View Activities_studentRegister' && $rowAccess['category'] == 'Student') {
                                         $studentRegistration = true;
@@ -338,43 +332,36 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                                 }
 
                                 //Count spaces
-                                try {
-                                    $dataNumberRegistered = array('gibbonActivityID' => $gibbonActivityID, 'today' => date('Y-m-d'));
-                                    $sqlNumberRegistered = "SELECT * FROM gibbonActivityStudent JOIN gibbonPerson ON (gibbonActivityStudent.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonPerson.status='Full' AND (dateEnd IS NULL  OR dateEnd>=:today) AND gibbonActivityID=:gibbonActivityID AND gibbonActivityStudent.status='Accepted'";
-                                    $resultNumberRegistered = $connection2->prepare($sqlNumberRegistered);
-                                    $resultNumberRegistered->execute($dataNumberRegistered);
-                                } catch (PDOException $e) {
-                                }
+                                $dataNumberRegistered = array('gibbonActivityID' => $gibbonActivityID, 'today' => date('Y-m-d'));
+                                $sqlNumberRegistered = "SELECT * FROM gibbonActivityStudent JOIN gibbonPerson ON (gibbonActivityStudent.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonPerson.status='Full' AND (dateEnd IS NULL  OR dateEnd>=:today) AND gibbonActivityID=:gibbonActivityID AND gibbonActivityStudent.status='Accepted'";
+                                $resultNumberRegistered = $connection2->prepare($sqlNumberRegistered);
+                                $resultNumberRegistered->execute($dataNumberRegistered);
 
                                 //If activity is not full...
                                 $spaces = $row['maxParticipants'] - $resultNumberRegistered->rowCount();
                                 if ($spaces > 0) {
                                     //Get top of waiting list
-                                    try {
-                                        $dataBumps = array('gibbonActivityID' => $gibbonActivityID, 'today' => date('Y-m-d'));
-                                        $sqlBumps = "SELECT gibbonActivityStudentID, name, gibbonPerson.gibbonPersonID, surname, preferredName
-                                            FROM gibbonActivityStudent
-                                            JOIN gibbonActivity ON (gibbonActivityStudent.gibbonActivityID=gibbonActivity.gibbonActivityID)
-                                            JOIN gibbonPerson ON (gibbonActivityStudent.gibbonPersonID=gibbonPerson.gibbonPersonID)
-                                        WHERE gibbonPerson.status='Full'
-                                            AND (dateStart IS NULL OR dateStart<=:today)
-                                            AND (dateEnd IS NULL  OR dateEnd>=:today)
-                                            AND gibbonActivityStudent.gibbonActivityID=:gibbonActivityID
-                                            AND gibbonActivityStudent.status='Waiting List'
-                                        ORDER BY timestamp ASC LIMIT 0, $spaces";
-                                        $resultBumps = $connection2->prepare($sqlBumps);
-                                        $resultBumps->execute($dataBumps);
-                                    } catch (PDOException $e) { }
+                                    $dataBumps = array('gibbonActivityID' => $gibbonActivityID, 'today' => date('Y-m-d'));
+                                    $sqlBumps = "SELECT gibbonActivityStudentID, name, gibbonPerson.gibbonPersonID, surname, preferredName
+                                        FROM gibbonActivityStudent
+                                        JOIN gibbonActivity ON (gibbonActivityStudent.gibbonActivityID=gibbonActivity.gibbonActivityID)
+                                        JOIN gibbonPerson ON (gibbonActivityStudent.gibbonPersonID=gibbonPerson.gibbonPersonID)
+                                    WHERE gibbonPerson.status='Full'
+                                        AND (dateStart IS NULL OR dateStart<=:today)
+                                        AND (dateEnd IS NULL  OR dateEnd>=:today)
+                                        AND gibbonActivityStudent.gibbonActivityID=:gibbonActivityID
+                                        AND gibbonActivityStudent.status='Waiting List'
+                                    ORDER BY timestamp ASC LIMIT 0, $spaces";
+                                    $resultBumps = $connection2->prepare($sqlBumps);
+                                    $resultBumps->execute($dataBumps);
 
                                     //Bump students up
                                     while ($rowBumps = $resultBumps->fetch()) {
-                                        try {
+                                        
                                             $dataBump = array('gibbonActivityStudentID' => $rowBumps['gibbonActivityStudentID']);
                                             $sqlBump = "UPDATE gibbonActivityStudent SET status='Accepted' WHERE gibbonActivityStudentID=:gibbonActivityStudentID";
                                             $resultBump = $connection2->prepare($sqlBump);
                                             $resultBump->execute($dataBump);
-                                        } catch (PDOException $e) {
-                                        }
 
                                         //Set log
                                         setLog($connection2, $_SESSION[$guid]['gibbonSchoolYearIDCurrent'], $gibbonModuleID, $_SESSION[$guid]['gibbonPersonID'], 'Activities - Student Bump', array('gibbonPersonIDStudent' => $rowBumps['gibbonPersonID']));
@@ -393,7 +380,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                                             $event->addRecipient($rowBumps['gibbonPersonID']);
                                         }
                                         if ($parentRegistration) { //Notify contact priority 1 parents in associated families
-                                            try {
+                                            
                                                 $dataAdult = array('gibbonPersonID' => $rowBumps['gibbonPersonID']);
                                                 $sqlAdult = "
                                                     SELECT
@@ -409,7 +396,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                                                         AND gibbonPerson.status='Full'";
                                                 $resultAdult = $connection2->prepare($sqlAdult);
                                                 $resultAdult->execute($dataAdult);
-                                            } catch (PDOException $e) { }
                                             while ($rowAdult = $resultAdult->fetch()) {
                                                 $event->addRecipient($rowAdult['gibbonPersonID']);
                                             }
@@ -419,11 +405,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                                     }
                                 }
                                 //Unlock locked database tables
-                                try {
+                                
                                     $sql = 'UNLOCK TABLES';
                                     $result = $connection2->query($sql);
-                                } catch (PDOException $e) {
-                                }
                             }
 
                             $URLSuccess = $URLSuccess.'&return=success1';
