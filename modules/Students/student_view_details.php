@@ -3062,7 +3062,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                                 if ($hook == $rowHooks['name'] and $_GET['module'] == $options['sourceModuleName']) {
                                     $style = "style='font-weight: bold'";
                                 }
-                                $studentMenuCategory[$studentMenuCount] = $mainMenu[$options['sourceModuleName']];
+                                $studentMenuCategory[$studentMenuCount] = $mainMenu[$options['sourceModuleName']] ?? '';
                                 $studentMenuName[$studentMenuCount] = __($rowHooks['name']);
                                 $studentMenuLink[$studentMenuCount] = "<li><a $style href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q='.$_GET['q']."&gibbonPersonID=$gibbonPersonID&search=".$search.'&hook='.$rowHooks['name'].'&module='.$options['sourceModuleName'].'&action='.$options['sourceModuleAction'].'&gibbonHookID='.$rowHooks['gibbonHookID']."'>".__($rowHooks['name']).'</a></li>';
                                 ++$studentMenuCount;
