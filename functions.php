@@ -1081,7 +1081,7 @@ function getAlertBar($guid, $connection2, $gibbonPersonID, $privacy = '', $divEx
 
             if (!empty($userFields)) {
                 try {
-                    $dataFields = array('name' => 'IB Registration Number');
+                    $dataFields = array('name' => 'IB Personal Code');
                     $sqlFields = 'SELECT gibbonPersonFieldID FROM gibbonPersonField WHERE name=:name LIMIT 1';
                     $resultFields = $connection2->prepare($sqlFields);
                     $resultFields->execute($dataFields);
