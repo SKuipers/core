@@ -67,8 +67,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
         $student = $userGateway->getUserByID($gibbonPersonIDStudent);
 
         // Merge the new custom fields into the existing field data
-        $existingFields = !empty($student['fields']) ? unserialize($student['fields']) : []; 
-        $newFields = !empty($application['fields']) ? unserialize($application['fields']) : []; 
+        $existingFields = !empty($student['fields']) ? json_decode($student['fields'], true) : []; 
+        $newFields = !empty($application['fields']) ? json_decode($application['fields'], true) : []; 
         $newFields = array_replace($existingFields, $newFields);
         
         // Update the student user details
@@ -124,8 +124,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
 
             if ($parentUserUpdateData == 'Y') {
                 // Merge the new custom fields into the existing field data
-                $existingFields = !empty($parent['fields']) ? unserialize($parent['fields']) : []; 
-                $newFields = !empty($application["parent{$i}field"]) ? unserialize($application["parent{$i}field"]) : []; 
+                $existingFields = !empty($parent['fields']) ? json_decode($parent['fields'], true) : []; 
+                $newFields = !empty($application["parent{$i}field"]) ? json_decode($application["parent{$i}field"], true) : []; 
                 $newFields = array_replace($existingFields, $newFields);
 
                 // Update the parent user details

@@ -56,7 +56,7 @@ if (php_sapi_name() != 'cli') { echo __($guid, 'This script cannot be run from a
     $updatedCount = 0;
 
     foreach ($students as $student) {
-        $fields = !empty($student['fields']) ? unserialize($student['fields']) : [];
+        $fields = !empty($student['fields']) ? json_decode($student['fields'], true) : [];
         $firstLetter = ord(strtoupper(substr($student['surname'], 0, 1)));
         $originalValue = $fields[$customField] ?? '';
 

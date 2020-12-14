@@ -1060,7 +1060,7 @@ function getAlertBar($guid, $connection2, $gibbonPersonID, $privacy = '', $divEx
 
         // Custom Field Flags
         if (!empty($rowPersonField['fields'])) {
-            $userFields = unserialize( $rowPersonField['fields'] );
+            $userFields = json_decode( $rowPersonField['fields'], true );
 
             if (!empty($userFields)) {
                 try {
