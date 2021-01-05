@@ -88,7 +88,7 @@ class AttendanceByCycle extends DataSource
                 $nonClassLogs = array_filter($logs, function ($log) {
                     return $log['context'] != 'Class';
                 });
-                $endOfDay = end($nonClassLogs);
+                $endOfDay = $this->countClassAsSchool == 'Y' ? end($logs) : end($nonClassLogs);
 
                 // Group by class
                 $endOfClasses = array_reduce($logs, function ($carry, $log) {
@@ -108,17 +108,17 @@ class AttendanceByCycle extends DataSource
                 $late = ($endOfDay['scope'] == 'Onsite - Late' || $endOfDay['scope'] == 'Offsite - Late')? 1 : 0;
 
                 // Optionally grab the class absent and late counts too
-                if ($this->countClassAsSchool == 'Y') {
-                    foreach ($endOfClasses as $classes) {
-                        $absent += count(array_filter($classes, function ($log) {
-                            return ($log['direction'] == 'Out' && $log['scope'] == 'Offsite');
-                        }));
+                // if ($this->countClassAsSchool == 'Y') {
+                //     foreach ($endOfClasses as $classes) {
+                //         $absent += count(array_filter($classes, function ($log) {
+                //             return ($log['direction'] == 'Out' && $log['scope'] == 'Offsite');
+                //         }));
 
-                        $late += count(array_filter($classes, function ($log) {
-                            return ($log['scope'] == 'Onsite - Late');
-                        }));
-                    }
-                }
+                //         $late += count(array_filter($classes, function ($log) {
+                //             return ($log['scope'] == 'Onsite - Late' || $log['scope'] == 'Offsite - Late');
+                //         }));
+                //     }
+                // }
 
                 return array('absent' => $absent, 'late' => $late);
             }, $attendance);
