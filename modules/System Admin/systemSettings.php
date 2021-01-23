@@ -66,7 +66,7 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/systemSetting
         'Production' => __("Production"),
         'Testing' =>  __("Testing"),
         'Development' =>  __("Development")
-    );        
+    );
     $setting = getSettingByScope($connection2, 'System', 'installType', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
@@ -135,37 +135,6 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/systemSetting
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addSelectStaff($setting['name'])->selected($setting['value'])->placeholder()->required();
 
-    // SECURITY SETTINGS
-    $form->addRow()->addHeading(__('Security Settings'));
-    $form->addRow()->addSubheading(__('Password Policy'));
-
-    $setting = getSettingByScope($connection2, 'System', 'passwordPolicyMinLength', true);
-    $row = $form->addRow();
-        $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
-        $row->addSelect($setting['name'])->fromArray(range(4, 12))->selected($setting['value'])->required();
-
-    $setting = getSettingByScope($connection2, 'System', 'passwordPolicyAlpha', true);
-    $row = $form->addRow();
-        $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
-        $row->addYesNo($setting['name'])->selected($setting['value'])->required();
-
-    $setting = getSettingByScope($connection2, 'System', 'passwordPolicyNumeric', true);
-    $row = $form->addRow();
-        $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
-        $row->addYesNo($setting['name'])->selected($setting['value'])->required();
-
-    $setting = getSettingByScope($connection2, 'System', 'passwordPolicyNonAlphaNumeric', true);
-    $row = $form->addRow();
-        $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
-        $row->addYesNo($setting['name'])->selected($setting['value'])->required();
-
-    $form->addRow()->addSubheading(__('Miscellaneous'));
-
-    $setting = getSettingByScope($connection2, 'System', 'sessionDuration', true);
-    $row = $form->addRow();
-        $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
-        $row->addNumber($setting['name'])->setValue($setting['value'])->minimum(1200)->maxLength(50)->required();
-
     // LOCALISATION
     $form->addRow()->addHeading(__('Localisation'));
 
@@ -176,9 +145,10 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/systemSetting
 
     $firstDayOfTheWeekOptions = array(
         'Monday' => __("Monday"),
-        'Sunday' => __("Sunday")
+        'Sunday' => __("Sunday"),
+        'Saturday' => __("Saturday")
     );
-    
+
     $setting = getSettingByScope($connection2, 'System', 'firstDayOfTheWeek', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));

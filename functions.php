@@ -163,7 +163,7 @@ function renderGradeScaleSelect($connection2, $guid, $gibbonScaleID, $fieldName,
     $return = false;
 
     $return .= "<select name='$fieldName' id='$fieldName' style='width: ".$width."px'>";
-    
+
         $dataSelect = array('gibbonScaleID' => $gibbonScaleID);
         $sqlSelect = 'SELECT * FROM gibbonScaleGrade WHERE gibbonScaleID=:gibbonScaleID ORDER BY sequenceNumber';
         $resultSelect = $connection2->prepare($sqlSelect);
@@ -399,7 +399,7 @@ function getAlert($guid, $connection2, $gibbonAlertLevelID)
 {
     $output = false;
 
-    
+
         $dataAlert = array('gibbonAlertLevelID' => $gibbonAlertLevelID);
         $sqlAlert = 'SELECT * FROM gibbonAlertLevel WHERE gibbonAlertLevelID=:gibbonAlertLevelID';
         $resultAlert = $connection2->prepare($sqlAlert);
@@ -638,7 +638,7 @@ function getTerms($connection2, $gibbonSchoolYearID, $short = false)
 {
     $output = false;
     //Scan through year groups
-    
+
         $data = array('gibbonSchoolYearID' => $gibbonSchoolYearID);
         $sql = 'SELECT * FROM gibbonSchoolYearTerm WHERE gibbonSchoolYearID=:gibbonSchoolYearID ORDER BY sequenceNumber';
         $result = $connection2->prepare($sql);
@@ -732,7 +732,7 @@ function getHighestMedicalRisk($guid, $gibbonPersonID, $connection2)
 {
     $output = false;
 
-    
+
         $dataAlert = array('gibbonPersonID' => $gibbonPersonID);
         $sqlAlert = 'SELECT * FROM gibbonPersonMedical JOIN gibbonPersonMedicalCondition ON (gibbonPersonMedical.gibbonPersonMedicalID=gibbonPersonMedicalCondition.gibbonPersonMedicalID) JOIN gibbonAlertLevel ON (gibbonPersonMedicalCondition.gibbonAlertLevelID=gibbonAlertLevel.gibbonAlertLevelID) WHERE gibbonPersonID=:gibbonPersonID ORDER BY gibbonAlertLevel.sequenceNumber DESC';
         $resultAlert = $connection2->prepare($sqlAlert);
@@ -763,7 +763,7 @@ function getAge($guid, $stamp, $short = false, $yearsOnly = false)
 function getHighestGroupedAction($guid, $address, $connection2)
 {
     if (empty($_SESSION[$guid]['gibbonRoleIDCurrent'])) return false;
-    
+
     $output = false;
     $moduleID = checkModuleReady($address, $connection2);
 
@@ -787,7 +787,7 @@ function getRoleCategory($gibbonRoleID, $connection2)
 {
     $output = false;
 
-    
+
         $data = array('gibbonRoleID' => $gibbonRoleID);
         $sql = 'SELECT * FROM gibbonRole WHERE gibbonRoleID=:gibbonRoleID';
         $result = $connection2->prepare($sql);
@@ -847,7 +847,7 @@ function isSchoolOpen($guid, $date, $connection2, $allYears = '')
 
     //See if date's day of week is a school day
     if ($isInTerm == true) {
-        
+
             $data = array('nameShort' => $dayOfWeek);
             $sql = "SELECT * FROM gibbonDaysOfWeek WHERE nameShort=:nameShort AND schoolDay='Y'";
             $result = $connection2->prepare($sql);
@@ -859,7 +859,7 @@ function isSchoolOpen($guid, $date, $connection2, $allYears = '')
 
     //See if there is a special day
     if ($isInTerm == true and $isSchoolDay == true) {
-        
+
             $data = array('date' => $date);
             $sql = "SELECT * FROM gibbonSchoolYearSpecialDay WHERE type='School Closure' AND date=:date";
             $result = $connection2->prepare($sql);
@@ -900,7 +900,7 @@ function getAlertBar($guid, $connection2, $gibbonPersonID, $privacy = '', $divEx
     if ($highestAction == 'View Student Profile_full' or $highestAction == 'View Student Profile_fullNoNotes' or $highestAction == 'View Student Profile_fullEditAllNotes') {
 
         // Individual Needs
-        
+
             $dataAlert = array('gibbonPersonID' => $gibbonPersonID);
             $sqlAlert = "SELECT * FROM gibbonINPersonDescriptor JOIN gibbonAlertLevel ON (gibbonINPersonDescriptor.gibbonAlertLevelID=gibbonAlertLevel.gibbonAlertLevelID) WHERE gibbonPersonID=:gibbonPersonID ORDER BY sequenceNumber DESC";
             $resultAlert = $connection2->prepare($sqlAlert);
@@ -924,7 +924,7 @@ function getAlertBar($guid, $connection2, $gibbonPersonID, $privacy = '', $divEx
         // Academic
         $gibbonAlertLevelID = '';
         $alertThresholdText = '';
-        
+
             $dataAlert = array('gibbonPersonIDStudent' => $gibbonPersonID, 'gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'today' => date('Y-m-d'), 'date' => date('Y-m-d', (time() - (24 * 60 * 60 * 60))));
             $sqlAlert = "SELECT *
             FROM gibbonMarkbookEntry
@@ -971,7 +971,7 @@ function getAlertBar($guid, $connection2, $gibbonPersonID, $privacy = '', $divEx
         // Behaviour
         $gibbonAlertLevelID = '';
         $alertThresholdText = '';
-        
+
             $dataAlert = array('gibbonPersonID' => $gibbonPersonID, 'date' => date('Y-m-d', (time() - (24 * 60 * 60 * 60))));
             $sqlAlert = "SELECT * FROM gibbonBehaviour WHERE gibbonPersonID=:gibbonPersonID AND type='Negative' AND date>:date";
             $resultAlert = $connection2->prepare($sqlAlert);
@@ -1144,7 +1144,7 @@ function getAlertBar($guid, $connection2, $gibbonPersonID, $privacy = '', $divEx
             : 'text-xs w-4 pt-px mr-1 leading-none';
 
         foreach ($alerts as $alert) {
-            $style = "color: #{$alert['highestColour']}; border-color: #{$alert['highestColour']}; background-color: #{$alert['highestColourBG']};";
+            $style = "color: {$alert['highestColour']}; border-color: {$alert['highestColour']}; background-color: {$alert['highestColourBG']};";
             $class = $classDefault .' '. ($alert['class'] ?? 'float-left');
             $output .= Format::link($alert['link'], $alert['tag'], [
                 'title' => $alert['title'],
@@ -1183,7 +1183,7 @@ function getSystemSettings($guid, $connection2)
 
     //Get names and emails for administrator, dba, admissions
     //System Administrator
-    
+
         $data = array('gibbonPersonID' => $_SESSION[$guid]['organisationAdministrator']);
         $sql = 'SELECT surname, preferredName, email FROM gibbonPerson WHERE gibbonPersonID=:gibbonPersonID';
         $result = $connection2->prepare($sql);
@@ -1194,7 +1194,7 @@ function getSystemSettings($guid, $connection2)
         $_SESSION[$guid]['organisationAdministratorEmail'] = $row['email'];
     }
     //DBA
-    
+
         $data = array('gibbonPersonID' => $_SESSION[$guid]['organisationDBA']);
         $sql = 'SELECT surname, preferredName, email FROM gibbonPerson WHERE gibbonPersonID=:gibbonPersonID';
         $result = $connection2->prepare($sql);
@@ -1205,7 +1205,7 @@ function getSystemSettings($guid, $connection2)
         $_SESSION[$guid]['organisationDBAEmail'] = $row['email'];
     }
     //Admissions
-    
+
         $data = array('gibbonPersonID' => $_SESSION[$guid]['organisationAdmissions']);
         $sql = 'SELECT surname, preferredName, email FROM gibbonPerson WHERE gibbonPersonID=:gibbonPersonID';
         $result = $connection2->prepare($sql);
@@ -1216,7 +1216,7 @@ function getSystemSettings($guid, $connection2)
         $_SESSION[$guid]['organisationAdmissionsEmail'] = $row['email'];
     }
     //HR Administraotr
-    
+
         $data = array('gibbonPersonID' => $_SESSION[$guid]['organisationHR']);
         $sql = 'SELECT surname, preferredName, email FROM gibbonPerson WHERE gibbonPersonID=:gibbonPersonID';
         $result = $connection2->prepare($sql);
@@ -1264,7 +1264,7 @@ function setLanguageSession($guid, $row, $defaultLanguage = true)
 //Gets the desired setting, specified by name and scope.
 function getSettingByScope($connection2, $scope, $name, $returnRow = false )
 {
-    
+
         $data = array('scope' => $scope, 'name' => $name);
         $sql = 'SELECT * FROM gibbonSetting WHERE scope=:scope AND name=:name';
         $result = $connection2->prepare($sql);
@@ -1435,7 +1435,7 @@ function getRoleList($gibbonRoleIDAll, $connection2)
     //Check that roles exist
     $count = 0;
     for ($i = 0; $i < count($roles); ++$i) {
-        
+
             $data = array('gibbonRoleID' => $roles[$i]);
             $sql = 'SELECT * FROM gibbonRole WHERE gibbonRoleID=:gibbonRoleID';
             $result = $connection2->prepare($sql);
@@ -1494,7 +1494,7 @@ function getModuleCategory($address, $connection2)
     //Get module name from address
     $module = getModuleName($address);
 
-    
+
         $data = array('name' => $module);
         $sql = "SELECT * FROM gibbonModule WHERE name=:name AND active='Y'";
         $result = $connection2->prepare($sql);
@@ -1511,7 +1511,7 @@ function getModuleCategory($address, $connection2)
 function setCurrentSchoolYear($guid,  $connection2)
 {
     //Run query
-    
+
         $data = array();
         $sql = "SELECT * FROM gibbonSchoolYear WHERE status='Current'";
         $result = $connection2->prepare($sql);
@@ -1543,14 +1543,14 @@ function getPreviousSchoolYearID($gibbonSchoolYearID, $connection2)
 {
     $output = false;
 
-    
+
         $data = array('gibbonSchoolYearID' => $gibbonSchoolYearID);
         $sql = 'SELECT * FROM gibbonSchoolYear WHERE gibbonSchoolYearID=:gibbonSchoolYearID';
         $result = $connection2->prepare($sql);
         $result->execute($data);
     if ($result->rowcount() == 1) {
         $row = $result->fetch();
-        
+
             $dataPrevious = array('sequenceNumber' => $row['sequenceNumber']);
             $sqlPrevious = 'SELECT * FROM gibbonSchoolYear WHERE sequenceNumber<:sequenceNumber ORDER BY sequenceNumber DESC';
             $resultPrevious = $connection2->prepare($sqlPrevious);
@@ -1569,14 +1569,14 @@ function getNextSchoolYearID($gibbonSchoolYearID, $connection2)
 {
     $output = false;
 
-    
+
         $data = array('gibbonSchoolYearID' => $gibbonSchoolYearID);
         $sql = 'SELECT * FROM gibbonSchoolYear WHERE gibbonSchoolYearID=:gibbonSchoolYearID';
         $result = $connection2->prepare($sql);
         $result->execute($data);
     if ($result->rowcount() == 1) {
         $row = $result->fetch();
-        
+
             $dataPrevious = array('sequenceNumber' => $row['sequenceNumber']);
             $sqlPrevious = 'SELECT * FROM gibbonSchoolYear WHERE sequenceNumber>:sequenceNumber ORDER BY sequenceNumber ASC';
             $resultPrevious = $connection2->prepare($sqlPrevious);
@@ -1594,14 +1594,14 @@ function getNextSchoolYearID($gibbonSchoolYearID, $connection2)
 function getNextYearGroupID($gibbonYearGroupID, $connection2)
 {
     $output = false;
-    
+
         $data = array('gibbonYearGroupID' => $gibbonYearGroupID);
         $sql = 'SELECT * FROM gibbonYearGroup WHERE gibbonYearGroupID=:gibbonYearGroupID';
         $result = $connection2->prepare($sql);
         $result->execute($data);
     if ($result->rowCount() == 1) {
         $row = $result->fetch();
-        
+
             $dataPrevious = array('sequenceNumber' => $row['sequenceNumber']);
             $sqlPrevious = 'SELECT * FROM gibbonYearGroup WHERE sequenceNumber>:sequenceNumber ORDER BY sequenceNumber ASC';
             $resultPrevious = $connection2->prepare($sqlPrevious);
@@ -1619,7 +1619,7 @@ function getNextYearGroupID($gibbonYearGroupID, $connection2)
 function getNextRollGroupID($gibbonRollGroupID, $connection2)
 {
     $output = false;
-    
+
         $data = array('gibbonRollGroupID' => $gibbonRollGroupID);
         $sql = 'SELECT * FROM gibbonRollGroup WHERE gibbonRollGroupID=:gibbonRollGroupID';
         $result = $connection2->prepare($sql);
@@ -1638,7 +1638,7 @@ function getNextRollGroupID($gibbonRollGroupID, $connection2)
 function getLastYearGroupID($connection2)
 {
     $output = false;
-    
+
         $data = array();
         $sql = 'SELECT * FROM gibbonYearGroup ORDER BY sequenceNumber DESC';
         $result = $connection2->prepare($sql);
@@ -1802,7 +1802,7 @@ function getModuleID($connection2, $address)
 
 function getModuleIDFromName($connection2, $name)
 {
-    
+
         $dataModuleID = array('name' => $name);
         $sqlModuleID = 'SELECT gibbonModuleID FROM gibbonModule WHERE name=:name';
         $resultModuleID = $connection2->prepare($sqlModuleID);
@@ -1922,6 +1922,7 @@ function returnProcessGetAlert($return, $editLink = null, $customReturns = null)
         $returnMessage = 'Unknown Return';
         $returns = array();
         $returns['success0'] = __('Your request was completed successfully.');
+        $returns['successa'] = __('Your account has been successfully updated. You can now continue to use the system as per normal.');
         $returns['success5'] = __('Your request has been successfully started as a background process. It will continue to run on the server until complete and you will be notified of any errors.');
         $returns['error0'] = __('Your request failed because you do not have access to this action.');
         $returns['error1'] = __('Your request failed because your inputs were invalid.');

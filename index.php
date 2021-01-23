@@ -230,6 +230,17 @@ if ($isLoggedIn) {
     $sessionDuration = $session->get('sessionDuration');
     $sessionDuration = max(intval($sessionDuration), 1200);
     $sessionDuration *= 1000; // Seconds to miliseconds
+
+    // Set a hard limit for session durations, handled server-side.
+    // This helps catch cases where the client-side timeout does not kick in.
+    $sessionLastActive = $session->get('sessionLastActive', null);
+    $sessionHardLimit = $session->get('sessionDuration') + 600;
+    if (!empty($sessionLastActive) && time() - $sessionLastActive > $sessionHardLimit ) {
+        $URL = $session->get('absoluteURL').'/logout.php?timeout=true';
+        header("Location: {$URL}");
+        exit();
+    }
+    $session->set('sessionLastActive', time());
 }
 
 /**
@@ -274,7 +285,7 @@ $javascriptConfig = [
         'datepicker' => [
             'locale' => $datepickerLocale,
             'dateFormat' => str_replace('yyyy', 'yy', $session->get('i18n')['dateFormat']),
-            'firstDay' => $gibbon->session->get('firstDayOfTheWeek') == 'Monday'? 1 : 0,
+            'firstDay' => $gibbon->session->get('firstDayOfTheWeek') == 'Monday'? 1 : ($gibbon->session->get('firstDayOfTheWeek') == 'Saturday' ? 6 : 0),
         ],
         'thickbox' => [
             'pathToImage' => $session->get('absoluteURL').'/lib/thickbox/loadingAnimation.gif',
@@ -422,6 +433,24 @@ if ($isLoggedIn) {
     }
 }
 
+// Cookie Consent
+if ($isLoggedIn) {
+    if (!empty($_GET['cookieConsent'])) {
+        $container->get(UserGateway::class)->update($gibbon->session->get('gibbonPersonID'), ['cookieConsent' => 'Y']);
+        $gibbon->session->set('cookieConsent', 'Y');
+    }
+
+    $cookieConsentEnabled = getSettingByScope($connection2, 'System Admin', 'cookieConsentEnabled');
+    $privacyPolicy = getSettingByScope($connection2, 'System Admin', 'privacyPolicy');
+    if ($cookieConsentEnabled == 'Y' && $gibbon->session->get('cookieConsent') != 'Y') {
+        $page->addData([
+            'cookieConsentEnabled' => 'Y',
+            'cookieConsentText' => getSettingByScope($connection2, 'System Admin', 'cookieConsentText'),
+            'hasPrivacyPolicy' => !empty($privacyPolicy),
+        ]);
+    }
+}
+
 /**
  * RETURN PROCESS
  *
@@ -560,10 +589,12 @@ if (!$session->has('address')) {
         $templateData = [
             'indexText'                 => $session->get('indexText'),
             'organisationName'          => $session->get('organisationName'),
+            'publicRegistration'        => getSettingByScope($connection2, 'User Admin', 'enablePublicRegistration') == 'Y',
             'publicStudentApplications' => getSettingByScope($connection2, 'Application Form', 'publicApplications') == 'Y',
             'publicStaffApplications'   => getSettingByScope($connection2, 'Staff Application Form', 'staffApplicationFormPublicApplications') == 'Y',
             'makeDepartmentsPublic'     => getSettingByScope($connection2, 'Departments', 'makeDepartmentsPublic') == 'Y',
             'makeUnitsPublic'           => getSettingByScope($connection2, 'Planner', 'makeUnitsPublic') == 'Y',
+            'privacyPolicy'           => getSettingByScope($connection2, 'System Admin', 'privacyPolicy'),
         ];
 
         // Get any elements hooked into public home page, checking if they are turned on
