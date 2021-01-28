@@ -58,4 +58,30 @@ class DiscussionGateway extends QueryableGateway
 
         return $this->runSelect($query);
     }
+
+    public function selectDiscussionByTargetPerson($gibbonPersonID, $includeSelf = true, $type = null, $order = 'DESC')
+    {
+        $order = ($order == 'ASC' || $order == 'DESC') ? $order : 'DESC';
+
+        $query = $this
+            ->newSelect()
+            ->cols(['CONCAT(gibbonDiscussion.foreignTable, gibbonDiscussion.foreignTableID) as groupBy', 'gibbonDiscussion.*', 'gibbonPerson.title', 'gibbonPerson.surname', 'gibbonPerson.preferredName', 'gibbonPerson.image_240', 'gibbonPerson.username', 'gibbonPerson.email', 'gibbonModule.name as moduleName'])
+            ->from($this->getTableName())
+            ->innerJoin('gibbonPerson', 'gibbonDiscussion.gibbonPersonID=gibbonPerson.gibbonPersonID')
+            ->innerJoin('gibbonModule', 'gibbonDiscussion.gibbonModuleID=gibbonModule.gibbonModuleID')
+            ->where('gibbonDiscussion.gibbonPersonIDTarget = :gibbonPersonID')
+            ->bindValue('gibbonPersonID', $gibbonPersonID)
+            ->orderBy(['gibbonDiscussion.timestamp '.$order]);
+
+        if (!$includeSelf) {
+            $query->where('gibbonDiscussion.gibbonPersonIDTarget <> gibbonDiscussion.gibbonPersonID');
+        }
+
+        if (!empty($type)) {
+            $query->where('FIND_IN_SET(gibbonDiscussion.type, :type)')
+                ->bindValue('type', is_array($type) ? implode(',', $type) : $type);
+        }
+
+        return $this->runSelect($query);
+    }
 }

@@ -23,6 +23,7 @@ use Gibbon\Services\Format;
 use Gibbon\Forms\OutputableInterface;
 use Gibbon\Contracts\Services\Session;
 use Gibbon\Contracts\Database\Connection;
+use Gibbon\Module\Students\DiscussionView;
 
 /**
  * Student Dashboard View Composer
@@ -255,6 +256,10 @@ class StudentDashboard implements OutputableInterface
                     $studentDashboardDefaultTabCount = $tabCount;
                 ++$tabCount;
             }
+
+            $return .= "<li><a href='#tabs".$tabCount."'>".__('Feedback').'</a></li>';
+            ++$tabCount;
+
             foreach ($hooks as $hook) {
                 $return .= "<li><a href='#tabs".$tabCount."'>".__($hook['name']).'</a></li>';
                 if ($studentDashboardDefaultTab == $hook['name'])
@@ -271,6 +276,16 @@ class StudentDashboard implements OutputableInterface
                 $return .= '</div>';
                 ++$tabCount;
             }
+
+            global $container;
+            include_once $_SESSION[$guid]['absolutePath'].'/modules/Students/src/DiscussionView.php';
+            $discussionView = $container->get(DiscussionView::class)->create($gibbonPersonID);
+
+            $return .= "<div id='tabs".$tabCount."'>";
+            $return .= $discussionView->getOutput();
+            $return .= '</div>';
+            ++$tabCount;
+
             foreach ($hooks as $hook) {
                 $return .= "<div style='min-height: 100px' id='tabs".$tabCount."'>";
                 $include = $_SESSION[$guid]['absolutePath'].'/modules/'.$hook['sourceModuleName'].'/'.$hook['sourceModuleInclude'];

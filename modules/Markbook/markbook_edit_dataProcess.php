@@ -17,6 +17,9 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+use Gibbon\Domain\System\DiscussionGateway;
+
 include '../../gibbon.php';
 
 $enableEffort = getSettingByScope($connection2, 'Markbook', 'enableEffort');
@@ -58,28 +61,31 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_dat
                 $URL .= '&return=error2';
                 header("Location: {$URL}");
             } else {
+                $discussionGateway = $container->get(DiscussionGateway::class);
+
                 $row = $result->fetch();
-                $name = $row['name' ];
-                $count = $_POST['count'];
+                $name = $row['name'];
+                $count = $_POST['count'] ?? '';
                 $partialFail = false;
                 $attachmentFail = false;
                 $attainment = $row['attainment'];
                 $gibbonScaleIDAttainment = $row['gibbonScaleIDAttainment'];
-                if ($enableEffort != 'Y') {
-                    $effort = 'N';
-                    $gibbonScaleIDEffort = null;
-                }
-                else {
-                    $effort = $row['effort'];
-                    $gibbonScaleIDEffort = $row['gibbonScaleIDEffort'];
-                }
+                $effort = $enableEffort != 'Y' ? 'N' : $row['effort'];
+                $gibbonScaleIDEffort = $enableEffort != 'Y' ? null : $row['gibbonScaleIDEffort'];
                 $comment = $row['comment'];
                 $uploadedResponse = $row['uploadedResponse'];
                 $gibbonScaleIDAttainment = $row['gibbonScaleIDAttainment'];
                 $gibbonScaleIDTarget = $row['gibbonScaleIDTarget'];
 
+                $viewableStudents = $row['viewableStudents'];
+                $viewableParents = $row['viewableParents'];
+
+                $completeDateOriginal = $row['completeDate'];
+                $completeDate = !empty($_POST['completeDate']) ? Format::dateConvert($_POST['completeDate']) : null;
+                $complete = !empty($completeDate) ? 'Y' : 'N';
+
                 for ($i = 1;$i <= $count;++$i) {
-                    $gibbonPersonIDStudent = $_POST["$i-gibbonPersonID"];
+                    $gibbonPersonIDStudent = $_POST["$i-gibbonPersonID"] ?? '';
                     //Modified Assessment
                     if ($enableModifiedAssessment != 'Y') {
                         $modifiedAssessment = NULL;
@@ -293,38 +299,60 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_dat
                     }
                     if (!($selectFail)) {
                         if ($result->rowCount() < 1) {
-                            try {
-                                $data = array('gibbonMarkbookColumnID' => $gibbonMarkbookColumnID, 'gibbonPersonIDStudent' => $gibbonPersonIDStudent, 'modifiedAssessment' => $modifiedAssessment, 'attainmentValue' => $attainmentValue, 'attainmentValueRaw' => $attainmentValueRaw, 'attainmentDescriptor' => $attainmentDescriptor, 'attainmentConcern' => $attainmentConcern, 'effortValue' => $effortValue, 'effortDescriptor' => $effortDescriptor, 'effortConcern' => $effortConcern, 'comment' => $commentValue, 'gibbonPersonIDLastEdit' => $gibbonPersonIDLastEdit, 'attachment' => $attachment);
-                                $sql = 'INSERT INTO gibbonMarkbookEntry SET gibbonMarkbookColumnID=:gibbonMarkbookColumnID, gibbonPersonIDStudent=:gibbonPersonIDStudent, modifiedAssessment=:modifiedAssessment, attainmentValue=:attainmentValue, attainmentValueRaw=:attainmentValueRaw, attainmentDescriptor=:attainmentDescriptor, attainmentConcern=:attainmentConcern, effortValue=:effortValue, effortDescriptor=:effortDescriptor, effortConcern=:effortConcern, comment=:comment, gibbonPersonIDLastEdit=:gibbonPersonIDLastEdit, response=:attachment';
-                                $result = $connection2->prepare($sql);
-                                $result->execute($data);
-                            } catch (PDOException $e) {
-                                $partialFail = true;
-                            }
+                            // Insert
+                            $data = array('gibbonMarkbookColumnID' => $gibbonMarkbookColumnID, 'gibbonPersonIDStudent' => $gibbonPersonIDStudent, 'modifiedAssessment' => $modifiedAssessment, 'attainmentValue' => $attainmentValue, 'attainmentValueRaw' => $attainmentValueRaw, 'attainmentDescriptor' => $attainmentDescriptor, 'attainmentConcern' => $attainmentConcern, 'effortValue' => $effortValue, 'effortDescriptor' => $effortDescriptor, 'effortConcern' => $effortConcern, 'comment' => $commentValue, 'gibbonPersonIDLastEdit' => $gibbonPersonIDLastEdit, 'attachment' => $attachment);
+                            $sql = 'INSERT INTO gibbonMarkbookEntry SET gibbonMarkbookColumnID=:gibbonMarkbookColumnID, gibbonPersonIDStudent=:gibbonPersonIDStudent, modifiedAssessment=:modifiedAssessment, attainmentValue=:attainmentValue, attainmentValueRaw=:attainmentValueRaw, attainmentDescriptor=:attainmentDescriptor, attainmentConcern=:attainmentConcern, effortValue=:effortValue, effortDescriptor=:effortDescriptor, effortConcern=:effortConcern, comment=:comment, gibbonPersonIDLastEdit=:gibbonPersonIDLastEdit, response=:attachment';
+
+                            $gibbonMarkbookEntryID = $pdo->insert($sql, $data);
+                            $partialFail &= !$gibbonMarkbookEntryID;
                         } else {
                             $row = $result->fetch();
-                            //Update
-                            try {
-                                $data = array('gibbonMarkbookColumnID' => $gibbonMarkbookColumnID, 'gibbonPersonIDStudent' => $gibbonPersonIDStudent, 'modifiedAssessment' => $modifiedAssessment, 'attainmentValue' => $attainmentValue, 'attainmentValueRaw' => $attainmentValueRaw, 'attainmentDescriptor' => $attainmentDescriptor, 'attainmentConcern' => $attainmentConcern, 'effortValue' => $effortValue, 'effortDescriptor' => $effortDescriptor, 'effortConcern' => $effortConcern, 'comment' => $commentValue, 'gibbonPersonIDLastEdit' => $gibbonPersonIDLastEdit, 'attachment' => $attachment, 'gibbonMarkbookEntryID' => $row['gibbonMarkbookEntryID']);
-                                $sql = 'UPDATE gibbonMarkbookEntry SET gibbonMarkbookColumnID=:gibbonMarkbookColumnID, gibbonPersonIDStudent=:gibbonPersonIDStudent, modifiedAssessment=:modifiedAssessment, attainmentValue=:attainmentValue, attainmentValueRaw=:attainmentValueRaw, attainmentDescriptor=:attainmentDescriptor, attainmentConcern=:attainmentConcern, effortValue=:effortValue, effortDescriptor=:effortDescriptor, effortConcern=:effortConcern, comment=:comment, gibbonPersonIDLastEdit=:gibbonPersonIDLastEdit, response=:attachment WHERE gibbonMarkbookEntryID=:gibbonMarkbookEntryID';
-                                $result = $connection2->prepare($sql);
-                                $result->execute($data);
-                            } catch (PDOException $e) {
-                                $partialFail = true;
+                            // Update
+                            $data = array('gibbonMarkbookColumnID' => $gibbonMarkbookColumnID, 'gibbonPersonIDStudent' => $gibbonPersonIDStudent, 'modifiedAssessment' => $modifiedAssessment, 'attainmentValue' => $attainmentValue, 'attainmentValueRaw' => $attainmentValueRaw, 'attainmentDescriptor' => $attainmentDescriptor, 'attainmentConcern' => $attainmentConcern, 'effortValue' => $effortValue, 'effortDescriptor' => $effortDescriptor, 'effortConcern' => $effortConcern, 'comment' => $commentValue, 'gibbonPersonIDLastEdit' => $gibbonPersonIDLastEdit, 'attachment' => $attachment, 'gibbonMarkbookEntryID' => $row['gibbonMarkbookEntryID']);
+                            $sql = 'UPDATE gibbonMarkbookEntry SET gibbonMarkbookColumnID=:gibbonMarkbookColumnID, gibbonPersonIDStudent=:gibbonPersonIDStudent, modifiedAssessment=:modifiedAssessment, attainmentValue=:attainmentValue, attainmentValueRaw=:attainmentValueRaw, attainmentDescriptor=:attainmentDescriptor, attainmentConcern=:attainmentConcern, effortValue=:effortValue, effortDescriptor=:effortDescriptor, effortConcern=:effortConcern, comment=:comment, gibbonPersonIDLastEdit=:gibbonPersonIDLastEdit, response=:attachment WHERE gibbonMarkbookEntryID=:gibbonMarkbookEntryID';
+
+                            $gibbonMarkbookEntryID = $row['gibbonMarkbookEntryID'];
+                            $updated = $pdo->update($sql, $data);
+                            $partialFail &= !$updated;
+                        }
+
+                        // Insert or update related discussion item
+                        if ($comment == 'Y' && $viewableStudents == 'Y' && $viewableParents == 'Y') {
+                            $discussion = $discussionGateway->selectDiscussionByContext('gibbonMarkbookEntry', $gibbonMarkbookEntryID)->fetch();
+                            if (!empty($discussion)) {
+                                if (empty($commentValue)) {
+                                    // Delete existing comment that has been removed
+                                    $discussionGateway->delete($discussion['gibbonDiscussionID']);
+                                } else {
+                                    // Update existing discussion comment if it has changed
+                                    $discussionGateway->update($discussion['gibbonDiscussionID'], [
+                                        'comment'            => $commentValue,
+                                        'timestamp'          => !empty($completeDate) ? $completeDate : date('Y-m-d', strtotime('+10 years')),
+                                        'attachmentType'     => !empty($attachment) ? 'File' : null,
+                                        'attachmentLocation' => !empty($attachment) ? $attachment : null,
+                                    ]);
+                                }
+                            } else if (!empty($commentValue)) {
+                                // Insert a new discussion item
+                                $discussionGateway->insert([
+                                    'foreignTable'         => 'gibbonMarkbookEntry',
+                                    'foreignTableID'       => $gibbonMarkbookEntryID,
+                                    'gibbonModuleID'       => getModuleIDFromName($connection2, 'Markbook'),
+                                    'gibbonPersonID'       => $gibbon->session->get('gibbonPersonID'),
+                                    'gibbonPersonIDTarget' => $gibbonPersonIDStudent,
+                                    'comment'              => $commentValue,
+                                    'type'                 => 'Comment',
+                                    'tag'                  => 'dull',
+                                    'timestamp'            => !empty($completeDate) ? $completeDate : date('Y-m-d', strtotime('+10 years')),
+                                    'attachmentType'       => !empty($attachment) ? 'File' : null,
+                                    'attachmentLocation'   => !empty($attachment) ? $attachment : null,
+                                ]);
                             }
                         }
                     }
                 }
 
-                //Update column
-                $completeDate = $_POST['completeDate'];
-                if ($completeDate == '') {
-                    $completeDate = null;
-                    $complete = 'N';
-                } else {
-                    $completeDate = dateConvert($guid, $completeDate);
-                    $complete = 'Y';
-                }
+                // Update column
                 try {
                     $data = array('completeDate' => $completeDate, 'complete' => $complete, 'gibbonMarkbookColumnID' => $gibbonMarkbookColumnID);
                     $sql = 'UPDATE gibbonMarkbookColumn SET completeDate=:completeDate, complete=:complete WHERE gibbonMarkbookColumnID=:gibbonMarkbookColumnID';

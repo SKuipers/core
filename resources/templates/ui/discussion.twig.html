@@ -13,7 +13,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
 {% for item in discussion %}
 
-<div class="flex justify-between my-4 {{ item.comment is empty and html is empty and message is empty ? 'sm:items-center'}}">
+<div class="flex justify-between my-4 {{ itemClass }} {{ item.comment is empty and html is empty and message is empty ? 'sm:items-center'}}">
     
     
     <div class="w-12 sm:w-16 mr-4 flex flex-col items-center">
@@ -55,13 +55,21 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
                 {% endif %}
                 </div>
                 {% if item.attachmentLocation %}
-                    <a class="tag block px-0 break-all mt-2 sm:mt-0" target="_blank" href="{{ item.attachmentType == 'Link' ? item.attachmentLocation : absoluteURL ~ "/" ~ item.attachmentLocation }}">{{ __('View Attachment') }}</a>
+                    <a class="tag block px-0 break-all mt-2 sm:mt-0" target="_blank" href="{{ item.attachmentType == 'Link' ? item.attachmentLocation : absoluteURL ~ "/" ~ item.attachmentLocation }}">
+                        {{ item.attachmentLabel|default(__('View Attachment')) }}
+                    </a>
                 {% endif %}
             </div>
 
             {% if item.comment %}
             <div class="p-4 bg-white border-t rounded-b flex flex-col">
                 {{ item.comment|raw }}
+            </div>
+            {% endif %}
+
+            {% if item.context %}
+            <div class="px-4 py-2 bg-white border-t rounded-b text-xxs text-gray-600">
+                {{ item.context|raw }}
             </div>
             {% endif %}
             

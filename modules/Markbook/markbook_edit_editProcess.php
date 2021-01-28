@@ -17,6 +17,9 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\System\DiscussionGateway;
+use Gibbon\Domain\Markbook\MarkbookEntryGateway;
+
 include '../../gibbon.php';
 
 $enableEffort = getSettingByScope($connection2, 'Markbook', 'enableEffort');
@@ -182,6 +185,28 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_edi
                             $URL .= '&return=error2';
                             header("Location: {$URL}");
                             exit();
+                        }
+
+                        // Update the complete date for all related discussion items
+                        if ($comment == 'Y') {
+                            $markbookEntryGateway = $container->get(MarkbookEntryGateway::class);
+                            $discussionGateway = $container->get(DiscussionGateway::class);
+
+                            $entries = $markbookEntryGateway->selectBy(['gibbonMarkbookColumnID' => $gibbonMarkbookColumnID])->fetchAll();
+                            foreach ($entries as $entry) {
+                                // Update existing entries if they're viewable, otherwise delete them
+                                if ($viewableStudents == 'Y' && $viewableParents == 'Y') {
+                                    $discussionGateway->updateWhere([
+                                        'foreignTable' => 'gibbonMarkbookEntry',
+                                        'foreignTableID' => $entry['gibbonMarkbookEntryID']
+                                    ], ['timestamp' => !empty($completeDate) ? $completeDate : date('Y-m-d', strtotime('+10 years'))]);
+                                } else {
+                                    $discussionGateway->deleteWhere([
+                                        'foreignTable' => 'gibbonMarkbookEntry',
+                                        'foreignTableID' => $entry['gibbonMarkbookEntryID']
+                                    ]);
+                                }
+                            }
                         }
 
                         $URL .= '&return=success0';

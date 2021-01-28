@@ -454,7 +454,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_dat
                             ->setValue($student['attainmentValueRaw']);
                         $col->addContent('/ '.floatval($values['attainmentRawMax']))->setClass('inline-block ml-1');
 
-                        $col = $row->onlyIf($hasAttainment)->addColumn();
+                        $col = $row->onlyIf($hasAttainment)->addColumn()->addClass('whitespace-nowrap');
                         $col->addSelectGradeScaleGrade($count.'-attainmentValue', $values['gibbonScaleIDAttainment'])
                             ->setClass('textCenter gradeSelect inline-block')
                             ->selected($student['attainmentValue']);
@@ -466,16 +466,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_dat
                             $col->addContent($rubricLink->getOutput())->setClass('inline-block ml-1');
                         }
 
-                        $effort = $row->onlyIf($hasEffort)
-                            ->addSelectGradeScaleGrade($count.'-effortValue', $values['gibbonScaleIDEffort'])
-                            ->setClass('textCenter gradeSelect')
+                        $col = $row->onlyIf($hasEffort)->addColumn()->addClass('whitespace-nowrap');
+                        $col->addSelectGradeScaleGrade($count.'-effortValue', $values['gibbonScaleIDEffort'])
+                            ->setClass('textCenter gradeSelect inline-block')
                             ->selected($student['effortValue']);
 
                         if ($hasEffort && $hasEffortRubric) {
                             $rubricLink->addParam('gibbonPersonID', $student['gibbonPersonID']);
                             $rubricLink->addParam('gibbonRubricID', $values['gibbonRubricIDEffort']);
                             $rubricLink->addParam('type', 'effort');
-                            $effort->append($rubricLink->getOutput());
+                            $col->addContent($rubricLink->getOutput())->setClass('inline-block ml-1');
                         }
 
                         $col = $row->onlyIf($hasComment || $hasUpload)->addColumn()->addClass('stacked');
