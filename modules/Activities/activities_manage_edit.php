@@ -21,6 +21,7 @@ use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Services\Format;
 use Gibbon\Domain\Activities\ActivityGateway;
+use Gibbon\Domain\Activities\ActivitySlotGateway;
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -168,91 +169,72 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
 					$row->addSelect('paymentFirmness')->required()->fromArray($costStatuses);
 			}
 
-			$form->addRow()->addHeading(__('Current Time Slots'));
+			$form->addRow()->addHeading(__('Time Slots'));
 
-            $data = array('gibbonActivityID' => $gibbonActivityID);
-            $sql = "SELECT gibbonActivitySlot.*, gibbonDaysOfWeek.name, gibbonSpace.name as locationInternal FROM gibbonActivitySlot
-					JOIN gibbonDaysOfWeek ON (gibbonActivitySlot.gibbonDaysOfWeekID=gibbonDaysOfWeek.gibbonDaysOfWeekID)
-					LEFT JOIN gibbonSpace ON (gibbonSpace.gibbonSpaceID=gibbonActivitySlot.gibbonSpaceID)
-					WHERE gibbonActivityID=:gibbonActivityID ORDER BY gibbonDaysOfWeek.gibbonDaysOfWeekID";
-
-            $results = $pdo->executeQuery($data, $sql);
-
-            if ($results->rowCount() == 0) {
-                $form->addRow()->addAlert(__('There are no records to display.'), 'error');
-            } else {
-                $form->addRow()->addContent('<b>'.__('Warning').'</b>: '.__('If you delete a time slot, any unsaved changes to this record will be lost!'))->wrap('<i>', '</i>');
-
-                $table = $form->addRow()->addTable()->addClass('colorOddEven');
-
-                $header = $table->addHeaderRow();
-                $header->addContent(__('Day'));
-                $header->addContent(__('Time'));
-                $header->addContent(__('Location'));
-                $header->addContent(__('Action'));
-
-                while ($slot = $results->fetch()) {
-                    $row = $table->addRow();
-
-                    $row->addContent(__($slot['name']));
-                    $row->addContent(substr($slot['timeStart'], 0, 5).' - '.substr($slot['timeEnd'], 0, 5));
-                    $row->addContent(!empty($slot['locationInternal'])? $slot['locationInternal'] : $slot['locationExternal']);
-                    $row->addWebLink('<img title="'.__('Delete').'" src="./themes/'.$_SESSION[$guid]['gibbonThemeName'].'/img/garbage.png"/></a>')
-                            ->setURL($_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/activities_manage_edit_slot_deleteProcess.php')
-                            ->addParam('address', $_GET['q'])
-                            ->addParam('gibbonActivitySlotID', $slot['gibbonActivitySlotID'])
-                            ->addParam('gibbonActivityID', $gibbonActivityID)
-                            ->addParam('search', $search)
-                            ->addParam('gibbonSchoolYearTermID', $gibbonSchoolYearTermID)
-                            ->addConfirmation(__('Are you sure you wish to delete this record?'));
-                }
-            }
-
-            $form->addRow()->addHeading(__('New Time Slots'));
-
+            //Block template
             $sqlWeekdays = "SELECT gibbonDaysOfWeekID as value, name FROM gibbonDaysOfWeek ORDER BY sequenceNumber";
-            $sqlSpaces = "SELECT gibbonSpaceID as value, name FROM gibbonSpace ORDER BY name";
-            $locations = array(
-                    'Internal' => __('Internal'),
-                    'External' => __('External'),
-            );
+            $sqlSpaces = "SELECT CAST(gibbonSpaceID AS INT) as value, name FROM gibbonSpace ORDER BY name"; //Must cast to int for select to work
 
-            for ($i = 1; $i <= 2; ++$i) {
-				$form->addRow()->addSubheading(__('Slot').' '.$i)->addClass("slotRow{$i}");
-           
-                $row = $form->addRow()->addClass("slotRow{$i}");
-					$row->addLabel("gibbonDaysOfWeekID{$i}", sprintf(__('Slot %1$d Day'), $i));
-                        $row->addSelect("gibbonDaysOfWeekID{$i}")->fromQuery($pdo, $sqlWeekdays)->placeholder();
+            $slotBlock = $form->getFactory()->createTable()->setClass('blank');
+                $row = $slotBlock->addRow();
+                    $row->addLabel('gibbonDaysOfWeekID', __('Slot Day'));
+                    $row->addSelect('gibbonDaysOfWeekID')
+                        ->fromQuery($pdo, $sqlWeekdays)
+                        ->placeholder()
+                        ->addClass('floatLeft');
 
-                $row = $form->addRow()->addClass("slotRow{$i}");
-					$row->addLabel('timeStart'.$i, sprintf(__('Slot %1$d Start Time'), $i));
-					$row->addTime('timeStart'.$i);
+                $row = $slotBlock->addRow();
+                    $row->addLabel('timeStart', __('Slot Start Time'));
+                    $row->addTime('timeStart');
+                
+                $row = $slotBlock->addRow();
+                    $row->addLabel('timeEnd', __('Slot End Time'));
+                    $row->addTime('timeEnd')
+                        ->chainedTo('timeStart');
 
-                $row = $form->addRow()->addClass("slotRow{$i}");
-                        $row->addLabel("timeEnd{$i}", sprintf(__('Slot %1$d End Time'), $i));
-					$row->addTime("timeEnd{$i}")->chainedTo('timeStart'.$i);
+                $row = $slotBlock->addRow();
+                    $row->addLabel('location', __('Location'));
+                    $row->addRadio('location')
+                        ->fromArray(['Internal' => __('Internal'), 'External' => __('External')])
+                        ->inline()
+                        ->alignLeft();
 
-                $row = $form->addRow()->addClass("slotRow{$i}");
-					$row->addLabel("slot{$i}Location", sprintf(__('Slot %1$d Location'), $i));
-                        $row->addRadio("slot{$i}Location")->fromArray($locations)->inline();
+                $row = $slotBlock->addRow()->addClass('hideShow');
+                    $row->addSelect('gibbonSpaceID')
+                        ->fromQuery($pdo, $sqlSpaces)
+                        ->placeholder()
+                        ->addClass('sm:max-w-full w-full');
 
-                $form->toggleVisibilityByClass("slotRow{$i}Internal")->onRadio("slot{$i}Location")->when('Internal');
-                $row = $form->addRow()->addClass("slotRow{$i}Internal");
-                        $row->addSelect("gibbonSpaceID{$i}")->fromQuery($pdo, $sqlSpaces)->placeholder();
+                $row = $slotBlock->addRow()->addClass('showHide');
+                    $row->addTextField("locationExternal")
+                        ->maxLength(50)
+                        ->addClass('sm:max-w-full w-full');
 
-                $form->toggleVisibilityByClass("slotRow{$i}External")->onRadio("slot{$i}Location")->when('External');
-                $row = $form->addRow()->addClass("slotRow{$i}External");
-                        $row->addTextField("location{$i}External")->maxLength(50);
+            //Tool Button
+            $addBlockButton = $form->getFactory()
+                ->createButton(__('Add Time Slot'))
+                ->addClass('addBlock');
 
-                if ($i == 1) {
-                        $form->toggleVisibilityByClass("slot{$i}ButtonRow")->onRadio("slot{$i}Location")->when(array('Internal', 'External'));
-                        $row = $form->addRow()->addClass("slotRow{$i} slot{$i}ButtonRow");
-                        $row->addButton(__('Add Another Slot'))
-                                ->onClick("$('.slotRow2').show();$('.slot1ButtonRow').hide();")
-                                ->addClass('right buttonAsLink');
-                }
+            //Custom Blocks
+            $row = $form->addRow();
+                $slotBlocks = $row->addCustomBlocks('timeSlots', $gibbon->session)
+                    ->fromTemplate($slotBlock)
+                    ->settings([
+                        'placeholder' => __('Time Slots will appear here...'),
+                        'sortable' => true,
+                    ])
+                    ->addToolInput($addBlockButton);
+
+            $activitySlotGateway = $container->get(ActivitySlotGateway::class);
+            $timeSlots = $activitySlotGateway->selectBy(['gibbonActivityID' => $gibbonActivityID]);
+
+            foreach ($timeSlots as $slot) {
+                //Must cast to int for select to work.
+                $slot['gibbonSpaceID'] = intval($slot['gibbonSpaceID']);                
+                $slot['location'] = empty($slot['gibbonSpaceID']) ? 'External' : 'Internal';
+                $slotBlocks->addBlock($slot['gibbonActivitySlotID'], $slot);
             }
-
+            
             $form->addRow()->addHeading(__('Current Staff'));
 
             $data = array('gibbonActivityID' => $gibbonActivityID);
