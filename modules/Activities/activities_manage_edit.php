@@ -56,10 +56,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
             echo '</div>';
         } else {
             //Let's go!
-			$values = $result->fetch();
+            $values = $result->fetch();
 
-			$search = isset($_GET['search'])? $_GET['search'] : '';
-			$gibbonSchoolYearTermID = isset($_GET['gibbonSchoolYearTermID'])? $_GET['gibbonSchoolYearTermID'] : '';
+            $search = isset($_GET['search'])? $_GET['search'] : '';
+            $gibbonSchoolYearTermID = isset($_GET['gibbonSchoolYearTermID'])? $_GET['gibbonSchoolYearTermID'] : '';
 
             if ($search != '' || $gibbonSchoolYearTermID != '') {
                 echo "<div class='linkTop'>";
@@ -69,107 +69,107 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
             
             $activityGateway = $container->get(ActivityGateway::class);
 
-			$form = Form::create('activity', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/activities_manage_editProcess.php?gibbonActivityID='.$gibbonActivityID.'&search='.$search.'&gibbonSchoolYearTermID='.$gibbonSchoolYearTermID);
-			$form->setFactory(DatabaseFormFactory::create($pdo));
+            $form = Form::create('activity', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/activities_manage_editProcess.php?gibbonActivityID='.$gibbonActivityID.'&search='.$search.'&gibbonSchoolYearTermID='.$gibbonSchoolYearTermID);
+            $form->setFactory(DatabaseFormFactory::create($pdo));
 
-			$form->addHiddenValue('address', $_SESSION[$guid]['address']);
+            $form->addHiddenValue('address', $_SESSION[$guid]['address']);
 
-			$form->addRow()->addHeading(__('Basic Information'));
+            $form->addRow()->addHeading(__('Basic Information'));
 
-			$row = $form->addRow();
-				$row->addLabel('name', __('Name'));
-				$row->addTextField('name')->required()->maxLength(40);
+            $row = $form->addRow();
+                $row->addLabel('name', __('Name'));
+                $row->addTextField('name')->required()->maxLength(40);
 
-			$row = $form->addRow();
-				$row->addLabel('provider', __('Provider'));
-				$row->addSelect('provider')->required()->fromArray(array('School' => $_SESSION[$guid]['organisationNameShort'], 'External' => __('External')));
+            $row = $form->addRow();
+                $row->addLabel('provider', __('Provider'));
+                $row->addSelect('provider')->required()->fromArray(array('School' => $_SESSION[$guid]['organisationNameShort'], 'External' => __('External')));
             
             $activityTypes = $activityGateway->selectActivityTypeOptions()->fetchKeyPair();
-			if (empty($activityTypes)) {
-				$activityTypes = getSettingByScope($connection2, 'Activities', 'activityTypes');
-            	$activityTypes = array_map('trim', explode(',', $activityTypes));
-			}
+            if (empty($activityTypes)) {
+                $activityTypes = getSettingByScope($connection2, 'Activities', 'activityTypes');
+                $activityTypes = array_map('trim', explode(',', $activityTypes));
+            }
 
-			if (!empty($activityTypes)) {
-				$row = $form->addRow();
-					$row->addLabel('type', __('Type'));
-					$row->addSelect('type')->fromArray($activityTypes)->placeholder();
-			}
+            if (!empty($activityTypes)) {
+                $row = $form->addRow();
+                    $row->addLabel('type', __('Type'));
+                    $row->addSelect('type')->fromArray($activityTypes)->placeholder();
+            }
 
-			$row = $form->addRow();
-				$row->addLabel('active', __('Active'));
-				$row->addYesNo('active')->required();
+            $row = $form->addRow();
+                $row->addLabel('active', __('Active'));
+                $row->addYesNo('active')->required();
 
-			$row = $form->addRow();
-				$row->addLabel('registration', __('Registration'))->description(__('Assuming system-wide registration is open, should this activity be open for registration?'));
-				$row->addYesNo('registration')->required();
+            $row = $form->addRow();
+                $row->addLabel('registration', __('Registration'))->description(__('Assuming system-wide registration is open, should this activity be open for registration?'));
+                $row->addYesNo('registration')->required();
 
-			$dateType = getSettingByScope($connection2, 'Activities', 'dateType');
-			$form->addHiddenValue('dateType', $dateType);
-			if ($dateType != 'Date') {
-				$row = $form->addRow();
-					$row->addLabel('gibbonSchoolYearTermIDList', __('Terms'))->description(__('Terms in which the activity will run.'));
-					$row->addCheckboxSchoolYearTerm('gibbonSchoolYearTermIDList', $_SESSION[$guid]['gibbonSchoolYearID'])->loadFromCSV($values);
-			} else {
-				$row = $form->addRow();
-					$row->addLabel('listingStart', __('Listing Start Date'))->description(__('Default: 2 weeks before the end of the current term.'));
-					$row->addDate('listingStart')->required()->setValue(dateConvertBack($guid, $values['listingStart']));
+            $dateType = getSettingByScope($connection2, 'Activities', 'dateType');
+            $form->addHiddenValue('dateType', $dateType);
+            if ($dateType != 'Date') {
+                $row = $form->addRow();
+                    $row->addLabel('gibbonSchoolYearTermIDList', __('Terms'))->description(__('Terms in which the activity will run.'));
+                    $row->addCheckboxSchoolYearTerm('gibbonSchoolYearTermIDList', $_SESSION[$guid]['gibbonSchoolYearID'])->loadFromCSV($values);
+            } else {
+                $row = $form->addRow();
+                    $row->addLabel('listingStart', __('Listing Start Date'))->description(__('Default: 2 weeks before the end of the current term.'));
+                    $row->addDate('listingStart')->required()->setValue(dateConvertBack($guid, $values['listingStart']));
 
-				$row = $form->addRow();
-					$row->addLabel('listingEnd', __('Listing End Date'))->description(__('Default: 2 weeks after the start of next term.'));
-					$row->addDate('listingEnd')->required()->setValue(dateConvertBack($guid, $values['listingEnd']));
+                $row = $form->addRow();
+                    $row->addLabel('listingEnd', __('Listing End Date'))->description(__('Default: 2 weeks after the start of next term.'));
+                    $row->addDate('listingEnd')->required()->setValue(dateConvertBack($guid, $values['listingEnd']));
 
-				$row = $form->addRow();
-					$row->addLabel('programStart', __('Program Start Date'))->description(__('Default: first day of next term.'));
-					$row->addDate('programStart')->required()->setValue(dateConvertBack($guid, $values['programStart']));
+                $row = $form->addRow();
+                    $row->addLabel('programStart', __('Program Start Date'))->description(__('Default: first day of next term.'));
+                    $row->addDate('programStart')->required()->setValue(dateConvertBack($guid, $values['programStart']));
 
-				$row = $form->addRow();
-					$row->addLabel('programEnd', __('Program End Date'))->description(__('Default: last day of the next term.'));
-					$row->addDate('programEnd')->required()->setValue(dateConvertBack($guid, $values['programEnd']));
-			}
+                $row = $form->addRow();
+                    $row->addLabel('programEnd', __('Program End Date'))->description(__('Default: last day of the next term.'));
+                    $row->addDate('programEnd')->required()->setValue(dateConvertBack($guid, $values['programEnd']));
+            }
 
-			$row = $form->addRow();
-				$row->addLabel('gibbonYearGroupIDList', __('Year Groups'));
-				$row->addCheckboxYearGroup('gibbonYearGroupIDList')->addCheckAllNone()->loadFromCSV($values);
+            $row = $form->addRow();
+                $row->addLabel('gibbonYearGroupIDList', __('Year Groups'));
+                $row->addCheckboxYearGroup('gibbonYearGroupIDList')->addCheckAllNone()->loadFromCSV($values);
 
-			$row = $form->addRow();
-				$row->addLabel('maxParticipants', __('Max Participants'));
-				$row->addNumber('maxParticipants')->required()->maxLength(4);
+            $row = $form->addRow();
+                $row->addLabel('maxParticipants', __('Max Participants'));
+                $row->addNumber('maxParticipants')->required()->maxLength(4);
 
-			$column = $form->addRow()->addColumn();
-				$column->addLabel('description', __('Description'));
-				$column->addEditor('description', $guid)->setRows(10)->showMedia();
+            $column = $form->addRow()->addColumn();
+                $column->addLabel('description', __('Description'));
+                $column->addEditor('description', $guid)->setRows(10)->showMedia();
 
-			$payment = getSettingByScope($connection2, 'Activities', 'payment');
-			if ($payment != 'None' && $payment != 'Single') {
-				$form->addRow()->addHeading(__('Cost'));
+            $payment = getSettingByScope($connection2, 'Activities', 'payment');
+            if ($payment != 'None' && $payment != 'Single') {
+                $form->addRow()->addHeading(__('Cost'));
 
-				$row = $form->addRow();
-					$row->addLabel('payment', __('Cost'));
-					$row->addCurrency('payment')->required()->maxLength(9);
+                $row = $form->addRow();
+                    $row->addLabel('payment', __('Cost'));
+                    $row->addCurrency('payment')->required()->maxLength(9);
 
-				$costTypes = array(
-					'Entire Programme' => __('Entire Programme'),
-					'Per Session'      => __('Per Session'),
-					'Per Week'         => __('Per Week'),
-					'Per Term'         => __('Per Term'),
-				);
+                $costTypes = array(
+                    'Entire Programme' => __('Entire Programme'),
+                    'Per Session'      => __('Per Session'),
+                    'Per Week'         => __('Per Week'),
+                    'Per Term'         => __('Per Term'),
+                );
 
-				$row = $form->addRow();
-					$row->addLabel('paymentType', __('Cost Type'));
-					$row->addSelect('paymentType')->required()->fromArray($costTypes);
+                $row = $form->addRow();
+                    $row->addLabel('paymentType', __('Cost Type'));
+                    $row->addSelect('paymentType')->required()->fromArray($costTypes);
 
-				$costStatuses = array(
-					'Finalised' => __('Finalised'),
-					'Estimated' => __('Estimated'),
-				);
+                $costStatuses = array(
+                    'Finalised' => __('Finalised'),
+                    'Estimated' => __('Estimated'),
+                );
 
-				$row = $form->addRow();
-					$row->addLabel('paymentFirmness', __('Cost Status'));
-					$row->addSelect('paymentFirmness')->required()->fromArray($costStatuses);
-			}
+                $row = $form->addRow();
+                    $row->addLabel('paymentFirmness', __('Cost Status'));
+                    $row->addSelect('paymentFirmness')->required()->fromArray($costStatuses);
+            }
 
-			$form->addRow()->addHeading(__('Time Slots'));
+            $form->addRow()->addHeading(__('Time Slots'));
 
             //Block template
             $sqlWeekdays = "SELECT gibbonDaysOfWeekID as value, name FROM gibbonDaysOfWeek ORDER BY sequenceNumber";
@@ -257,51 +257,106 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
                 while ($staff = $results->fetch()) {
                     $row = $table->addRow();
                         $row->addContent(Format::name('', $staff['preferredName'], $staff['surname'], 'Staff', true, true));
-			$row->addContent(__($staff['role']));
-			$row->addWebLink('<img title="'.__('Delete').'" src="./themes/'.$_SESSION[$guid]['gibbonThemeName'].'/img/garbage.png"/></a>')
-			    ->setURL($_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/activities_manage_edit_staff_deleteProcess.php')
-			    ->addParam('address', $_GET['q'])
-			    ->addParam('gibbonActivityStaffID', $staff['gibbonActivityStaffID'])
-			    ->addParam('gibbonActivityID', $gibbonActivityID)
-			    ->addParam('search', $search)
-			    ->addParam('gibbonSchoolYearTermID', $gibbonSchoolYearTermID)
-			    ->addConfirmation(__('Are you sure you wish to delete this record?'));
+            $row->addContent(__($staff['role']));
+            $row->addWebLink('<img title="'.__('Delete').'" src="./themes/'.$_SESSION[$guid]['gibbonThemeName'].'/img/garbage.png"/></a>')
+                ->setURL($_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/activities_manage_edit_staff_deleteProcess.php')
+                ->addParam('address', $_GET['q'])
+                ->addParam('gibbonActivityStaffID', $staff['gibbonActivityStaffID'])
+                ->addParam('gibbonActivityID', $gibbonActivityID)
+                ->addParam('search', $search)
+                ->addParam('gibbonSchoolYearTermID', $gibbonSchoolYearTermID)
+                ->addConfirmation(__('Are you sure you wish to delete this record?'));
                 }
             }
 
             $form->addRow()->addHeading(__('New Staff'));
 
-			$row = $form->addRow();
-				$row->addLabel('staff', __('Staff'));
-				$row->addSelectUsers('staff', $_SESSION[$guid]['gibbonSchoolYearID'], array('includeStaff' => true))->selectMultiple();
-			
-			$staffRoles = array(
-				'Organiser' => __('Organiser'),
-				'Coach'     => __('Coach'),
-				'Assistant' => __('Assistant'),
-				'Other'     => __('Other'),
-			);
+            $row = $form->addRow();
+                $row->addLabel('staff', __('Staff'));
+                $row->addSelectUsers('staff', $_SESSION[$guid]['gibbonSchoolYearID'], array('includeStaff' => true))->selectMultiple();
+            
+            $staffRoles = array(
+                'Organiser' => __('Organiser'),
+                'Coach'     => __('Coach'),
+                'Assistant' => __('Assistant'),
+                'Other'     => __('Other'),
+            );
 
-			$row = $form->addRow();
-				$row->addLabel('role', __('Role'));
-				$row->addSelect('role')->fromArray($staffRoles);
+            $row = $form->addRow();
+                $row->addLabel('role', __('Role'));
+                $row->addSelect('role')->fromArray($staffRoles);
 
-			$row = $form->addRow();
-				$row->addFooter();
-				$row->addSubmit();
+            $row = $form->addRow();
+                $row->addFooter();
+                $row->addSubmit();
 
-			$form->loadAllValuesFrom($values);
+            $form->loadAllValuesFrom($values);
 
-			echo $form->getOutput();
-			?>
+            echo $form->getOutput();
+            ?>
 
-			<script type="text/javascript">
-			$(document).ready(function(){
-				$('.slotRow2').hide();
-			});
-			</script>
+            <script type="text/javascript">
+                //All of this javascript is due to limitations of CustomBlocks. If these limitaions are fixed in the future, the corresponding block of code should be removed.
+                var radio = 'input[type="radio"][name$="[location]"]';
 
-			<?php
+                function locationSwap() {
+                    var block = $(this).closest('tbody');
+                    if ($(this).prop('id').startsWith('location0')) {
+                        block.find('.showHide').hide();
+                        block.find('.hideShow').show();
+                    } else {
+                        block.find('.showHide').show();
+                        block.find('.hideShow').hide();
+                    }
+                }
+
+                var time = 'input[id^="time"]';
+                function setTimepicker(input) {
+                    input.removeClass('hasTimepicker').timepicker({
+                            'scrollDefault': 'now',
+                            'timeFormat': 'H:i',
+                            'minTime': '00:00',
+                            'maxTime': '23:59',
+                            onSelect: function(){$(this).blur();},
+                            onClose: function(){$(this).change();}
+                        });
+                }
+
+                $(document).ready(function(){
+                    //This is to ensure that loaded blocks have the correct state.
+                    $(radio + ':checked').each(locationSwap);
+
+                    //This is to ensure that loaded blocks have timepickers
+                    $(time).each(function() {
+                        setTimepicker($(this));
+                    });
+
+                    //This is needed to ensure that loaded timeEnds are properly chained to loaded timeStarts
+                    $('input[id^=timeEnd]').each(function() {
+                        var timeStart = $('#' + $(this).prop('id').replace('End', 'Start'));
+                        $(this).timepicker('option', {'minTime': timeStart.val(), 'timeFormat': 'H:i', 'showDuration': true});
+                    });
+                });
+
+                //This supplements triggers for the Internal and External Locations
+                $(document).on('change', radio, locationSwap);
+
+                //This is needed to make chaining Times work with Custom Blocks
+                $(document).on('changeTime', 'input[id^=timeStart]', function() {
+                    var timeEnd = $('#' + $(this).prop('id').replace('Start', 'End'));
+                    if (timeEnd.val() == "" || $(this).val() > timeEnd.val()) {
+                        timeEnd.val($(this).val());
+                    }
+                    timeEnd.timepicker('option', {'minTime': $(this).val(), 'timeFormat': 'H:i', 'showDuration': true});
+                });
+
+                //This is needed to make Time inputs have time pickers.
+                $(document).on('click', '.addBlock', function () {
+                    setTimepicker($(time));
+                });
+            </script>
+
+            <?php
         }
     }
 }
