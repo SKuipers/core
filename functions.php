@@ -1050,8 +1050,8 @@ function getAlertBar($guid, $connection2, $gibbonPersonID, $privacy = '', $divEx
         if (!empty($dayTypeOptions) && !empty($rowPersonField['dayType']) && $rowPersonField['dayType'] != 'Full') {
             $alerts[] = [
                 'highestLevel'    => __('Day Type'),
-                'highestColour'   => '7f67a2',
-                'highestColourBG' => 'ebdcf9',
+                'highestColour'   => '#7f67a2',
+                'highestColourBG' => '#ebdcf9',
                 'tag'             => __('D'),
                 'title'           => sprintf(__('Day Type: %1$s'),$rowPersonField['dayType']),
                 'link'            => './index.php?q=/modules/Students/student_view_details.php&gibbonPersonID='.$gibbonPersonID,
@@ -1075,8 +1075,8 @@ function getAlertBar($guid, $connection2, $gibbonPersonID, $privacy = '', $divEx
                     $userField = (isset($userFields[$gibbonPersonFieldID]))? $userFields[$gibbonPersonFieldID] : '';
                     if (!empty($userField)) {
                         $alerts[] = [
-                            'highestColour'   => "3B73AF",
-                            'highestColourBG' => "b3ceeb",
+                            'highestColour'   => "#3B73AF",
+                            'highestColourBG' => "#b3ceeb",
                             'tag'             => __('IB'),
                             'title'           => __('IB Student'),
                             'link'            => './index.php?q=/modules/Students/student_view_details.php&gibbonPersonID='.$gibbonPersonID.'&subpage=Internal Assessment',
@@ -1097,8 +1097,8 @@ function getAlertBar($guid, $connection2, $gibbonPersonID, $privacy = '', $divEx
                     $userField = (isset($userFields[$gibbonPersonFieldID]))? $userFields[$gibbonPersonFieldID] : '';
                     if (!empty($userField) && $userField == 'Y') {
                         $alerts[] = [
-                            'highestColour'   => "449045",
-                            'highestColourBG' => "b1ed81",
+                            'highestColour'   => "#449045",
+                            'highestColourBG' => "#b1ed81",
                             'tag'             => __('L'),
                             'title'           => __('Paid Lunch'),
                             'link'            => './index.php?q=/modules/Students/student_view_details.php&gibbonPersonID='.$gibbonPersonID.'&subpage=Personal',
@@ -1128,8 +1128,8 @@ function getAlertBar($guid, $connection2, $gibbonPersonID, $privacy = '', $divEx
 
         if ($resultSports->rowCount() > 0) {
             $alerts[] = [
-                'highestColour'   => "449045",
-                'highestColourBG' => "b1ed81",
+                'highestColour'   => "#449045",
+                'highestColourBG' => "#b1ed81",
                 'tag'             => __('SP'),
                 'title'           => sprintf(__('Sports Activites').': '.$resultSports->rowCount()),
                 'link'            => './index.php?q=/modules/Students/student_view_details.php&gibbonPersonID='.$gibbonPersonID.'&subpage=Activities',
