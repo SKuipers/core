@@ -2102,10 +2102,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                                                 }
                                                 ++$count;
                                                 ++$entryCount;
+                                                $style = '';
+                                                if (!empty($rowEntry['attainmentType']) && $rowEntry['attainmentType'] == 'Formative') {
+                                                    $style = 'background: #EDF7FFaa !important';
+                                                }
 
-                                                echo "<tr class=$rowNum>";
+                                                echo "<tr class=$rowNum style='$style'>";
                                                 echo '<td>';
-                                                echo "<span title='".htmlPrep($rowEntry['description'])."'><b><u>".$rowEntry['name'].'</u></b></span><br/>';
+                                                echo "<span title='".htmlPrep($rowEntry['description'].'<br/><i>'.($rowEntry['attainmentType'] ?? '').'</i>')."'><b><u>".$rowEntry['name'].'</u></b></span><br/>';
                                                 echo "<span style='font-size: 90%; font-style: italic; font-weight: normal'>";
                                                 $unit = getUnit($connection2, $rowEntry['gibbonUnitID'], $rowEntry['gibbonCourseClassID']);
                                                 if (isset($unit[0])) {
