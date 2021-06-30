@@ -316,7 +316,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
             $resultSchoolYear->execute($dataSchoolYear);
             $schoolYearEntry = $resultSchoolYear->fetch();
             $schoolYearName = $schoolYearEntry['name'] ?? '';
-            $status = $schoolYearEntry['status'] == 'Upcoming' && $informStudent != 'Y' ? 'Expected' : 'Full';
+            $status = $schoolYearEntry['status'] == 'Upcoming' && $informStudent != 'Y' ? 'Full' : 'Full';
 
             // Get student's year group info
             $dataYearGroup = array('gibbonYearGroupID' => $values['gibbonYearGroupIDEntry']);
@@ -913,7 +913,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                                 $generator->addToken('surname', $values['parent1surname']);
 
                                 $username = $generator->generateByRole('004');
-                                $status = $schoolYearEntry['status'] == 'Upcoming' && $informParents != 'Y' ? 'Expected' : 'Full'; 
+                                $status = $schoolYearEntry['status'] == 'Upcoming' && $informParents != 'Y' ? 'Full' : 'Full'; 
 
                                 // Generate a random password
                                 $password = randomPassword(8);
@@ -1104,7 +1104,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                                 $generator->addToken('surname', $values['parent2surname']);
 
                                 $username = $generator->generateByRole('004');
-                                $status = $schoolYearEntry['status'] == 'Upcoming' && $informParents != 'Y' ? 'Expected' : 'Full'; 
+                                $status = $schoolYearEntry['status'] == 'Upcoming' && $informParents != 'Y' ? 'Full' : 'Full'; 
 
                                 // Generate a random password
                                 $password = randomPassword(8);
