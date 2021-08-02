@@ -32,12 +32,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
     // Proceed!
     $page->breadcrumbs->add(__('New Coverage Request'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, [
+    $page->return->addReturns([
             'success1' => __('Your request was completed successfully.').' '.__('You may now continue by submitting a coverage request for this absence.'),
             'error8' => __('Your request failed because no dates have been selected. Please check your input and submit your request again.'),
         ]);
-    }
 
     $gibbonStaffAbsenceID = $_GET['gibbonStaffAbsenceID'] ?? '';
     $gibbonPersonIDCoverage = $_GET['gibbonPersonIDCoverage'] ?? '';
@@ -103,10 +101,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
         return $group;
     }, []);
 
-    $form = Form::create('staffAbsenceEdit', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/coverage_requestProcess.php');
+    $form = Form::create('staffAbsenceEdit', $session->get('absoluteURL').'/modules/Staff/coverage_requestProcess.php');
 
     $form->setFactory(DatabaseFormFactory::create($pdo));
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+    $form->addHiddenValue('address', $session->get('address'));
     $form->addHiddenValue('gibbonStaffAbsenceID', $gibbonStaffAbsenceID);
 
     $form->addRow()->addHeading(__('Coverage Request'));

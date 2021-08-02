@@ -19,14 +19,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$gibbonCourseClassID = $_GET['gibbonCourseClassID'];
-$gibbonCourseID = $_GET['gibbonCourseID'];
-$gibbonSchoolYearID = $_GET['gibbonSchoolYearID'];
+$gibbonCourseClassID = $_GET['gibbonCourseClassID'] ?? '';
+$gibbonCourseID = $_GET['gibbonCourseID'] ?? '';
+$gibbonSchoolYearID = $_GET['gibbonSchoolYearID'] ?? '';
 
 if ($gibbonCourseID == '' or $gibbonSchoolYearID == '') { echo 'Fatal error loading this page!';
 } else {
-    $URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/course_manage_class_delete.php&gibbonCourseID=$gibbonCourseID&gibbonCourseClassID=$gibbonCourseClassID&gibbonSchoolYearID=$gibbonSchoolYearID";
-    $URLDelete = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/course_manage_edit.php&gibbonCourseID=$gibbonCourseID&gibbonCourseClassID=$gibbonCourseClassID&gibbonSchoolYearID=$gibbonSchoolYearID";
+    $URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/course_manage_class_delete.php&gibbonCourseID=$gibbonCourseID&gibbonCourseClassID=$gibbonCourseClassID&gibbonSchoolYearID=$gibbonSchoolYearID";
+    $URLDelete = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/course_manage_edit.php&gibbonCourseID=$gibbonCourseID&gibbonCourseClassID=$gibbonCourseClassID&gibbonSchoolYearID=$gibbonSchoolYearID";
 
     if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/course_manage_class_delete.php') == false) {
         $URL .= '&return=error0';
@@ -54,14 +54,14 @@ if ($gibbonCourseID == '' or $gibbonSchoolYearID == '') { echo 'Fatal error load
                 header("Location: {$URL}");
             } else {
                 //Try to delete entries in gibbonTTDayRowClass
-                
+
                     $dataSelect = array('gibbonCourseClassID' => $gibbonCourseClassID);
                     $sqlSelect = 'SELECT * FROM gibbonTTDayRowClass WHERE gibbonCourseClassID=:gibbonCourseClassID';
                     $resultSelect = $connection2->prepare($sqlSelect);
                     $resultSelect->execute($dataSelect);
                 if ($resultSelect->rowCount() > 0) {
                     while ($rowSelect = $resultSelect->fetch()) {
-                        
+
                             $dataDelete = array('gibbonTTDayRowClassID' => $rowSelect['gibbonTTDayRowClassID']);
                             $sqlDelete = 'DELETE FROM gibbonTTDayRowClassException WHERE gibbonTTDayRowClassID=:gibbonTTDayRowClassID';
                             $resultDelete = $connection2->prepare($sqlDelete);
@@ -69,14 +69,14 @@ if ($gibbonCourseID == '' or $gibbonSchoolYearID == '') { echo 'Fatal error load
                     }
                 }
 
-                
+
                     $dataDelete = array('gibbonCourseClassID' => $gibbonCourseClassID);
                     $sqlDelete = 'DELETE FROM gibbonTTDayRowClass WHERE gibbonCourseClassID=:gibbonCourseClassID';
                     $resultDelete = $connection2->prepare($sqlDelete);
                     $resultDelete->execute($dataDelete);
 
                 //Delete students and other participants
-                
+
                     $dataDelete = array('gibbonCourseClassID' => $gibbonCourseClassID);
                     $sqlDelete = 'DELETE FROM gibbonCourseClassPerson WHERE gibbonCourseClassID=:gibbonCourseClassID';
                     $resultDelete = $connection2->prepare($sqlDelete);

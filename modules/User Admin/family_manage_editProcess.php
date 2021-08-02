@@ -19,26 +19,26 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$gibbonFamilyID = $_GET['gibbonFamilyID'];
-$search = $_GET['search'];
+$gibbonFamilyID = $_GET['gibbonFamilyID'] ?? '';
+$search = $_GET['search'] ?? '';
 
 if ($gibbonFamilyID == '') { echo 'Fatal error loading this page!';
 } else {
-    $URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/family_manage_edit.php&gibbonFamilyID=$gibbonFamilyID&search=$search";
+    $URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/family_manage_edit.php&gibbonFamilyID=$gibbonFamilyID&search=$search";
 
     if (isActionAccessible($guid, $connection2, '/modules/User Admin/family_manage_edit.php') == false) {
         $URL .= '&return=error0';
         header("Location: {$URL}");
     } else {
         //Validate Inputs
-        $name = $_POST['name'];
-        $status = $_POST['status'];
-        $languageHomePrimary = $_POST['languageHomePrimary'];
-        $languageHomeSecondary = $_POST['languageHomeSecondary'];
-        $nameAddress = $_POST['nameAddress'];
-        $homeAddress = $_POST['homeAddress'];
-        $homeAddressDistrict = $_POST['homeAddressDistrict'];
-        $homeAddressCountry = $_POST['homeAddressCountry'];
+        $name = $_POST['name'] ?? '';
+        $status = $_POST['status'] ?? '';
+        $languageHomePrimary = $_POST['languageHomePrimary'] ?? '';
+        $languageHomeSecondary = $_POST['languageHomeSecondary'] ?? '';
+        $nameAddress = $_POST['nameAddress'] ?? '';
+        $homeAddress = $_POST['homeAddress'] ?? '';
+        $homeAddressDistrict = $_POST['homeAddressDistrict'] ?? '';
+        $homeAddressCountry = $_POST['homeAddressCountry'] ?? '';
 
         //Write to database
         try {

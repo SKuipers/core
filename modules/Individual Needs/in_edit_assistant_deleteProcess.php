@@ -19,9 +19,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$gibbonPersonIDAssistant = $_GET['gibbonPersonIDAssistant'];
-$gibbonPersonIDStudent = $_GET['gibbonPersonIDStudent'];
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['address'])."/in_edit.php&gibbonPersonID=$gibbonPersonIDStudent";
+$gibbonPersonIDAssistant = $_GET['gibbonPersonIDAssistant'] ?? '';
+$gibbonPersonIDStudent = $_GET['gibbonPersonIDStudent'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_GET['address'])."/in_edit.php&gibbonPersonID=$gibbonPersonIDStudent";
 
 if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/in_edit.php') == false) {
     $URL .= '&return=error0';

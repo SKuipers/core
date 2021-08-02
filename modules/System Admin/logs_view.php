@@ -33,20 +33,16 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/logs_view.php
     //Proceed!
     $page->breadcrumbs->add(__('View Logs'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     $ip = isset($_GET['ip'])? $_GET['ip'] : '';
     $title = isset($_GET['title'])? $_GET['title'] : '';
     $gibbonPersonID = isset($_GET['gibbonPersonID'])? $_GET['gibbonPersonID'] : '';
 
-    $form = Form::create('filter', $_SESSION[$guid]['absoluteURL'].'/index.php', 'get');
+    $form = Form::create('filter', $session->get('absoluteURL').'/index.php', 'get');
 
     $form->setFactory(DatabaseFormFactory::create($pdo));
     $form->setTitle(__('Filters'));
     $form->setClass('noIntBorder fullWidth');
-    $form->addHiddenValue('q', '/modules/'.$_SESSION[$guid]['module'].'/logs_view.php');
+    $form->addHiddenValue('q', '/modules/'.$session->get('module').'/logs_view.php');
 
     $sql = "SELECT DISTINCT title AS value, title AS name FROM gibbonLog ORDER BY title";
     $row = $form->addRow();
@@ -95,7 +91,9 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/logs_view.php
             if (count($array) > 0) {
                 $details = "<table class='smallIntBorder' style='width:100%;'>";
                 foreach ($array as $fieldName => $fieldValue) {
-                    if (is_array($fieldValue)) $fieldValue = json_encode($fieldValue);
+                    $fieldValue = is_array($fieldValue)
+                        ? htmlentities(json_encode($fieldValue))
+                        : htmlentities($fieldValue);
                     $details .= sprintf('<tr><td><b>%1$s</b></td><td style="line-break: anywhere; width: 645px;">%2$s</td></tr>', $fieldName, (substr($fieldValue, 0, 2) == 'a:') ? __("Contains serialised data.") : $fieldValue);
                 }
                 $details .= "</table>";

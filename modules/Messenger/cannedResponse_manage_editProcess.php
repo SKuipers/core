@@ -19,8 +19,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$gibbonMessengerCannedResponseID = $_GET['gibbonMessengerCannedResponseID'];
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/cannedResponse_manage_edit.php&gibbonMessengerCannedResponseID='.$gibbonMessengerCannedResponseID;
+$gibbonMessengerCannedResponseID = $_GET['gibbonMessengerCannedResponseID'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/cannedResponse_manage_edit.php&gibbonMessengerCannedResponseID='.$gibbonMessengerCannedResponseID;
 
 if (isActionAccessible($guid, $connection2, '/modules/Messenger/cannedResponse_manage_edit.php') == false) {
     $URL .= '&return=error0';
@@ -48,8 +48,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Messenger/cannedResponse_m
             header("Location: {$URL}");
         } else {
             //Validate Inputs
-            $subject = $_POST['subject'];
-            $body = $_POST['body'];
+            $subject = $_POST['subject'] ?? '';
+            $body = $_POST['body'] ?? '';
 
             if ($subject == '' or $body == '') {
                 $URL .= '&return=error3';

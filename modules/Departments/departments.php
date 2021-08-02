@@ -34,10 +34,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Departments/departments.ph
     $page->breadcrumbs->add(__('View All'));
 
     $departmentGateway = $container->get(DepartmentGateway::class);
-    
+
+    // QUERY
+    $criteria = $departmentGateway->newQueryCriteria()
+        ->sortBy(['sequenceNumber', 'name'])
+        ->pageSize(0)
+        ->fromPOST('departments');
+
     // Data Table
     $gridRenderer = new GridView($container->get('twig'));
     $table = $container->get(DataTable::class)->setRenderer($gridRenderer);
+    $table->getRenderer()->setCriteria($criteria);
     $table->setTitle(__('Departments'));
 
     $table->addColumn('logo')
@@ -52,25 +59,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Departments/departments.ph
             return Format::link($url, $department['name']);
         });
 
-    // QUERY
-    $criteria = $departmentGateway->newQueryCriteria(true)
-        ->sortBy(['sequenceNumber', 'name']);
-
     // Learning Areas
     $learningAreas = $departmentGateway->queryDepartments($criteria, 'Learning Area');
 
     if (count($learningAreas) > 0) {
         $tableLA = clone $table;
+        $tableLA->setId('learningAreas');
         $tableLA->setTitle(__('Learning Areas'));
-        
+
         echo $tableLA->render($learningAreas);
     }
-    
+
     // Administration
     $administration = $departmentGateway->queryDepartments($criteria, 'Administration');
 
     if (count($administration) > 0) {
         $tableAdmin = clone $table;
+        $tableAdmin->setId('administration');
         $tableAdmin->setTitle(__('Administration'));
 
         echo $tableAdmin->render($administration);
@@ -80,12 +85,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Departments/departments.ph
         echo $table->render(new DataSet([]));
     }
 
-    if (isset($_SESSION[$guid]['username'])) {
+    if ($session->has('username')) {
         //Print sidebar
         $sidebarExtra = '';
 
-        
-            $data = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID']);
+
+            $data = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'gibbonPersonID' => $session->get('gibbonPersonID'));
             $sql = 'SELECT gibbonCourse.nameShort AS course, gibbonCourseClass.nameShort AS class, gibbonCourseClass.gibbonCourseClassID FROM gibbonCourse, gibbonCourseClass, gibbonCourseClassPerson WHERE gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonCourse.gibbonCourseID=gibbonCourseClass.gibbonCourseID AND gibbonCourseClass.gibbonCourseClassID=gibbonCourseClassPerson.gibbonCourseClassID AND gibbonCourseClassPerson.gibbonPersonID=:gibbonPersonID AND NOT role LIKE \'% - Left%\' ORDER BY course, class';
             $result = $connection2->prepare($sql);
             $result->execute($data);
@@ -103,7 +108,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Departments/departments.ph
             $sidebarExtra .= '</ul>';
             $sidebarExtra .= '</div>';
 
-            $_SESSION[$guid]['sidebarExtra'] = $sidebarExtra;
+            $session->set('sidebarExtra', $sidebarExtra);
         }
     }
 }

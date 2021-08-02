@@ -18,8 +18,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
-use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Domain\User\RoleGateway;
+use Gibbon\Forms\CustomFieldHandler;
+use Gibbon\Forms\DatabaseFormFactory;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage_add.php') == false) {
     // Access denied
@@ -35,22 +36,20 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage_add.php
 
     $editLink = '';
     if (isset($_GET['editID'])) {
-        $editLink = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/staff_manage_edit.php&gibbonStaffID='.$_GET['editID'].'&search='.$_GET['search'].'&allStaff='.$_GET['allStaff'];
+        $editLink = $session->get('absoluteURL').'/index.php?q=/modules/Staff/staff_manage_edit.php&gibbonStaffID='.$_GET['editID'].'&search='.$_GET['search'].'&allStaff='.$_GET['allStaff'];
     }
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], $editLink, null);
-    }
+    $page->return->setEditLink($editLink);
 
     if ($search != '' or $allStaff != '') {
         echo "<div class='linkTop'>";
-        echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Staff/staff_manage.php&search=$search&allStaff=$allStaff'>".__('Back to Search Results').'</a>';
+        echo "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/Staff/staff_manage.php&search=$search&allStaff=$allStaff'>".__('Back to Search Results').'</a>';
         echo '</div>';
     }
 
-    $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/staff_manage_addProcess.php?search=$search&allStaff=$allStaff");
+    $form = Form::create('action', $session->get('absoluteURL').'/modules/'.$session->get('module')."/staff_manage_addProcess.php?search=$search&allStaff=$allStaff");
     $form->setFactory(DatabaseFormFactory::create($pdo));
 
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+    $form->addHiddenValue('address', $session->get('address'));
 
     $form->addRow()->addHeading(__('Basic Information'));
 
@@ -108,6 +107,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage_add.php
     $row = $form->addRow();
         $row->addLabel('biography', __('Biography'));
         $row->addTextArea('biography')->setRows(10);
+
+    // Custom Fields
+    $container->get(CustomFieldHandler::class)->addCustomFieldsToForm($form, 'Staff', []);
 
     $row = $form->addRow();
         $row->addFooter();

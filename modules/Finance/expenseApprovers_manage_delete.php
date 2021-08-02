@@ -24,16 +24,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenseApprovers_m
     $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed!
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     //Check if school year specified
     $gibbonFinanceExpenseApproverID = $_GET['gibbonFinanceExpenseApproverID'];
     if ($gibbonFinanceExpenseApproverID == '') {
         $page->addError(__('You have not specified one or more required parameters.'));
     } else {
-        
+
             $data = array('gibbonFinanceExpenseApproverID' => $gibbonFinanceExpenseApproverID);
             $sql = 'SELECT * FROM gibbonFinanceExpenseApprover WHERE gibbonFinanceExpenseApproverID=:gibbonFinanceExpenseApproverID';
             $result = $connection2->prepare($sql);
@@ -42,7 +38,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenseApprovers_m
         if ($result->rowCount() != 1) {
             $page->addError(__('The specified record cannot be found.'));
         } else {
-            $form = DeleteForm::createForm($_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/expenseApprovers_manage_deleteProcess.php?gibbonFinanceExpenseApproverID=$gibbonFinanceExpenseApproverID");
+            $form = DeleteForm::createForm($session->get('absoluteURL').'/modules/'.$session->get('module')."/expenseApprovers_manage_deleteProcess.php?gibbonFinanceExpenseApproverID=$gibbonFinanceExpenseApproverID");
             echo $form->getOutput();
         }
     }

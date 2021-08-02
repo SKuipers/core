@@ -29,10 +29,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
     $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed!
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return']);
-    }
-
     //Get current filter values
     $viewMode = $_REQUEST['format'] ?? '';
     $name = $_REQUEST['name'] ?? '';
@@ -45,12 +41,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
     if (empty($viewMode)) {
         $page->breadcrumbs->add(__('Manage Catalog'));
 
-        $form = Form::create('searchForm', $_SESSION[$guid]['absoluteURL'].'/index.php', 'get');
+        $form = Form::create('searchForm', $session->get('absoluteURL').'/index.php', 'get');
         $form->setFactory(DatabaseFormFactory::create($pdo));
         $form->setClass('noIntBorder fullWidth');
         $form->setTitle(__('Search & Filter'));
 
-        $form->addHiddenValue('q', "/modules/".$_SESSION[$guid]['module']."/library_manage_catalog.php");
+        $form->addHiddenValue('q', "/modules/".$session->get('module')."/library_manage_catalog.php");
 
         $row = $form->addRow();
             $row->addLabel('name', __('ID/Name/Producer'));
@@ -108,7 +104,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
         ->filterBy('typeSpecificFields', $typeSpecificFields)
         ->pageSize(!empty($viewMode) ? 0 : 50)
         ->fromPOST();
-    $items = $gateway->queryCatalog($criteria, $_SESSION[$guid]['gibbonSchoolYearID']);
+    $items = $gateway->queryCatalog($criteria, $session->get('gibbonSchoolYearID'));
 
     $table = ReportTable::createPaginated('items', $criteria)->setViewMode($viewMode, $gibbon->session);
 
@@ -153,8 +149,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
             $responsible = !empty($item['surnameResponsible'])
                 ? Format::name($item['titleResponsible'], $item['preferredNameResponsible'], $item['surnameResponsible'], 'Student')
                 : '';
-            $responsible .= !empty($item['rollGroup'])
-                ? ' ('.$item['rollGroup'].')'
+            $responsible .= !empty($item['formGroup'])
+                ? ' ('.$item['formGroup'].')'
                 : '';
             return '<b>' . __($item['status']) . '</b><br/>' . Format::small($responsible);
         });

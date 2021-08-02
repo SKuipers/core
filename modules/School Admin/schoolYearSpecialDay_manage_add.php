@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
+use Gibbon\Services\Format;
 
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYearSpecialDay_manage_add.php') == false) {
     // Access denied
@@ -53,9 +54,9 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYearSpe
             echo '</div>';
         } else {
 
-            $form = Form::create('specialDayAdd', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/schoolYearSpecialDay_manage_addProcess.php');
+            $form = Form::create('specialDayAdd', $session->get('absoluteURL').'/modules/'.$session->get('module').'/schoolYearSpecialDay_manage_addProcess.php');
 
-            $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+            $form->addHiddenValue('address', $session->get('address'));
             $form->addHiddenValue('gibbonSchoolYearID', $gibbonSchoolYearID);
             $form->addHiddenValue('gibbonSchoolYearTermID', $gibbonSchoolYearTermID);
             $form->addHiddenValue('dateStamp', $dateStamp);
@@ -64,7 +65,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYearSpe
 
             $row = $form->addRow();
                 $row->addLabel('date', __('Date'))->description(__('Must be unique.'));
-                $row->addTextField('date')->readonly()->setValue(dateConvertBack($guid, date('Y-m-d', $dateStamp)));
+                $row->addTextField('date')->readonly()->setValue(Format::date(date('Y-m-d', $dateStamp)));
 
             $types = array(
                 'School Closure' => __('School Closure'),

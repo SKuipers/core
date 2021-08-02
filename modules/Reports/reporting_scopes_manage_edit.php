@@ -35,7 +35,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_scopes_m
         'gibbonReportingCycleID' => $_GET['gibbonReportingCycleID'] ?? '',
         'gibbonReportingScopeID' => $_GET['gibbonReportingScopeID'] ?? '',
         'gibbonYearGroupID'      => $_GET['gibbonYearGroupID'] ?? '',
-        'gibbonRollGroupID'      => $_GET['gibbonRollGroupID'] ?? '',
+        'gibbonFormGroupID'      => $_GET['gibbonFormGroupID'] ?? '',
         'gibbonCourseID'         => $_GET['gibbonCourseID'] ?? '',
     ];
 
@@ -47,10 +47,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_scopes_m
     if (empty($urlParams['gibbonReportingScopeID']) || empty($urlParams['gibbonReportingCycleID'])) {
         $page->addError(__('You have not specified one or more required parameters.'));
         return;
-    }
-
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
     }
 
     $reportingScopeGateway = $container->get(ReportingScopeGateway::class);
@@ -110,7 +106,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_scopes_m
     $reportingCriteria = $reportingCriteriaGateway->queryReportingCriteriaGroupsByScope($criteria, $urlParams['gibbonReportingScopeID'], $reportingScope['scopeType']);
 
     // BULK ACTIONS
-    $form = BulkActionForm::create('bulkAction', $_SESSION[$guid]['absoluteURL'].'/modules/Reports/reporting_scopes_manage_editProcessBulk.php');
+    $form = BulkActionForm::create('bulkAction', $session->get('absoluteURL').'/modules/Reports/reporting_scopes_manage_editProcessBulk.php');
     $form->setTitle(__('Criteria'));
     $form->addHiddenValue('gibbonReportingScopeID', $urlParams['gibbonReportingScopeID']);
     $form->addHiddenValue('gibbonReportingCycleID', $reportingScope['gibbonReportingCycleID']);
@@ -151,7 +147,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_scopes_m
         ->addParam('gibbonReportingCycleID', $urlParams['gibbonReportingCycleID'])
         ->addParam('gibbonReportingScopeID', $urlParams['gibbonReportingScopeID'])
         ->addParam('gibbonYearGroupID')
-        ->addParam('gibbonRollGroupID')
+        ->addParam('gibbonFormGroupID')
         ->addParam('gibbonCourseID')
         ->addParam('gibbonReportingCriteriaID')
         ->addParam('referer', 'scopes')

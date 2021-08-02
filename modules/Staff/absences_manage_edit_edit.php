@@ -35,10 +35,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_edit
         ->add(__('Edit Absence'), 'absences_manage_edit.php', ['gibbonStaffAbsenceID' => $gibbonStaffAbsenceID])
         ->add(__('Edit'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     if (empty($gibbonStaffAbsenceID) || empty($gibbonStaffAbsenceDateID)) {
         $page->addError(__('You have not specified one or more required parameters.'));
         return;
@@ -52,10 +48,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_manage_edit
         return;
     }
 
-    $form = Form::create('staffAbsenceEdit', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/absences_manage_edit_editProcess.php');
+    $form = Form::create('staffAbsenceEdit', $session->get('absoluteURL').'/modules/Staff/absences_manage_edit_editProcess.php');
 
     $form->setFactory(DatabaseFormFactory::create($pdo));
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+    $form->addHiddenValue('address', $session->get('address'));
     $form->addHiddenValue('gibbonStaffAbsenceID', $gibbonStaffAbsenceID);
     $form->addHiddenValue('gibbonStaffAbsenceDateID', $gibbonStaffAbsenceDateID);
    

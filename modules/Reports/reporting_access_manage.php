@@ -31,10 +31,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_access_m
     $page->breadcrumbs
         ->add(__('Manage Access'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     $gibbonSchoolYearID = $gibbon->session->get('gibbonSchoolYearID');
     $gibbonReportingCycleID = $_GET['gibbonReportingCycleID'] ?? '';
     $reportingAccessGateway = $container->get(ReportingAccessGateway::class);
@@ -47,7 +43,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_access_m
     }
 
     // FORM
-    $form = Form::create('archiveByReport', $_SESSION[$guid]['absoluteURL'].'/index.php', 'get');
+    $form = Form::create('archiveByReport', $session->get('absoluteURL').'/index.php', 'get');
     $form->setTitle(__('Filter'));
     $form->setClass('noIntBorder fullWidth');
 

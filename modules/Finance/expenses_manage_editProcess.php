@@ -17,21 +17,23 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+
 include '../../gibbon.php';
 
 //Module includes
 include './moduleFunctions.php';
 
-$gibbonFinanceBudgetCycleID = $_POST['gibbonFinanceBudgetCycleID'];
-$gibbonFinanceBudgetID2 = $_POST['gibbonFinanceBudgetID2'];
-$gibbonFinanceExpenseID = $_POST['gibbonFinanceExpenseID'];
-$status2 = $_POST['status2'];
-$countAgainstBudget = $_POST['countAgainstBudget'];
-$status = $_POST['status'];
+$gibbonFinanceBudgetCycleID = $_POST['gibbonFinanceBudgetCycleID'] ?? '';
+$gibbonFinanceBudgetID2 = $_POST['gibbonFinanceBudgetID2'] ?? '';
+$gibbonFinanceExpenseID = $_POST['gibbonFinanceExpenseID'] ?? '';
+$status2 = $_POST['status2'] ?? '';
+$countAgainstBudget = $_POST['countAgainstBudget'] ?? '';
+$status = $_POST['status'] ?? '';
 
 if ($gibbonFinanceBudgetCycleID == '') { echo 'Fatal error loading this page!';
 } else {
-    $URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/expenses_manage_edit.php&gibbonFinanceExpenseID=$gibbonFinanceExpenseID&gibbonFinanceBudgetCycleID=$gibbonFinanceBudgetCycleID&gibbonFinanceBudgetID2=$gibbonFinanceBudgetID2&status2=$status2";
+    $URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/expenses_manage_edit.php&gibbonFinanceExpenseID=$gibbonFinanceExpenseID&gibbonFinanceBudgetCycleID=$gibbonFinanceBudgetCycleID&gibbonFinanceBudgetID2=$gibbonFinanceBudgetID2&status2=$status2";
 
     if (isActionAccessible($guid, $connection2, '/modules/Finance/expenses_manage_add.php', 'Manage Expenses_all') == false) {
         $URL .= '&return=error0';
@@ -94,11 +96,11 @@ if ($gibbonFinanceBudgetCycleID == '') { echo 'Fatal error loading this page!';
 
                             //Check if params are specified
                             if ($status == 'Paid' and ($row['status'] == 'Approved' or $row['status'] == 'Ordered')) {
-                                $paymentDate = dateConvert($guid, $_POST['paymentDate']);
-                                $paymentAmount = $_POST['paymentAmount'];
-                                $gibbonPersonIDPayment = $_POST['gibbonPersonIDPayment'];
-                                $paymentMethod = $_POST['paymentMethod'];
-                                $paymentID = $_POST['paymentID'];
+                                $paymentDate = !empty($_POST['paymentDate']) ? Format::dateConvert($_POST['paymentDate']) : null;
+                                $paymentAmount = $_POST['paymentAmount'] ?? '';
+                                $gibbonPersonIDPayment = $_POST['gibbonPersonIDPayment'] ?? '';
+                                $paymentMethod = $_POST['paymentMethod'] ?? '';
+                                $paymentID = $_POST['paymentID'] ?? '';
                             } else {
                                 $paymentDate = $row['paymentDate'];
                                 $paymentAmount = $row['paymentAmount'];
@@ -116,13 +118,13 @@ if ($gibbonFinanceBudgetCycleID == '') { echo 'Fatal error loading this page!';
                                     $paymentReimbursementStatus = null;
                                 }
                                 if ($row['status'] == 'Paid' and $row['purchaseBy'] == 'Self' and $row['paymentReimbursementStatus'] == 'Requested' and $paymentReimbursementStatus == 'Complete') {
-                                    $paymentID = $_POST['paymentID'];
-                                    $reimbursementComment = $_POST['reimbursementComment'];
+                                    $paymentID = $_POST['paymentID'] ?? '';
+                                    $reimbursementComment = $_POST['reimbursementComment'] ?? '';
                                     $notificationText = sprintf(__('Your reimbursement expense request for "%1$s" in budget "%2$s" has been completed.'), $row['title'], $row['budget']);
                                     setNotification($connection2, $guid, $row['gibbonPersonIDCreator'], $notificationText, 'Finance', "/index.php?q=/modules/Finance/expenseRequest_manage_view.php&gibbonFinanceExpenseID=$gibbonFinanceExpenseID&gibbonFinanceBudgetCycleID=$gibbonFinanceBudgetCycleID&status=&gibbonFinanceBudgetID=".$row['gibbonFinanceBudgetID']);
                                     //Write change to log
                                     try {
-                                        $data = array('gibbonFinanceExpenseID' => $gibbonFinanceExpenseID, 'gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID'], 'action' => 'Reimbursement Completion', 'comment' => $reimbursementComment);
+                                        $data = array('gibbonFinanceExpenseID' => $gibbonFinanceExpenseID, 'gibbonPersonID' => $session->get('gibbonPersonID'), 'action' => 'Reimbursement Completion', 'comment' => $reimbursementComment);
                                         $sql = "INSERT INTO gibbonFinanceExpenseLog SET gibbonFinanceExpenseID=:gibbonFinanceExpenseID, gibbonPersonID=:gibbonPersonID, timestamp='".date('Y-m-d H:i:s')."', action=:action, comment=:comment";
                                         $result = $connection2->prepare($sql);
                                         $result->execute($data);
@@ -170,7 +172,7 @@ if ($gibbonFinanceBudgetCycleID == '') { echo 'Fatal error loading this page!';
 
                                 //Write change to log
                                 try {
-                                    $data = array('gibbonFinanceExpenseID' => $gibbonFinanceExpenseID, 'gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID'], 'action' => $action);
+                                    $data = array('gibbonFinanceExpenseID' => $gibbonFinanceExpenseID, 'gibbonPersonID' => $session->get('gibbonPersonID'), 'action' => $action);
                                     $sql = "INSERT INTO gibbonFinanceExpenseLog SET gibbonFinanceExpenseID=:gibbonFinanceExpenseID, gibbonPersonID=:gibbonPersonID, timestamp='".date('Y-m-d H:i:s')."', action=:action";
                                     $result = $connection2->prepare($sql);
                                     $result->execute($data);

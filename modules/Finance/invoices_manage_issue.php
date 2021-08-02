@@ -38,32 +38,30 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/invoices_manage_is
     $gibbonFinanceBillingScheduleID = isset($_GET['gibbonFinanceBillingScheduleID'])? $_GET['gibbonFinanceBillingScheduleID'] : '';
     $gibbonFinanceFeeCategoryID = isset($_GET['gibbonFinanceFeeCategoryID'])? $_GET['gibbonFinanceFeeCategoryID'] : '';
 
-    $urlParams = compact('gibbonSchoolYearID', 'status', 'gibbonFinanceInvoiceeID', 'monthOfIssue', 'gibbonFinanceBillingScheduleID', 'gibbonFinanceFeeCategoryID'); 
+    $urlParams = compact('gibbonSchoolYearID', 'status', 'gibbonFinanceInvoiceeID', 'monthOfIssue', 'gibbonFinanceBillingScheduleID', 'gibbonFinanceFeeCategoryID');
 
     $page->breadcrumbs
         ->add(__('Manage Invoices'), 'invoices_manage.php', $urlParams)
-        ->add(__('Issue Invoice'));       
+        ->add(__('Issue Invoice'));
 
     echo '<p>';
     echo __('Issuing an invoice confirms it in the system, meaning the financial details within the invoice can no longer be edited. On issue, you also have the choice to email the invoice to the appropriate family and company recipients.');
     echo '</p>';
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, array('error4' => 'Some aspects of your request failed, but others were successful. Because of the errors, the system did not attempt to send any requested emails.'));
-    }
+    $page->return->addReturns(['error4' => 'Some aspects of your request failed, but others were successful. Because of the errors, the system did not attempt to send any requested emails.']);
 
     if ($gibbonFinanceInvoiceID == '' or $gibbonSchoolYearID == '') {
         $page->addError(__('You have not specified one or more required parameters.'));
     } else {
-        
+
             $data = array('gibbonSchoolYearID' => $gibbonSchoolYearID, 'gibbonFinanceInvoiceID' => $gibbonFinanceInvoiceID);
             $sql = "SELECT gibbonFinanceInvoice.*, companyName, companyContact, companyEmail, companyCCFamily, gibbonSchoolYear.name as schoolYear, gibbonPerson.surname, gibbonPerson.preferredName, gibbonFinanceBillingSchedule.name as billingScheduleName, gibbonFinanceBillingSchedule.invoiceDueDate as billingScheduleInvoiceDueDate
-					FROM gibbonFinanceInvoice 
+					FROM gibbonFinanceInvoice
 					JOIN gibbonSchoolYear ON (gibbonSchoolYear.gibbonSchoolYearID=gibbonFinanceInvoice.gibbonSchoolYearID)
-					LEFT JOIN gibbonFinanceInvoicee ON (gibbonFinanceInvoice.gibbonFinanceInvoiceeID=gibbonFinanceInvoicee.gibbonFinanceInvoiceeID) 
+					LEFT JOIN gibbonFinanceInvoicee ON (gibbonFinanceInvoice.gibbonFinanceInvoiceeID=gibbonFinanceInvoicee.gibbonFinanceInvoiceeID)
 					LEFT JOIN gibbonFinanceBillingSchedule ON (gibbonFinanceBillingSchedule.gibbonFinanceBillingScheduleID=gibbonFinanceInvoice.gibbonFinanceBillingScheduleID)
 					LEFT JOIN gibbonPerson ON (gibbonPerson.gibbonPersonID=gibbonFinanceInvoicee.gibbonPersonID)
-					WHERE gibbonFinanceInvoice.gibbonSchoolYearID=:gibbonSchoolYearID 
+					WHERE gibbonFinanceInvoice.gibbonSchoolYearID=:gibbonSchoolYearID
 					AND gibbonFinanceInvoiceID=:gibbonFinanceInvoiceID
 					AND gibbonFinanceInvoice.status='Pending'";
             $result = $connection2->prepare($sql);
@@ -77,14 +75,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/invoices_manage_is
 
             if ($status != '' or $gibbonFinanceInvoiceeID != '' or $monthOfIssue != '' or $gibbonFinanceBillingScheduleID != '') {
                 echo "<div class='linkTop'>";
-                echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Finance/invoices_manage.php&".http_build_query($urlParams)."'>".__('Back to Search Results').'</a>';
+                echo "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/Finance/invoices_manage.php&".http_build_query($urlParams)."'>".__('Back to Search Results').'</a>';
                 echo '</div>';
 			}
-			
-			$form = Form::create('invoice', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/invoices_manage_issueProcess.php?'.http_build_query($urlParams));
+
+			$form = Form::create('invoice', $session->get('absoluteURL').'/modules/'.$session->get('module').'/invoices_manage_issueProcess.php?'.http_build_query($urlParams));
 			$form->setFactory(FinanceFormFactory::create($pdo));
-			
-			$form->addHiddenValue('address', $_SESSION[$guid]['address']);
+
+			$form->addHiddenValue('address', $session->get('address'));
             $form->addHiddenValue('gibbonFinanceInvoiceID', $gibbonFinanceInvoiceID);
 
 			$form->addRow()->addHeading(__('Basic Information'));
@@ -92,7 +90,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/invoices_manage_is
 			$row = $form->addRow();
                 $row->addLabel('schoolYear', __('School Year'));
 				$row->addTextField('schoolYear')->required()->readonly();
-				
+
 			$row = $form->addRow();
                 $row->addLabel('personName', __('Invoicee'));
                 $row->addTextField('personName')->required()->readonly()->setValue(Format::name('', $values['preferredName'], $values['surname'], 'Student', true));
@@ -102,12 +100,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/invoices_manage_is
             $row = $form->addRow();
                 $row->addLabel('billingScheduleTypeText', __('Scheduling'));
 				$row->addTextField('billingScheduleTypeText')->required()->readonly()->setValue(__($values['billingScheduleType']));
-				
+
 			if ($values['billingScheduleType'] == 'Scheduled') {
 				$row = $form->addRow();
 					$row->addLabel('billingScheduleName', __('Billing Schedule'));
 					$row->addTextField('billingScheduleName')->required()->readonly();
-					$form->addHiddenValue('invoiceDueDate', dateConvertBack($guid, $values['billingScheduleInvoiceDueDate']));
+					$form->addHiddenValue('invoiceDueDate', Format::date($values['billingScheduleInvoiceDueDate']));
 			} else {
 				$row = $form->addRow();
 					$row->addLabel('invoiceDueDate', __('Invoice Due Date'));
@@ -123,16 +121,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/invoices_manage_is
 			$row = $form->addRow();
                 $row->addLabel('notes', __('Notes'))->description(__('Notes will be displayed on the final invoice and receipt.'));
 				$row->addTextArea('notes')->setRows(5);
-				
+
 			$form->addRow()->addHeading(__('Fees'));
 
 			$totalFee = getInvoiceTotalFee($pdo, $gibbonFinanceInvoiceID, $values['status']);
 			$row = $form->addRow();
-				$row->addLabel('totalFee', __('Total'))->description('<small><i>('.$_SESSION[$guid]['currency'].')</i></small>');
+				$row->addLabel('totalFee', __('Total'))->description('<small><i>('.$session->get('currency').')</i></small>');
 				$row->addTextField('totalFee')->required()->readonly()->setValue(number_format($totalFee, 2));
 
                         $form->addHiddenValue('invoiceTo', $values['invoiceTo']);
-                        
+
 			$row = $form->addRow();
 				$row->addLabel('invoiceToText', __('Invoice To'));
 				$row->addTextField('invoiceToText')->required()->readonly()->setValue(__($values['invoiceTo']));

@@ -17,9 +17,11 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+
 include '../../gibbon.php';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/budgetCycles_manage_add.php';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/budgetCycles_manage_add.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/Finance/budgetCycles_manage_add.php') == false) {
     $URL .= '&return=error0';
@@ -27,11 +29,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/budgetCycles_manag
 } else {
     //Proceed!
     //Validate Inputs
-    $name = $_POST['name'];
-    $status = $_POST['status'];
-    $sequenceNumber = $_POST['sequenceNumber'];
-    $dateStart = dateConvert($guid, $_POST['dateStart']);
-    $dateEnd = dateConvert($guid, $_POST['dateEnd']);
+    $name = $_POST['name'] ?? '';
+    $status = $_POST['status'] ?? '';
+    $sequenceNumber = $_POST['sequenceNumber'] ?? '';
+    $dateStart = !empty($_POST['dateStart']) ? Format::dateConvert($_POST['dateStart']) : null;
+    $dateEnd = !empty($_POST['dateEnd']) ? Format::dateConvert($_POST['dateEnd']) : null;
 
     if ($name == '' or $status == '' or $sequenceNumber == '' or is_numeric($sequenceNumber) == false or $dateStart == '' or $dateEnd == '') {
         $URL .= '&return=error1';
@@ -55,7 +57,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/budgetCycles_manag
         } else {
             //Write to database
             try {
-                $data = array('name' => $name, 'status' => $status, 'sequenceNumber' => $sequenceNumber, 'dateStart' => $dateStart, 'dateEnd' => $dateEnd, 'gibbonPersonIDCreator' => $_SESSION[$guid]['gibbonPersonID']);
+                $data = array('name' => $name, 'status' => $status, 'sequenceNumber' => $sequenceNumber, 'dateStart' => $dateStart, 'dateEnd' => $dateEnd, 'gibbonPersonIDCreator' => $session->get('gibbonPersonID'));
                 $sql = "INSERT INTO gibbonFinanceBudgetCycle SET name=:name, status=:status, sequenceNumber=:sequenceNumber, dateStart=:dateStart, dateEnd=:dateEnd, gibbonPersonIDCreator=:gibbonPersonIDCreator, timestampCreator='".date('Y-m-d H:i:s')."'";
                 $result = $connection2->prepare($sql);
                 $result->execute($data);
@@ -71,8 +73,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/budgetCycles_manag
             //UPDATE CYCLE ALLOCATION VALUES
             $partialFail = false;
             if (isset($_POST['values'])) {
-                $values = $_POST['values'];
-                $gibbonFinanceBudgetIDs = $_POST['gibbonFinanceBudgetIDs'];
+                $values = $_POST['values'] ?? [];
+                $gibbonFinanceBudgetIDs = $_POST['gibbonFinanceBudgetIDs'] ?? [];
                 $count = 0;
                 foreach ($values as $value) {
                     try {

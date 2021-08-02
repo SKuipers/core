@@ -26,13 +26,9 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/markbookSetti
     //Proceed!
     $page->breadcrumbs->add(__('Markbook Settings'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
+    $form = Form::create('markbookSettings', $session->get('absoluteURL').'/modules/'.$session->get('module').'/markbookSettingsProcess.php' );
 
-    $form = Form::create('markbookSettings', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/markbookSettingsProcess.php' );
-
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+    $form->addHiddenValue('address', $session->get('address'));
 
     $row = $form->addRow()->addHeading(__('Features'));
 

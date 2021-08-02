@@ -32,16 +32,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
     $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed!
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     //Check if school year specified
     $gibbonLibraryItemID = $_GET['gibbonLibraryItemID'];
     if ($gibbonLibraryItemID == '') {
         $page->addError(__('You have not specified one or more required parameters.'));
     } else {
-        
+
             $data = array('gibbonLibraryItemID' => $gibbonLibraryItemID);
             $sql = 'SELECT gibbonLibraryItem.*, gibbonLibraryType.name AS type FROM gibbonLibraryItem JOIN gibbonLibraryType ON (gibbonLibraryItem.gibbonLibraryTypeID=gibbonLibraryType.gibbonLibraryTypeID) WHERE gibbonLibraryItemID=:gibbonLibraryItemID';
             $result = $connection2->prepare($sql);
@@ -62,14 +58,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
 
             if ($_GET['name'] != '' or $_GET['gibbonLibraryTypeID'] != '' or $_GET['gibbonSpaceID'] != '' or $_GET['status'] != '' or $_GET['gibbonPersonIDOwnership'] != '' or $_GET['typeSpecificFields'] != '') {
                 echo "<div class='linkTop'>";
-                echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Library/library_manage_catalog.php&'.http_build_query($urlParams)."'>".__('Back to Search Results').'</a>';
+                echo "<a href='".$session->get('absoluteURL').'/index.php?q=/modules/Library/library_manage_catalog.php&'.http_build_query($urlParams)."'>".__('Back to Search Results').'</a>';
                 echo '</div>';
 			}
 
-			$form = Form::create('libraryCatalog', $_SESSION[$guid]['absoluteURL'].'/modules/Library/library_manage_catalog_editProcess.php?'.http_build_query($urlParams));
+			$form = Form::create('libraryCatalog', $session->get('absoluteURL').'/modules/Library/library_manage_catalog_editProcess.php?'.http_build_query($urlParams));
 			$form->setFactory(DatabaseFormFactory::create($pdo));
 
-			$form->addHiddenValue('address', $_SESSION[$guid]['address']);
+			$form->addHiddenValue('address', $session->get('address'));
 			$form->addHiddenValue('gibbonLibraryTypeID', $values['gibbonLibraryTypeID']);
 			$form->addHiddenValue('gibbonLibraryItemID', $gibbonLibraryItemID);
 			$form->addHiddenValue('type', $values['type']);
@@ -235,9 +231,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
 <script type='text/javascript'>
 	$(document).ready(function(){
 
-		var path = '<?php echo $_SESSION[$guid]['absoluteURL'].'/modules/Library/library_manage_catalog_fields_ajax.php'; ?>';
+		var path = '<?php echo $session->get('absoluteURL').'/modules/Library/library_manage_catalog_fields_ajax.php'; ?>';
 
-		$('#detailsRow div').html("<div id='details' name='details' style='min-height: 100px; text-align: center'><img style='margin: 10px 0 5px 0' src='<?php echo $_SESSION[$guid]['absoluteURL']; ?>/themes/<?php echo $_SESSION[$guid]['gibbonThemeName']; ?>/img/loading.gif' alt='Loading' onclick='return false;' /><br/>Loading</div>");
+		$('#detailsRow div').html("<div id='details' name='details' style='min-height: 100px; text-align: center'><img style='margin: 10px 0 5px 0' src='<?php echo $session->get('absoluteURL'); ?>/themes/<?php echo $session->get('gibbonThemeName'); ?>/img/loading.gif' alt='Loading' onclick='return false;' /><br/>Loading</div>");
 
 		$('#detailsRow div').load(path, { 'gibbonLibraryTypeID': '<?php echo $values['gibbonLibraryTypeID']; ?>', 'gibbonLibraryItemID': '<?php echo $gibbonLibraryItemID; ?>' });
 

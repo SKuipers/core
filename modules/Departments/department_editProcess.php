@@ -23,7 +23,7 @@ include '../../gibbon.php';
 include './moduleFunctions.php';
 
 $gibbonDepartmentID = $_GET['gibbonDepartmentID'];
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/department_edit.php&gibbonDepartmentID=$gibbonDepartmentID";
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/department_edit.php&gibbonDepartmentID=$gibbonDepartmentID";
 
 if (isActionAccessible($guid, $connection2, '/modules/Departments/department_edit.php') == false) {
     $URL .= '&return=error0';
@@ -35,7 +35,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Departments/department_edi
     } else {
         //Proceed!
         //Validate Inputs
-        $blurb = $_POST['blurb'];
+        $blurb = $_POST['blurb'] ?? '';
 
         if ($gibbonDepartmentID == '') {
             $URL .= '&return=error1';
@@ -58,7 +58,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Departments/department_edi
                 header("Location: {$URL}");
             } else {
                 //Get role within learning area
-                $role = getRole($_SESSION[$guid]['gibbonPersonID'], $gibbonDepartmentID, $connection2);
+                $role = getRole($session->get('gibbonPersonID'), $gibbonDepartmentID, $connection2);
 
                 if ($role != 'Coordinator' and $role != 'Assistant Coordinator' and $role != 'Teacher (Curriculum)' and $role != 'Director' and $role != 'Manager') {
                     $URL .= '&return=error0';
@@ -67,9 +67,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Departments/department_edi
                     //Scan through resources
                     $partialFail = false;
                     for ($i = 1; $i < 4; ++$i) {
-                        $resourceName =isset( $_POST["name$i"])? $_POST["name$i"] : '';
-                        $resourceType = isset($_POST["type$i"])? $_POST["type$i"] : '';
-                        $resourceURL = isset($_POST["url$i"])? $_POST["url$i"] : '';
+                        $resourceName = $_POST["name$i"] ?? '';
+                        $resourceType = $_POST["type$i"] ?? '';
+                        $resourceURL = $_POST["url$i"] ?? '';
 
                         if ($resourceName != '' and $resourceType != '' and ($resourceType == 'File' or $resourceType == 'Link')) {
                             if (($resourceType == 'Link' and $resourceURL != '') or ($resourceType == 'File' and !empty($_FILES['file'.$i]['tmp_name']))) {

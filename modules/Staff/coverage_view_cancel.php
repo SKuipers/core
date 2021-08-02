@@ -33,11 +33,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_cancel
         ->add(__('My Coverage'), 'coverage_my.php')
         ->add(__('Cancel Coverage Request'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, [
+    $page->return->addReturns([
             'success1' => __('Your request was completed successfully.')
         ]);
-    }
 
     $gibbonStaffCoverageID = $_GET['gibbonStaffCoverageID'] ?? '';
 
@@ -73,10 +71,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_view_cancel
     $coverageView->setCoverage($gibbonStaffCoverageID)->compose($page);
 
     // Form
-    $form = Form::create('staffCoverage', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/coverage_view_cancelProcess.php');
+    $form = Form::create('staffCoverage', $session->get('absoluteURL').'/modules/Staff/coverage_view_cancelProcess.php');
 
     $form->setFactory(DatabaseFormFactory::create($pdo));
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+    $form->addHiddenValue('address', $session->get('address'));
     $form->addHiddenValue('gibbonStaffCoverageID', $gibbonStaffCoverageID);
 
     $form->addRow()->addHeading(__('Cancel Coverage Request'));

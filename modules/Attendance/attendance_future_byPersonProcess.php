@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
 use Gibbon\Module\Attendance\AttendanceView;
 
 //Gibbon system-wide includes
@@ -25,9 +26,9 @@ include __DIR__ . '/../../gibbon.php';
 //Module includes
 include __DIR__ . '/moduleFunctions.php';
 
-$gibbonPersonID = $_POST['gibbonPersonID'];
-$scope = $_POST['scope'];
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/attendance_future_byPerson.php&gibbonPersonID=$gibbonPersonID&scope=$scope";
+$gibbonPersonID = $_POST['gibbonPersonID'] ?? '';
+$scope = $_POST['scope'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/attendance_future_byPerson.php&gibbonPersonID=$gibbonPersonID&scope=$scope";
 
 if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_future_byPerson.php') == false) {
     $URL .= '&return=error0';
@@ -64,23 +65,25 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_futu
             require_once __DIR__ . '/src/AttendanceView.php';
             $attendance = new AttendanceView($gibbon, $pdo);
 
-            $fail = false;
-            $type = $_POST['type'];
-            $reason = $_POST['reason'];
-            $comment = $_POST['comment'];
+            $partialFail = false;
+            $partialFailSchoolClosed = false;
+
+            $type = $_POST['type'] ?? '';
+            $reason = $_POST['reason'] ?? '';
+            $comment = $_POST['comment'] ?? '';
 
             $attendanceCode = $attendance->getAttendanceCodeByType($type);
             $direction = $attendanceCode['direction'];
 
-            $absenceType = (isset($_POST['absenceType']))? $_POST['absenceType'] : 'full';
+            $absenceType = $_POST['absenceType'] ?? 'full';
 
             $dateStart = '';
             if ($_POST['dateStart'] != '') {
-                $dateStart = dateConvert($guid, $_POST['dateStart']);
+                $dateStart = Format::dateConvert($_POST['dateStart']);
             }
             $dateEnd = $dateStart;
             if ($_POST['dateEnd'] != '') {
-                $dateEnd = dateConvert($guid, $_POST['dateEnd']);
+                $dateEnd = Format::dateConvert($_POST['dateEnd']);
             }
             $today = date('Y-m-d');
 
@@ -90,11 +93,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_futu
                 header("Location: {$URL}");
             } else {
                 //Scroll through days
-                $partialFail = false;
-                $partialFailSchoolClosed = false;
 
-                $dateStartStamp = dateConvertToTimestamp($dateStart);
-                $dateEndStamp = dateConvertToTimestamp($dateEnd);
+                $dateStartStamp = Format::timestamp($dateStart);
+                $dateEndStamp = Format::timestamp($dateEnd);
                 for ($i = $dateStartStamp; $i <= $dateEndStamp; $i = ($i + 86400)) {
                     $date = date('Y-m-d', $i);
 
@@ -116,7 +117,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_futu
                                 // Handle full-day absenses normally
                                 if ($absenceType == 'full') {
                                     try {
-                                        $dataUpdate = array('gibbonPersonID' => $gibbonPersonIDCurrent, 'direction' => $direction, 'type' => $type, 'reason' => $reason, 'comment' => $comment, 'gibbonPersonIDTaker' => $_SESSION[$guid]['gibbonPersonID'], 'date' => $date, 'timestampTaken' => date('Y-m-d H:i:s'));
+                                        $dataUpdate = array('gibbonPersonID' => $gibbonPersonIDCurrent, 'direction' => $direction, 'type' => $type, 'reason' => $reason, 'comment' => $comment, 'gibbonPersonIDTaker' => $session->get('gibbonPersonID'), 'date' => $date, 'timestampTaken' => date('Y-m-d H:i:s'));
                                         $sqlUpdate = 'INSERT INTO gibbonAttendanceLogPerson SET gibbonAttendanceCodeID=(SELECT gibbonAttendanceCodeID FROM gibbonAttendanceCode WHERE name=:type), gibbonPersonID=:gibbonPersonID, direction=:direction, type=:type, context=\'Future\', reason=:reason, comment=:comment, gibbonPersonIDTaker=:gibbonPersonIDTaker, date=:date, timestampTaken=:timestampTaken';
                                         $resultUpdate = $connection2->prepare($sqlUpdate);
                                         $resultUpdate->execute($dataUpdate);
@@ -133,11 +134,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_futu
                                         header("Location: {$URL}");
                                         exit();
                                     } else {
-                                        $courses = (isset($_POST['courses']))? $_POST['courses'] : null;
+                                        $courses = $_POST['courses'] ?? null;
                                         if (!empty($courses) && is_array($courses)) {
                                             foreach ($courses as $course) {
                                                 try {
-                                                    $dataUpdate = array('gibbonPersonID' => $gibbonPersonIDCurrent, 'direction' => $direction, 'type' => $type, 'reason' => $reason, 'comment' => $comment, 'gibbonPersonIDTaker' => $_SESSION[$guid]['gibbonPersonID'], 'date' => $date, 'gibbonCourseClassID' => $course, 'timestampTaken' => date('Y-m-d H:i:s'));
+                                                    $dataUpdate = array('gibbonPersonID' => $gibbonPersonIDCurrent, 'direction' => $direction, 'type' => $type, 'reason' => $reason, 'comment' => $comment, 'gibbonPersonIDTaker' => $session->get('gibbonPersonID'), 'date' => $date, 'gibbonCourseClassID' => $course, 'timestampTaken' => date('Y-m-d H:i:s'));
                                                     $sqlUpdate = 'INSERT INTO gibbonAttendanceLogPerson SET gibbonAttendanceCodeID=(SELECT gibbonAttendanceCodeID FROM gibbonAttendanceCode WHERE name=:type), gibbonPersonID=:gibbonPersonID, direction=:direction, type=:type, context=\'Class\', reason=:reason, comment=:comment, gibbonPersonIDTaker=:gibbonPersonIDTaker, date=:date, gibbonCourseClassID=:gibbonCourseClassID, timestampTaken=:timestampTaken';
                                                     $resultUpdate = $connection2->prepare($sqlUpdate);
                                                     $resultUpdate->execute($dataUpdate);
@@ -145,7 +146,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_futu
                                                     $partialFail = true;
                                                 }
                                             }
-                                            $URL .= '&absenceType=partial&date=' . $_POST['dateStart']; //Redirect to exact state of submit form
+                                            $URL .= '&absenceType=partial&date=' . $_POST['dateStart'] ?? ''; //Redirect to exact state of submit form
                                         } else {
                                             // Return error if no courses selected for partial absence
                                             $URL .= '&return=error1';

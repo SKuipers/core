@@ -17,16 +17,16 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\System\LogGateway;
+
 include '../../gibbon.php';
 
-$gibbonPersonID = $_GET['gibbonPersonID'];
-$subpage = $_GET['subpage'];
-$gibbonStudentNoteID = $_GET['gibbonStudentNoteID'];
-$allStudents = '';
-if (isset($_GET['allStudents'])) {
-    $allStudents = $_GET['allStudents'];
-}
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/student_view_details_notes_edit.php&gibbonPersonID=$gibbonPersonID&search=".$_GET['search']."&subpage=Notes&gibbonStudentNoteID=$gibbonStudentNoteID&category=".$_GET['category']."&allStudents=$allStudents";
+$logGateway = $container->get(LogGateway::class);
+$gibbonPersonID = $_GET['gibbonPersonID'] ?? '';
+$subpage = $_GET['subpage'] ?? '';
+$gibbonStudentNoteID = $_GET['gibbonStudentNoteID'] ?? '';
+$allStudents = $_GET['allStudents'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/student_view_details_notes_edit.php&gibbonPersonID=$gibbonPersonID&search=".$_GET['search']."&subpage=Notes&gibbonStudentNoteID=$gibbonStudentNoteID&category=".$_GET['category']."&allStudents=$allStudents";
 
 if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_details_notes_edit.php') == false) {
     $URL .= '&return=error0';
@@ -53,7 +53,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                         $sql = 'SELECT * FROM gibbonStudentNote WHERE gibbonStudentNoteID=:gibbonStudentNoteID';
                     }
                     else {
-                        $data = array('gibbonStudentNoteID' => $gibbonStudentNoteID, 'gibbonPersonIDCreator' => $_SESSION[$guid]['gibbonPersonID']);
+                        $data = array('gibbonStudentNoteID' => $gibbonStudentNoteID, 'gibbonPersonIDCreator' => $session->get('gibbonPersonID'));
                         $sql = 'SELECT * FROM gibbonStudentNote WHERE gibbonStudentNoteID=:gibbonStudentNoteID AND gibbonPersonIDCreator=:gibbonPersonIDCreator';
                     }
                     $result = $connection2->prepare($sql);
@@ -70,12 +70,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                 } else {
                     $row = $result->fetch();
                     //Validate Inputs
-                    $title = $_POST['title'];
+                    $title = $_POST['title'] ?? '';
                     $gibbonStudentNoteCategoryID = $_POST['gibbonStudentNoteCategoryID'];
                     if ($gibbonStudentNoteCategoryID == '') {
                         $gibbonStudentNoteCategoryID = null;
                     }
-                    $note = $_POST['note'];
+                    $note = $_POST['note'] ?? '';
 
                     if ($note == '') {
                         $URL .= '&return=error3';
@@ -94,7 +94,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                         }
 
                         //Attempt to write logo
-                        setLog($connection2, $_SESSION[$guid]['gibbonSchoolYearIDCurrent'], getModuleIDFromName($connection2, 'Students'), $_SESSION[$guid]['gibbonPersonID'], 'Student Profile - Note Edit', array('gibbonStudentNoteID' => $gibbonStudentNoteID, 'noteOriginal' => $row['note'], 'noteNew' => $note), $_SERVER['REMOTE_ADDR']);
+                        $logGateway->addLog($session->get('gibbonSchoolYearIDCurrent'), getModuleIDFromName($connection2, 'Students'), $session->get('gibbonPersonID'), 'Student Profile - Note Edit', array('gibbonStudentNoteID' => $gibbonStudentNoteID, 'noteOriginal' => $row['note'], 'noteNew' => $note), $_SERVER['REMOTE_ADDR']);
 
                         $URL .= '&return=success0';
                         header("Location: {$URL}");

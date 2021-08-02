@@ -28,14 +28,9 @@ if (!$gibbon->session->exists('username')) {
 } else {
     $page->breadcrumbs->add(__('Notifications'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     echo "<div class='linkTop'>";
     echo "<a onclick='return confirm(\"Are you sure you want to delete these records.\")' href='".$gibbon->session->get('absoluteURL')."/notificationsDeleteAllProcess.php'>".__('Delete All Notifications')." <img style='vertical-align: -25%' src='".$gibbon->session->get('absoluteURL').'/themes/'.$gibbon->session->get('gibbonThemeName')."/img/garbage.png'></a>";
     echo '</div>';
-
 
     // Notifications
     $notificationGateway = $container->get(NotificationGateway::class);
@@ -68,7 +63,6 @@ if (!$gibbon->session->exists('username')) {
 
 
     echo $table->render($notifications);
-
 
     // Archived Notifications
     $criteria = $notificationGateway->newQueryCriteria(true)

@@ -31,10 +31,6 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/attendanceSet
     //Proceed!
     $page->breadcrumbs->add(__('Attendance Settings'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     echo '<h3>';
     echo __('Attendance Codes');
     echo '</h3>';
@@ -88,9 +84,9 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/attendanceSet
     echo __(__('Miscellaneous'));
     echo '</h3>';
 
-    $form = Form::create('attendanceSettings', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/attendanceSettingsProcess.php');
+    $form = Form::create('attendanceSettings', $session->get('absoluteURL').'/modules/'.$session->get('module').'/attendanceSettingsProcess.php');
 
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+    $form->addHiddenValue('address', $session->get('address'));
 
     $row = $form->addRow()->addHeading(__('Reasons'));
 
@@ -117,7 +113,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/attendanceSet
         $row->addYesNo($setting['name'])->selected($setting['value'])->required();
 
     $sql = "SELECT name AS value, name FROM gibbonAttendanceCode WHERE active='Y' ORDER BY sequenceNumber ASC, name";
-    $setting = getSettingByScope($connection2, 'Attendance', 'defaultRollGroupAttendanceType', true);
+    $setting = getSettingByScope($connection2, 'Attendance', 'defaultFormGroupAttendanceType', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addSelect($setting['name'])
@@ -164,7 +160,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/attendanceSet
 
     $row = $form->addRow()->addHeading(__('Attendance CLI'));
 
-    $setting = getSettingByScope($connection2, 'Attendance', 'attendanceCLINotifyByRollGroup', true);
+    $setting = getSettingByScope($connection2, 'Attendance', 'attendanceCLINotifyByFormGroup', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addYesNo($setting['name'])->selected($setting['value'])->required();
@@ -178,7 +174,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/attendanceSet
     $setting = getSettingByScope($connection2, 'Attendance', 'attendanceCLIAdditionalUsers', true);
     $inputs = array();
     
-        $data=array( 'action1' => '%report_rollGroupsNotRegistered_byDate.php%', 'action2' => '%report_courseClassesNotRegistered_byDate.php%' );
+        $data=array( 'action1' => '%report_formGroupsNotRegistered_byDate.php%', 'action2' => '%report_courseClassesNotRegistered_byDate.php%' );
         $sql = "SELECT gibbonPerson.gibbonPersonID, gibbonPerson.preferredName, gibbonPerson.surname, gibbonRole.name as roleName
                 FROM gibbonPerson
                 JOIN gibbonPermission ON (gibbonPerson.gibbonRoleIDPrimary=gibbonPermission.gibbonRoleID)

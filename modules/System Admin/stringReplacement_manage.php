@@ -29,10 +29,6 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/stringReplace
     //Proceed!
     $page->breadcrumbs->add(__('Manage String Replacements'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     $search = isset($_GET['search'])? $_GET['search'] : '';
 
     $stringGateway = $container->get(StringGateway::class);
@@ -47,10 +43,10 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/stringReplace
     echo __('Search');
     echo '</h2>';
     
-    $form = Form::create('searchForm', $_SESSION[$guid]['absoluteURL'].'/index.php', 'get');
+    $form = Form::create('searchForm', $session->get('absoluteURL').'/index.php', 'get');
     $form->setClass('noIntBorder fullWidth');
     
-    $form->addHiddenValue('q', '/modules/'.$_SESSION[$guid]['module'].'/stringReplacement_manage.php');
+    $form->addHiddenValue('q', '/modules/'.$session->get('module').'/stringReplacement_manage.php');
     
     $row = $form->addRow();
         $row->addLabel('search', __('Search For'))->description(__('Original string, replacement string.'));
@@ -83,7 +79,7 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/stringReplace
 
     $table->addActionColumn()
         ->addParam('gibbonStringID')
-        ->format(function ($row, $actions) use ($guid) {
+        ->format(function ($row, $actions) {
             $actions->addAction('edit', __('Edit'))
                     ->setURL('/modules/System Admin/stringReplacement_manage_edit.php');
 

@@ -17,12 +17,14 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\User\PersonalDocumentGateway;
+
 include '../../gibbon.php';
 
-$gibbonStaffApplicationFormID = $_POST['gibbonStaffApplicationFormID'];
-$search = $_GET['search'];
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/applicationForm_manage_delete.php&gibbonStaffApplicationFormID=$gibbonStaffApplicationFormID&search=$search";
-$URLDelete = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/applicationForm_manage.php&search=$search";
+$gibbonStaffApplicationFormID = $_POST['gibbonStaffApplicationFormID'] ?? '';
+$search = $_GET['search'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/applicationForm_manage_delete.php&gibbonStaffApplicationFormID=$gibbonStaffApplicationFormID&search=$search";
+$URLDelete = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/applicationForm_manage.php&search=$search";
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_manage_delete.php') == false) {
     $URL .= '&return=error0';
@@ -60,11 +62,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
             }
 
             //Delete files, but don't return error if it fails
-            
-                $data = array('gibbonStaffApplicationFormID' => $gibbonStaffApplicationFormID);
-                $sql = 'DELETE FROM gibbonStaffApplicationFormFile WHERE gibbonStaffApplicationFormID=:gibbonStaffApplicationFormID';
-                $result = $connection2->prepare($sql);
-                $result->execute($data);
+            $data = array('gibbonStaffApplicationFormID' => $gibbonStaffApplicationFormID);
+            $sql = 'DELETE FROM gibbonStaffApplicationFormFile WHERE gibbonStaffApplicationFormID=:gibbonStaffApplicationFormID';
+            $result = $connection2->prepare($sql);
+            $result->execute($data);
+
+            // Personal Documents
+            $container->get(PersonalDocumentGateway::class)->deletePersonalDocuments('gibbonStaffApplicationForm', $gibbonStaffApplicationFormID);
 
             $URLDelete = $URLDelete.'&return=success0';
             header("Location: {$URLDelete}");

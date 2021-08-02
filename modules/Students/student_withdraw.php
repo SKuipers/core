@@ -27,20 +27,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_withdraw.
     // Proceed!
     $page->breadcrumbs->add(__('Withdraw Student'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
-    $form = Form::create('studentWithdraw', $_SESSION[$guid]['absoluteURL'].'/modules/Students/student_withdrawProcess.php');
+    $form = Form::create('studentWithdraw', $session->get('absoluteURL').'/modules/Students/student_withdrawProcess.php');
     $form->setFactory(DatabaseFormFactory::create($pdo));
 
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+    $form->addHiddenValue('address', $session->get('address'));
 
     $form->addRow()->addHeading(__('Basic Information'));
 
     $row = $form->addRow();
         $row->addLabel('gibbonPersonID', __('Student'));
-        $row->addSelectStudent('gibbonPersonID', $gibbon->session->get('gibbonSchoolYearID'), ['showRoll' => true])->required()->placeholder();
+        $row->addSelectStudent('gibbonPersonID', $gibbon->session->get('gibbonSchoolYearID'), ['showForm' => true])->required()->placeholder();
 
     $row = $form->addRow();
         $row->addLabel('status', __('Status'))->description(__("Set this to Left unless the student's withdraw date is in the future."));
@@ -58,6 +54,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_withdraw.
         } else {
             $row->addTextField('departureReason')->maxLength(30)->required();
         }
+
+    $schools = $pdo->select("SELECT DISTINCT nextSchool FROM gibbonPerson ORDER BY lastSchool")->fetchAll(\PDO::FETCH_COLUMN);
+    $row = $form->addRow();
+        $row->addLabel('nextSchool', __('Next School'));
+        $row->addTextField('nextSchool')->maxLength(100)->autocomplete($schools);
 
     // NOTES
     $form->addRow()->addHeading(__('Notes'));

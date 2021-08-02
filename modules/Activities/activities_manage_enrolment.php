@@ -51,10 +51,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
         ->add(__('Manage Activities'), 'activities_manage.php')
         ->add(__('Activity Enrolment'));    
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     //Check if school year specified
     if ($gibbonActivityID == '') {
         $page->addError(__('You have not specified one or more required parameters.'));
@@ -88,11 +84,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
             if ($dateType == 'Date') {
                 $row = $form->addRow();
                 $row->addLabel('listingDatesLabel', __('Listing Dates'));
-                $row->addTextField('listingDates')->readOnly()->setValue(dateConvertBack($guid, $values['listingStart']).'-'.dateConvertBack($guid, $values['listingEnd']));
+                $row->addTextField('listingDates')->readOnly()->setValue(Format::date($values['listingStart']).'-'.Format::date($values['listingEnd']));
 
                 $row = $form->addRow();
                 $row->addLabel('programDatesLabel', __('Program Dates'));
-                $row->addTextField('programDates')->readOnly()->setValue(dateConvertBack($guid, $values['programStart']).'-'.dateConvertBack($guid, $values['programEnd']));
+                $row->addTextField('programDates')->readOnly()->setValue(Format::date($values['programStart']).'-'.Format::date($values['programEnd']));
             } else {
                 $schoolTerms = getTerms($connection2, $gibbon->session->get('gibbonSchoolYearID'));
                 $termList = array_filter(array_map(function ($item) use ($schoolTerms) {
@@ -112,11 +108,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
             $enrolment = (!empty($values['enrolmentType']))? $values['enrolmentType'] : $enrolment;
 
             $data = array('gibbonActivityID' => $gibbonActivityID, 'today' => date('Y-m-d'), 'statusCheck' => ($enrolment == 'Competitive'? 'Pending' : 'Waiting List'));
-            $sql = "SELECT gibbonActivityStudent.*, surname, preferredName, gibbonRollGroup.nameShort as rollGroupNameShort
+            $sql = "SELECT gibbonActivityStudent.*, surname, preferredName, gibbonFormGroup.nameShort as formGroupNameShort
                     FROM gibbonActivityStudent
                     JOIN gibbonPerson ON (gibbonActivityStudent.gibbonPersonID=gibbonPerson.gibbonPersonID)
                     LEFT JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID AND gibbonStudentEnrolment.gibbonSchoolYearID=(SELECT gibbonSchoolYearID FROM gibbonSchoolYear WHERE status='Current'))
-                    LEFT JOIN gibbonRollGroup ON (gibbonRollGroup.gibbonRollGroupID=gibbonStudentEnrolment.gibbonRollGroupID)
+                    LEFT JOIN gibbonFormGroup ON (gibbonFormGroup.gibbonFormGroupID=gibbonStudentEnrolment.gibbonFormGroupID)
                     WHERE gibbonActivityID=:gibbonActivityID
                     AND NOT gibbonActivityStudent.status=:statusCheck
                     AND gibbonPerson.status='Full'
@@ -140,7 +136,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
                 echo __('Student');
                 echo '</th>';
                 echo '<th>';
-                echo __('Roll Group');
+                echo __('Form Group');
                 echo '</th>';
                 echo '<th>';
                 echo __('Status');
@@ -176,14 +172,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
                     }
                     echo '</td>';
                     echo '<td>';
-                    echo $values['rollGroupNameShort'];
+                    echo $values['formGroupNameShort'];
                     echo '</td>';
                     echo '<td>';
                     echo __($values['status']);
                     echo '</td>';
                     echo '<td>';
                     echo __('{date} at {time}', 
-                            ['date' => dateConvertBack($guid, substr($values['timestamp'], 0, 10)),
+                            ['date' => Format::date(substr($values['timestamp'], 0, 10)),
                             'time' => substr($values['timestamp'], 11, 5)]);
                     echo '</td>';
                     echo '<td>';

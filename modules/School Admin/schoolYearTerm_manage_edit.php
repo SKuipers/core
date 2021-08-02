@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
+use Gibbon\Services\Format;
 use Gibbon\Forms\DatabaseFormFactory;
 
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYearTerm_manage_edit.php') == false) {
@@ -27,10 +28,6 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYearTer
     $page->breadcrumbs
         ->add(__('Manage Terms'), 'schoolYearTerm_manage.php')
         ->add(__('Edit Term'));
-
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
 
     //Check if school year specified
     $gibbonSchoolYearTermID = $_GET['gibbonSchoolYearTermID'];
@@ -49,10 +46,10 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYearTer
             //Let's go!
             $values = $result->fetch();
 
-            $form = Form::create('schoolYearTerm', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/schoolYearTerm_manage_editProcess.php?gibbonSchoolYearTermID='.$gibbonSchoolYearTermID);
+            $form = Form::create('schoolYearTerm', $session->get('absoluteURL').'/modules/'.$session->get('module').'/schoolYearTerm_manage_editProcess.php?gibbonSchoolYearTermID='.$gibbonSchoolYearTermID);
 		    $form->setFactory(DatabaseFormFactory::create($pdo));
 
-		    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+		    $form->addHiddenValue('address', $session->get('address'));
 
 		    $row = $form->addRow();
 		        $row->addLabel('gibbonSchoolYearID', __('School Year'));
@@ -75,11 +72,11 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYearTer
 
 		    $row = $form->addRow();
 		        $row->addLabel('firstDay', __('First Day'));
-		        $row->addDate('firstDay')->required()->setValue(dateConvertBack($guid, $values['firstDay']));
+		        $row->addDate('firstDay')->required()->setValue(Format::date($values['firstDay']));
 
 		    $row = $form->addRow();
 		        $row->addLabel('lastDay', __('Last Day'));
-		        $row->addDate('lastDay')->required()->setValue(dateConvertBack($guid, $values['lastDay']));
+		        $row->addDate('lastDay')->required()->setValue(Format::date($values['lastDay']));
 
 		    $row = $form->addRow();
 		        $row->addFooter();

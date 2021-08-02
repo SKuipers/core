@@ -92,12 +92,15 @@ class Action extends WebLink
      * @param string $urlFragment
      * @return self
      */
-    public function setExternalURL($url, $urlFragment = null)
+    public function setExternalURL($url, $urlFragment = null, $downloadable = false)
     {
         $this->url = $url;
         $this->external = true;
         $this->target = '_blank';
         $this->urlFragment = $urlFragment;
+
+        $this->setAttribute('target', $this->target);
+        $this->setAttribute('download', $downloadable);
 
         return $this;
     }
@@ -179,7 +182,7 @@ class Action extends WebLink
     {
         $this->modal = true;
 
-        $this->addClass('thickbox')
+        $this->addClass('thickbox underline')
             ->addParam('width', $width)
             ->addParam('height', $height);
 

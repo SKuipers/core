@@ -18,14 +18,16 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
+use Gibbon\Forms\CustomFieldHandler;
 use Gibbon\Forms\DatabaseFormFactory;
+use Gibbon\Forms\PersonalDocumentHandler;
 
 //Module includes from User Admin (for custom fields)
 include './modules/User Admin/moduleFunctions.php';
 
 $proceed = false;
 $public = false;
-if (isset($_SESSION[$guid]['username']) == false) {
+if (!$session->has('username')) {
     $public = true;
     //Get public access
     $access = getSettingByScope($connection2, 'Staff Application Form', 'staffApplicationFormPublicApplications');
@@ -40,8 +42,8 @@ if (isset($_SESSION[$guid]['username']) == false) {
 
 //Set gibbonPersonID of the person completing the application
 $gibbonPersonID = null;
-if (isset($_SESSION[$guid]['gibbonPersonID'])) {
-    $gibbonPersonID = $_SESSION[$guid]['gibbonPersonID'];
+if ($session->has('gibbonPersonID')) {
+    $gibbonPersonID = $session->get('gibbonPersonID');
 }
 
 if ($proceed == false) {
@@ -59,8 +61,8 @@ if ($proceed == false) {
         echo '</p>';
     }
 
-    if (isset($_SESSION[$guid]['username']) == false) {
-        echo "<div class='warning' style='font-weight: bold'>".sprintf(__('If you already have an account for %1$s %2$s, please log in now to prevent creation of duplicate data about you! Once logged in, you can find the form under People > Staff in the main menu.'), $_SESSION[$guid]['organisationNameShort'], $_SESSION[$guid]['systemName']).' '.sprintf(__('If you do not have an account for %1$s %2$s, please use the form below.'), $_SESSION[$guid]['organisationNameShort'], $_SESSION[$guid]['systemName']).'</div>';
+    if (!$session->has('username')) {
+        echo "<div class='warning' style='font-weight: bold'>".sprintf(__('If you already have an account for %1$s %2$s, please log in now to prevent creation of duplicate data about you! Once logged in, you can find the form under People > Staff in the main menu.'), $session->get('organisationNameShort'), $session->get('systemName')).' '.sprintf(__('If you do not have an account for %1$s %2$s, please use the form below.'), $session->get('organisationNameShort'), $session->get('systemName')).'</div>';
     }
 
     $returnExtra = '';
@@ -69,16 +71,14 @@ if ($proceed == false) {
             $returnExtra .= '<br/><br/>'.__('If you need to contact the school in reference to this application, please quote the following number(s):').' <b><u>'.$_GET['id'].'</b></u>.';
         }
     }
-    if ($_SESSION[$guid]['organisationHRName'] != '' and $_SESSION[$guid]['organisationHREmail'] != '') {
-        $returnExtra .= '<br/><br/>'.sprintf(__('Please contact %1$s if you have any questions, comments or complaints.'), "<a href='mailto:".$_SESSION[$guid]['organisationHREmail']."'>".$_SESSION[$guid]['organisationHRName'].'</a>');
+    if ($session->get('organisationHRName') != '' and $session->get('organisationHREmail') != '') {
+        $returnExtra .= '<br/><br/>'.sprintf(__('Please contact %1$s if you have any questions, comments or complaints.'), "<a href='mailto:".$session->get('organisationHREmail')."'>".$session->get('organisationHRName').'</a>');
     }
 
     $returns = array();
     $returns['success0'] = __('Your application was successfully submitted. Our Human Resources team will review your application and be in touch in due course.').$returnExtra;
     $returns['warning1'] = __('Your application was submitted, but some errors occured. We recommend you contact our Human Resources team to review your application.').$returnExtra;
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, $returns);
-    }
+    $page->return->addReturns($returns);
 
     //Check for job openings
     try {
@@ -99,14 +99,16 @@ if ($proceed == false) {
     } else {
         $jobOpenings = $result->fetchAll();
 
-        echo "<div class='linkTop'>";
-        echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.$_SESSION[$guid]['module']."/applicationForm_jobOpenings_view.php'>".__('View Current Job Openings')."<img style='margin-left: 5px' title='".__('View Current Job Openings')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/plus.png'/></a>";
-        echo '</div>';
+        $customFieldHandler = $container->get(CustomFieldHandler::class);
 
-        $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/applicationFormProcess.php');
+        $form = Form::create('action', $session->get('absoluteURL').'/modules/'.$session->get('module').'/applicationFormProcess.php');
         $form->setFactory(DatabaseFormFactory::create($pdo));
 
-        $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+        $form->addHiddenValue('address', $session->get('address'));
+
+        $form->addHeaderAction('view', __('View Current Job Openings'))
+            ->setURL('/modules/Staff/applicationForm_jobOpenings_view.php')
+            ->displayLabel();
 
         $form->addRow()->addHeading(__('Job Related Information'));
 
@@ -132,11 +134,11 @@ if ($proceed == false) {
             $form->addHiddenValue('gibbonPersonID', $gibbonPersonID);
             $row = $form->addRow();
                 $row->addLabel('surname', __('Surname'));
-                $row->addTextField('surname')->required()->maxLength(30)->readonly()->setValue($_SESSION[$guid]['surname']);
+                $row->addTextField('surname')->required()->maxLength(30)->readonly()->setValue($session->get('surname'));
 
             $row = $form->addRow();
                 $row->addLabel('preferredName', __('Preferred Name'));
-                $row->addTextField('preferredName')->required()->maxLength(30)->readonly()->setValue($_SESSION[$guid]['preferredName']);
+                $row->addTextField('preferredName')->required()->maxLength(30)->readonly()->setValue($session->get('preferredName'));
         }
         else { //Not logged in
             $row = $form->addRow();
@@ -164,7 +166,7 @@ if ($proceed == false) {
                 $row->addSelectGender('gender')->required();
 
             $row = $form->addRow();
-                $row->addLabel('dob', __('Date of Birth'))->description($_SESSION[$guid]['i18n']['dateFormat'])->prepend(__('Format:'));
+                $row->addLabel('dob', __('Date of Birth'))->description($session->get('i18n')['dateFormat'])->prepend(__('Format:'));
                 $row->addDate('dob')->required();
 
             $form->addRow()->addHeading(__('Background Data'));
@@ -185,36 +187,12 @@ if ($proceed == false) {
                 $row->addLabel('countryOfBirth', __('Country of Birth'));
                 $row->addSelectCountry('countryOfBirth')->required();
 
-            $row = $form->addRow();
-                $row->addLabel('citizenship1', __('Citizenship'));
-                $nationalityList = getSettingByScope($connection2, 'User Admin', 'nationality');
-                if (!empty($nationalityList)) {
-                    $row->addSelect('citizenship1')->required()->fromString($nationalityList)->placeholder(__('Please select...'));
-                } else {
-                    $row->addSelectCountry('citizenship1')->required();
-                }
+            $nationalityList = getSettingByScope($connection2, 'User Admin', 'nationality');
+            $residencyStatusList = getSettingByScope($connection2, 'User Admin', 'residencyStatus');
 
-            $countryName = (isset($_SESSION[$guid]['country']))? __($_SESSION[$guid]['country']).' ' : '';
-            $row = $form->addRow();
-                $row->addLabel('citizenship1Passport', __('Citizenship Passport Number'))->description('');
-                $row->addTextField('citizenship1Passport')->maxLength(30);
-
-            $row = $form->addRow();
-                $row->addLabel('nationalIDCardNumber', $countryName.__('National ID Card Number'));
-                $row->addTextField('nationalIDCardNumber')->maxLength(30);
-
-            $row = $form->addRow();
-                $row->addLabel('residencyStatus', $countryName.__('Residency/Visa Type'));
-                $residencyStatusList = getSettingByScope($connection2, 'User Admin', 'residencyStatus');
-                if (!empty($residencyStatusList)) {
-                    $row->addSelect('residencyStatus')->fromString($residencyStatusList)->placeholder();
-                } else {
-                    $row->addTextField('residencyStatus')->maxLength(30);
-                }
-
-            $row = $form->addRow();
-                $row->addLabel('visaExpiryDate', $countryName.__('Visa Expiry Date'))->description($_SESSION[$guid]['i18n']['dateFormat'])->prepend(__('Format:'))->append(__('If relevant.'));
-                $row->addDate('visaExpiryDate');
+            // PERSONAL DOCUMENTS
+            $params = ['staff' => true, 'applicationForm' => true];
+            $container->get(PersonalDocumentHandler::class)->addPersonalDocumentsToForm($form, null, null, $params);
 
             $form->addRow()->addHeading(__('Contacts'));
 
@@ -239,19 +217,10 @@ if ($proceed == false) {
                 $row->addSelectCountry('homeAddressCountry')->required();
         }
 
-        // CUSTOM FIELDS FOR STAFF
-        $resultFields = getCustomFields($connection2, $guid, false, true, false, false, true, null);
-        if ($resultFields->rowCount() > 0) {
-            $form->addRow()->addHeading(__('Other Information'));
-
-            while ($rowFields = $resultFields->fetch()) {
-                $name = 'custom'.$rowFields['gibbonPersonFieldID'];
-                $row = $form->addRow();
-                    $row->addLabel($name, $rowFields['name'])->description($rowFields['description']);
-                    $row->addCustomField($name, $rowFields);
-            }
-        }
-
+        // CUSTOM FIELDS FOR USER: STAFF
+        $params = ['staff' => 1, 'applicationForm' => 1, 'headingLevel' => 'h4'];
+        $customFieldHandler->addCustomFieldsToForm($form, 'User', $params);
+        
         // REQURIED DOCUMENTS
         $staffApplicationFormRequiredDocuments = getSettingByScope($connection2, 'Staff', 'staffApplicationFormRequiredDocuments');
 
@@ -305,6 +274,10 @@ if ($proceed == false) {
                 $row->addLabel('referenceEmail2', __('Referee 2'))->description(__('An email address for a second referee.'));
                 $row->addEmail('referenceEmail2')->required();
         }
+
+        // CUSTOM FIELDS FOR STAFF RECORD
+        $params = ['applicationForm' => 1, 'prefix' => 'customStaff'];
+        $customFieldHandler->addCustomFieldsToForm($form, 'Staff', $params);
 
         //AGREEMENT
         $agreement = getSettingByScope($connection2, 'Staff', 'staffApplicationFormAgreement');

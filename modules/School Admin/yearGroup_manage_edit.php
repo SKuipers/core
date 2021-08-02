@@ -29,10 +29,6 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/yearGroup_man
         ->add(__('Manage Year Groups'), 'yearGroup_manage.php')
         ->add(__('Edit Year Group'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     //Check if school year specified
     $gibbonYearGroupID = $_GET['gibbonYearGroupID'];
     if ($gibbonYearGroupID == '') {
@@ -50,10 +46,10 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/yearGroup_man
             //Let's go!
             $values = $result->fetch();
 
-            $form = Form::create('yearGroup', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/yearGroup_manage_editProcess.php?gibbonYearGroupID='.$gibbonYearGroupID);
+            $form = Form::create('yearGroup', $session->get('absoluteURL').'/modules/'.$session->get('module').'/yearGroup_manage_editProcess.php?gibbonYearGroupID='.$gibbonYearGroupID);
             $form->setFactory(DatabaseFormFactory::create($pdo));
 
-            $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+            $form->addHiddenValue('address', $session->get('address'));
 
             $row = $form->addRow();
                 $row->addLabel('name', __('Name'))->description(__('Must be unique.'));

@@ -20,6 +20,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Services\Format;
 use Gibbon\Comms\NotificationEvent;
 use Gibbon\Comms\NotificationSender;
+use Gibbon\Domain\System\LogGateway;
+use Gibbon\Forms\CustomFieldHandler;
+use Gibbon\Forms\PersonalDocumentHandler;
 use Gibbon\Domain\System\NotificationGateway;
 
 include '../../gibbon.php';
@@ -27,8 +30,9 @@ include '../../gibbon.php';
 //Module includes
 include './moduleFunctions.php';
 
+$logGateway = $container->get(LogGateway::class);
 $gibbonPersonID = $_GET['gibbonPersonID'];
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/user_manage_edit.php&gibbonPersonID=$gibbonPersonID&search=".$_GET['search'];
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/user_manage_edit.php&gibbonPersonID=$gibbonPersonID&search=".$_GET['search'];
 
 if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edit.php') == false) {
     $URL .= '&return=error0';
@@ -79,33 +83,28 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
                 }
             }
 
-            $attachment1 = $_POST['attachment1'];
-            $birthCertificateScan = $_POST['birthCertificateScanCurrent'];
-            $nationalIDCardScan = $_POST['nationalIDCardScanCurrent'];
-            $citizenship1PassportScan = $_POST['citizenship1PassportScanCurrent'];
+            $attachment1 = $_POST['attachment1'] ?? '';
 
             //Proceed!
-            $title = $_POST['title'];
-            $surname = trim($_POST['surname']);
-            $firstName = trim($_POST['firstName']);
-            $preferredName = trim($_POST['preferredName']);
-            $officialName = trim($_POST['officialName']);
-            $nameInCharacters = $_POST['nameInCharacters'];
-            $gender = $_POST['gender'];
+            $title = $_POST['title'] ?? '';
+            $surname = trim($_POST['surname'] ?? '');
+            $firstName = trim($_POST['firstName'] ?? '');
+            $preferredName = trim($_POST['preferredName'] ?? '');
+            $officialName = trim($_POST['officialName'] ?? '');
+            $nameInCharacters = $_POST['nameInCharacters'] ?? '';
+            $gender = $_POST['gender'] ?? '';
             $username = isset($_POST['username'])? $_POST['username'] : $values['username'];
-            $status = $_POST['status'];
-            $canLogin = $_POST['canLogin'];
-            $passwordForceReset = $_POST['passwordForceReset'];
+            $status = $_POST['status'] ?? '';
+            $canLogin = $_POST['canLogin'] ?? '';
+            $passwordForceReset = $_POST['passwordForceReset'] ?? '';
 
             // Put together an array of this user's current roles
-            $currentUserRoles = (is_array($_SESSION[$guid]['gibbonRoleIDAll'])) ? array_column($_SESSION[$guid]['gibbonRoleIDAll'], 0) : array();
-            $currentUserRoles[] = $_SESSION[$guid]['gibbonRoleIDPrimary'];
+            $currentUserRoles = (is_array($session->get('gibbonRoleIDAll'))) ? array_column($session->get('gibbonRoleIDAll'), 0) : array();
+            $currentUserRoles[] = $session->get('gibbonRoleIDPrimary');
 
-            
-                $dataRoles = array('gibbonRoleIDAll' => $row['gibbonRoleIDAll']);
-                $sqlRoles = 'SELECT gibbonRoleID, restriction, name FROM gibbonRole';
-                $resultRoles = $connection2->prepare($sqlRoles);
-                $resultRoles->execute($dataRoles);
+            $sqlRoles = 'SELECT gibbonRoleID, restriction, name FROM gibbonRole';
+            $resultRoles = $connection2->prepare($sqlRoles);
+            $resultRoles->execute();
 
             $gibbonRoleIDAll = array();
             $gibbonRoleIDPrimary = $row['gibbonRoleIDPrimary'];
@@ -162,201 +161,78 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
 
             $gibbonRoleIDAll = (is_array($gibbonRoleIDAll))? implode(',', array_unique($gibbonRoleIDAll)) : $row['gibbonRoleIDAll'];
 
-            $dob = $_POST['dob'];
-            if ($dob == '') {
-                $dob = null;
-            } else {
-                $dob = dateConvert($guid, $dob);
-            }
-            $email = trim($_POST['email']);
-            $emailAlternate = trim($_POST['emailAlternate']);
-            $address1 = isset($_POST['address1']) ? $_POST['address1'] : '';
-            $address1District = isset($_POST['address1District']) ? $_POST['address1District'] : '';
-            $address1Country = isset($_POST['address1Country']) ? $_POST['address1Country'] : '';
-            $address2 = isset($_POST['address2']) ? $_POST['address2'] : '';
-            $address2District = isset($_POST['address2District']) ? $_POST['address2District'] : '';
-            $address2Country = isset($_POST['address2Country']) ? $_POST['address2Country'] : '';
-            $phone1Type = $_POST['phone1Type'];
+            $dob = !empty($_POST['dob']) ? Format::dateConvert($_POST['dob']) : null;
+            $email = trim($_POST['email'] ?? '');
+            $emailAlternate = trim($_POST['emailAlternate'] ?? '');
+            $address1 = $_POST['address1'] ?? '';
+            $address1District = $_POST['address1District'] ?? '';
+            $address1Country = $_POST['address1Country'] ?? '';
+            $address2 = $_POST['address2'] ?? '';
+            $address2District = $_POST['address2District'] ?? '';
+            $address2Country = $_POST['address2Country'] ?? '';
+            $phone1Type = $_POST['phone1Type'] ?? '';
             if ($_POST['phone1'] != '' and $phone1Type == '') {
                 $phone1Type = 'Other';
             }
-            $phone1CountryCode = $_POST['phone1CountryCode'];
-            $phone1 = preg_replace('/[^0-9+]/', '', $_POST['phone1']);
-            $phone2Type = $_POST['phone2Type'];
+            $phone1CountryCode = $_POST['phone1CountryCode'] ?? '';
+            $phone1 = preg_replace('/[^0-9+]/', '', $_POST['phone1'] ?? '');
+            $phone2Type = $_POST['phone2Type'] ?? '';
             if ($_POST['phone2'] != '' and $phone2Type == '') {
                 $phone2Type = 'Other';
             }
-            $phone2CountryCode = $_POST['phone2CountryCode'];
-            $phone2 = preg_replace('/[^0-9+]/', '', $_POST['phone2']);
+            $phone2CountryCode = $_POST['phone2CountryCode'] ?? '';
+            $phone2 = preg_replace('/[^0-9+]/', '', $_POST['phone2'] ?? '');
             $phone3Type = $_POST['phone3Type'];
             if ($_POST['phone3'] != '' and $phone3Type == '') {
                 $phone3Type = 'Other';
             }
-            $phone3CountryCode = $_POST['phone3CountryCode'];
-            $phone3 = preg_replace('/[^0-9+]/', '', $_POST['phone3']);
+            $phone3CountryCode = $_POST['phone3CountryCode'] ?? '';
+            $phone3 = preg_replace('/[^0-9+]/', '', $_POST['phone3'] ?? '');
             $phone4Type = $_POST['phone4Type'];
             if ($_POST['phone4'] != '' and $phone4Type == '') {
                 $phone4Type = 'Other';
             }
-            $phone4CountryCode = $_POST['phone4CountryCode'];
-            $phone4 = preg_replace('/[^0-9+]/', '', $_POST['phone4']);
-            $website = $_POST['website'];
-            $languageFirst = $_POST['languageFirst'];
-            $languageSecond = $_POST['languageSecond'];
-            $languageThird = $_POST['languageThird'];
-            $countryOfBirth = $_POST['countryOfBirth'];
-            $ethnicity = $_POST['ethnicity'];
-            $citizenship1 = $_POST['citizenship1'];
-            $citizenship1Passport = $_POST['citizenship1Passport'];
-            $citizenship1PassportExpiry = !empty($_POST['citizenship1PassportExpiry']) ? Format::dateConvert($_POST['citizenship1PassportExpiry']) : null;
-            $citizenship2 = $_POST['citizenship2'];
-            $citizenship2Passport = $_POST['citizenship2Passport'];
-            $citizenship2PassportExpiry = !empty($_POST['citizenship2PassportExpiry']) ? Format::dateConvert($_POST['citizenship2PassportExpiry']) : null;
-            $religion = $_POST['religion'];
-            $nationalIDCardNumber = $_POST['nationalIDCardNumber'];
-            $residencyStatus = $_POST['residencyStatus'];
-            $visaExpiryDate = $_POST['visaExpiryDate'];
-            if ($visaExpiryDate == '') {
-                $visaExpiryDate = null;
-            } else {
-                $visaExpiryDate = dateConvert($guid, $visaExpiryDate);
-            }
+            $phone4CountryCode = $_POST['phone4CountryCode'] ?? '';
+            $phone4 = preg_replace('/[^0-9+]/', '', $_POST['phone4'] ?? '');
+            $website = $_POST['website'] ?? '';
+            $languageFirst = $_POST['languageFirst'] ?? '';
+            $languageSecond = $_POST['languageSecond'] ?? '';
+            $languageThird = $_POST['languageThird'] ?? '';
+            $countryOfBirth = $_POST['countryOfBirth'] ?? '';
+            $ethnicity = $_POST['ethnicity'] ?? '';
+            $religion = $_POST['religion'] ?? '';
 
-            $profession = null;
-            if (isset($_POST['profession'])) {
-                $profession = $_POST['profession'];
-            }
+            $profession = $_POST['profession'] ?? null;
+            $employer = $_POST['employer'] ?? null;
+            $jobTitle = $_POST['jobTitle'] ?? null;
 
-            $employer = null;
-            if (isset($_POST['employer'])) {
-                $employer = $_POST['employer'];
-            }
+            $emergency1Name = $_POST['emergency1Name'] ?? null;
+            $emergency1Number1 = $_POST['emergency1Number1'] ?? null;
+            $emergency1Number2 = $_POST['emergency1Number2'] ?? null;
+            $emergency1Relationship = $_POST['emergency1Relationship'] ?? null;
 
-            $jobTitle = null;
-            if (isset($_POST['jobTitle'])) {
-                $jobTitle = $_POST['jobTitle'];
-            }
+            $emergency2Name = $_POST['emergency2Name'] ?? null;
+            $emergency2Number1 = $_POST['emergency2Number1'] ?? null;
+            $emergency2Number2 = $_POST['emergency2Number2'] ?? null;
+            $emergency2Relationship = $_POST['emergency2Relationship'] ?? null;
 
-            $emergency1Name = null;
-            if (isset($_POST['emergency1Name'])) {
-                $emergency1Name = $_POST['emergency1Name'];
-            }
-            $emergency1Number1 = null;
-            if (isset($_POST['emergency1Number1'])) {
-                $emergency1Number1 = $_POST['emergency1Number1'];
-            }
-            $emergency1Number2 = null;
-            if (isset($_POST['emergency1Number2'])) {
-                $emergency1Number2 = $_POST['emergency1Number2'];
-            }
-            $emergency1Relationship = null;
-            if (isset($_POST['emergency1Relationship'])) {
-                $emergency1Relationship = $_POST['emergency1Relationship'];
-            }
-            $emergency2Name = null;
-            if (isset($_POST['emergency2Name'])) {
-                $emergency2Name = $_POST['emergency2Name'];
-            }
-            $emergency2Number1 = null;
-            if (isset($_POST['emergency2Number1'])) {
-                $emergency2Number1 = $_POST['emergency2Number1'];
-            }
-            $emergency2Number2 = null;
-            if (isset($_POST['emergency2Number2'])) {
-                $emergency2Number2 = $_POST['emergency2Number2'];
-            }
-            $emergency2Relationship = null;
-            if (isset($_POST['emergency2Relationship'])) {
-                $emergency2Relationship = $_POST['emergency2Relationship'];
-            }
+            $gibbonHouseID = !empty($_POST['gibbonHouseID']) ? $_POST['gibbonHouseID'] : null;
+            $studentID = $_POST['studentID'] ?? null;
+            $dateStart = !empty($_POST['dateStart']) ? Format::dateConvert($_POST['dateStart']) : null;
+            $dateEnd = !empty($_POST['dateEnd']) ? Format::dateConvert($_POST['dateEnd']) : null;
+            $gibbonSchoolYearIDClassOf = !empty($_POST['gibbonSchoolYearIDClassOf']) ? $_POST['gibbonSchoolYearIDClassOf'] : null;
+            $lastSchool = $_POST['lastSchool'] ?? null;
+            $nextSchool = $_POST['nextSchool'] ?? null;
+            $departureReason = $_POST['departureReason'] ?? null;
+            $transport = $_POST['transport'] ?? null;
+            $transportNotes = $_POST['transportNotes'] ?? null;
+            $lockerNumber = $_POST['lockerNumber'] ?? null;
+            $vehicleRegistration = $_POST['vehicleRegistration'] ?? '';
 
-            $gibbonHouseID = $_POST['gibbonHouseID'];
-            if ($gibbonHouseID == '') {
-                $gibbonHouseID = null;
-            }
-            $studentID = null;
-            if (isset($_POST['studentID'])) {
-                $studentID = $_POST['studentID'];
-            }
-            $dateStart = $_POST['dateStart'];
-            if ($dateStart == '') {
-                $dateStart = null;
-            } else {
-                $dateStart = dateConvert($guid, $dateStart);
-            }
-            $dateEnd = $_POST['dateEnd'];
-            if ($dateEnd == '') {
-                $dateEnd = null;
-            } else {
-                $dateEnd = dateConvert($guid, $dateEnd);
-            }
-            $gibbonSchoolYearIDClassOf = null;
-            if (isset($_POST['gibbonSchoolYearIDClassOf'])) {
-                $gibbonSchoolYearIDClassOf = $_POST['gibbonSchoolYearIDClassOf'];
-            }
-            $lastSchool = null;
-            if (isset($_POST['lastSchool'])) {
-                $lastSchool = $_POST['lastSchool'];
-            }
-            $nextSchool = null;
-            if (isset($_POST['nextSchool'])) {
-                $nextSchool = $_POST['nextSchool'];
-            }
-            $departureReason = null;
-            if (isset($_POST['departureReason'])) {
-                $departureReason = $_POST['departureReason'];
-            }
-            $transport = null;
-            if (isset($_POST['transport'])) {
-                $transport = $_POST['transport'];
-            }
-            $transportNotes = null;
-            if (isset($_POST['transportNotes'])) {
-                $transportNotes = $_POST['transportNotes'];
-            }
-            $lockerNumber = null;
-            if (isset($_POST['lockerNumber'])) {
-                $lockerNumber = $_POST['lockerNumber'];
-            }
-
-            $vehicleRegistration = $_POST['vehicleRegistration'];
-            $privacyOptions = null;
-            $privacy = '';
-            if (isset($_POST['privacyOptions'])) {
-                $privacyOptions = $_POST['privacyOptions'];
-                foreach ($privacyOptions as $privacyOption) {
-                    if ($privacyOption != '') {
-                        $privacy .= $privacyOption.',';
-                    }
-                }
-            }
-            if ($privacy != '') {
-                $privacy = substr($privacy, 0, -1);
-            } else {
-                $privacy = null;
-            }
+            $privacy = !empty($_POST['privacyOptions']) ? implode(',', $_POST['privacyOptions']) : null;
             $privacy_old = $row['privacy'];
-
-            $studentAgreements = null;
-            $agreements = '';
-            if (isset($_POST['studentAgreements'])) {
-                $studentAgreements = $_POST['studentAgreements'];
-                foreach ($studentAgreements as $studentAgreement) {
-                    if ($studentAgreement != '') {
-                        $agreements .= $studentAgreement.',';
-                    }
-                }
-            }
-            if ($agreements != '') {
-                $agreements = substr($agreements, 0, -1);
-            } else {
-                $agreements = null;
-            }
-
-            $dayType = null;
-            if (isset($_POST['dayType'])) {
-                $dayType = $_POST['dayType'];
-            }
+            $agreements = !empty($_POST['studentAgreements']) ? implode(',', $_POST['studentAgreements']) : null;
+            $dayType = $_POST['dayType'] ?? null;
 
             //Validate Inputs
             if ($surname == '' or $firstName == '' or $preferredName == '' or $officialName == '' or $gender == '' or $username == '' or $status == '' or $gibbonRoleIDPrimary == '') {
@@ -384,9 +260,9 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
                     header("Location: {$URL}");
                 } else {
                     $imageFail = false;
-                    if (!empty($_FILES['file1']['tmp_name']) or !empty($_FILES['birthCertificateScan']['tmp_name']) or !empty($_FILES['nationalIDCardScan']['tmp_name']) or !empty($_FILES['citizenship1PassportScan']['tmp_name']))
+                    if (!empty($_FILES['file1']['tmp_name']))
                     {
-                        $path = $_SESSION[$guid]['absolutePath'];
+                        $path = $session->get('absolutePath');
                         $fileUploader = new Gibbon\FileUploader($pdo, $gibbon->session);
 
                         //Move 240 attached file, if there is one
@@ -411,113 +287,26 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
                                 }
                             }
                         }
-
-                        //Move birth certificate scan if there is one
-                        if (!empty($_FILES['birthCertificateScan']['tmp_name'])) {
-                            $file = (isset($_FILES['birthCertificateScan']))? $_FILES['birthCertificateScan'] : null;
-
-                            // Upload the file, return the /uploads relative path
-                            $fileUploader->setFileSuffixType(Gibbon\FileUploader::FILE_SUFFIX_ALPHANUMERIC);
-                            $birthCertificateScan = $fileUploader->uploadFromPost($file, $username.'_birthCertificate');
-
-                            if (empty($birthCertificateScan)) {
-                                $imageFail = true;
-                            } else {
-                                if (stripos($file['tmp_name'], 'pdf') === false) {
-                                    //Check image sizes
-                                    $size2 = getimagesize($path.'/'.$birthCertificateScan);
-                                    $width2 = $size2[0];
-                                    $height2 = $size2[1];
-                                    if ($width2 > 1440 or $height2 > 900) {
-                                        $birthCertificateScan = '';
-                                        $imageFail = true;
-                                    }
-                                }
-                            }
-                        }
-
-                        //Move ID Card scan file, if there is one
-                        if (!empty($_FILES['nationalIDCardScan']['tmp_name'])) {
-                            $file = (isset($_FILES['nationalIDCardScan']))? $_FILES['nationalIDCardScan'] : null;
-
-                            // Upload the file, return the /uploads relative path
-                            $fileUploader->setFileSuffixType(Gibbon\FileUploader::FILE_SUFFIX_ALPHANUMERIC);
-                            $nationalIDCardScan = $fileUploader->uploadFromPost($file, $username.'_idscan');
-
-                            if (empty($nationalIDCardScan)) {
-                                $imageFail = true;
-                            } else {
-                                if (stripos($file['tmp_name'], 'pdf') === false) {
-                                    //Check image sizes
-                                    $size3 = getimagesize($path.'/'.$nationalIDCardScan);
-                                    $width3 = $size3[0];
-                                    $height3 = $size3[1];
-                                    if ($width3 > 1440 or $height3 > 900) {
-                                        $nationalIDCardScan = '';
-                                        $imageFail = true;
-                                    }
-                                }
-                            }
-                        }
-
-                        //Move passport scan file, if there is one
-                        if (!empty($_FILES['citizenship1PassportScan']['tmp_name'])) {
-                            $file = (isset($_FILES['citizenship1PassportScan']))? $_FILES['citizenship1PassportScan'] : null;
-
-                            // Upload the file, return the /uploads relative path
-                            $fileUploader->setFileSuffixType(Gibbon\FileUploader::FILE_SUFFIX_ALPHANUMERIC);
-                            $citizenship1PassportScan = $fileUploader->uploadFromPost($file, $username.'_passportscan');
-
-                            if (empty($citizenship1PassportScan)) {
-                                $imageFail = true;
-                            } else {
-                                if (stripos($file['tmp_name'], 'pdf') === false) {
-                                    //Check image sizes
-                                    $size4 = getimagesize($path.'/'.$citizenship1PassportScan);
-                                    $width4 = $size4[0];
-                                    $height4 = $size4[1];
-                                    if ($width4 > 1440 or $height4 > 900) {
-                                        $citizenship1PassportScan = '';
-                                        $imageFail = true;
-                                    }
-                                }
-                            }
-                        }
                     }
 
-                    //DEAL WITH CUSTOM FIELDS
-                    //Prepare field values
+                    // CUSTOM FIELDS
                     $customRequireFail = false;
-                    $resultFields = getCustomFields($connection2, $guid, $student, $staff, $parent, $other);
-                    $fields = array();
-                    if ($resultFields->rowCount() > 0) {
-                        while ($rowFields = $resultFields->fetch()) {
-                            if (isset($_POST['custom'.$rowFields['gibbonPersonFieldID']])) {
-                                if ($rowFields['type'] == 'date') {
-                                    $fields[$rowFields['gibbonPersonFieldID']] = dateConvert($guid, $_POST['custom'.$rowFields['gibbonPersonFieldID']]);
-                                } else {
-                                    $fields[$rowFields['gibbonPersonFieldID']] = $_POST['custom'.$rowFields['gibbonPersonFieldID']];
-                                }
-                            }
-                            if ($rowFields['required'] == 'Y') {
-                                if (isset($_POST['custom'.$rowFields['gibbonPersonFieldID']]) == false) {
-                                    $customRequireFail = true;
-                                } elseif ($_POST['custom'.$rowFields['gibbonPersonFieldID']] == '') {
-                                    $customRequireFail = true;
-                                }
-                            }
-                        }
-                    }
+                    $params = compact('student', 'staff', 'parent', 'other');
+                    $fields = $container->get(CustomFieldHandler::class)->getFieldDataFromPOST('User', $params, $customRequireFail);
+
+                    // PERSONAL DOCUMENTS
+                    $personalDocumentFail = false;
+                    $params = compact('student', 'staff', 'parent', 'other');
+                    $container->get(PersonalDocumentHandler::class)->updateDocumentsFromPOST('gibbonPerson', $gibbonPersonID, $params, $personalDocumentFail);
+
                     if ($customRequireFail) {
                         $URL .= '&return=error3';
                         header("Location: {$URL}");
                     } else {
-                        $fields = json_encode($fields);
-
                         //Write to database
                         try {
-                            $data = array('title' => $title, 'surname' => $surname, 'firstName' => $firstName, 'preferredName' => $preferredName, 'officialName' => $officialName, 'nameInCharacters' => $nameInCharacters, 'gender' => $gender, 'username' => $username, 'status' => $status, 'canLogin' => $canLogin, 'passwordForceReset' => $passwordForceReset, 'gibbonRoleIDPrimary' => $gibbonRoleIDPrimary, 'gibbonRoleIDAll' => $gibbonRoleIDAll, 'dob' => $dob, 'email' => $email, 'emailAlternate' => $emailAlternate, 'address1' => $address1, 'address1District' => $address1District, 'address1Country' => $address1Country, 'address2' => $address2, 'address2District' => $address2District, 'address2Country' => $address2Country, 'phone1Type' => $phone1Type, 'phone1CountryCode' => $phone1CountryCode, 'phone1' => $phone1, 'phone2Type' => $phone2Type, 'phone2CountryCode' => $phone2CountryCode, 'phone2' => $phone2, 'phone3Type' => $phone3Type, 'phone3CountryCode' => $phone3CountryCode, 'phone3' => $phone3, 'phone4Type' => $phone4Type, 'phone4CountryCode' => $phone4CountryCode, 'phone4' => $phone4, 'website' => $website, 'languageFirst' => $languageFirst, 'languageSecond' => $languageSecond, 'languageThird' => $languageThird, 'countryOfBirth' => $countryOfBirth, 'birthCertificateScan' => $birthCertificateScan, 'ethnicity' => $ethnicity, 'citizenship1' => $citizenship1, 'citizenship1Passport' => $citizenship1Passport, 'citizenship1PassportScan' => $citizenship1PassportScan, 'citizenship1PassportExpiry' => $citizenship1PassportExpiry, 'citizenship2' => $citizenship2, 'citizenship2Passport' => $citizenship2Passport, 'citizenship2PassportExpiry' => $citizenship2PassportExpiry, 'religion' => $religion, 'nationalIDCardNumber' => $nationalIDCardNumber, 'nationalIDCardScan' => $nationalIDCardScan, 'residencyStatus' => $residencyStatus, 'visaExpiryDate' => $visaExpiryDate, 'emergency1Name' => $emergency1Name, 'emergency1Number1' => $emergency1Number1, 'emergency1Number2' => $emergency1Number2, 'emergency1Relationship' => $emergency1Relationship, 'emergency2Name' => $emergency2Name, 'emergency2Number1' => $emergency2Number1, 'emergency2Number2' => $emergency2Number2, 'emergency2Relationship' => $emergency2Relationship, 'profession' => $profession, 'employer' => $employer, 'jobTitle' => $jobTitle, 'attachment1' => $attachment1, 'gibbonHouseID' => $gibbonHouseID, 'studentID' => $studentID, 'dateStart' => $dateStart, 'dateEnd' => $dateEnd, 'gibbonSchoolYearIDClassOf' => $gibbonSchoolYearIDClassOf, 'lastSchool' => $lastSchool, 'nextSchool' => $nextSchool, 'departureReason' => $departureReason, 'transport' => $transport, 'transportNotes' => $transportNotes, 'lockerNumber' => $lockerNumber, 'vehicleRegistration' => $vehicleRegistration, 'privacy' => $privacy, 'agreements' => $agreements, 'dayType' => $dayType, 'fields' => $fields, 'gibbonPersonID' => $gibbonPersonID);
-                            $sql = 'UPDATE gibbonPerson SET title=:title, surname=:surname, firstName=:firstName, preferredName=:preferredName, officialName=:officialName, nameInCharacters=:nameInCharacters, gender=:gender, username=:username, status=:status, canLogin=:canLogin, passwordForceReset=:passwordForceReset, gibbonRoleIDPrimary=:gibbonRoleIDPrimary, gibbonRoleIDAll=:gibbonRoleIDAll, dob=:dob, email=:email, emailAlternate=:emailAlternate, address1=:address1, address1District=:address1District, address1Country=:address1Country, address2=:address2, address2District=:address2District, address2Country=:address2Country, phone1Type=:phone1Type, phone1CountryCode=:phone1CountryCode, phone1=:phone1, phone2Type=:phone2Type, phone2CountryCode=:phone2CountryCode, phone2=:phone2, phone3Type=:phone3Type, phone3CountryCode=:phone3CountryCode, phone3=:phone3, phone4Type=:phone4Type, phone4CountryCode=:phone4CountryCode, phone4=:phone4, website=:website, languageFirst=:languageFirst, languageSecond=:languageSecond, languageThird=:languageThird, countryOfBirth=:countryOfBirth, birthCertificateScan=:birthCertificateScan, ethnicity=:ethnicity,  citizenship1=:citizenship1, citizenship1Passport=:citizenship1Passport, citizenship1PassportExpiry=:citizenship1PassportExpiry, citizenship1PassportScan=:citizenship1PassportScan, citizenship2=:citizenship2,  citizenship2Passport=:citizenship2Passport, citizenship2PassportExpiry=:citizenship2PassportExpiry, religion=:religion, nationalIDCardNumber=:nationalIDCardNumber, nationalIDCardScan=:nationalIDCardScan, residencyStatus=:residencyStatus, visaExpiryDate=:visaExpiryDate, emergency1Name=:emergency1Name, emergency1Number1=:emergency1Number1, emergency1Number2=:emergency1Number2, emergency1Relationship=:emergency1Relationship, emergency2Name=:emergency2Name, emergency2Number1=:emergency2Number1, emergency2Number2=:emergency2Number2, emergency2Relationship=:emergency2Relationship, profession=:profession, employer=:employer, jobTitle=:jobTitle, image_240=:attachment1, gibbonHouseID=:gibbonHouseID, studentID=:studentID, dateStart=:dateStart, dateEnd=:dateEnd, gibbonSchoolYearIDClassOf=:gibbonSchoolYearIDClassOf, lastSchool=:lastSchool, nextSchool=:nextSchool, departureReason=:departureReason, transport=:transport, transportNotes=:transportNotes, lockerNumber=:lockerNumber, vehicleRegistration=:vehicleRegistration, privacy=:privacy, studentAgreements=:agreements, dayType=:dayType, fields=:fields WHERE gibbonPersonID=:gibbonPersonID';
+                            $data = array('title' => $title, 'surname' => $surname, 'firstName' => $firstName, 'preferredName' => $preferredName, 'officialName' => $officialName, 'nameInCharacters' => $nameInCharacters, 'gender' => $gender, 'username' => $username, 'status' => $status, 'canLogin' => $canLogin, 'passwordForceReset' => $passwordForceReset, 'gibbonRoleIDPrimary' => $gibbonRoleIDPrimary, 'gibbonRoleIDAll' => $gibbonRoleIDAll, 'dob' => $dob, 'email' => $email, 'emailAlternate' => $emailAlternate, 'address1' => $address1, 'address1District' => $address1District, 'address1Country' => $address1Country, 'address2' => $address2, 'address2District' => $address2District, 'address2Country' => $address2Country, 'phone1Type' => $phone1Type, 'phone1CountryCode' => $phone1CountryCode, 'phone1' => $phone1, 'phone2Type' => $phone2Type, 'phone2CountryCode' => $phone2CountryCode, 'phone2' => $phone2, 'phone3Type' => $phone3Type, 'phone3CountryCode' => $phone3CountryCode, 'phone3' => $phone3, 'phone4Type' => $phone4Type, 'phone4CountryCode' => $phone4CountryCode, 'phone4' => $phone4, 'website' => $website, 'languageFirst' => $languageFirst, 'languageSecond' => $languageSecond, 'languageThird' => $languageThird, 'countryOfBirth' => $countryOfBirth, 'ethnicity' => $ethnicity, 'religion' => $religion, 'emergency1Name' => $emergency1Name, 'emergency1Number1' => $emergency1Number1, 'emergency1Number2' => $emergency1Number2, 'emergency1Relationship' => $emergency1Relationship, 'emergency2Name' => $emergency2Name, 'emergency2Number1' => $emergency2Number1, 'emergency2Number2' => $emergency2Number2, 'emergency2Relationship' => $emergency2Relationship, 'profession' => $profession, 'employer' => $employer, 'jobTitle' => $jobTitle, 'attachment1' => $attachment1, 'gibbonHouseID' => $gibbonHouseID, 'studentID' => $studentID, 'dateStart' => $dateStart, 'dateEnd' => $dateEnd, 'gibbonSchoolYearIDClassOf' => $gibbonSchoolYearIDClassOf, 'lastSchool' => $lastSchool, 'nextSchool' => $nextSchool, 'departureReason' => $departureReason, 'transport' => $transport, 'transportNotes' => $transportNotes, 'lockerNumber' => $lockerNumber, 'vehicleRegistration' => $vehicleRegistration, 'privacy' => $privacy, 'agreements' => $agreements, 'dayType' => $dayType, 'fields' => $fields, 'gibbonPersonID' => $gibbonPersonID);
+                            $sql = 'UPDATE gibbonPerson SET title=:title, surname=:surname, firstName=:firstName, preferredName=:preferredName, officialName=:officialName, nameInCharacters=:nameInCharacters, gender=:gender, username=:username, status=:status, canLogin=:canLogin, passwordForceReset=:passwordForceReset, gibbonRoleIDPrimary=:gibbonRoleIDPrimary, gibbonRoleIDAll=:gibbonRoleIDAll, dob=:dob, email=:email, emailAlternate=:emailAlternate, address1=:address1, address1District=:address1District, address1Country=:address1Country, address2=:address2, address2District=:address2District, address2Country=:address2Country, phone1Type=:phone1Type, phone1CountryCode=:phone1CountryCode, phone1=:phone1, phone2Type=:phone2Type, phone2CountryCode=:phone2CountryCode, phone2=:phone2, phone3Type=:phone3Type, phone3CountryCode=:phone3CountryCode, phone3=:phone3, phone4Type=:phone4Type, phone4CountryCode=:phone4CountryCode, phone4=:phone4, website=:website, languageFirst=:languageFirst, languageSecond=:languageSecond, languageThird=:languageThird, countryOfBirth=:countryOfBirth, ethnicity=:ethnicity,  religion=:religion, emergency1Name=:emergency1Name, emergency1Number1=:emergency1Number1, emergency1Number2=:emergency1Number2, emergency1Relationship=:emergency1Relationship, emergency2Name=:emergency2Name, emergency2Number1=:emergency2Number1, emergency2Number2=:emergency2Number2, emergency2Relationship=:emergency2Relationship, profession=:profession, employer=:employer, jobTitle=:jobTitle, image_240=:attachment1, gibbonHouseID=:gibbonHouseID, studentID=:studentID, dateStart=:dateStart, dateEnd=:dateEnd, gibbonSchoolYearIDClassOf=:gibbonSchoolYearIDClassOf, lastSchool=:lastSchool, nextSchool=:nextSchool, departureReason=:departureReason, transport=:transport, transportNotes=:transportNotes, lockerNumber=:lockerNumber, vehicleRegistration=:vehicleRegistration, privacy=:privacy, studentAgreements=:agreements, dayType=:dayType, fields=:fields WHERE gibbonPersonID=:gibbonPersonID';
                             $result = $connection2->prepare($sql);
                             $result->execute($data);
                         } catch (PDOException $e) {
@@ -531,9 +320,9 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
                             if ($privacy_old != $privacy) {
 
                                 //Notify tutor
-                                
-                                    $dataDetail = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'gibbonPersonID' => $gibbonPersonID);
-                                    $sqlDetail = 'SELECT gibbonPersonIDTutor, gibbonPersonIDTutor2, gibbonPersonIDTutor3, gibbonYearGroupID FROM gibbonRollGroup JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonRollGroupID=gibbonRollGroup.gibbonRollGroupID) JOIN gibbonPerson ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonStudentEnrolment.gibbonPersonID=:gibbonPersonID';
+
+                                    $dataDetail = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'gibbonPersonID' => $gibbonPersonID);
+                                    $sqlDetail = 'SELECT gibbonPersonIDTutor, gibbonPersonIDTutor2, gibbonPersonIDTutor3, gibbonYearGroupID FROM gibbonFormGroup JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonFormGroupID=gibbonFormGroup.gibbonFormGroupID) JOIN gibbonPerson ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonStudentEnrolment.gibbonPersonID=:gibbonPersonID';
                                     $resultDetail = $connection2->prepare($sqlDetail);
                                     $resultDetail->execute($dataDetail);
                                 if ($resultDetail->rowCount() == 1) {
@@ -547,7 +336,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
                                     // Raise a new notification event
                                     $event = new NotificationEvent('Students', 'Updated Privacy Settings');
 
-                                    $staffName = Format::name('', $_SESSION[$guid]['preferredName'], $_SESSION[$guid]['surname'], 'Staff', false, true);
+                                    $staffName = Format::name('', $session->get('preferredName'), $session->get('surname'), 'Staff', false, true);
                                     $studentName = Format::name('', $preferredName, $surname, 'Student', false);
                                     $actionLink = "/index.php?q=/modules/Students/student_view_details.php&gibbonPersonID=$gibbonPersonID&search=";
 
@@ -566,18 +355,18 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
                                     // Add event listeners to the notification sender
                                     $event->pushNotifications($notificationGateway, $notificationSender);
 
-                                    // Add direct notifications to roll group tutors
+                                    // Add direct notifications to form group tutors
                                     if ($event->getEventDetails($notificationGateway, 'active') == 'Y') {
                                         $notificationText = sprintf(__('Your tutee, %1$s, has had their privacy settings altered.'), $studentName).'<br/><br/>';
                                         $notificationText .= $privacyText;
 
-                                        if ($rowDetail['gibbonPersonIDTutor'] != null and $rowDetail['gibbonPersonIDTutor'] != $_SESSION[$guid]['gibbonPersonID']) {
+                                        if ($rowDetail['gibbonPersonIDTutor'] != null and $rowDetail['gibbonPersonIDTutor'] != $session->get('gibbonPersonID')) {
                                             $notificationSender->addNotification($rowDetail['gibbonPersonIDTutor'], $notificationText, 'Students', $actionLink);
                                         }
-                                        if ($rowDetail['gibbonPersonIDTutor2'] != null and $rowDetail['gibbonPersonIDTutor2'] != $_SESSION[$guid]['gibbonPersonID']) {
+                                        if ($rowDetail['gibbonPersonIDTutor2'] != null and $rowDetail['gibbonPersonIDTutor2'] != $session->get('gibbonPersonID')) {
                                             $notificationSender->addNotification($rowDetail['gibbonPersonIDTutor2'], $notificationText, 'Students', $actionLink);
                                         }
-                                        if ($rowDetail['gibbonPersonIDTutor3'] != null and $rowDetail['gibbonPersonIDTutor3'] != $_SESSION[$guid]['gibbonPersonID']) {
+                                        if ($rowDetail['gibbonPersonIDTutor3'] != null and $rowDetail['gibbonPersonIDTutor3'] != $session->get('gibbonPersonID')) {
                                             $notificationSender->addNotification($rowDetail['gibbonPersonIDTutor3'], $notificationText, 'Students', $actionLink);
                                         }
                                     }
@@ -591,7 +380,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
                                 $privacyValues=array() ;
                                 $privacyValues['oldValue'] = $privacy_old ;
                                 $privacyValues['newValue'] = $privacy ;
-                                setLog($connection2, $_SESSION[$guid]["gibbonSchoolYearID"], $gibbonModuleID, $_SESSION[$guid]["gibbonPersonID"], 'Privacy - Value Changed', $privacyValues, $_SERVER['REMOTE_ADDR']) ;
+                                $logGateway->addLog($session->get("gibbonSchoolYearID"), $gibbonModuleID, $session->get("gibbonPersonID"), 'Privacy - Value Changed', $privacyValues, $_SERVER['REMOTE_ADDR']) ;
                             }
                         }
 
@@ -619,7 +408,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
                             $URL .= '&return=warning1';
                             header("Location: {$URL}");
                         } else {
-                            if ($imageFail) {
+                            if ($personalDocumentFail) {
                                 $URL .= '&return=warning1';
                                 header("Location: {$URL}");
                             } else {

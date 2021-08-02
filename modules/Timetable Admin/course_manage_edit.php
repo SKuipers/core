@@ -18,9 +18,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
-use Gibbon\Forms\DatabaseFormFactory;
-use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
+use Gibbon\Tables\DataTable;
+use Gibbon\Forms\CustomFieldHandler;
+use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Domain\Timetable\CourseGateway;
 
 //Module includes
@@ -36,10 +37,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/course_man
     $page->breadcrumbs
         ->add(__('Manage Courses & Classes'), 'course_manage.php', ['gibbonSchoolYearID' => $gibbonSchoolYearID])
         ->add(__('Edit Course & Classes'));
-
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
 
     if (isset($_GET['deleteReturn'])) {
         $deleteReturn = $_GET['deleteReturn'];
@@ -65,7 +62,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/course_man
     } else {
         
             $data = array('gibbonCourseID' => $gibbonCourseID);
-            $sql = 'SELECT gibbonCourseID, gibbonDepartmentID, gibbonCourse.name AS name, gibbonCourse.nameShort as nameShort, orderBy, gibbonCourse.description, gibbonCourse.map, gibbonCourse.gibbonSchoolYearID, gibbonSchoolYear.name as yearName, gibbonYearGroupIDList, credits, weight, gibbonCourseIDParent FROM gibbonCourse, gibbonSchoolYear WHERE gibbonCourse.gibbonSchoolYearID=gibbonSchoolYear.gibbonSchoolYearID AND gibbonCourseID=:gibbonCourseID';
+            $sql = 'SELECT gibbonCourseID, gibbonDepartmentID, gibbonCourse.name AS name, gibbonCourse.nameShort as nameShort, orderBy, gibbonCourse.description, gibbonCourse.map, gibbonCourse.gibbonSchoolYearID, gibbonSchoolYear.name as yearName, gibbonYearGroupIDList, credits, weight, gibbonCourseIDParent, gibbonCourse.fields FROM gibbonCourse, gibbonSchoolYear WHERE gibbonCourse.gibbonSchoolYearID=gibbonSchoolYear.gibbonSchoolYearID AND gibbonCourseID=:gibbonCourseID';
             $result = $connection2->prepare($sql);
             $result->execute($data);
 
@@ -75,11 +72,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/course_man
             //Let's go!
             $values = $result->fetch();
 
-            $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/course_manage_editProcess.php?gibbonCourseID='.$gibbonCourseID);
+            $form = Form::create('action', $session->get('absoluteURL').'/modules/'.$session->get('module').'/course_manage_editProcess.php?gibbonCourseID='.$gibbonCourseID);
 			$form->setFactory(DatabaseFormFactory::create($pdo));
 
-			$form->addHiddenValue('address', $_SESSION[$guid]['address']);
+			$form->addHiddenValue('address', $session->get('address'));
 			$form->addHiddenValue('gibbonSchoolYearID', $values['gibbonSchoolYearID']);
+
+            $row = $form->addRow()->addHeading(__('Basic Details'));
 
 			$row = $form->addRow();
 				$row->addLabel('schoolYearName', __('School Year'));
@@ -102,6 +101,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/course_man
 				$row->addLabel('credits', __('Credits'))->description(__('For GPA calculations and transcripts.'));
 				$row->addNumber('credits')->maxLength(5)->decimalPlaces(2);
 
+            $row = $form->addRow()->addHeading(__('Display Information'));
+
 			$row = $form->addRow();
 				$row->addLabel('weight', __('Weight'))->description(__('For GPA calculations and transcripts.'));
                 $row->addNumber('weight')->maxLength(5)->decimalPlaces(2);
@@ -119,15 +120,20 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/course_man
 			$row = $form->addRow();
 				$column = $row->addColumn('blurb');
 				$column->addLabel('description', __('Blurb'));
-				$column->addEditor('description', $guid)->setRows(20);
+				$column->addEditor('description', $guid)->setRows(10);
 
 			$row = $form->addRow();
 				$row->addLabel('map', __('Include In Curriculum Map'));
                 $row->addYesNo('map')->required();
 
+            $row = $form->addRow()->addHeading(__('Configure'));
+
 			$row = $form->addRow();
 				$row->addLabel('gibbonYearGroupIDList', __('Year Groups'))->description(__('Enrolable year groups.'));
 				$row->addCheckboxYearGroup('gibbonYearGroupIDList')->loadFromCSV($values);
+
+            // Custom Fields
+            $container->get(CustomFieldHandler::class)->addCustomFieldsToForm($form, 'Course', [], $values['fields']);
 
 			$row = $form->addRow();
 				$row->addFooter();

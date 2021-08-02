@@ -31,16 +31,12 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/userSettings.ph
     //Proceed!
     $page->breadcrumbs->add(__('User Settings'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     echo '<h3>';
     echo __('Username Formats');
     echo '</h3>';
 
     echo "<div class='linkTop'>";
-    echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.$_SESSION[$guid]['module']."/userSettings_usernameFormat_add.php'>".__('Add')."<img style='margin-left: 5px' title='".__('Add')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/page_new.png'/></a>";
+    echo "<a href='".$session->get('absoluteURL').'/index.php?q=/modules/'.$session->get('module')."/userSettings_usernameFormat_add.php'>".__('Add')."<img style='margin-left: 5px' title='".__('Add')."' src='./themes/".$session->get('gibbonThemeName')."/img/page_new.png'/></a>";
     echo '</div>';
 
     $gateway = $container->get(UsernameFormatGateway::class);
@@ -71,9 +67,9 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/userSettings.ph
     echo __('Settings');
     echo '</h3>';
 
-    $form = Form::create('userSettings', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/userSettingsProcess.php');
+    $form = Form::create('userSettings', $session->get('absoluteURL').'/modules/'.$session->get('module').'/userSettingsProcess.php');
 
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+    $form->addHiddenValue('address', $session->get('address'));
 
     $row = $form->addRow()->addHeading(__('Field Values'));
 
@@ -88,11 +84,6 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/userSettings.ph
         $row->addTextArea($setting['name'])->setValue($setting['value']);
 
     $setting = getSettingByScope($connection2, 'User Admin', 'religions', true);
-    $row = $form->addRow();
-        $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
-        $row->addTextArea($setting['name'])->setValue($setting['value']);
-
-    $setting = getSettingByScope($connection2, 'User Admin', 'residencyStatus', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addTextArea($setting['name'])->setValue($setting['value']);

@@ -19,17 +19,17 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/inSettings.php';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/inSettings.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/inSettings.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
 } else {
     //Proceed!
-    $targetsTemplate = $_POST['targetsTemplate'];
-    $teachingStrategiesTemplate = $_POST['teachingStrategiesTemplate'];
-    $notesReviewTemplate = $_POST['notesReviewTemplate'];
-    $investigationNotificationRole = $_POST['investigationNotificationRole'];
+    $targetsTemplate = $_POST['targetsTemplate'] ?? '';
+    $teachingStrategiesTemplate = $_POST['teachingStrategiesTemplate'] ?? '';
+    $notesReviewTemplate = $_POST['notesReviewTemplate'] ?? '';
+    $investigationNotificationRole = $_POST['investigationNotificationRole'] ?? '';
 
     //Write to database
     $fail = false;

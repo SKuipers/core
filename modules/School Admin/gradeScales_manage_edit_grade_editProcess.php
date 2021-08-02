@@ -19,12 +19,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$gibbonScaleGradeID = $_GET['gibbonScaleGradeID'];
-$gibbonScaleID = $_GET['gibbonScaleID'];
+$gibbonScaleGradeID = $_GET['gibbonScaleGradeID'] ?? '';
+$gibbonScaleID = $_GET['gibbonScaleID'] ?? '';
 
 if ($gibbonScaleID == '') { echo 'Fatal error loading this page!';
 } else {
-    $URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/gradeScales_manage_edit_grade_edit.php&gibbonScaleID=$gibbonScaleID&gibbonScaleGradeID=$gibbonScaleGradeID";
+    $URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/gradeScales_manage_edit_grade_edit.php&gibbonScaleID=$gibbonScaleID&gibbonScaleGradeID=$gibbonScaleGradeID";
 
     if (isActionAccessible($guid, $connection2, '/modules/School Admin/gradeScales_manage_edit_grade_edit.php') == false) {
         $URL .= '&return=error0';
@@ -52,10 +52,10 @@ if ($gibbonScaleID == '') { echo 'Fatal error loading this page!';
                 header("Location: {$URL}");
             } else {
                 //Validate Inputs
-                $value = $_POST['value'];
-                $descriptor = $_POST['descriptor'];
-                $sequenceNumber = $_POST['sequenceNumber'];
-                $isDefault = $_POST['isDefault'];
+                $value = $_POST['value'] ?? '';
+                $descriptor = $_POST['descriptor'] ?? '';
+                $sequenceNumber = $_POST['sequenceNumber'] ?? '';
+                $isDefault = $_POST['isDefault'] ?? '';
 
                 if ($value == '' or $descriptor == '' or $sequenceNumber == '' or $isDefault == '') {
                     $URL .= '&return=error3';

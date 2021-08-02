@@ -17,14 +17,16 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Services\Format;
-use Gibbon\Domain\Staff\StaffAbsenceGateway;
-use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
-use Gibbon\Domain\Staff\StaffFacilityGateway;
-use Gibbon\Domain\Activities\ActivityGateway;
-use Gibbon\Tables\DataTable;
-use Gibbon\Domain\User\FamilyGateway;
 use Gibbon\Domain\DataSet;
+use Gibbon\Services\Format;
+use Gibbon\Tables\DataTable;
+use Gibbon\Forms\CustomFieldHandler;
+use Gibbon\Domain\User\FamilyGateway;
+use Gibbon\Domain\Staff\StaffAbsenceGateway;
+use Gibbon\Domain\Activities\ActivityGateway;
+use Gibbon\Domain\Staff\StaffFacilityGateway;
+use Gibbon\Domain\User\PersonalDocumentGateway;
+use Gibbon\Domain\Staff\StaffAbsenceDateGateway;
 
 //Module includes for User Admin (for custom fields)
 include './modules/User Admin/moduleFunctions.php';
@@ -69,15 +71,29 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
 
                     if ($search != '') {
                         echo "<div class='linkTop'>";
-                        echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/staff_view.php&search='.$search."'>".__('Back to Search Results').'</a>';
+                        echo "<a href='".$session->get('absoluteURL').'/index.php?q=/modules/Staff/staff_view.php&search='.$search."'>".__('Back to Search Results').'</a>';
                         echo '</div>';
                     }
 
-                    echo $page->fetchFromTemplate('profile/overview.twig.html', [
-                        'type' => 'Brief',
-                        'person' => $row,
-                        'staff' => $row,
-                    ]);
+                    // Overview
+                    $table = DataTable::createDetails('overview');
+
+                    $col = $table->addColumn('Basic Information');
+
+                    $col->addColumn('preferredName', __('Name'))
+                        ->format(Format::using('name', ['title', 'preferredName', 'surname', 'Parent']));
+                    $col->addColumn('type', __('Staff Type'));
+                    $col->addColumn('jobTitle', __('Job Title'));
+                    $col->addColumn('email', __('Email'))->format(Format::using('link', 'email'));
+                    $col->addColumn('website', __('Website'))->format(Format::using('link', 'website'));
+
+                    $col = $table->addColumn('Biography', __('Biography'));
+
+                    $col->addColumn('countryOfOrigin', __('Country Of Origin'));
+                    $col->addColumn('qualifications', __('Qualifications'))->addClass('col-span-2');
+                    $col->addColumn('biography', __('Biography'))->addClass('col-span-3');
+
+                    echo $table->render([$row]);
 
                     // Show Roll Group - Link to Details
                     if (isActionAccessible($guid, $connection2, '/modules/Roll Groups/rollGroups.php') == true) {
@@ -172,9 +188,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                 try {
                     $data = array('gibbonPersonID' => $gibbonPersonID);
                     if ($allStaff != 'on') {
-                        $sql = "SELECT gibbonPerson.*, gibbonStaff.initials, gibbonStaff.type, gibbonStaff.jobTitle, countryOfOrigin, qualifications, biography, gibbonStaff.gibbonStaffID, firstAidQualified, firstAidQualification, firstAidExpiry FROM gibbonPerson JOIN gibbonStaff ON (gibbonStaff.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE status='Full' AND (dateStart IS NULL OR dateStart<='".date('Y-m-d')."') AND (dateEnd IS NULL  OR dateEnd>='".date('Y-m-d')."') AND gibbonPerson.gibbonPersonID=:gibbonPersonID";
+                        $sql = "SELECT gibbonPerson.*, gibbonStaff.initials, gibbonStaff.type, gibbonStaff.jobTitle, countryOfOrigin, qualifications, biography, gibbonStaff.gibbonStaffID, firstAidQualified, firstAidQualification, firstAidExpiry, gibbonStaff.fields as fieldsStaff FROM gibbonPerson JOIN gibbonStaff ON (gibbonStaff.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE status='Full' AND (dateStart IS NULL OR dateStart<='".date('Y-m-d')."') AND (dateEnd IS NULL  OR dateEnd>='".date('Y-m-d')."') AND gibbonPerson.gibbonPersonID=:gibbonPersonID";
                     } else {
-                        $sql = 'SELECT gibbonPerson.*, gibbonStaff.initials, gibbonStaff.type, gibbonStaff.jobTitle, countryOfOrigin, qualifications, biography, gibbonStaff.gibbonStaffID, firstAidQualified, firstAidQualification, firstAidExpiry FROM gibbonPerson JOIN gibbonStaff ON (gibbonStaff.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonPerson.gibbonPersonID=:gibbonPersonID';
+                        $sql = 'SELECT gibbonPerson.*, gibbonStaff.initials, gibbonStaff.type, gibbonStaff.jobTitle, countryOfOrigin, qualifications, biography, gibbonStaff.gibbonStaffID, firstAidQualified, firstAidQualification, firstAidExpiry, gibbonStaff.fields as fieldsStaff FROM gibbonPerson JOIN gibbonStaff ON (gibbonStaff.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonPerson.gibbonPersonID=:gibbonPersonID';
                     }
                     $result = $connection2->prepare($sql);
                     $result->execute($data);
@@ -188,6 +204,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                     echo '</div>';
                 } else {
                     $row = $result->fetch();
+
+                    $customFieldHandler = $container->get(CustomFieldHandler::class);
 
                     $page->breadcrumbs
                         ->add(__('Staff Directory'), 'staff_view.php', ['search' => $search, 'allStaff' => $allStaff])
@@ -203,7 +221,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
 
                     if ($search != '') {
                         echo "<div class='linkTop'>";
-                        echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Staff/staff_view.php&search='.$search."'>".__('Back to Search Results').'</a>';
+                        echo "<a href='".$session->get('absoluteURL').'/index.php?q=/modules/Staff/staff_view.php&search='.$search."'>".__('Back to Search Results').'</a>';
                         echo '</div>';
                     }
 
@@ -214,15 +232,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                     echo '</h2>';
 
                     if ($subpage == 'Overview') {
-                        echo "<div class='linkTop'>";
-                        if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage.php') == true) {
-                            echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/User Admin/user_manage_edit.php&gibbonPersonID=$gibbonPersonID'>".__('Edit User')."<img style='margin: 0 0 -4px 5px' title='".__('Edit User')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/config.png'/></a> ";
-                        }
-                        if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage.php') == true) {
-                            echo " | <a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Staff/staff_manage_edit.php&gibbonStaffID=".$row['gibbonStaffID']."'>".__('Edit Staff')."<img style='margin: 0 0 -4px 5px' title='".__('Edit Staff')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/config.png'/></a> ";
-                        }
-                        echo '</div>';
-
                         // Display a message if the staff member is absent today.
                         $staffAbsenceGateway = $container->get(StaffAbsenceGateway::class);
                         $staffAbsenceDateGateway = $container->get(StaffAbsenceDateGateway::class);
@@ -249,12 +258,45 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                             echo Format::alert($absenceMessage, 'warning');
                         }
 
-                        // General Information
-                        echo $page->fetchFromTemplate('profile/overview.twig.html', [
-                            'type' => 'Full',
-                            'person' => $row,
-                            'staff' => $row,
-                        ]);
+                        // Overview
+                        $table = DataTable::createDetails('overview');
+
+                        if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage.php')) {
+                            $table->addHeaderAction('edit', __('Edit User'))
+                                ->setURL('/modules/User Admin/user_manage_edit.php')
+                                ->addParam('gibbonPersonID', $gibbonPersonID)
+                                ->displayLabel()
+                                ->append(' | ');
+                        }
+
+                        if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage.php')) {
+                            $table->addHeaderAction('edit2', __('Edit Staff'))
+                                ->setIcon('config')
+                                ->setURL('/modules/Staff/staff_manage_edit.php')
+                                ->addParam('gibbonStaffID', $row['gibbonStaffID'])
+                                ->displayLabel();
+                        }
+
+                        $col = $table->addColumn('Basic Information');
+
+                        $col->addColumn('preferredName', __('Name'))
+                            ->format(Format::using('name', ['title', 'preferredName', 'surname', 'Parent']));
+                        $col->addColumn('type', __('Staff Type'))->translatable();
+                        $col->addColumn('jobTitle', __('Job Title'));
+                        $col->addColumn('username', __('Username'));
+                        $col->addColumn('email', __('Email'))->format(Format::using('link', 'email'));
+                        $col->addColumn('website', __('Website'))->format(Format::using('link', 'website'));
+
+                        $col = $table->addColumn('Biography', __('Biography'));
+
+                        $col->addColumn('countryOfOrigin', __('Country Of Origin'));
+                        $col->addColumn('qualifications', __('Qualifications'))->addClass('col-span-2');
+                        $col->addColumn('biography', __('Biography'))->addClass('col-span-3');
+
+                        // Custom Fields
+                        $customFieldHandler->addCustomFieldsToTable($table, 'Staff', ['heading' => 'Other Information', 'withHeading' => ['Basic Information', 'Biography']], $row['fieldsStaff']);
+
+                        echo $table->render([$row]);
 
                         // Show Roll Group - Link to Details
                         if (isActionAccessible($guid, $connection2, '/modules/Roll Groups/rollGroups.php') == true) {
@@ -323,14 +365,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                         if (isActionAccessible($guid, $connection2, '/modules/Timetable/tt_view.php') == true) {
                             if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/courseEnrolment_manage_byPerson_edit.php') == true) {
                                 echo "<div class='linkTop'>";
-                                echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Timetable Admin/courseEnrolment_manage_byPerson_edit.php&gibbonPersonID=$gibbonPersonID&gibbonSchoolYearID=".$_SESSION[$guid]['gibbonSchoolYearID']."&type=Staff&allUsers='>".__('Edit')."<img style='margin: 0 0 -4px 5px' title='".__('Edit')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/config.png'/></a> ";
+                                echo "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/Timetable Admin/courseEnrolment_manage_byPerson_edit.php&gibbonPersonID=$gibbonPersonID&gibbonSchoolYearID=".$session->get('gibbonSchoolYearID')."&type=Staff&allUsers='>".__('Edit')."<img style='margin: 0 0 -4px 5px' title='".__('Edit')."' src='./themes/".$session->get('gibbonThemeName')."/img/config.png'/></a> ";
                                 echo '</div>';
                             }
 
                             include './modules/Timetable/moduleFunctions.php';
                             $ttDate = '';
                             if (isset($_POST['ttDate'])) {
-                                $ttDate = dateConvertToTimestamp(dateConvert($guid, $_POST['ttDate']));
+                                $ttDate = Format::timestamp(Format::dateConvert($_POST['ttDate']));
                             }
                             $gibbonTTID = null;
                             if (isset($_GET['gibbonTTID'])) {
@@ -346,26 +388,36 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                             }
                         }
                     } elseif ($subpage == 'Personal') {
-                        if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage.php') == true) {
-                            echo "<div class='linkTop'>";
-                            echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/User Admin/user_manage_edit.php&gibbonPersonID=$gibbonPersonID'>".__('Edit')."<img style='margin: 0 0 -4px 5px' title='".__('Edit')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/config.png'/></a> ";
-                            echo '</div>';
-                        }
-
                         $table = DataTable::createDetails('personal');
 
-                        $table->addColumn('preferredName', __('Name'))
+                        if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage.php')) {
+                            $table->addHeaderAction('edit', __('Edit User'))
+                                ->setURL('/modules/User Admin/user_manage_edit.php')
+                                ->addParam('gibbonPersonID', $gibbonPersonID)
+                                ->displayLabel()
+                                ->append(' | ');
+                        }
+
+                        if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage.php')) {
+                            $table->addHeaderAction('edit2', __('Edit Staff'))
+                                ->setIcon('config')
+                                ->setURL('/modules/Staff/staff_manage_edit.php')
+                                ->addParam('gibbonStaffID', $row['gibbonStaffID'])
+                                ->displayLabel();
+                        }
+
+                        $col = $table->addColumn('Basic Information');
+
+                        $col->addColumn('preferredName', __('Name'))
                             ->format(Format::using('name', ['title', 'preferredName', 'surname', 'Parent']));
-                        $table->addColumn('type', __('Staff Type'));
-                        $table->addColumn('jobTitle', __('Job Title'));
-                        $table->addColumn('initials', __('Initials'));
-                        $table->addColumn('gender', __('Gender'));
-                        $table->addColumn('initials', __('Initials'));
+                        $col->addColumn('type', __('Staff Type'))->translatable();
+                        $col->addColumn('jobTitle', __('Job Title'));
+                        $col->addColumn('initials', __('Initials'));
+                        $col->addColumn('gender', __('Gender'))
+                            ->format(Format::using('genderName', 'gender'));
+                        $col->addColumn('initials', __('Initials'));
 
-                        echo $table->render([$row]);
-
-                        $table = DataTable::createDetails('contacts');
-                        $table->setTitle(__('Contacts'));
+                        $col = $table->addColumn('Contacts', __('Contacts'));
 
                         $numberCount = 0;
                         $phones = 0;
@@ -379,17 +431,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                             for ($i = 1; $i < 5; ++$i) {
                                 if ($row['phone' . $i] != '') {
                                     ++$numberCount;
-                                    $table->addColumn('phone' . $i, __('Phone') . " $numberCount")
+                                    $col->addColumn('phone' . $i, __('Phone') . " $numberCount")
                                         ->width($width)
                                         ->format(Format::using('phone', ['phone' . $i, 'phone'.$i.'CountryCode', 'phone'.$i.'Type']));
                                 }
                             }
                         }
 
-                        $table->addColumn('email', __('Email'))
+                        $col->addColumn('email', __('Email'))
                             ->format(Format::using('link', ['mailto:' . $row['email'], 'email']));
 
-                        $table->addColumn('emailAlternate', __('Alternate Email'))
+                        $col->addColumn('emailAlternate', __('Alternate Email'))
                             ->format(function($row) {
                                 if ($row['emailAlternate'] != '') {
                                     return Format::link('mailto:' . $row['emailAlternate'], $row['emailAlternate']);
@@ -397,23 +449,20 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                                 return '';
                             });
 
-                        $table->addColumn('website', __('Website'))
+                        $col->addColumn('website', __('Website'))
                             ->format(Format::using('link', ['website', 'website']));
 
-                        echo $table->render([$row]);
 
+                        $col = $table->addColumn('First Aid', __('First Aid'));
 
-                        $table = DataTable::createDetails('firstAid');
-                        $table->setTitle(__('First Aid'));
-
-                        $table->addColumn('firstAidQualified', __('First Aid Qualified'))
+                        $col->addColumn('firstAidQualified', __('First Aid Qualified'))
                             ->addClass('grid')
                             ->format(Format::using('yesNo', 'firstAidQualified'));
                         if ($row["firstAidQualified"] == "Y") {
-                            $table->addColumn('firstAidQualification', __('First Aid Qualification'))
+                            $col->addColumn('firstAidQualification', __('First Aid Qualification'))
                                 ->addClass('grid')
                                 ->format(Format::using('truncate', 'firstAidQualification'));
-                            $table->addColumn('firstAidExpiry', __('Expiry Date'))
+                            $col->addColumn('firstAidExpiry', __('Expiry Date'))
                                 ->format(function($row) {
                                     $output = Format::date($row['firstAidExpiry']);
                                     if ($row['firstAidExpiry'] <= date('Y-m-d')) {
@@ -426,46 +475,26 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                                 });
                         }
 
+                        $col = $table->addColumn('Miscellaneous', __('Miscellaneous'));
+
+                        $col->addColumn('transport', __('Transport'));
+                        $col->addColumn('vehicleRegistration', __('Vehicle Registration'));
+                        $col->addColumn('lockerNumber', __('Locker Number'));
+
+                        // CUSTOM FIELDS
+                        $customFieldHandler->addCustomFieldsToTable($table, 'Staff', ['withoutHeading' => ['Biography']], $row['fieldsStaff']);
+                        $customFieldHandler->addCustomFieldsToTable($table, 'Person', ['staff' => 1], $row['fields']);
+
                         echo $table->render([$row]);
 
+                        // PERSONAL DOCUMENTS
+                        if ($highestActionManage == 'Manage Staff_confidential') {
+                            $params = ['staff' => true, 'notEmpty' => true];
+                            $documents = $container->get(PersonalDocumentGateway::class)->selectPersonalDocuments('gibbonPerson', $gibbonPersonID, $params)->fetchAll();
 
-                        $table = DataTable::createDetails("misc");
-                        $table->setTitle(__('Miscellaneous'));
-
-                        $table->addColumn('transport', __('Transport'));
-                        $table->addColumn('vehicleRegistration', __('Vehicle Registration'));
-                        $table->addColumn('lockerNumber', __('Locker Number'));
-
-                        echo $table->render([$row]);
-
-                        //Custom Fields
-                        $fields = json_decode($row['fields'], true);
-                        $resultFields = getCustomFields($connection2, $guid, false, true);
-                        if ($resultFields->rowCount() > 0) {
-                            echo '<h4>';
-                            echo __('Custom Fields');
-                            echo '</h4>';
-
-                            $table = DataTable::createDetails('custom');
-
-                            while ($rowFields = $resultFields->fetch()) {
-                                $table->addColumn($rowFields['name'], __($rowFields['name']))
-                                    ->format(function($row) use ($fields, $rowFields) {
-                                        if (isset($fields[$rowFields['gibbonPersonFieldID']])) {
-                                            if ($rowFields['type'] == 'date') {
-                                                return Format::date($fields[$rowFields['gibbonPersonFieldID']]);
-                                            } elseif ($rowFields['type'] == 'url') {
-                                                return "<a target='_blank' href='".$fields[$rowFields['gibbonPersonFieldID']]."'>".$fields[$rowFields['gibbonPersonFieldID']].'</a>';
-                                            } else {
-                                                return $fields[$rowFields['gibbonPersonFieldID']];
-                                            }
-                                        }
-                                        return '';
-                                    });
-                            }
-
-                            echo $table->render([$row]);
+                            echo $page->fetchFromTemplate('ui/personalDocuments.twig.html', ['documents' => $documents]);
                         }
+
                     } elseif ($subpage == 'Family') {
                         $familyGateway = $container->get(FamilyGateway::class);
 
@@ -510,7 +539,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                         else {
                             if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage.php') == true) {
                                 echo "<div class='linkTop'>";
-                                echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/User Admin/user_manage_edit.php&gibbonPersonID=$gibbonPersonID'>".__('Edit')."<img style='margin: 0 0 -4px 5px' title='".__('Edit')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/config.png'/></a> ";
+                                echo "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/User Admin/user_manage_edit.php&gibbonPersonID=$gibbonPersonID'>".__('Edit')."<img style='margin: 0 0 -4px 5px' title='".__('Edit')."' src='./themes/".$session->get('gibbonThemeName')."/img/config.png'/></a> ";
                                 echo '</div>';
                             }
 
@@ -556,10 +585,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                                                 } elseif ($rowMember['gender'] == 'F') {
                                                     echo __('Mother');
                                                 } else {
-                                                    echo $rowMember['role'];
+                                                    echo __($rowMember['role']);
                                                 }
                                             } else {
-                                                echo $rowMember['role'];
+                                                echo __($rowMember['role']);
                                             }
                                         });
 
@@ -590,7 +619,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                                 $table->addColumn($emergency . 'Name', __('Contact ' . $i))
                                     ->format(function($row) use ($emergency) {
                                         if ($row[$emergency . 'Relationship'] != '') {
-                                            return $row[$emergency . 'Name'] . ' (' . $row[$emergency . 'Relationship'] . ')';
+                                            return $row[$emergency . 'Name'] . ' (' . __($row[$emergency . 'Relationship']) . ')';
                                         }
                                         return $row[$emergency . 'Name'];
                                     });
@@ -613,7 +642,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                             ->sortBy('name')
                             ->fromArray($_POST);
 
-                        $activities = $activityGateway->queryActivitiesByParticipant($criteria, $_SESSION[$guid]['gibbonSchoolYearID'], $gibbonPersonID);
+                        $activities = $activityGateway->queryActivitiesByParticipant($criteria, $session->get('gibbonSchoolYearID'), $gibbonPersonID);
 
                         // DATA TABLE
                         $table = DataTable::createPaginated('myActivities', $criteria);
@@ -624,12 +653,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                             });
                         $table->addColumn('role', __('Role'))
                             ->format(function ($activity) {
-                                return !empty($activity['role']) ? $activity['role'] : __('Student');
+                                return !empty($activity['role']) ? __($activity['role']) : __('Student');
                             });
 
                         $table->addColumn('status', __('Status'))
                             ->format(function ($activity) {
-                                return !empty($activity['status']) ? $activity['status'] : '<i>'.__('N/A').'</i>';
+                                return !empty($activity['status']) ? __($activity['status']) : '<i>'.__('N/A').'</i>';
                             });
 
                         $table->addActionColumn()
@@ -665,14 +694,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                         } else {
                             if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/courseEnrolment_manage_byPerson_edit.php') == true) {
                                 echo "<div class='linkTop'>";
-                                echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Timetable Admin/courseEnrolment_manage_byPerson_edit.php&gibbonPersonID=$gibbonPersonID&gibbonSchoolYearID=".$_SESSION[$guid]['gibbonSchoolYearID']."&type=Staff&allUsers='>".__('Edit')."<img style='margin: 0 0 -4px 5px' title='".__('Edit')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/config.png'/></a> ";
+                                echo "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/Timetable Admin/courseEnrolment_manage_byPerson_edit.php&gibbonPersonID=$gibbonPersonID&gibbonSchoolYearID=".$session->get('gibbonSchoolYearID')."&type=Staff&allUsers='>".__('Edit')."<img style='margin: 0 0 -4px 5px' title='".__('Edit')."' src='./themes/".$session->get('gibbonThemeName')."/img/config.png'/></a> ";
                                 echo '</div>';
                             }
 
                             include './modules/Timetable/moduleFunctions.php';
                             $ttDate = '';
                             if (isset($_POST['ttDate'])) {
-                                $ttDate = dateConvertToTimestamp(dateConvert($guid, $_POST['ttDate']));
+                                $ttDate = Format::timestamp(Format::dateConvert($_POST['ttDate']));
                             }
                             $gibbonTTID = null;
                             if (isset($_GET['gibbonTTID'])) {

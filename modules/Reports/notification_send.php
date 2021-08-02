@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
+use Gibbon\Services\Format;
 use Gibbon\Module\Reports\Domain\ReportingCycleGateway;
 use Gibbon\Module\Reports\Domain\ReportingProofGateway;
 use Gibbon\Module\Reports\Domain\ReportArchiveEntryGateway;
@@ -29,10 +30,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/notification_send.
     // Proceed!
     $page->breadcrumbs->add(__('Send Notifications'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     $step = $_POST['step'] ?? 1;
     $gibbonSchoolYearID = $gibbon->session->get('gibbonSchoolYearID');
     $reportingCycleGateway = $container->get(ReportingCycleGateway::class);
@@ -42,10 +39,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/notification_send.
         $page->addMessage(__('There are no active reporting cycles.'));
         return;
     }
-    
+
     if ($step == 1) {
         // STEP 1
-        $form = Form::create('notificationSend', $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Reports/notification_send.php');
+        $form = Form::create('notificationSend', $session->get('absoluteURL').'/index.php?q=/modules/Reports/notification_send.php');
         $form->addHiddenValue('address', $gibbon->session->get('address'));
         $form->addHiddenValue('step', 2);
 
@@ -63,7 +60,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/notification_send.
                 ->placeholder()
                 ->selected($_POST['type'] ?? '');
 
-        
+
         $row = $form->addRow();
             $row->addLabel('gibbonReportingCycleIDList', __('Reporting Cycle'));
             $row->addSelect('gibbonReportingCycleIDList')
@@ -87,10 +84,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/notification_send.
 
         $notificationCount = 0;
         $notificationText = '';
+        $notificationList = '';
 
         if ($type == 'proofReadingEdits') {
-            $edits = $container->get(ReportingProofGateway::class)->selectPendingProofReadingEdits($gibbonReportingCycleIDList)->fetchGrouped();
+            $edits = $container->get(ReportingProofGateway::class)->selectPendingProofReadingEdits($gibbonReportingCycleIDList)->fetchGroupedUnique();
+
             $notificationCount = count($edits);
+            $notificationList = '<details><ul><li>'.Format::nameList($edits, 'Staff', false, true, '</li><li>').'</li></ul></details>';
             $notificationText = __('There are {count} pending edits for your reports. Please visit the Proof Read page to view these and complete your reporting comments.');
         } elseif ($type == 'reportsAvailable') {
             $parents = $container->get(ReportArchiveEntryGateway::class)->selectParentArchiveAccessByReportingCycle($gibbonReportingCycleIDList)->fetchAll();
@@ -99,14 +99,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/notification_send.
         }
 
         // FORM
-        $form = Form::create('notificationSend', $_SESSION[$guid]['absoluteURL'].'/modules/Reports/notification_sendProcess.php');
+        $form = Form::create('notificationSend', $session->get('absoluteURL').'/modules/Reports/notification_sendProcess.php');
         $form->addHiddenValue('address', $gibbon->session->get('address'));
         $form->addHiddenValue('type', $type);
         $form->addHiddenValue('gibbonReportingCycleIDList', implode(',', $gibbonReportingCycleIDList));
 
         $form->addRow()->addHeading(__('Step 2'));
 
-        $form->addRow()->addAlert(__('This action will send the following notification to {count} users.', ['count' => '<b>'.$notificationCount.'</b>']), 'message');
+        $form->addRow()->addAlert(__('This action will send the following notification to {count} users.', ['count' => '<b>'.$notificationCount.'</b>']).$notificationList, 'message');
 
         $col = $form->addRow()->addColumn();
             $col->addLabel('notificationText', __('Notification'));

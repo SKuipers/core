@@ -19,10 +19,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$gibbonApplicationFormID = $_GET['gibbonApplicationFormID'];
-$gibbonSchoolYearID = $_GET['gibbonSchoolYearID'];
-$search = isset($_GET['search'])? $_GET['search'] : '';
-$URL = $_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Students/applicationForm_manage_edit.php&gibbonApplicationFormID=$gibbonApplicationFormID&gibbonSchoolYearID=$gibbonSchoolYearID&search=$search";
+$gibbonApplicationFormID = $_GET['gibbonApplicationFormID'] ?? '';
+$gibbonSchoolYearID = $_GET['gibbonSchoolYearID'] ?? '';
+$search = $_GET['search'] ?? '';
+$URL = $session->get('absoluteURL')."/index.php?q=/modules/Students/applicationForm_manage_edit.php&gibbonApplicationFormID=$gibbonApplicationFormID&gibbonSchoolYearID=$gibbonSchoolYearID&search=$search";
 
 if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_manage_delete.php') == false) {
     $URL .= '&return=error0';

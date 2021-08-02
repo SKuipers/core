@@ -28,9 +28,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/permission_mana
 
     $returns = array();
     $returns['error3'] = sprintf(__('Your PHP environment cannot handle all of the fields in this form (the current limit is %1$s). Ask your web host or system administrator to increase the value of the max_input_vars in php.ini.'), ini_get('max_input_vars'));
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, $returns);
-    }
+    $page->return->addReturns($returns);
 
     echo '<h2>';
     echo __('Filter');
@@ -39,10 +37,10 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/permission_mana
     $gibbonModuleID = isset($_GET['gibbonModuleID'])? $_GET['gibbonModuleID'] : '';
     $gibbonRoleID = isset($_GET['gibbonRoleID'])? $_GET['gibbonRoleID'] : '';
 
-    $form = Form::create('filter', $_SESSION[$guid]['absoluteURL'].'/index.php', 'get');
+    $form = Form::create('filter', $session->get('absoluteURL').'/index.php', 'get');
     $form->setClass('noIntBorder fullWidth');
 
-    $form->addHiddenValue('q', '/modules/'.$_SESSION[$guid]['module'].'/permission_manage.php');
+    $form->addHiddenValue('q', '/modules/'.$session->get('module').'/permission_manage.php');
 
     $sql = "SELECT gibbonModuleID as value, name FROM gibbonModule WHERE active='Y' ORDER BY name";
     $row = $form->addRow();
@@ -104,9 +102,9 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/permission_mana
         $permissionsArray = ($resultPermissions->rowCount() > 0)? $resultPermissions->fetchAll() : array();
         $totalCount = 0;
 
-        $form = Form::create('permissions', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/permission_manageProcess.php');
+        $form = Form::create('permissions', $session->get('absoluteURL').'/modules/'.$session->get('module').'/permission_manageProcess.php');
         $form->setClass('w-full blank overflow-x-auto');
-        $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+        $form->addHiddenValue('address', $session->get('address'));
         $form->addHiddenValue('gibbonModuleID', $gibbonModuleID);
         $form->addHiddenValue('gibbonRoleID', $gibbonRoleID);
 

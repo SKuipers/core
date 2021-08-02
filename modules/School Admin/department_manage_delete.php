@@ -29,10 +29,6 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/department_ma
     echo '</div>';
 } else {
     //Proceed!
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     //Check if school year specified
     $gibbonDepartmentID = $_GET['gibbonDepartmentID'];
     if ($gibbonDepartmentID == '') {
@@ -49,7 +45,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/department_ma
             echo __('The selected record does not exist, or you do not have access to it.');
             echo '</div>';
         } else {
-            $form = DeleteForm::createForm($_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/department_manage_deleteProcess.php?gibbonDepartmentID=$gibbonDepartmentID", true);
+            $form = DeleteForm::createForm($session->get('absoluteURL').'/modules/'.$session->get('module')."/department_manage_deleteProcess.php?gibbonDepartmentID=$gibbonDepartmentID", true);
             echo $form->getOutput();
         }
     }

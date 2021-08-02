@@ -17,12 +17,14 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\User\PersonalDocumentGateway;
+
 include '../../gibbon.php';
 
-$gibbonSchoolYearID = isset($_POST['gibbonSchoolYearID'])? $_POST['gibbonSchoolYearID'] : $_SESSION[$guid]['gibbonSchoolYearID'];
+$gibbonSchoolYearID = isset($_POST['gibbonSchoolYearID'])? $_POST['gibbonSchoolYearID'] : $session->get('gibbonSchoolYearID');
 $gibbonPersonUpdateID = $_POST['gibbonPersonUpdateID'];
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/data_personal_manage_delete.php&gibbonPersonUpdateID=$gibbonPersonUpdateID&gibbonSchoolYearID=$gibbonSchoolYearID";
-$URLDelete = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/data_personal_manage.php&gibbonSchoolYearID='.$gibbonSchoolYearID;
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/data_personal_manage_delete.php&gibbonPersonUpdateID=$gibbonPersonUpdateID&gibbonSchoolYearID=$gibbonSchoolYearID";
+$URLDelete = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/data_personal_manage.php&gibbonSchoolYearID='.$gibbonSchoolYearID;
 
 if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal_manage_delete.php') == false) {
     $URL .= '&return=error0';
@@ -59,6 +61,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
                 header("Location: {$URL}");
                 exit();
             }
+
+            // Personal Documents
+            $container->get(PersonalDocumentGateway::class)->deletePersonalDocuments('gibbonPersonUpdate', $gibbonPersonUpdateID);
 
             $URLDelete = $URLDelete.'&return=success0';
             header("Location: {$URLDelete}");

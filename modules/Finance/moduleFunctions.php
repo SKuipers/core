@@ -104,7 +104,7 @@ function getPaymentLog($connection2, $guid, $foreignTable, $foreignTableID, $gib
                 //COLOR ROW BY STATUS!
                 $return .= "<tr class=$rowNum>";
                 $return .= '<td>';
-                $return .= dateConvertBack($guid, substr($row['timestamp'], 0, 10));
+                $return .= Format::date(substr($row['timestamp'], 0, 10));
                 $return .= '</td>';
                 $return .= '<td>';
                 $return .= __($row['status']);
@@ -157,10 +157,8 @@ function setPaymentLog($connection2, $guid, $foreignTable, $foreignTableID, $typ
     if ($timestamp == null) {
         $timestamp = date('Y-m-d H:i:s');
     }
-    $gibbonPersonID = null;
-    if (isset($_SESSION[$guid]['gibbonPersonID'])) {
-        $gibbonPersonID = $_SESSION[$guid]['gibbonPersonID'];
-    }
+    $gibbonPersonID = !empty($_SESSION[$guid]['gibbonPersonID']) ? $_SESSION[$guid]['gibbonPersonID'] : null;
+
     try {
         $data = array('foreignTable' => $foreignTable, 'foreignTableID' => $foreignTableID, 'gibbonPersonID' => $gibbonPersonID, 'type' => $type, 'status' => $status, 'amount' => $amount, 'gateway' => $gateway, 'onlineTransactionStatus' => $onlineTransactionStatus, 'paymentToken' => $paymentToken, 'paymentPayerID' => $paymentPayerID, 'paymentTransactionID' => $paymentTransactionID, 'paymentReceiptID' => $paymentReceiptID, 'timestamp' => $timestamp);
         $sql = 'INSERT INTO gibbonPayment SET foreignTable=:foreignTable, foreignTableID=:foreignTableID, gibbonPersonID=:gibbonPersonID, type=:type, status=:status, amount=:amount, gateway=:gateway, onlineTransactionStatus=:onlineTransactionStatus, paymentToken=:paymentToken, paymentPayerID=:paymentPayerID, paymentTransactionID=:paymentTransactionID, paymentReceiptID=:paymentReceiptID, timestamp=:timestamp';
@@ -695,7 +693,7 @@ function makeFeeBlock($guid, $connection2, $i, $mode = 'add', $feeType, $gibbonF
 						<script type="text/javascript">
 							var fee<?php echo $i ?>=new LiveValidation('fee<?php echo $i ?>');
 							fee<?php echo $i ?>.add(Validate.Presence);
-							fee<?php echo $i ?>.add( Validate.Format, { pattern: /^-?[0-9]{1,13}(?:\.[0-9]{1,2})?$/, failureMessage: "Invalid number format!" } );
+							fee<?php echo $i ?>.add( Validate.Format, { pattern: /^-?[0-9]{1,13}(?:\.[0-9]{1,2})?$/, failureMessage: "<?php echo __('Invalid number format!'); ?>" } );
 						</script>
 					</td>
 					<td style='text-align: right; width: 30%'>
@@ -745,7 +743,7 @@ function invoiceContents($guid, $connection2, $gibbonFinanceInvoiceID, $gibbonSc
 
     try {
         $data = array('gibbonSchoolYearID' => $gibbonSchoolYearID, 'gibbonSchoolYearID2' => $gibbonSchoolYearID, 'gibbonFinanceInvoiceID' => $gibbonFinanceInvoiceID);
-        $sql = 'SELECT gibbonPerson.gibbonPersonID, studentID, officialName, surname, preferredName, gibbonFinanceInvoice.*, companyContact, companyEmail, companyName, companyAddress, gibbonRollGroup.name AS rollgroup FROM gibbonFinanceInvoice JOIN gibbonFinanceInvoicee ON (gibbonFinanceInvoice.gibbonFinanceInvoiceeID=gibbonFinanceInvoicee.gibbonFinanceInvoiceeID) JOIN gibbonPerson ON (gibbonFinanceInvoicee.gibbonPersonID=gibbonPerson.gibbonPersonID) JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID) JOIN gibbonRollGroup ON (gibbonStudentEnrolment.gibbonRollGroupID=gibbonRollGroup.gibbonRollGroupID) WHERE gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID2 AND gibbonFinanceInvoice.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonFinanceInvoiceID=:gibbonFinanceInvoiceID';
+        $sql = 'SELECT gibbonPerson.gibbonPersonID, studentID, officialName, surname, preferredName, gibbonFinanceInvoice.*, companyContact, companyEmail, companyName, companyAddress, gibbonFormGroup.name AS formGroup FROM gibbonFinanceInvoice JOIN gibbonFinanceInvoicee ON (gibbonFinanceInvoice.gibbonFinanceInvoiceeID=gibbonFinanceInvoicee.gibbonFinanceInvoiceeID) JOIN gibbonPerson ON (gibbonFinanceInvoicee.gibbonPersonID=gibbonPerson.gibbonPersonID) JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID) JOIN gibbonFormGroup ON (gibbonStudentEnrolment.gibbonFormGroupID=gibbonFormGroup.gibbonFormGroupID) WHERE gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID2 AND gibbonFinanceInvoice.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonFinanceInvoiceID=:gibbonFinanceInvoiceID';
         $result = $connection2->prepare($sql);
         $result->execute($data);
     } catch (PDOException $e) {
@@ -843,10 +841,10 @@ function invoiceContents($guid, $connection2, $gibbonFinanceInvoiceID, $gibbonSc
         $return .= "<td style='width: 33%; padding-top: 15px; padding-left: 10px; vertical-align: top; $style $style4'>";
         $return .= "<span style='font-size: 115%; font-weight: bold'>".__('Fees For').'</span><br/>';
         if ($invoiceeNameStyle =='Official Name') {
-            $return .= htmlPrep($row['officialName'])."<br/><span style='font-style: italic; font-size: 85%'>".__('Roll Group').': '.$row['rollgroup'].'</span><br/>';
+            $return .= htmlPrep($row['officialName'])."<br/><span style='font-style: italic; font-size: 85%'>".__('Form Group').': '.$row['formGroup'].'</span><br/>';
         }
         else {
-            $return .= Format::name('', htmlPrep($row['preferredName']), htmlPrep($row['surname']), 'Student', true)."<br/><span style='font-style: italic; font-size: 85%'>".__('Roll Group').': '.$row['rollgroup'].'</span><br/>';
+            $return .= Format::name('', htmlPrep($row['preferredName']), htmlPrep($row['surname']), 'Student', true)."<br/><span style='font-style: italic; font-size: 85%'>".__('Form Group').': '.$row['formGroup'].'</span><br/>';
         }
         if ($row['studentID'] != '') {
             $return .= "<div style='font-size: 115%; font-weight: bold; margin-top: 10px'>".__('Student ID')."</div>";
@@ -880,11 +878,11 @@ function invoiceContents($guid, $connection2, $gibbonFinanceInvoiceID, $gibbonSc
         $return .= '<tr>';
         $return .= "<td style='width: 33%; padding-top: 15px; padding-left: 10px; vertical-align: top; $style $style2 $style3'>";
         $return .= "<span style='font-size: 115%; font-weight: bold'>".__('Invoice Issue Date').'</span><br/>';
-        $return .= dateConvertBack($guid, $row['invoiceIssueDate']);
+        $return .= Format::date($row['invoiceIssueDate']);
         $return .= '</td>';
         $return .= "<td style='width: 33%; padding-top: 15px; vertical-align: top; $style $style2 $style3'>";
         $return .= "<span style='font-size: 115%; font-weight: bold'>".__('Due Date').'</span><br/>';
-        $return .= dateConvertBack($guid, $row['invoiceDueDate']);
+        $return .= Format::date($row['invoiceDueDate']);
         $return .= '</td>';
         $return .= "<td style='width: 33%; padding-top: 15px; vertical-align: top; $style $style2 $style3'>";
         $return .= "<span style='font-size: 115%; font-weight: bold'>".__('Invoice Number').'</span><br/>';
@@ -1079,7 +1077,7 @@ function receiptContents($guid, $connection2, $gibbonFinanceInvoiceID, $gibbonSc
 
     try {
         $data = array('gibbonSchoolYearID' => $gibbonSchoolYearID, 'gibbonSchoolYearID2' => $gibbonSchoolYearID, 'gibbonFinanceInvoiceID' => $gibbonFinanceInvoiceID);
-        $sql = 'SELECT gibbonPerson.gibbonPersonID, studentID, officialName, surname, preferredName, gibbonFinanceInvoice.*, companyContact, companyEmail, companyName, companyAddress, gibbonRollGroup.name AS rollgroup FROM gibbonFinanceInvoice JOIN gibbonFinanceInvoicee ON (gibbonFinanceInvoice.gibbonFinanceInvoiceeID=gibbonFinanceInvoicee.gibbonFinanceInvoiceeID) JOIN gibbonPerson ON (gibbonFinanceInvoicee.gibbonPersonID=gibbonPerson.gibbonPersonID) JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID) JOIN gibbonRollGroup ON (gibbonStudentEnrolment.gibbonRollGroupID=gibbonRollGroup.gibbonRollGroupID) WHERE gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID2 AND gibbonFinanceInvoice.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonFinanceInvoiceID=:gibbonFinanceInvoiceID';
+        $sql = 'SELECT gibbonPerson.gibbonPersonID, studentID, officialName, surname, preferredName, gibbonFinanceInvoice.*, companyContact, companyEmail, companyName, companyAddress, gibbonFormGroup.name AS formGroup FROM gibbonFinanceInvoice JOIN gibbonFinanceInvoicee ON (gibbonFinanceInvoice.gibbonFinanceInvoiceeID=gibbonFinanceInvoicee.gibbonFinanceInvoiceeID) JOIN gibbonPerson ON (gibbonFinanceInvoicee.gibbonPersonID=gibbonPerson.gibbonPersonID) JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID) JOIN gibbonFormGroup ON (gibbonStudentEnrolment.gibbonFormGroupID=gibbonFormGroup.gibbonFormGroupID) WHERE gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID2 AND gibbonFinanceInvoice.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonFinanceInvoiceID=:gibbonFinanceInvoiceID';
         $result = $connection2->prepare($sql);
         $result->execute($data);
     } catch (PDOException $e) {
@@ -1177,10 +1175,10 @@ function receiptContents($guid, $connection2, $gibbonFinanceInvoiceID, $gibbonSc
         $return .= "<td style='width: 33%; padding-top: 15px; padding-left: 10px; vertical-align: top; $style $style4'>";
         $return .= "<span style='font-size: 115%; font-weight: bold'>".__('Fees For').'</span><br/>';
         if ($invoiceeNameStyle =='Official Name') {
-            $return .= htmlPrep($row['officialName'])."<br/><span style='font-style: italic; font-size: 85%'>".__('Roll Group').': '.$row['rollgroup'].'</span><br/>';
+            $return .= htmlPrep($row['officialName'])."<br/><span style='font-style: italic; font-size: 85%'>".__('Form Group').': '.$row['formGroup'].'</span><br/>';
         }
         else {
-            $return .= Format::name('', htmlPrep($row['preferredName']), htmlPrep($row['surname']), 'Student', true)."<br/><span style='font-style: italic; font-size: 85%'>".__('Roll Group').': '.$row['rollgroup'].'</span><br/>';
+            $return .= Format::name('', htmlPrep($row['preferredName']), htmlPrep($row['surname']), 'Student', true)."<br/><span style='font-style: italic; font-size: 85%'>".__('Form Group').': '.$row['formGroup'].'</span><br/>';
         }
         if ($row['studentID'] != '') {
             $return .= "<div style='font-size: 115%; font-weight: bold; margin-top: 10px'>".__('Student ID')."</div>";
@@ -1241,11 +1239,11 @@ function receiptContents($guid, $connection2, $gibbonFinanceInvoiceID, $gibbonSc
         $return .= '<tr>';
         $return .= "<td style='width: 33%; padding-top: 15px; padding-left: 10px; vertical-align: top; $style $style2 $style3'>";
         $return .= "<span style='font-size: 115%; font-weight: bold'>".__('Due Date').'</span><br/>';
-        $return .= dateConvertBack($guid, $row['invoiceDueDate']);
+        $return .= Format::date($row['invoiceDueDate']);
         $return .= '</td>';
         $return .= "<td style='width: 33%; padding-top: 15px; vertical-align: top; $style $style2 $style3'>";
         $return .= "<span style='font-size: 115%; font-weight: bold'>".__('Date Paid').'</span><br/>';
-        $return .= dateConvertBack($guid, $row['paidDate']);
+        $return .= Format::date($row['paidDate']);
         $return .= '</td>';
         $return .= "<td style='width: 33%; padding-top: 15px; vertical-align: top; $style $style2 $style3'>";
         $return .= "<span style='font-size: 115%; font-weight: bold'>".__('Invoice Number').'</span><br/>';

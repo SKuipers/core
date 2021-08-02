@@ -51,7 +51,7 @@ class GenerateReportProcess extends BackgroundProcess implements ContainerAwareI
         $this->absolutePath = $settingGateway->getSettingByScope('System', 'absolutePath');
     }
 
-    public function runReportBatch($gibbonReportID, $contexts = [], $status = 'Draft', $gibbonPersonID = null)
+    public function runReportBatch($gibbonReportID, $contexts = [], $options = [], $gibbonPersonID = null)
     {
         ini_set('error_reporting', E_ALL & ~E_NOTICE & ~E_STRICT & ~E_DEPRECATED);
         
@@ -74,13 +74,16 @@ class GenerateReportProcess extends BackgroundProcess implements ContainerAwareI
         $archive = $this->container->get(ReportArchiveGateway::class)->getByID($report['gibbonReportArchiveID']);
         $archiveFile = $this->container->get(ArchiveFile::class);
 
-        $template = $reportBuilder->buildTemplate($report['gibbonReportTemplateID'], $status == 'Draft');
+        $template = $reportBuilder->buildTemplate($report['gibbonReportTemplateID'], $options['status'] == 'Draft');
 
         foreach ($contexts as $contextData) {
             $reports = $reportBuilder->buildReportBatch($template, $report, $contextData);
 
             $renderer = $this->container->get($template->getData('flags') == 1 ? MpdfRenderer::class : TcpdfRenderer::class);
-            $renderer->setMode(ReportRendererInterface::OUTPUT_CONTINUOUS | ReportRendererInterface::OUTPUT_TWO_SIDED);
+            $renderer->setMode($options['twoSided'] == 'Y'
+                ? ReportRendererInterface::OUTPUT_CONTINUOUS | ReportRendererInterface::OUTPUT_TWO_SIDED
+                : ReportRendererInterface::OUTPUT_CONTINUOUS
+            );
 
             if (stripos($report['name'], 'Secondary') !== false) {
                 $processor = $this->container->get(ReportProcessor::class);
@@ -100,9 +103,9 @@ class GenerateReportProcess extends BackgroundProcess implements ContainerAwareI
                 'gibbonSchoolYearID'    => $report['gibbonSchoolYearID'],
                 'gibbonYearGroupID'     => $contextData,
                 'type'                  => 'Batch',
-                'status'                => $status,
+                'status'                => $options['status'],
                 'filePath'              => $path,
-            ], ['status' => $status, 'timestampModified' => date('Y-m-d H:i:s')]);
+            ], ['status' => $options['status'], 'timestampModified' => date('Y-m-d H:i:s')]);
 
             // Create reports for each student
             foreach ($reports as $studentReport) {
@@ -120,12 +123,12 @@ class GenerateReportProcess extends BackgroundProcess implements ContainerAwareI
                         'gibbonReportArchiveID' => $report['gibbonReportArchiveID'],
                         'gibbonSchoolYearID'    => $student['gibbonSchoolYearID'],
                         'gibbonYearGroupID'     => $student['gibbonYearGroupID'],
-                        'gibbonRollGroupID'     => $student['gibbonRollGroupID'],
+                        'gibbonFormGroupID'     => $student['gibbonFormGroupID'],
                         'gibbonPersonID'        => $student['gibbonPersonID'],
                         'type'                  => 'Single',
-                        'status'                => $status,
+                        'status'                => $options['status'],
                         'filePath'              => $path,
-                    ], ['status' => $status, 'timestampModified' => date('Y-m-d H:i:s'), 'filePath' => $path]);
+                    ], ['status' => $options['status'], 'timestampModified' => date('Y-m-d H:i:s'), 'filePath' => $path]);
                 }
             }
         }

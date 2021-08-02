@@ -32,10 +32,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/in_summar
 } else {
     $page->breadcrumbs->add(__('Individual Needs Summary'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return']);
-    }
-
     $gibbonINDescriptorID = null;
     if (isset($_GET['gibbonINDescriptorID'])) {
         $gibbonINDescriptorID = $_GET['gibbonINDescriptorID'];
@@ -44,9 +40,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/in_summar
     if (isset($_GET['gibbonAlertLevelID'])) {
         $gibbonAlertLevelID = $_GET['gibbonAlertLevelID'];
     }
-    $gibbonRollGroupID = null;
-    if (isset($_GET['gibbonRollGroupID'])) {
-        $gibbonRollGroupID = $_GET['gibbonRollGroupID'];
+    $gibbonFormGroupID = null;
+    if (isset($_GET['gibbonFormGroupID'])) {
+        $gibbonFormGroupID = $_GET['gibbonFormGroupID'];
     }
     $gibbonYearGroupID = null;
     if (isset($_GET['gibbonYearGroupID'])) {
@@ -57,12 +53,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/in_summar
     echo __('Filter');
     echo '</h3>';
 
-    $form = Form::create('filter', $_SESSION[$guid]['absoluteURL'].'/index.php', 'get');
+    $form = Form::create('filter', $session->get('absoluteURL').'/index.php', 'get');
     $form->setClass('noIntBorder fullWidth standardForm');
     $form->setFactory(DatabaseFormFactory::create($pdo));
-    
+
     $form->addHiddenValue('q', '/modules/Individual Needs/in_summary.php');
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+    $form->addHiddenValue('address', $session->get('address'));
 
     //SELECT FROM ARRAY
     $sql = "SELECT gibbonINDescriptorID as value, name FROM gibbonINDescriptor ORDER BY sequenceNumber";
@@ -76,16 +72,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/in_summar
         $row->addSelect('gibbonAlertLevelID')->fromQuery($pdo, $sql)->selected($gibbonAlertLevelID)->placeholder();
 
     $row = $form->addRow();
-        $row->addLabel('gibbonRollGroupID', __('Roll Group'));
-        $row->addSelectRollGroup('gibbonRollGroupID', $_SESSION[$guid]['gibbonSchoolYearID'])->selected($gibbonRollGroupID)->placeholder();
-    
+        $row->addLabel('gibbonFormGroupID', __('Form Group'));
+        $row->addSelectFormGroup('gibbonFormGroupID', $session->get('gibbonSchoolYearID'))->selected($gibbonFormGroupID)->placeholder();
+
     $row = $form->addRow();
         $row->addLabel('gibbonYearGroupID', __('Year Group'));
         $row->addSelectYearGroup('gibbonYearGroupID')->selected($gibbonYearGroupID)->placeholder();
-    
+
     $row = $form->addRow();
         $row->addSearchSubmit($gibbon->session, __('Clear Filters'));
-        
+
     echo $form->getOutput();
 
     echo '<h3>';
@@ -101,11 +97,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/in_summar
         ->sortBy(['surname', 'preferredName'])
         ->filterBy('descriptor', $gibbonINDescriptorID)
         ->filterBy('alert', $gibbonAlertLevelID)
-        ->filterBy('rollGroup', $gibbonRollGroupID)
+        ->filterBy('formGroup', $gibbonFormGroupID)
         ->filterBy('yearGroup', $gibbonYearGroupID)
         ->fromPOST();
 
-    $individualNeeds = $individualNeedsGateway->queryINBySchoolYear($criteria, $_SESSION[$guid]['gibbonSchoolYearID']);
+    $individualNeeds = $individualNeedsGateway->queryINBySchoolYear($criteria, $session->get('gibbonSchoolYearID'));
 
     // DATA TABLE
     $table = DataTable::createPaginated('inSummary', $criteria);
@@ -128,13 +124,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/in_summar
         ->sortable(['surname', 'preferredName'])
         ->format(Format::using('nameLinked', ['gibbonPersonID', '', 'preferredName', 'surname', 'Student', true, false, ['subpage' => 'Individual Needs']]));
     $table->addColumn('yearGroup', __('Year Group'));
-    $table->addColumn('rollGroup', __('Roll Group'));
+    $table->addColumn('formGroup', __('Form Group'));
 
     $table->addActionColumn()
         ->addParam('gibbonPersonID')
         ->addParam('gibbonINDescriptorID', $gibbonINDescriptorID)
         ->addParam('gibbonAlertLevelID', $gibbonAlertLevelID)
-        ->addParam('gibbonRollGroupID', $gibbonRollGroupID)
+        ->addParam('gibbonFormGroupID', $gibbonFormGroupID)
         ->addParam('gibbonYearGroupID', $gibbonYearGroupID)
         ->addParam('source', 'summary')
         ->format(function ($row, $actions) {

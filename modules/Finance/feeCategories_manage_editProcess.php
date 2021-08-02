@@ -21,8 +21,8 @@ include '../../gibbon.php';
 
 include './moduleFunctions.php';
 
-$gibbonFinanceFeeCategoryID = $_GET['gibbonFinanceFeeCategoryID'];
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/feeCategories_manage_edit.php&gibbonFinanceFeeCategoryID=$gibbonFinanceFeeCategoryID";
+$gibbonFinanceFeeCategoryID = $_GET['gibbonFinanceFeeCategoryID'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/feeCategories_manage_edit.php&gibbonFinanceFeeCategoryID=$gibbonFinanceFeeCategoryID";
 
 if (isActionAccessible($guid, $connection2, '/modules/Finance/feeCategories_manage_edit.php') == false) {
     $URL .= '&return=error0';
@@ -50,17 +50,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/feeCategories_mana
             header("Location: {$URL}");
         } else {
             //Proceed!
-            $name = $_POST['name'];
-            $nameShort = $_POST['nameShort'];
-            $active = $_POST['active'];
-            $description = $_POST['description'];
+            $name = $_POST['name'] ?? '';
+            $nameShort = $_POST['nameShort'] ?? '';
+            $active = $_POST['active'] ?? '';
+            $description = $_POST['description'] ?? '';
             if ($name == '' or $nameShort == '' or $active == '') {
                 $URL .= '&return=error1';
                 header("Location: {$URL}");
             } else {
                 //Write to database
                 try {
-                    $data = array('name' => $name, 'nameShort' => $nameShort, 'active' => $active, 'description' => $description, 'gibbonPersonIDUpdate' => $_SESSION[$guid]['gibbonPersonID'], 'gibbonFinanceFeeCategoryID' => $gibbonFinanceFeeCategoryID);
+                    $data = array('name' => $name, 'nameShort' => $nameShort, 'active' => $active, 'description' => $description, 'gibbonPersonIDUpdate' => $session->get('gibbonPersonID'), 'gibbonFinanceFeeCategoryID' => $gibbonFinanceFeeCategoryID);
                     $sql = "UPDATE gibbonFinanceFeeCategory SET name=:name, nameShort=:nameShort, active=:active, description=:description, gibbonPersonIDUpdate=:gibbonPersonIDUpdate, timestampUpdate='".date('Y-m-d H:i:s')."' WHERE gibbonFinanceFeeCategoryID=:gibbonFinanceFeeCategoryID";
                     $result = $connection2->prepare($sql);
                     $result->execute($data);

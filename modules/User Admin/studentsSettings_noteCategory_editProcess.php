@@ -19,8 +19,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$gibbonStudentNoteCategoryID = $_GET['gibbonStudentNoteCategoryID'];
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/studentsSettings_noteCategory_edit.php&gibbonStudentNoteCategoryID=$gibbonStudentNoteCategoryID";
+$gibbonStudentNoteCategoryID = $_GET['gibbonStudentNoteCategoryID'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/studentsSettings_noteCategory_edit.php&gibbonStudentNoteCategoryID=$gibbonStudentNoteCategoryID";
 
 if (isActionAccessible($guid, $connection2, '/modules/User Admin/studentsSettings_noteCategory_edit.php') == false) {
     $URL .= '&return=error0';

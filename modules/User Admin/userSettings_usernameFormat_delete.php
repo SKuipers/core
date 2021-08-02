@@ -24,16 +24,12 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/userSettings.ph
     $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed! 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return']);
-    }
-
     $gibbonUsernameFormatID = isset($_GET['gibbonUsernameFormatID'])? $_GET['gibbonUsernameFormatID'] : '';
 
     if ($gibbonUsernameFormatID == '') {
         $page->addError(__('You have not specified one or more required parameters.'));
     } else {
-        $form = DeleteForm::createForm($_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/userSettings_usernameFormat_deleteProcess.php");
+        $form = DeleteForm::createForm($session->get('absoluteURL').'/modules/'.$session->get('module')."/userSettings_usernameFormat_deleteProcess.php");
         echo $form->getOutput();
     }
 }

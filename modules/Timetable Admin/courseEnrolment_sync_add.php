@@ -33,10 +33,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/courseEnro
         ->add(__('Sync Course Enrolment'), 'courseEnrolment_sync.php', ['gibbonSchoolYearID' => $gibbonSchoolYearID])
         ->add(__('Map Classes'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     if (empty($gibbonSchoolYearID)) {
         echo '<div class="error">';
         echo __('You have not specified one or more required parameters.');
@@ -44,10 +40,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/courseEnro
         return;
     }
 
-    $form = Form::create('courseEnrolmentSyncAdd', $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.$_SESSION[$guid]['module'].'/courseEnrolment_sync_edit.php');
+    $form = Form::create('courseEnrolmentSyncAdd', $session->get('absoluteURL').'/index.php?q=/modules/'.$session->get('module').'/courseEnrolment_sync_edit.php');
 
     $form->setFactory(DatabaseFormFactory::create($pdo));
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+    $form->addHiddenValue('address', $session->get('address'));
     $form->addHiddenValue('gibbonSchoolYearID', $gibbonSchoolYearID);
 
     $row = $form->addRow();
@@ -56,7 +52,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/courseEnro
 
     $row = $form->addRow();
         $column = $row->addColumn();
-        $column->addLabel('courseClassMapping', __('Compare to Pattern'))->description(sprintf(__('Classes will be matched to Roll Groups that fit the specified pattern. Choose from %1$s. Must contain %2$s'), '[courseShortName] [yearGroupShortName] [rollGroupShortName]', '[classShortName]'));
+        $column->addLabel('courseClassMapping', __('Compare to Pattern'))->description(sprintf(__('Classes will be matched to Form Groups that fit the specified pattern. Choose from %1$s. Must contain %2$s'), '[courseShortName] [yearGroupShortName] [formGroupShortName]', '[classShortName]'));
 
         $row->addTextField('pattern')
             ->required()

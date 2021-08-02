@@ -27,13 +27,11 @@ getSystemSettings($guid, $connection2);
 setCurrentSchoolYear($guid, $connection2);
 
 //Set up for i18n via gettext
-if (isset($_SESSION[$guid]['i18n']['code'])) {
-    if ($_SESSION[$guid]['i18n']['code'] != null) {
-        putenv('LC_ALL='.$_SESSION[$guid]['i18n']['code']);
-        setlocale(LC_ALL, $_SESSION[$guid]['i18n']['code']);
-        bindtextdomain('gibbon', getcwd().'/../i18n');
-        textdomain('gibbon');
-    }
+if (!empty($session->get('i18n')['code'])) {
+    putenv('LC_ALL='.$session->get('i18n')['code']);
+    setlocale(LC_ALL, $session->get('i18n')['code']);
+    bindtextdomain('gibbon', getcwd().'/../i18n');
+    textdomain('gibbon');
 }
 
 //Check for CLI, so this cannot be run through browser
@@ -48,19 +46,19 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
         $partialFail = false;
 
         try {
-            $data = array('date' => $currentDate, 'gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID']);
+            $data = array('date' => $currentDate, 'gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'));
 
-            $sql = "SELECT gibbonRollGroup.nameShort AS rollGroup, gibbonStudentEnrolment.gibbonYearGroupID, gibbonBehaviour.gibbonBehaviourID, gibbonPerson.gibbonPersonID, gibbonPerson.surname, gibbonPerson.preferredName, staff.surname as staffSurname, staff.preferredName as staffPreferredName, gibbonBehaviour.descriptor, gibbonBehaviour.level, gibbonBehaviour.comment, gibbonBehaviour.followup, gibbonBehaviour.timestamp
+            $sql = "SELECT gibbonFormGroup.nameShort AS formGroup, gibbonStudentEnrolment.gibbonYearGroupID, gibbonBehaviour.gibbonBehaviourID, gibbonPerson.gibbonPersonID, gibbonPerson.surname, gibbonPerson.preferredName, staff.surname as staffSurname, staff.preferredName as staffPreferredName, gibbonBehaviour.descriptor, gibbonBehaviour.level, gibbonBehaviour.comment, gibbonBehaviour.followup, gibbonBehaviour.timestamp
                     FROM gibbonBehaviour
                     JOIN gibbonPerson ON (gibbonBehaviour.gibbonPersonID=gibbonPerson.gibbonPersonID)
                     JOIN gibbonStudentEnrolment ON (gibbonPerson.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID)
-                    JOIN gibbonRollGroup ON (gibbonStudentEnrolment.gibbonRollGroupID=gibbonRollGroup.gibbonRollGroupID)
+                    JOIN gibbonFormGroup ON (gibbonStudentEnrolment.gibbonFormGroupID=gibbonFormGroup.gibbonFormGroupID)
                     JOIN gibbonPerson as staff ON (gibbonBehaviour.gibbonPersonIDCreator=staff.gibbonPersonID)
                     WHERE gibbonBehaviour.gibbonSchoolYearID=:gibbonSchoolYearID
                     AND gibbonBehaviour.type='Negative'
                     AND gibbonBehaviour.date=:date
                     AND gibbonPerson.status='Full'
-                    AND gibbonRollGroup.gibbonSchoolYearID=gibbonBehaviour.gibbonSchoolYearID
+                    AND gibbonFormGroup.gibbonSchoolYearID=gibbonBehaviour.gibbonSchoolYearID
                     GROUP BY gibbonBehaviour.gibbonBehaviourID
                     ORDER BY gibbonBehaviour.timestamp";
 
@@ -80,8 +78,8 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
                 $report .= date('g:i a', strtotime($row['timestamp'])).' - '.__('Negative').' '.__('Behaviour').' - '.$row['level'];
                 $report .= '<br/>';
 
-                $report .= sprintf(__('%1$s (%2$s) received a report for %3$s from %4$s'), '<b>'.$studentName.'</b>', $row['rollGroup'], $row['descriptor'], $staffName);
-                $report .= ' &raquo; <a href="'.$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Behaviour/behaviour_manage_edit.php&gibbonBehaviourID='.$row['gibbonBehaviourID'].'&gibbonPersonID='.$row['gibbonPersonID'].'&gibbonRollGroupID=&gibbonYearGroupID=&type=">'.__('View').'</a>';
+                $report .= sprintf(__('%1$s (%2$s) received a report for %3$s from %4$s'), '<b>'.$studentName.'</b>', $row['formGroup'], $row['descriptor'], $staffName);
+                $report .= ' &raquo; <a href="'.$session->get('absoluteURL').'/index.php?q=/modules/Behaviour/behaviour_manage_edit.php&gibbonBehaviourID='.$row['gibbonBehaviourID'].'&gibbonPersonID='.$row['gibbonPersonID'].'&gibbonFormGroupID=&gibbonYearGroupID=&type=">'.__('View').'</a>';
 
                 $report .= '<br/><br/>';
             }
@@ -90,7 +88,7 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
             $event = new NotificationEvent('Behaviour', 'Daily Behaviour Summary');
 
             $event->setNotificationText(__('A Behaviour CLI script has run.').'<br/><br/>'.$report);
-            $event->setActionLink('/index.php?q=/modules/Behaviour/behaviour_pattern.php&minimumCount=1&fromDate='.dateConvertBack($guid, $currentDate));
+            $event->setActionLink('/index.php?q=/modules/Behaviour/behaviour_pattern.php&minimumCount=1&fromDate='.Format::date($currentDate));
 
             // Send all notifications
             $sendReport = $event->sendNotifications($pdo, $gibbon->session);

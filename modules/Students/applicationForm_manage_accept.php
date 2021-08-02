@@ -22,6 +22,9 @@ use Gibbon\Services\Format;
 use Gibbon\Contracts\Comms\Mailer;
 use Gibbon\Data\UsernameGenerator;
 use Gibbon\Comms\NotificationEvent;
+use Gibbon\Domain\System\LogGateway;
+use Gibbon\Domain\Timetable\CourseEnrolmentGateway;
+use Gibbon\Domain\User\PersonalDocumentGateway;
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -34,6 +37,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
     $gibbonApplicationFormID = $_GET['gibbonApplicationFormID'] ?? '';
     $gibbonSchoolYearID = $_GET['gibbonSchoolYearID'] ?? '';
     $search = $_GET['search'] ?? '';
+
+    $partialFailures = [];
 
     $page->breadcrumbs
         ->add(__('Manage Applications'), 'applicationForm_manage.php', ['gibbonSchoolYearID' => $gibbonSchoolYearID])
@@ -54,10 +59,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
             echo __('The selected application does not exist or has already been processed.');
             echo '</div>';
         } else {
-            if (isset($_GET['return'])) {
-                returnProcess($guid, $_GET['return'], null, null);
-            }
-
             // Grab family ID from Sibling Applications that have been accepted
             $data = array( 'gibbonApplicationFormID' => $gibbonApplicationFormID );
             $sql = "SELECT DISTINCT gibbonApplicationFormID, gibbonFamilyID FROM gibbonApplicationForm
@@ -91,13 +92,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
 
                 echo "<div class='linkTop'>";
                 if ($search != '') {
-                    echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Students/applicationForm_manage.php&gibbonSchoolYearID=$gibbonSchoolYearID&search=$search'>".__('Back to Search Results').'</a>';
+                    echo "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/Students/applicationForm_manage.php&gibbonSchoolYearID=$gibbonSchoolYearID&search=$search'>".__('Back to Search Results').'</a>';
                 }
                 echo '</div>';
 
-                $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.$_SESSION[$guid]['module'].'/applicationForm_manage_accept.php&step=2&gibbonApplicationFormID='.$gibbonApplicationFormID.'&gibbonSchoolYearID='.$gibbonSchoolYearID.'&search='.$search);
+                $form = Form::create('action', $session->get('absoluteURL').'/index.php?q=/modules/'.$session->get('module').'/applicationForm_manage_accept.php&step=2&gibbonApplicationFormID='.$gibbonApplicationFormID.'&gibbonSchoolYearID='.$gibbonSchoolYearID.'&search='.$search);
 
-                $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+                $form->addHiddenValue('address', $session->get('address'));
                 $form->addHiddenValue('gibbonApplicationFormID', $gibbonApplicationFormID);
                 $form->addHiddenValue('gibbonSchoolYearID', $gibbonSchoolYearID);
 
@@ -135,8 +136,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                     $list->append('<li>'.__('Create a Gibbon user account for the student.').'</li>');
                 }
 
-                if (!empty($values['gibbonRollGroupID'])) {
-                    $list->append('<li>'.__('Enrol the student in the selected school year (as the student has been assigned to a roll group).').'</li>');
+                if (!empty($values['gibbonFormGroupID'])) {
+                    $list->append('<li>'.__('Enrol the student in the selected school year (as the student has been assigned to a form group).').'</li>');
                 }
 
                 if (!empty($values['gibbonFamilyID']) || !empty($linkedApplication['gibbonFamilyID'])) {
@@ -154,19 +155,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                 $list->wrap('<ol>', '</ol>');
 
                 // Handle optional auto-enrol feature
-                if (!empty($values['gibbonRollGroupID'])) {
-                    $data = array('gibbonRollGroupID' => $values['gibbonRollGroupID']);
-                    $sql = "SELECT COUNT(*) FROM gibbonCourseClassMap WHERE gibbonRollGroupID=:gibbonRollGroupID";
+                if (!empty($values['gibbonFormGroupID'])) {
+                    $data = array('gibbonFormGroupID' => $values['gibbonFormGroupID']);
+                    $sql = "SELECT COUNT(*) FROM gibbonCourseClassMap WHERE gibbonFormGroupID=:gibbonFormGroupID";
                     $resultClassMap = $pdo->executeQuery($data, $sql);
                     $classMapCount = ($resultClassMap->rowCount() > 0)? $resultClassMap->fetchColumn(0) : 0;
 
-                    // Student has a roll group and mapped classes exist
+                    // Student has a form group and mapped classes exist
                     if ($classMapCount > 0) {
                         $autoEnrolStudent = (getSettingByScope($connection2, 'Timetable Admin', 'autoEnrolCourses') == 'Y');
 
                         $col->addContent(__('The system can optionally perform the following actions:'))->wrap('<i><u>', '</u></i>');
                         $col->addCheckbox('autoEnrolStudent')
-                            ->description(__('Automatically enrol student in classes for Roll Group.'))
+                            ->description(__('Automatically enrol student in classes for Form Group.'))
                             ->inline(true)
                             ->setValue('Y')
                             ->checked($autoEnrolStudent? 'Y' : 'N')
@@ -178,8 +179,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                 $col->addContent(__('But you may wish to manually do the following:'))->wrap('<i><u>', '</u></i>');
                 $list = $col->addContent();
 
-                if (empty($values['gibbonRollGroupID'])) {
-                    $list->append('<li>'.__('Enrol the student in the selected school year (as the student has been assigned to a roll group).').'</li>');
+                if (empty($values['gibbonFormGroupID'])) {
+                    $list->append('<li>'.__('Enrol the student in the selected school year (as the student has been assigned to a form group).').'</li>');
                 }
 
                 $list->append('<li>'.__('Create an individual needs record for the student.').'</li>')
@@ -199,7 +200,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
 
                 echo "<div class='linkTop'>";
                 if ($search != '') {
-                    echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Students/applicationForm_manage.php&gibbonSchoolYearID=$gibbonSchoolYearID&search=$search'>".__('Back to Search Results').'</a>';
+                    echo "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/Students/applicationForm_manage.php&gibbonSchoolYearID=$gibbonSchoolYearID&search=$search'>".__('Back to Search Results').'</a>';
                 }
                 echo '</div>';
 
@@ -337,8 +338,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                 echo '<h4>';
                 echo __('Student Email & Website');
                 echo '</h4>';
-                $to = $_SESSION[$guid]['organisationAdministratorEmail'];
-                $subject = sprintf(__('Create Student Email/Websites for %1$s at %2$s'), $_SESSION[$guid]['systemName'], $_SESSION[$guid]['organisationNameShort']);
+                $to = $session->get('organisationAdministratorEmail');
+                $subject = sprintf(__('Create Student Email/Websites for %1$s at %2$s'), $session->get('systemName'), $session->get('organisationNameShort'));
                 $body = sprintf(__('Please create the following for new student %1$s.'), Format::name('', $values['preferredName'], $values['surname'], 'Student'))."<br/><br/>";
                 if ($studentDefaultEmail != '') {
                     $body .= __('Email').': '.$email."<br/>";
@@ -360,7 +361,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                 }
 
                 $mail = $container->get(Mailer::class);
-                $mail->SetFrom($_SESSION[$guid]['organisationAdministratorEmail'], $_SESSION[$guid]['organisationAdministratorName']);
+                $mail->SetFrom($session->get('organisationAdministratorEmail'), $session->get('organisationAdministratorName'));
                 $mail->AddAddress($to);
                 $mail->Subject = $subject;
                 $mail->renderBody('mail/email.twig.html', [
@@ -370,11 +371,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
 
                 if ($mail->Send()) {
                     echo "<div class='success'>";
-                    echo sprintf(__('A request to create a student email address and/or website address was successfully sent to %1$s.'), $_SESSION[$guid]['organisationAdministratorName']);
+                    echo sprintf(__('A request to create a student email address and/or website address was successfully sent to %1$s.'), $session->get('organisationAdministratorName'));
                     echo '</div>';
                 } else {
                     echo "<div class='error'>";
-                    echo sprintf(__('A request to create a student email address and/or website address failed. Please contact %1$s to request these manually.'), $_SESSION[$guid]['organisationAdministratorName']);
+                    echo sprintf(__('A request to create a student email address and/or website address failed. Please contact %1$s to request these manually.'), $session->get('organisationAdministratorName'));
                     echo '</div>';
                 }
             }
@@ -386,6 +387,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                 $houseFail = false;
                 if ($values['gibbonYearGroupIDEntry'] == '' or $values['gibbonSchoolYearIDEntry'] == '' and $values['gender'] == '') { //No year group or school year set, so return error
                     $houseFail = true;
+                    $partialFailures[] = 'houseFail';
                 } else {
                     //Check boys and girls in each house in year group
                     try {
@@ -403,6 +405,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                         $resultHouse->execute($dataHouse);
                     } catch (PDOException $e) {
                         $houseFail = true;
+                        $partialFailures[] = 'houseFail';
                     }
                     if ($resultHouse->rowCount() > 0) {
                         $rowHouse = $resultHouse->fetch();
@@ -410,6 +413,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                         $house = $rowHouse['house'];
                     } else {
                         $houseFail = true;
+                        $partialFailures[] = 'houseFail';
                     }
                 }
 
@@ -442,6 +446,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
 
                             if (!$pdo->getQuerySuccess() || empty($gibbonPersonID)) {
                                 $insertOK = false;
+                                $partialFailures[] = 'insertOK';
                             }
 
                         }
@@ -457,6 +462,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                                 $informStudentArray[0]['password'] = $password;
                             }
                         }
+
+                        // Update personal document ownership
+                        $container->get(PersonalDocumentGateway::class)->updatePersonalDocumentOwnership('gibbonApplicationForm', $gibbonApplicationFormID, 'gibbonPerson', $gibbonPersonID);
                     }
                 
                 
@@ -488,11 +496,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                     if ($resultDoc->rowCount() > 0) {
                         $note = '<p>';
                         while ($rowDoc = $resultDoc->fetch()) {
-                            $note .= "<a href='".$_SESSION[$guid]['absoluteURL'].'/'.$rowDoc['path']."'>".$rowDoc['name'].'</a><br/>';
+                            $note .= "<a href='".$session->get('absoluteURL').'/'.$rowDoc['path']."'>".$rowDoc['name'].'</a><br/>';
                         }
                         $note .= '</p>';
                         
-                            $data = array('gibbonPersonID' => $gibbonPersonID, 'title' => __('Application Documents'), 'note' => $note, 'gibbonPersonIDCreator' => $_SESSION[$guid]['gibbonPersonID'], 'timestamp' => date('Y-m-d H:i:s'));
+                            $data = array('gibbonPersonID' => $gibbonPersonID, 'title' => __('Application Documents'), 'note' => $note, 'gibbonPersonIDCreator' => $session->get('gibbonPersonID'), 'timestamp' => date('Y-m-d H:i:s'));
                             $sql = 'INSERT INTO gibbonStudentNote SET gibbonPersonID=:gibbonPersonID, gibbonStudentNoteCategoryID=NULL, title=:title, note=:note, gibbonPersonIDCreator=:gibbonPersonIDCreator, timestamp=:timestamp';
                             $result = $connection2->prepare($sql);
                             $result->execute($data);
@@ -506,11 +514,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
 
                     //Enrol student
                     $enrolmentOK = true;
-                    if ($values['gibbonRollGroupID'] != '') {
+                    if ($values['gibbonFormGroupID'] != '') {
                         if ($gibbonPersonID != '' and $values['gibbonSchoolYearIDEntry'] != '' and $values['gibbonYearGroupIDEntry'] != '') {
                             try {
-                                $data = array('gibbonPersonID' => $gibbonPersonID, 'gibbonSchoolYearID' => $values['gibbonSchoolYearIDEntry'], 'gibbonYearGroupID' => $values['gibbonYearGroupIDEntry'], 'gibbonRollGroupID' => $values['gibbonRollGroupID']);
-                                $sql = 'INSERT INTO gibbonStudentEnrolment SET gibbonPersonID=:gibbonPersonID, gibbonSchoolYearID=:gibbonSchoolYearID, gibbonYearGroupID=:gibbonYearGroupID, gibbonRollGroupID=:gibbonRollGroupID';
+                                $data = array('gibbonPersonID' => $gibbonPersonID, 'gibbonSchoolYearID' => $values['gibbonSchoolYearIDEntry'], 'gibbonYearGroupID' => $values['gibbonYearGroupIDEntry'], 'gibbonFormGroupID' => $values['gibbonFormGroupID']);
+                                $sql = 'INSERT INTO gibbonStudentEnrolment SET gibbonPersonID=:gibbonPersonID, gibbonSchoolYearID=:gibbonSchoolYearID, gibbonYearGroupID=:gibbonYearGroupID, gibbonFormGroupID=:gibbonFormGroupID';
                                 $result = $connection2->prepare($sql);
                                 $result->execute($data);
                             } catch (PDOException $e) {
@@ -519,6 +527,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                             }
                         } else {
                             $enrolmentOK = false;
+                            $partialFailures[] = 'enrolmentOK';
                         }
 
                         //Report back
@@ -528,30 +537,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                             echo '</div>';
                         } else {
                             echo '<h4>';
-                            echo 'Student Enrolment';
+                            echo __('Student Enrolment');
                             echo '</h4>';
                             echo '<ul>';
-                            echo '<li>'.__('The student has successfully been enrolled in the specified school year, year group and roll group.').'</li>';
+                            echo '<li>'.__('The student has successfully been enrolled in the specified school year, year group and form group.').'</li>';
 
                             // Handle automatic course enrolment if enabled
-                            $autoEnrolStudent = (isset($_POST['autoEnrolStudent']))? $_POST['autoEnrolStudent'] : 'N';
+                            $autoEnrolStudent = $_POST['autoEnrolStudent'] ?? 'N';
                             if ($autoEnrolStudent == 'Y') {
-                                $data = array(
-                                    'gibbonRollGroupID' => $values['gibbonRollGroupID'],
-                                    'gibbonPersonID' => $gibbonPersonID,
-                                    'gibbonSchoolYearIDEntry' => $values['gibbonSchoolYearIDEntry'],
-                                );
+                                $enrolmentDate = $pdo->selectOne("SELECT GREATEST((SELECT firstDay FROM gibbonSchoolYear WHERE gibbonSchoolYearID=:gibbonSchoolYearIDEntry), CURRENT_DATE)", ['gibbonSchoolYearIDEntry' => $values['gibbonSchoolYearIDEntry']]);
 
-                                $sql = "INSERT INTO gibbonCourseClassPerson (`gibbonCourseClassID`, `gibbonPersonID`, `role`, `dateEnrolled`, `reportable`)
-                                        SELECT gibbonCourseClassMap.gibbonCourseClassID, :gibbonPersonID, 'Student', GREATEST((SELECT firstDay FROM gibbonSchoolYear WHERE gibbonSchoolYearID=:gibbonSchoolYearIDEntry), CURRENT_DATE), 'Y'
-                                        FROM gibbonCourseClassMap
-                                        WHERE gibbonCourseClassMap.gibbonRollGroupID=:gibbonRollGroupID";
-                                $pdo->executeQuery($data, $sql);
+                                $inserted = $container->get(CourseEnrolmentGateway::class)->insertAutomaticCourseEnrolments($values['gibbonFormGroupID'], $gibbonPersonID, $enrolmentDate);
 
-                                if (!$pdo->getQuerySuccess()) {
+                                if (!$inserted) {
                                     echo '<li class="warning">'.__('Student could not be automatically enrolled in courses, so this will have to be done manually at a later date.').'</li>';
+                                    $partialFailures[] = 'autoEnrolStudent';
                                 } else {
-                                    echo '<li>'.__('The student has automatically been enrolled in courses for Roll Group.').'</li>';
+                                    echo '<li>'.__('The student has automatically been enrolled in courses for Form Group.').'</li>';
                                 }
                             }
 
@@ -606,6 +608,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
 
                         $pdo->insert($sql, $data);
                         $paymentOK = $pdo->getQuerySuccess();
+                        if (!$paymentOK) {
+                            $partialFailures[] = 'paymentOK';
+                        }
                     }
 
                     if ($paymentOK == false) {
@@ -725,6 +730,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                             echo "<div class='warning'>";
                             echo __('Student could not be linked to family!');
                             echo '</div>';
+                            $partialFailures[] = 'failFamily2';
                         } else {
                             echo '<h4>';
                             echo __('Family');
@@ -768,6 +774,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                         } catch (PDOException $e) {
                             $insertOK = false;
                             echo "<div class='error'>".$e->getMessage().'</div>';
+                            $partialFailures[] = 'failFamily3';
                         }
 
                         if ($insertOK == true) {
@@ -807,10 +814,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                             if ($familyName != '') {
                                 $insertOK = true;
 
-                                $data = array('gibbonPersonID' => $gibbonPersonID, 'gibbonFamilyID' => $gibbonFamilyID);
-                                $sql = 'INSERT INTO gibbonFamilyChild SET gibbonPersonID=:gibbonPersonID, gibbonFamilyID=:gibbonFamilyID';
-                                $result = $connection2->prepare($sql);
-                                $result->execute($data);
+                                try {
+                                    $data = array('gibbonPersonID' => $gibbonPersonID, 'gibbonFamilyID' => $gibbonFamilyID);
+                                    $sql = 'INSERT INTO gibbonFamilyChild SET gibbonPersonID=:gibbonPersonID, gibbonFamilyID=:gibbonFamilyID';
+                                    $result = $connection2->prepare($sql);
+                                    $result->execute($data);
+                                } catch (PDOException $e) {
+                                    $insertOK = false;
+                                    echo "<div class='error'>".$e->getMessage().'</div>';
+                                    $partialFailures[] = 'failFamily4';
+                                }
 
                                 if ($insertOK == true) {
                                     $failFamily = false;
@@ -871,6 +884,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                                 echo "<div class='warning'>";
                                 echo __('Parent 1 could not be linked to family!');
                                 echo '</div>';
+                                $partialFailures[] = 'failFamily5';
                             }
 
                             //Set parent relationship
@@ -925,8 +939,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                                 if ($continueLoop == false) {
                                     $insertOK = true;
                                     try {
-                                        $data = array('username' => $username, 'passwordStrong' => $passwordStrong, 'passwordStrongSalt' => $salt, 'title' => $values['parent1title'], 'status' => $status, 'surname' => $values['parent1surname'], 'firstName' => $values['parent1firstName'], 'preferredName' => $values['parent1preferredName'], 'officialName' => $values['parent1officialName'], 'nameInCharacters' => $values['parent1nameInCharacters'], 'gender' => $values['parent1gender'], 'parent1languageFirst' => $values['parent1languageFirst'], 'parent1languageSecond' => $values['parent1languageSecond'], 'citizenship1' => $values['parent1citizenship1'], 'nationalIDCardNumber' => $values['parent1nationalIDCardNumber'], 'residencyStatus' => $values['parent1residencyStatus'], 'visaExpiryDate' => $values['parent1visaExpiryDate'], 'email' => $values['parent1email'], 'phone1Type' => $values['parent1phone1Type'], 'phone1CountryCode' => $values['parent1phone1CountryCode'], 'phone1' => $values['parent1phone1'], 'phone2Type' => $values['parent1phone2Type'], 'phone2CountryCode' => $values['parent1phone2CountryCode'], 'phone2' => $values['parent1phone2'], 'profession' => $values['parent1profession'], 'employer' => $values['parent1employer'], 'parent1fields' => $values['parent1fields']);
-                                        $sql = "INSERT INTO gibbonPerson SET username=:username, password='', passwordStrong=:passwordStrong, passwordStrongSalt=:passwordStrongSalt, gibbonRoleIDPrimary='004', gibbonRoleIDAll='004', status=:status, title=:title, surname=:surname, firstName=:firstName, preferredName=:preferredName, officialName=:officialName, nameInCharacters=:nameInCharacters, gender=:gender, languageFirst=:parent1languageFirst, languageSecond=:parent1languageSecond, citizenship1=:citizenship1, nationalIDCardNumber=:nationalIDCardNumber, residencyStatus=:residencyStatus, visaExpiryDate=:visaExpiryDate, email=:email, phone1Type=:phone1Type, phone1CountryCode=:phone1CountryCode, phone1=:phone1, phone2Type=:phone2Type, phone2CountryCode=:phone2CountryCode, phone2=:phone2, profession=:profession, employer=:employer, fields=:parent1fields";
+                                        $data = array('username' => $username, 'passwordStrong' => $passwordStrong, 'passwordStrongSalt' => $salt, 'title' => $values['parent1title'], 'status' => $status, 'surname' => $values['parent1surname'], 'firstName' => $values['parent1firstName'], 'preferredName' => $values['parent1preferredName'], 'officialName' => $values['parent1officialName'], 'nameInCharacters' => $values['parent1nameInCharacters'], 'gender' => $values['parent1gender'], 'parent1languageFirst' => $values['parent1languageFirst'], 'parent1languageSecond' => $values['parent1languageSecond'], 'email' => $values['parent1email'], 'phone1Type' => $values['parent1phone1Type'], 'phone1CountryCode' => $values['parent1phone1CountryCode'], 'phone1' => $values['parent1phone1'], 'phone2Type' => $values['parent1phone2Type'], 'phone2CountryCode' => $values['parent1phone2CountryCode'], 'phone2' => $values['parent1phone2'], 'profession' => $values['parent1profession'], 'employer' => $values['parent1employer'], 'parent1fields' => $values['parent1fields']);
+                                        $sql = "INSERT INTO gibbonPerson SET username=:username, password='', passwordStrong=:passwordStrong, passwordStrongSalt=:passwordStrongSalt, gibbonRoleIDPrimary='004', gibbonRoleIDAll='004', status=:status, title=:title, surname=:surname, firstName=:firstName, preferredName=:preferredName, officialName=:officialName, nameInCharacters=:nameInCharacters, gender=:gender, languageFirst=:parent1languageFirst, languageSecond=:parent1languageSecond, email=:email, phone1Type=:phone1Type, phone1CountryCode=:phone1CountryCode, phone1=:phone1, phone2Type=:phone2Type, phone2CountryCode=:phone2CountryCode, phone2=:phone2, profession=:profession, employer=:employer, fields=:parent1fields";
                                         $result = $connection2->prepare($sql);
                                         $result->execute($data);
                                     } catch (PDOException $e) {
@@ -944,6 +958,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                                             $informParentsArray[0]['username'] = $username;
                                             $informParentsArray[0]['password'] = $password;
                                         }
+
+                                        $container->get(PersonalDocumentGateway::class)->updatePersonalDocumentOwnership('gibbonApplicationFormParent1', $gibbonApplicationFormID, 'gibbonPerson', $gibbonPersonIDParent1);
                                     }
                                 }
                             }
@@ -959,6 +975,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                             echo "<div class='error'>";
                             echo __('Parent 1 could not be created!');
                             echo '</div>';
+                            $partialFailures[] = 'failFamily6';
                         } else {
                             echo '<h4>';
                             echo __('Parent 1');
@@ -1001,6 +1018,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                                     echo "<div class='warning'>";
                                     echo __('Parent 1 could not be linked to family!');
                                     echo '</div>';
+                                    $partialFailures[] = 'failFamily7';
                                 }
 
                                 //Set parent relationship
@@ -1116,8 +1134,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                                 if ($continueLoop == false) {
                                     $insertOK = true;
                                     try {
-                                        $data = array('username' => $username, 'passwordStrong' => $passwordStrong, 'passwordStrongSalt' => $salt, 'title' => $values['parent2title'], 'status' => $status, 'surname' => $values['parent2surname'], 'firstName' => $values['parent2firstName'], 'preferredName' => $values['parent2preferredName'], 'officialName' => $values['parent2officialName'], 'nameInCharacters' => $values['parent2nameInCharacters'], 'gender' => $values['parent2gender'], 'parent2languageFirst' => $values['parent2languageFirst'], 'parent2languageSecond' => $values['parent2languageSecond'], 'citizenship1' => $values['parent2citizenship1'], 'nationalIDCardNumber' => $values['parent2nationalIDCardNumber'], 'residencyStatus' => $values['parent2residencyStatus'], 'visaExpiryDate' => $values['parent2visaExpiryDate'], 'email' => $values['parent2email'], 'phone1Type' => $values['parent2phone1Type'], 'phone1CountryCode' => $values['parent2phone1CountryCode'], 'phone1' => $values['parent2phone1'], 'phone2Type' => $values['parent2phone2Type'], 'phone2CountryCode' => $values['parent2phone2CountryCode'], 'phone2' => $values['parent2phone2'], 'profession' => $values['parent2profession'], 'employer' => $values['parent2employer'], 'parent2fields' => $values['parent2fields']);
-                                        $sql = "INSERT INTO gibbonPerson SET username=:username, password='', passwordStrong=:passwordStrong, passwordStrongSalt=:passwordStrongSalt, gibbonRoleIDPrimary='004', gibbonRoleIDAll='004', status=:status, title=:title, surname=:surname, firstName=:firstName, preferredName=:preferredName, officialName=:officialName, nameInCharacters=:nameInCharacters, gender=:gender, languageFirst=:parent2languageFirst, languageSecond=:parent2languageSecond, citizenship1=:citizenship1, nationalIDCardNumber=:nationalIDCardNumber, residencyStatus=:residencyStatus, visaExpiryDate=:visaExpiryDate, email=:email, phone1Type=:phone1Type, phone1CountryCode=:phone1CountryCode, phone1=:phone1, phone2Type=:phone2Type, phone2CountryCode=:phone2CountryCode, phone2=:phone2, profession=:profession, employer=:employer, fields=:parent2fields";
+                                        $data = array('username' => $username, 'passwordStrong' => $passwordStrong, 'passwordStrongSalt' => $salt, 'title' => $values['parent2title'], 'status' => $status, 'surname' => $values['parent2surname'], 'firstName' => $values['parent2firstName'], 'preferredName' => $values['parent2preferredName'], 'officialName' => $values['parent2officialName'], 'nameInCharacters' => $values['parent2nameInCharacters'], 'gender' => $values['parent2gender'], 'parent2languageFirst' => $values['parent2languageFirst'], 'parent2languageSecond' => $values['parent2languageSecond'], 'email' => $values['parent2email'], 'phone1Type' => $values['parent2phone1Type'], 'phone1CountryCode' => $values['parent2phone1CountryCode'], 'phone1' => $values['parent2phone1'], 'phone2Type' => $values['parent2phone2Type'], 'phone2CountryCode' => $values['parent2phone2CountryCode'], 'phone2' => $values['parent2phone2'], 'profession' => $values['parent2profession'], 'employer' => $values['parent2employer'], 'parent2fields' => $values['parent2fields']);
+                                        $sql = "INSERT INTO gibbonPerson SET username=:username, password='', passwordStrong=:passwordStrong, passwordStrongSalt=:passwordStrongSalt, gibbonRoleIDPrimary='004', gibbonRoleIDAll='004', status=:status, title=:title, surname=:surname, firstName=:firstName, preferredName=:preferredName, officialName=:officialName, nameInCharacters=:nameInCharacters, gender=:gender, languageFirst=:parent2languageFirst, languageSecond=:parent2languageSecond, email=:email, phone1Type=:phone1Type, phone1CountryCode=:phone1CountryCode, phone1=:phone1, phone2Type=:phone2Type, phone2CountryCode=:phone2CountryCode, phone2=:phone2, profession=:profession, employer=:employer, fields=:parent2fields";
                                         $result = $connection2->prepare($sql);
                                         $result->execute($data);
                                     } catch (PDOException $e) {
@@ -1135,6 +1153,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                                             $informParentsArray[1]['username'] = $username;
                                             $informParentsArray[1]['password'] = $password;
                                         }
+
+                                        $container->get(PersonalDocumentGateway::class)->updatePersonalDocumentOwnership('gibbonApplicationFormParent2', $gibbonApplicationFormID, 'gibbonPerson', $gibbonPersonIDParent2);
                                     }
                                 }
                             }
@@ -1150,6 +1170,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                             echo "<div class='error'>";
                             echo __('Parent 2 could not be created!');
                             echo '</div>';
+                            $partialFailures[] = 'failFamily8';
                         } else {
                             echo '<h4>';
                             echo __('Parent 2');
@@ -1192,6 +1213,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                                     echo "<div class='warning'>";
                                     echo __('Parent 2 could not be linked to family!');
                                     echo '</div>';
+                                    $partialFailures[] = 'failFamily9';
                                 }
 
                                 //Set parent relationship
@@ -1215,15 +1237,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                         foreach ($informStudentArray as $informStudentEntry) {
                             if ($informStudentEntry['email'] != '' and $informStudentEntry['surname'] != '' and $informStudentEntry['preferredName'] != '' and $informStudentEntry['username'] != '' and $informStudentEntry['password']) {
                                 $to = $informStudentEntry['email'];
-                                $subject = sprintf(__('Welcome to %1$s at %2$s'), $_SESSION[$guid]['systemName'], $_SESSION[$guid]['organisationNameShort']);
+                                $subject = sprintf(__('Welcome to %1$s at %2$s'), $session->get('systemName'), $session->get('organisationNameShort'));
                                 if ($notificationStudentMessage != '') {
-                                    $body = sprintf(__('Dear %1$s,<br/><br/>Welcome to %2$s, %3$s\'s system for managing school information. You can access the system by going to %4$s and logging in with your new username (%5$s) and password (%6$s).<br/><br/>In order to maintain the security of your data, we highly recommend you change your password to something easy to remember but hard to guess. This can be done by using the Preferences page after logging in (top-right of the screen).<br/><br/>'), Format::name('', $informStudentEntry['preferredName'], $informStudentEntry['surname'], 'Student'), $_SESSION[$guid]['systemName'], $_SESSION[$guid]['organisationNameShort'], $_SESSION[$guid]['absoluteURL'], $informStudentEntry['username'], $informStudentEntry['password']).$notificationStudentMessage.'<br/><br/>'.sprintf(__('Please feel free to reply to this email should you have any questions.<br/><br/>%1$s,<br/><br/>%2$s Admissions Administrator'), $_SESSION[$guid]['organisationAdmissionsName'], $_SESSION[$guid]['systemName']);
+                                    $body = sprintf(__('Dear %1$s,<br/><br/>Welcome to %2$s, %3$s\'s system for managing school information. You can access the system by going to %4$s and logging in with your new username (%5$s) and password (%6$s).<br/><br/>In order to maintain the security of your data, we highly recommend you change your password to something easy to remember but hard to guess. This can be done by using the Preferences page after logging in (top-right of the screen).<br/><br/>'), Format::name('', $informStudentEntry['preferredName'], $informStudentEntry['surname'], 'Student'), $session->get('systemName'), $session->get('organisationNameShort'), $session->get('absoluteURL'), $informStudentEntry['username'], $informStudentEntry['password']).$notificationStudentMessage.'<br/><br/>'.sprintf(__('Please feel free to reply to this email should you have any questions.<br/><br/>%1$s,<br/><br/>%2$s Admissions Administrator'), $session->get('organisationAdmissionsName'), $session->get('systemName'));
                                 } else {
-                                    $body = 'Dear '.Format::name('', $informStudentEntry['preferredName'], $informStudentEntry['surname'], 'Student').",<br/><br/>Welcome to ".$_SESSION[$guid]['systemName'].', '.$_SESSION[$guid]['organisationNameShort']."'s system for managing school information. You can access the system by going to ".$_SESSION[$guid]['absoluteURL'].' and logging in with your new username ('.$informStudentEntry['username'].') and password ('.$informStudentEntry['password'].").<br/><br/>In order to maintain the security of your data, we highly recommend you change your password to something easy to remember but hard to guess. This can be done by using the Preferences page after logging in (top-right of the screen).<br/><br/>Please feel free to reply to this email should you have any questions.<br/><br/>".$_SESSION[$guid]['organisationAdmissionsName'].",<br/><br/>".$_SESSION[$guid]['systemName'].' Admissions Administrator';
+                                    $body = 'Dear '.Format::name('', $informStudentEntry['preferredName'], $informStudentEntry['surname'], 'Student').",<br/><br/>Welcome to ".$session->get('systemName').', '.$session->get('organisationNameShort')."'s system for managing school information. You can access the system by going to ".$session->get('absoluteURL').' and logging in with your new username ('.$informStudentEntry['username'].') and password ('.$informStudentEntry['password'].").<br/><br/>In order to maintain the security of your data, we highly recommend you change your password to something easy to remember but hard to guess. This can be done by using the Preferences page after logging in (top-right of the screen).<br/><br/>Please feel free to reply to this email should you have any questions.<br/><br/>".$session->get('organisationAdmissionsName').",<br/><br/>".$session->get('systemName').' Admissions Administrator';
                                 }
 
                                 $mail = $container->get(Mailer::class);
-                                $mail->SetFrom($_SESSION[$guid]['organisationAdmissionsEmail'], $_SESSION[$guid]['organisationAdmissionsName']);
+                                $mail->SetFrom($session->get('organisationAdmissionsEmail'), $session->get('organisationAdmissionsName'));
                                 $mail->AddAddress($to);
                                 $mail->Subject = $subject;
                                 $mail->renderBody('mail/email.twig.html', [
@@ -1260,16 +1282,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                         foreach ($informParentsArray as $informParentsEntry) {
                             if ($informParentsEntry['email'] != '' and $informParentsEntry['surname'] != '' and $informParentsEntry['preferredName'] != '' and $informParentsEntry['username'] != '' and $informParentsEntry['password']) {
                                 $to = $informParentsEntry['email'];
-                                $subject = sprintf(__('Welcome to %1$s at %2$s'), $_SESSION[$guid]['systemName'], $_SESSION[$guid]['organisationNameShort']);
+                                $subject = sprintf(__('Welcome to %1$s at %2$s'), $session->get('systemName'), $session->get('organisationNameShort'));
                                 if ($notificationParentsMessage != '') {
-                                    $body = sprintf(__('Dear %1$s,<br/><br/>Welcome to %2$s, %3$s\'s system for managing school information. You can access the system by going to %4$s and logging in with your new username (%5$s) and password (%6$s). You can learn more about using %7$s on the official support website (https://docs.gibbonedu.org/parents).<br/><br/>In order to maintain the security of your data, we highly recommend you change your password to something easy to remember but hard to guess. This can be done by using the Preferences page after logging in (top-right of the screen).<br/><br/>'), Format::name('', $informParentsEntry['preferredName'], $informParentsEntry['surname'], 'Student'), $_SESSION[$guid]['systemName'], $_SESSION[$guid]['organisationNameShort'], $_SESSION[$guid]['absoluteURL'], $informParentsEntry['username'], $informParentsEntry['password'], $_SESSION[$guid]['systemName']).$notificationParentsMessage.'<br/><br/>'.sprintf(__('Please feel free to reply to this email should you have any questions.<br/><br/>%1$s,<br/><br/>%2$s Admissions Administrator'), $_SESSION[$guid]['organisationAdmissionsName'], $_SESSION[$guid]['systemName']);
+                                    $body = sprintf(__('Dear %1$s,<br/><br/>Welcome to %2$s, %3$s\'s system for managing school information. You can access the system by going to %4$s and logging in with your new username (%5$s) and password (%6$s). You can learn more about using %7$s on the official support website (https://docs.gibbonedu.org/parents).<br/><br/>In order to maintain the security of your data, we highly recommend you change your password to something easy to remember but hard to guess. This can be done by using the Preferences page after logging in (top-right of the screen).<br/><br/>'), Format::name('', $informParentsEntry['preferredName'], $informParentsEntry['surname'], 'Student'), $session->get('systemName'), $session->get('organisationNameShort'), $session->get('absoluteURL'), $informParentsEntry['username'], $informParentsEntry['password'], $session->get('systemName')).$notificationParentsMessage.'<br/><br/>'.sprintf(__('Please feel free to reply to this email should you have any questions.<br/><br/>%1$s,<br/><br/>%2$s Admissions Administrator'), $session->get('organisationAdmissionsName'), $session->get('systemName'));
                                 } else {
-                                    $body = sprintf(__('Dear %1$s,<br/><br/>Welcome to %2$s, %3$s\'s system for managing school information. You can access the system by going to %4$s and logging in with your new username (%5$s) and password (%6$s). You can learn more about using %7$s on the official support website (https://docs.gibbonedu.org/parents).<br/><br/>In order to maintain the security of your data, we highly recommend you change your password to something easy to remember but hard to guess. This can be done by using the Preferences page after logging in (top-right of the screen).<br/><br/>'), Format::name('', $informParentsEntry['preferredName'], $informParentsEntry['surname'], 'Student'), $_SESSION[$guid]['systemName'], $_SESSION[$guid]['organisationNameShort'], $_SESSION[$guid]['absoluteURL'], $informParentsEntry['username'], $informParentsEntry['password'], $_SESSION[$guid]['systemName']).sprintf(__('Please feel free to reply to this email should you have any questions.<br/><br/>%1$s,<br/><br/>%2$s Admissions Administrator'), $_SESSION[$guid]['organisationAdmissionsName'], $_SESSION[$guid]['systemName']);
+                                    $body = sprintf(__('Dear %1$s,<br/><br/>Welcome to %2$s, %3$s\'s system for managing school information. You can access the system by going to %4$s and logging in with your new username (%5$s) and password (%6$s). You can learn more about using %7$s on the official support website (https://docs.gibbonedu.org/parents).<br/><br/>In order to maintain the security of your data, we highly recommend you change your password to something easy to remember but hard to guess. This can be done by using the Preferences page after logging in (top-right of the screen).<br/><br/>'), Format::name('', $informParentsEntry['preferredName'], $informParentsEntry['surname'], 'Student'), $session->get('systemName'), $session->get('organisationNameShort'), $session->get('absoluteURL'), $informParentsEntry['username'], $informParentsEntry['password'], $session->get('systemName')).sprintf(__('Please feel free to reply to this email should you have any questions.<br/><br/>%1$s,<br/><br/>%2$s Admissions Administrator'), $session->get('organisationAdmissionsName'), $session->get('systemName'));
                                 }
                                 $bodyPlain = emailBodyConvert($body);
 
                                 $mail = $container->get(Mailer::class);
-                                $mail->SetFrom($_SESSION[$guid]['organisationAdmissionsEmail'], $_SESSION[$guid]['organisationAdmissionsName']);
+                                $mail->SetFrom($session->get('organisationAdmissionsEmail'), $session->get('organisationAdmissionsName'));
                                 $mail->AddAddress($to);
                                 $mail->Subject = $subject;
                                 $mail->renderBody('mail/email.twig.html', [
@@ -1300,17 +1322,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                     $event = new NotificationEvent('Students', 'Application Form Accepted');
 
                     $studentName = Format::name('', $values['preferredName'], $values['surname'], 'Student');
-                    $studentGroup = (!empty($rollGroupName))? $rollGroupName : $yearGroupName;
+                    $studentGroup = (!empty($formGroupName))? $formGroupName : $yearGroupName;
 
                     $notificationText = sprintf(__('An application form for %1$s (%2$s) has been accepted for the %3$s school year.'), $studentName, $studentGroup, $schoolYearName );
-                    if ($enrolmentOK && !empty($values['gibbonRollGroupID'])) {
-                        $notificationText .= ' '.__('The student has successfully been enrolled in the specified school year, year group and roll group.');
+                    if ($enrolmentOK && !empty($values['gibbonFormGroupID'])) {
+                        $notificationText .= ' '.__('The student has successfully been enrolled in the specified school year, year group and form group.');
                     } else {
                         $notificationText .= ' '.__('Student could not be enrolled, so this will have to be done manually at a later date.');
                     }
 
                     $event->addScope('gibbonYearGroupID', $values['gibbonYearGroupIDEntry']);
-                    $event->addRecipient($_SESSION[$guid]['organisationAdmissions']);
+                    $event->addRecipient($session->get('organisationAdmissions'));
                     $event->setNotificationText($notificationText);
                     $event->setActionLink("/index.php?q=/modules/Students/applicationForm_manage_edit.php&gibbonApplicationFormID=$gibbonApplicationFormID&gibbonSchoolYearID=".$values['gibbonSchoolYearIDEntry']."&search=");
 
@@ -1343,12 +1365,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                     } catch (PDOException $e) {
                         $failStatus = true;
                         echo "<div class='error'>".$e->getMessage().'</div>';
+                        $partialFailures[] = 'failStatus';
+                    }
+
+                    if (!empty($partialFailures)) {
+                        $container->get(LogGateway::class)->addLog($session->get('gibbonSchoolYearIDCurrent'), getModuleIDFromName($connection2, 'Students'), $session->get('gibbonPersonID'), 'Application Form - Partial Fail', array('gibbonApplicationFormID' => $gibbonApplicationFormID, 'partialFailures' => implode(',', $partialFailures)), $_SERVER['REMOTE_ADDR']);
                     }
 
                     if ($failStatus == true) {
                         echo "<div class='error'>";
                         echo __('Student status could not be updated: student is in the system, but acceptance has failed.');
                         echo '</div>';
+
+                        
                     } else {
                         echo '<h4>';
                         echo __('Application Status');
@@ -1358,7 +1387,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                         echo '</ul>';
 
                         echo "<div class='success' style='margin-bottom: 20px'>";
-                        echo str_replace('ICHK', $_SESSION[$guid]['organisationNameShort'], __('Applicant has been successfully accepted into ICHK.') );
+                        echo str_replace('ICHK', $session->get('organisationNameShort'), __('Applicant has been successfully accepted into ICHK.') );
                         echo ' <i><u>'.__('You may wish to now do the following:').'</u></i><br/>';
                         echo '<ol>';
                         if (empty($values['gibbonRollGroupID'])) {

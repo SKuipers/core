@@ -23,17 +23,14 @@ include '../../gibbon.php';
 //Module includes
 include './moduleFunctions.php';
 
-$gibbonPlannerEntryID = $_GET['gibbonPlannerEntryID'];
-$gibbonPlannerEntryHomeworkID = $_GET['gibbonPlannerEntryHomeworkID'];
-$date = $_GET['date'];
-$gibbonCourseClassID = $_GET['gibbonCourseClassID'];
-$viewBy = $_GET['viewBy'];
-$subView = $_GET['subView'];
-$search = null;
-if (isset($_POST['search'])) {
-    $search = $_POST['search'];
-}
-$URL = $_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Planner/planner_view_full.php&date=$date&viewBy=$viewBy&subView=$subView&gibbonCourseClassID=$gibbonCourseClassID&gibbonPlannerEntryID=$gibbonPlannerEntryID&search=$search";
+$gibbonPlannerEntryID = $_GET['gibbonPlannerEntryID'] ?? '';
+$gibbonPlannerEntryHomeworkID = $_GET['gibbonPlannerEntryHomeworkID'] ?? '';
+$date = $_GET['date'] ?? '';
+$gibbonCourseClassID = $_GET['gibbonCourseClassID'] ?? '';
+$viewBy = $_GET['viewBy'] ?? '';
+$subView = $_GET['subView'] ?? '';
+$search = $_POST['search'] ?? '';
+$URL = $session->get('absoluteURL')."/index.php?q=/modules/Planner/planner_view_full.php&date=$date&viewBy=$viewBy&subView=$subView&gibbonCourseClassID=$gibbonCourseClassID&gibbonPlannerEntryID=$gibbonPlannerEntryID&search=$search";
 
 if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full.php') == false) {
     $URL .= '&return=error0';
@@ -62,7 +59,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full.
         } else {
             //INSERT
             try {
-                $data = array('gibbonPlannerEntryHomeworkID' => $gibbonPlannerEntryHomeworkID, 'gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID']);
+                $data = array('gibbonPlannerEntryHomeworkID' => $gibbonPlannerEntryHomeworkID, 'gibbonPersonID' => $session->get('gibbonPersonID'));
                 $sql = 'DELETE FROM gibbonPlannerEntryHomework WHERE gibbonPlannerEntryHomeworkID=:gibbonPlannerEntryHomeworkID AND gibbonPersonID=:gibbonPersonID';
                 $result = $connection2->prepare($sql);
                 $result->execute($data);

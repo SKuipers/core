@@ -20,6 +20,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Services\Format;
 use Gibbon\Comms\NotificationEvent;
 use Gibbon\Comms\NotificationSender;
+use Gibbon\Domain\System\LogGateway;
+use Gibbon\Forms\CustomFieldHandler;
+use Gibbon\Forms\PersonalDocumentHandler;
 use Gibbon\Domain\System\NotificationGateway;
 
 include '../../gibbon.php';
@@ -27,9 +30,10 @@ include '../../gibbon.php';
 //Module includes
 include '../User Admin/moduleFunctions.php';
 
-$gibbonPersonUpdateID = $_GET['gibbonPersonUpdateID'];
-$gibbonPersonID = $_POST['gibbonPersonID'];
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/data_personal_manage_edit.php&gibbonPersonUpdateID=$gibbonPersonUpdateID";
+$logGateway = $container->get(LogGateway::class);
+$gibbonPersonUpdateID = $_GET['gibbonPersonUpdateID'] ?? '';
+$gibbonPersonID = $_POST['gibbonPersonID'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/data_personal_manage_edit.php&gibbonPersonUpdateID=$gibbonPersonUpdateID";
 
 if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal_manage_edit.php') == false) {
     $URL .= '&return=error0';
@@ -291,64 +295,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
                         $set .= 'gibbonPerson.ethnicity=:ethnicity, ';
                     }
                 }
-                if (isset($_POST['newcitizenship1On'])) {
-                    if ($_POST['newcitizenship1On'] == 'on') {
-                        $data['citizenship1'] = $_POST['newcitizenship1'];
-                        $set .= 'gibbonPerson.citizenship1=:citizenship1, ';
-                    }
-                }
-                if (isset($_POST['newcitizenship1PassportOn'])) {
-                    if ($_POST['newcitizenship1PassportOn'] == 'on') {
-                        $data['citizenship1Passport'] = $_POST['newcitizenship1Passport'];
-                        $set .= 'gibbonPerson.citizenship1Passport=:citizenship1Passport, ';
-                    }
-                }
-                if (isset($_POST['newcitizenship1PassportExpiryOn'])) {
-                    if ($_POST['newcitizenship1PassportExpiryOn'] == 'on') {
-                        $data['citizenship1PassportExpiry'] = $_POST['newcitizenship1PassportExpiry'] ?? null;
-                        $set .= 'gibbonPerson.citizenship1PassportExpiry=:citizenship1PassportExpiry, ';
-                    }
-                }
-                if (isset($_POST['newcitizenship2On'])) {
-                    if ($_POST['newcitizenship2On'] == 'on') {
-                        $data['citizenship2'] = $_POST['newcitizenship2'];
-                        $set .= 'gibbonPerson.citizenship2=:citizenship2, ';
-                    }
-                }
-                if (isset($_POST['newcitizenship2PassportOn'])) {
-                    if ($_POST['newcitizenship2PassportOn'] == 'on') {
-                        $data['citizenship2Passport'] = $_POST['newcitizenship2Passport'];
-                        $set .= 'gibbonPerson.citizenship2Passport=:citizenship2Passport, ';
-                    }
-                }
-                if (isset($_POST['newcitizenship2PassportExpiryOn'])) {
-                    if ($_POST['newcitizenship2PassportExpiryOn'] == 'on') {
-                        $data['citizenship2PassportExpiry'] = $_POST['newcitizenship2PassportExpiry'] ?? null;
-                        $set .= 'gibbonPerson.citizenship2PassportExpiry=:citizenship2PassportExpiry, ';
-                    }
-                }
                 if (isset($_POST['newreligionOn'])) {
                     if ($_POST['newreligionOn'] == 'on') {
                         $data['religion'] = $_POST['newreligion'];
                         $set .= 'gibbonPerson.religion=:religion, ';
-                    }
-                }
-                if (isset($_POST['newnationalIDCardNumberOn'])) {
-                    if ($_POST['newnationalIDCardNumberOn'] == 'on') {
-                        $data['nationalIDCardNumber'] = $_POST['newnationalIDCardNumber'];
-                        $set .= 'gibbonPerson.nationalIDCardNumber=:nationalIDCardNumber, ';
-                    }
-                }
-                if (isset($_POST['newresidencyStatusOn'])) {
-                    if ($_POST['newresidencyStatusOn'] == 'on') {
-                        $data['residencyStatus'] = $_POST['newresidencyStatus'];
-                        $set .= 'gibbonPerson.residencyStatus=:residencyStatus, ';
-                    }
-                }
-                if (isset($_POST['newvisaExpiryDateOn'])) {
-                    if ($_POST['newvisaExpiryDateOn'] == 'on') {
-                        $data['visaExpiryDate'] = !empty($_POST['newvisaExpiryDate'])? $_POST['newvisaExpiryDate'] : null;
-                        $set .= 'gibbonPerson.visaExpiryDate=:visaExpiryDate, ';
                     }
                 }
                 if (isset($_POST['newprofessionOn'])) {
@@ -431,32 +381,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
                     }
                 }
 
-                //DEAL WITH CUSTOM FIELDS
-                //Prepare field values
-                $resultFields = getCustomFields($connection2, $guid, $student, $staff, $parent, $other, null, true);
-                $fields = isset($row2['fields']) ? json_decode($row2['fields'], true) : [];
-                if ($resultFields->rowCount() > 0) {
-                    while ($rowFields = $resultFields->fetch()) {
-                        if (isset($_POST['newcustom'.$rowFields['gibbonPersonFieldID'].'On'])) {
-                            if (isset($_POST['newcustom'.$rowFields['gibbonPersonFieldID']])) {
-                                if ($rowFields['type'] == 'date') {
-                                    $fields[$rowFields['gibbonPersonFieldID']] = dateConvert($guid, $_POST['newcustom'.$rowFields['gibbonPersonFieldID']]);
-                                } else {
-                                    $fields[$rowFields['gibbonPersonFieldID']] = $_POST['newcustom'.$rowFields['gibbonPersonFieldID']];
-                                }
-                            }
-                        }
-                    }
+                // CUSTOM FIELDS
+                $params = compact('student', 'staff', 'parent', 'other');
+                $fields = $container->get(CustomFieldHandler::class)->getFieldDataFromDataUpdate('User', $params, $row2['fields']);
+                if (!empty($fields)) {
+                    $data['fields'] = $fields;
+                    $set .= 'gibbonPerson.fields=:fields, ';
                 }
-
-                $fields = json_encode($fields);
 
                 if (strlen($set) > 1) {
                     //Write to database
                     try {
                         $data['gibbonPersonID'] = $gibbonPersonID;
-                        $data['fields'] = $fields;
-                        $sql = 'UPDATE gibbonPerson SET '.substr($set, 0, (strlen($set) - 2)).', fields=:fields WHERE gibbonPersonID=:gibbonPersonID';
+                        $sql = 'UPDATE gibbonPerson SET '.substr($set, 0, (strlen($set) - 2)).' WHERE gibbonPersonID=:gibbonPersonID';
                         $result = $connection2->prepare($sql);
                         $result->execute($data);
                     } catch (PDOException $e) {
@@ -477,12 +414,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
                         exit();
                     }
 
+                    // PERSONAL DOCUMENTS
+                    $params = compact('student', 'staff', 'parent', 'other') + ['dataUpdater' => 1];
+                    $container->get(PersonalDocumentHandler::class)->updatePersonalDocumentsFromDataUpdate($gibbonPersonID, $gibbonPersonUpdateID, $params);
+
                     //Notify tutors of change to privacy settings
                     if (isset($_POST['newprivacyOn'])) {
                         if ($_POST['newprivacyOn'] == 'on') {
-                            
-                                $dataDetail = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'gibbonPersonID' => $gibbonPersonID);
-                                $sqlDetail = 'SELECT gibbonPersonIDTutor, gibbonPersonIDTutor2, gibbonPersonIDTutor3, gibbonYearGroupID FROM gibbonRollGroup JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonRollGroupID=gibbonRollGroup.gibbonRollGroupID) JOIN gibbonPerson ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonStudentEnrolment.gibbonPersonID=:gibbonPersonID';
+
+                                $dataDetail = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'gibbonPersonID' => $gibbonPersonID);
+                                $sqlDetail = 'SELECT gibbonPersonIDTutor, gibbonPersonIDTutor2, gibbonPersonIDTutor3, gibbonYearGroupID FROM gibbonFormGroup JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonFormGroupID=gibbonFormGroup.gibbonFormGroupID) JOIN gibbonPerson ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonStudentEnrolment.gibbonPersonID=:gibbonPersonID';
                                 $resultDetail = $connection2->prepare($sqlDetail);
                                 $resultDetail->execute($dataDetail);
                             if ($resultDetail->rowCount() == 1) {
@@ -495,7 +436,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
                                 // Raise a new notification event
                                 $event = new NotificationEvent('Students', 'Updated Privacy Settings');
 
-                                $staffName = Format::name('', $_SESSION[$guid]['preferredName'], $_SESSION[$guid]['surname'], 'Staff', false, true);
+                                $staffName = Format::name('', $session->get('preferredName'), $session->get('surname'), 'Staff', false, true);
                                 $studentName = Format::name('', $row2['preferredName'], $row2['surname'], 'Student', false);
                                 $actionLink = "/index.php?q=/modules/Students/student_view_details.php&gibbonPersonID=$gibbonPersonID&search=";
 
@@ -514,18 +455,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
                                 // Add event listeners to the notification sender
                                 $event->pushNotifications($notificationGateway, $notificationSender);
 
-                                // Add direct notifications to roll group tutors
+                                // Add direct notifications to form group tutors
                                 if ($event->getEventDetails($notificationGateway, 'active') == 'Y') {
                                     $notificationText = sprintf(__('Your tutee, %1$s, has had their privacy settings altered.'), $studentName).'<br/><br/>';
                                     $notificationText .= $privacyText;
 
-                                    if ($rowDetail['gibbonPersonIDTutor'] != null and $rowDetail['gibbonPersonIDTutor'] != $_SESSION[$guid]['gibbonPersonID']) {
+                                    if ($rowDetail['gibbonPersonIDTutor'] != null and $rowDetail['gibbonPersonIDTutor'] != $session->get('gibbonPersonID')) {
                                         $notificationSender->addNotification($rowDetail['gibbonPersonIDTutor'], $notificationText, 'Students', $actionLink);
                                     }
-                                    if ($rowDetail['gibbonPersonIDTutor2'] != null and $rowDetail['gibbonPersonIDTutor2'] != $_SESSION[$guid]['gibbonPersonID']) {
+                                    if ($rowDetail['gibbonPersonIDTutor2'] != null and $rowDetail['gibbonPersonIDTutor2'] != $session->get('gibbonPersonID')) {
                                         $notificationSender->addNotification($rowDetail['gibbonPersonIDTutor2'], $notificationText, 'Students', $actionLink);
                                     }
-                                    if ($rowDetail['gibbonPersonIDTutor3'] != null and $rowDetail['gibbonPersonIDTutor3'] != $_SESSION[$guid]['gibbonPersonID']) {
+                                    if ($rowDetail['gibbonPersonIDTutor3'] != null and $rowDetail['gibbonPersonIDTutor3'] != $session->get('gibbonPersonID')) {
                                         $notificationSender->addNotification($rowDetail['gibbonPersonIDTutor3'], $notificationText, 'Students', $actionLink);
                                     }
                                 }
@@ -540,9 +481,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
                             $privacyValues['oldValue'] = $privacy_old ;
                             $privacyValues['newValue'] = $_POST['newprivacy'] ;
                             $privacyValues['gibbonPersonIDRequestor'] = $row['gibbonPersonIDUpdater'] ;
-                            $privacyValues['gibbonPersonIDAcceptor'] = $_SESSION[$guid]["gibbonPersonID"] ;
+                            $privacyValues['gibbonPersonIDAcceptor'] = $session->get("gibbonPersonID") ;
 
-                            setLog($connection2, $_SESSION[$guid]["gibbonSchoolYearID"], $gibbonModuleID, $_SESSION[$guid]["gibbonPersonID"], 'Privacy - Value Changed via Data Updater', $privacyValues, $_SERVER['REMOTE_ADDR']) ;
+                            $logGateway->addLog($session->get("gibbonSchoolYearID"), $gibbonModuleID, $session->get("gibbonPersonID"), 'Privacy - Value Changed via Data Updater', $privacyValues, $_SERVER['REMOTE_ADDR']) ;
 
                         }
                     }
@@ -550,19 +491,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
                     $URL .= '&return=success0';
                     header("Location: {$URL}");
                 } else {
-                    //Write to database
-                    try {
-                        $data['gibbonPersonID'] = $gibbonPersonID;
-                        $data['fields'] = $fields;
-                        $sql = 'UPDATE gibbonPerson SET fields=:fields WHERE gibbonPersonID=:gibbonPersonID';
-                        $result = $connection2->prepare($sql);
-                        $result->execute($data);
-                    } catch (PDOException $e) {
-                        $URL .= '&return=error2';
-                        header("Location: {$URL}");
-                        exit();
-                    }
-
                     //Write to database
                     try {
                         $data = array('gibbonPersonUpdateID' => $gibbonPersonUpdateID);

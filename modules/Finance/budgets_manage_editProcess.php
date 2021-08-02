@@ -21,8 +21,8 @@ include '../../gibbon.php';
 
 include './moduleFunctions.php';
 
-$gibbonFinanceBudgetID = $_GET['gibbonFinanceBudgetID'];
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/budgets_manage_edit.php&gibbonFinanceBudgetID=$gibbonFinanceBudgetID";
+$gibbonFinanceBudgetID = $_GET['gibbonFinanceBudgetID'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/budgets_manage_edit.php&gibbonFinanceBudgetID=$gibbonFinanceBudgetID";
 
 if (isActionAccessible($guid, $connection2, '/modules/Finance/budgets_manage_edit.php') == false) {
     $URL .= '&return=error0';
@@ -50,10 +50,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/budgets_manage_edi
             header("Location: {$URL}");
         } else {
             //Proceed!
-            $name = $_POST['name'];
-            $nameShort = $_POST['nameShort'];
-            $active = $_POST['active'];
-            $category = $_POST['category'];
+            $name = $_POST['name'] ?? '';
+            $nameShort = $_POST['nameShort'] ?? '';
+            $active = $_POST['active'] ?? '';
+            $category = $_POST['category'] ?? '';
 
             if ($name == '' or $nameShort == '' or $active == '' or $category == '') {
                 $URL .= '&return=error1';
@@ -81,7 +81,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/budgets_manage_edi
                     if (isset($_POST['staff'])) {
                         $staff = $_POST['staff'];
                     }
-                    $access = $_POST['access'];
+                    $access = $_POST['access'] ?? '';
                     if ($access != 'Full' and $access != 'Write' and $access != 'Read') {
                         $role = 'Read';
                     }
@@ -111,7 +111,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/budgets_manage_edi
 
                     //Write to database
                     try {
-                        $data = array('name' => $name, 'nameShort' => $nameShort, 'active' => $active, 'category' => $category, 'gibbonPersonIDUpdate' => $_SESSION[$guid]['gibbonPersonID'], 'gibbonFinanceBudgetID' => $gibbonFinanceBudgetID);
+                        $data = array('name' => $name, 'nameShort' => $nameShort, 'active' => $active, 'category' => $category, 'gibbonPersonIDUpdate' => $session->get('gibbonPersonID'), 'gibbonFinanceBudgetID' => $gibbonFinanceBudgetID);
                         $sql = "UPDATE gibbonFinanceBudget SET name=:name, nameShort=:nameShort, active=:active, category=:category, gibbonPersonIDUpdate=:gibbonPersonIDUpdate, timestampUpdate='".date('Y-m-d H:i:s')."' WHERE gibbonFinanceBudgetID=:gibbonFinanceBudgetID";
                         $result = $connection2->prepare($sql);
                         $result->execute($data);

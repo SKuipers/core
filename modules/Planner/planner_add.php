@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
+use Gibbon\Services\Format;
 use Gibbon\Module\Planner\Forms\PlannerFormFactory;
 
 //Module includes
@@ -59,7 +60,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_add.php') 
         if ($viewBy == 'date') {
             $date = $_GET['date'] ?? '';
             if (isset($_GET['dateHuman']) == true) {
-                $date = dateConvert($guid, $_GET['dateHuman']);
+                $date = Format::dateConvert($_GET['dateHuman']);
             }
             if ($date == '') {
                 $date = date('Y-m-d');
@@ -85,7 +86,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_add.php') 
         }
 
         list($todayYear, $todayMonth, $todayDay) = explode('-', $today);
-        $todayStamp = mktime(0, 0, 0, $todayMonth, $todayDay, $todayYear);
+        $todayStamp = mktime(12, 0, 0, $todayMonth, $todayDay, $todayYear);
 
         $proceed = true;
         $extra = '';
@@ -95,10 +96,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_add.php') 
             } else {
                 try {
                     if ($highestAction == 'Lesson Planner_viewEditAllClasses') {
-                        $data = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'gibbonCourseClassID' => $gibbonCourseClassID);
+                        $data = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'gibbonCourseClassID' => $gibbonCourseClassID);
                         $sql = 'SELECT gibbonCourse.gibbonCourseID, gibbonCourseClass.gibbonCourseClassID, gibbonCourse.nameShort AS course, gibbonCourseClass.nameShort AS class, gibbonDepartmentID, gibbonCourse.gibbonYearGroupIDList FROM gibbonCourseClass JOIN gibbonCourse ON (gibbonCourseClass.gibbonCourseID=gibbonCourse.gibbonCourseID) WHERE gibbonCourse.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonCourseClass.gibbonCourseClassID=:gibbonCourseClassID ORDER BY course, class';
                     } else {
-                        $data = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'gibbonCourseClassID' => $gibbonCourseClassID, 'gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID']);
+                        $data = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'gibbonCourseClassID' => $gibbonCourseClassID, 'gibbonPersonID' => $session->get('gibbonPersonID'));
                         $sql = "SELECT gibbonCourse.gibbonCourseID, gibbonCourseClass.gibbonCourseClassID, gibbonCourse.nameShort AS course, gibbonCourseClass.nameShort AS class, gibbonDepartmentID, gibbonCourse.gibbonYearGroupIDList FROM gibbonCourseClassPerson JOIN gibbonCourseClass ON (gibbonCourseClassPerson.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) JOIN gibbonCourse ON (gibbonCourseClass.gibbonCourseID=gibbonCourse.gibbonCourseID) WHERE gibbonCourse.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonPersonID=:gibbonPersonID AND gibbonCourseClass.gibbonCourseClassID=:gibbonCourseClassID AND role='Teacher' ORDER BY course, class";
                     }
                     $result = $connection2->prepare($sql);
@@ -117,7 +118,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_add.php') 
                 }
             }
         } else {
-            $extra = dateConvertBack($guid, $date);
+            $extra = Format::date($date);
         }
 
         if ($proceed == false) {
@@ -137,19 +138,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_add.php') 
 
             $editLink = '';
             if (isset($_GET['editID'])) {
-                $editLink = $_SESSION[$guid]['absoluteURL'].'/index.php?' . http_build_query($params + [
+                $editLink = $session->get('absoluteURL').'/index.php?' . http_build_query($params + [
                     'q' => '/modules/Planner/planner_edit.php',
                     'gibbonPlannerEntryID' => $_GET['editID'] ?? '',
                 ]);
             }
-            if (isset($_GET['return'])) {
-                returnProcess($guid, $_GET['return'], $editLink, null);
-            }
+            $page->return->setEditLink($editLink);
 
-            $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/planner_addProcess.php?viewBy=$viewBy&subView=$subView&address=".$_SESSION[$guid]['address']);
+
+            $form = Form::create('action', $session->get('absoluteURL').'/modules/'.$session->get('module')."/planner_addProcess.php?viewBy=$viewBy&subView=$subView&address=".$session->get('address'));
             $form->setFactory(PlannerFormFactory::create($pdo));
 
-            $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+            $form->addHiddenValue('address', $session->get('address'));
 
             //BASIC INFORMATION
             $form->addRow()->addHeading(__('Basic Information'));
@@ -161,10 +161,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_add.php') 
                     $row->addTextField('schoolYearName')->setValue($values['course'].'.'.$values['class'])->required()->readonly();
             } else {
                 if ($highestAction == 'Lesson Planner_viewEditAllClasses') {
-                    $data = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID']);
+                    $data = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'));
                     $sql = 'SELECT gibbonCourseClass.gibbonCourseClassID AS value, CONCAT(gibbonCourse.nameShort,".", gibbonCourseClass.nameShort) AS name FROM gibbonCourseClass JOIN gibbonCourse ON (gibbonCourseClass.gibbonCourseID=gibbonCourse.gibbonCourseID) WHERE gibbonCourse.gibbonSchoolYearID=:gibbonSchoolYearID ORDER BY name';
                 } else {
-                    $data = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID']);
+                    $data = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'gibbonPersonID' => $session->get('gibbonPersonID'));
                     $sql = 'SELECT gibbonCourseClass.gibbonCourseClassID AS value, CONCAT(gibbonCourse.nameShort,".", gibbonCourseClass.nameShort) AS name FROM gibbonCourseClassPerson JOIN gibbonCourseClass ON (gibbonCourseClassPerson.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) JOIN gibbonCourse ON (gibbonCourseClass.gibbonCourseID=gibbonCourse.gibbonCourseID) WHERE gibbonCourse.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonPersonID=:gibbonPersonID ORDER BY name';
                 }
                 $row = $form->addRow();
@@ -211,20 +211,29 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_add.php') 
                 }
 
                 if ($nextDate == '') {
-                    
-                        $dataNext = array('gibbonCourseClassID' => $gibbonCourseClassID, 'date' => date('Y-m-d'));
-                        $sqlNext = 'SELECT timeStart, timeEnd, date FROM gibbonTTDayRowClass JOIN gibbonTTColumnRow ON (gibbonTTDayRowClass.gibbonTTColumnRowID=gibbonTTColumnRow.gibbonTTColumnRowID) JOIN gibbonTTColumn ON (gibbonTTColumnRow.gibbonTTColumnID=gibbonTTColumn.gibbonTTColumnID) JOIN gibbonTTDay ON (gibbonTTDayRowClass.gibbonTTDayID=gibbonTTDay.gibbonTTDayID) JOIN gibbonTTDayDate ON (gibbonTTDayDate.gibbonTTDayID=gibbonTTDay.gibbonTTDayID) WHERE gibbonCourseClassID=:gibbonCourseClassID AND date>=:date ORDER BY date, timestart LIMIT 0, 10';
-                        $resultNext = $connection2->prepare($sqlNext);
-                        $resultNext->execute($dataNext);
+                    $dataNext = array('gibbonCourseClassID' => $gibbonCourseClassID, 'date' => date('Y-m-d'));
+                    $sqlNext = "SELECT gibbonTTColumnRow.timeStart, gibbonTTColumnRow.timeEnd, gibbonTTDayDate.date
+                    FROM gibbonTTDayRowClass
+                    JOIN gibbonTTColumnRow ON (gibbonTTDayRowClass.gibbonTTColumnRowID=gibbonTTColumnRow.gibbonTTColumnRowID)
+                    JOIN gibbonTTColumn ON (gibbonTTColumnRow.gibbonTTColumnID=gibbonTTColumn.gibbonTTColumnID)
+                    JOIN gibbonTTDay ON (gibbonTTDayRowClass.gibbonTTDayID=gibbonTTDay.gibbonTTDayID)
+                    JOIN gibbonTTDayDate ON (gibbonTTDayDate.gibbonTTDayID=gibbonTTDay.gibbonTTDayID)
+                    LEFT JOIN gibbonSchoolYearSpecialDay ON (gibbonSchoolYearSpecialDay.date=gibbonTTDayDate.date AND gibbonSchoolYearSpecialDay.type='School Closure')
+                    WHERE gibbonTTDayRowClass.gibbonCourseClassID=:gibbonCourseClassID
+                    AND gibbonTTDayDate.date>=:date
+                    AND gibbonSchoolYearSpecialDayID IS NULL
+                    ORDER BY gibbonTTDayDate.date, gibbonTTColumnRow.timestart
+                    LIMIT 0, 10";
+                    $resultNext = $connection2->prepare($sqlNext);
+                    $resultNext->execute($dataNext);
                     $nextDate = '';
                     $nextTimeStart = '';
                     $nextTimeEnd = '';
                     while ($rowNext = $resultNext->fetch()) {
-                        
-                            $dataPlanner = array('date' => $rowNext['date'], 'timeStart' => $rowNext['timeStart'], 'timeEnd' => $rowNext['timeEnd'], 'gibbonCourseClassID' => $gibbonCourseClassID);
-                            $sqlPlanner = 'SELECT * FROM gibbonPlannerEntry WHERE date=:date AND timeStart=:timeStart AND timeEnd=:timeEnd AND gibbonCourseClassID=:gibbonCourseClassID';
-                            $resultPlanner = $connection2->prepare($sqlPlanner);
-                            $resultPlanner->execute($dataPlanner);
+                        $dataPlanner = array('date' => $rowNext['date'], 'timeStart' => $rowNext['timeStart'], 'timeEnd' => $rowNext['timeEnd'], 'gibbonCourseClassID' => $gibbonCourseClassID);
+                        $sqlPlanner = 'SELECT * FROM gibbonPlannerEntry WHERE date=:date AND timeStart=:timeStart AND timeEnd=:timeEnd AND gibbonCourseClassID=:gibbonCourseClassID';
+                        $resultPlanner = $connection2->prepare($sqlPlanner);
+                        $resultPlanner->execute($dataPlanner);
                         if ($resultPlanner->rowCount() == 0) {
                             $nextDate = $rowNext['date'];
                             $nextTimeStart = $rowNext['timeStart'];
@@ -238,12 +247,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_add.php') 
             if ($viewBy == 'date') {
                 $row = $form->addRow();
                     $row->addLabel('date', __('Date'));
-                    $row->addDate('date')->setValue(dateConvertBack($guid, $date))->required()->readonly();
+                    $row->addDate('date')->setValue(Format::date($date))->required()->readonly();
             }
             else {
                 $row = $form->addRow();
                     $row->addLabel('date', __('Date'));
-                    $row->addDate('date')->setValue(dateConvertBack($guid, $nextDate))->required();
+                    $row->addDate('date')->setValue(Format::date($nextDate))->required();
             }
 
             $nextTimeStart = (isset($nextTimeStart)) ? substr($nextTimeStart, 0, 5) : null;
@@ -283,7 +292,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_add.php') 
                 $col = $row->addColumn('homeworkDueDate')->addClass('homework');
                 $col->addDate('homeworkDueDate')->addClass('mr-2')->required();
                 $col->addTime('homeworkDueDateTime');
-                
+
             $row = $form->addRow()->addClass('homework');
                 $row->addLabel('homeworkTimeCap', __('Time Cap?'))->description(__('The maximum time, in minutes, for students to work on this.'));
                 $row->addNumber('homeworkTimeCap');
@@ -361,7 +370,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_add.php') 
                 $row = $form->addRow()->addClass('advanced');
                     $row->addPlannerOutcomeBlocks('outcome', $gibbon->session, $gibbonYearGroupIDList, $gibbonDepartmentID, $allowOutcomeEditing);
             }
-            
+
             //Access
             $form->addRow()->addHeading(__('Access'))->addClass('advanced');
 
@@ -403,6 +412,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_add.php') 
         }
 
         //Print sidebar
-        $_SESSION[$guid]['sidebarExtra'] = sidebarExtra($guid, $connection2, $todayStamp, $_SESSION[$guid]['gibbonPersonID'], $dateStamp, $gibbonCourseClassID);
+        $session->set('sidebarExtra', sidebarExtra($guid, $connection2, $todayStamp, $session->get('gibbonPersonID'), $dateStamp, $gibbonCourseClassID));
     }
 }

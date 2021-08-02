@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/activitySettings.php';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/activitySettings.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/activitySettings.php') == false) {
     $URL .= '&return=error0';
@@ -32,17 +32,17 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/activitySetti
     } else {
         $maxPerTerm = 0;
     }
-    $access = $_POST['access'];
-    $payment = $_POST['payment'];
-    $enrolmentType = $_POST['enrolmentType'];
-    $backupChoice = $_POST['backupChoice'];
+    $access = $_POST['access'] ?? '';
+    $payment = $_POST['payment'] ?? '';
+    $enrolmentType = $_POST['enrolmentType'] ?? '';
+    $backupChoice = $_POST['backupChoice'] ?? '';
     $activityTypes = '';
     foreach (explode(',', $_POST['activityTypes']) as $type) {
         $activityTypes .= trim($type).',';
     }
     $activityTypes = substr($activityTypes, 0, -1);
-    $disableExternalProviderSignup = $_POST['disableExternalProviderSignup'];
-    $hideExternalProviderCost = $_POST['hideExternalProviderCost'];
+    $disableExternalProviderSignup = $_POST['disableExternalProviderSignup'] ?? '';
+    $hideExternalProviderCost = $_POST['hideExternalProviderCost'] ?? '';
 
     //Validate Inputs
     if ($dateType == '' or $access == '' or $payment == '' or $enrolmentType == '' or $backupChoice == '' or $disableExternalProviderSignup == '' or $hideExternalProviderCost == '') {

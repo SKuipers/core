@@ -21,14 +21,14 @@ use Gibbon\Domain\Timetable\CourseGateway;
 
 include '../../gibbon.php';
 
-$gibbonSchoolYearID = $_GET['gibbonSchoolYearID'];
-$gibbonCourseID = $_GET['gibbonCourseID'];
-$gibbonCourseClassID = $_GET['gibbonCourseClassID'];
-$gibbonUnitID = $_GET['gibbonUnitID'];
-$gibbonUnitClassID = $_GET['gibbonUnitClassID'];
-$orders = $_POST['order'];
+$gibbonSchoolYearID = $_GET['gibbonSchoolYearID'] ?? '';
+$gibbonCourseID = $_GET['gibbonCourseID'] ?? '';
+$gibbonCourseClassID = $_GET['gibbonCourseClassID'] ?? '';
+$gibbonUnitID = $_GET['gibbonUnitID'] ?? '';
+$gibbonUnitClassID = $_GET['gibbonUnitClassID'] ?? '';
+$orders = $_POST['order'] ?? '';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/units_edit.php&gibbonSchoolYearID=$gibbonSchoolYearID&gibbonCourseID=$gibbonCourseID&gibbonUnitID=$gibbonUnitID";
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/units_edit.php&gibbonSchoolYearID=$gibbonSchoolYearID&gibbonCourseID=$gibbonCourseID&gibbonUnitID=$gibbonUnitID";
 
 if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit_deploy.php') == false) {
     $URL .= '&return=error0';
@@ -90,7 +90,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit_deploy.
                             $viewableParents = $_POST['viewableParents'];
 
                             try {
-                                $data = array('gibbonCourseClassID' => $gibbonCourseClassID, 'date' => $_POST["date$lessonCount"], 'timeStart' => $_POST["timeStart$lessonCount"], 'timeEnd' => $_POST["timeEnd$lessonCount"], 'gibbonUnitID' => $gibbonUnitID, 'name' => $row['name'].' '.($lessonCount + 1), 'summary' => $summary, 'teachersNotes' => $teachersNotes, 'viewableParents' => $viewableParents, 'viewableStudents' => $viewableStudents, 'gibbonPersonIDCreator' => $_SESSION[$guid]['gibbonPersonID'], 'gibbonPersonIDLastEdit' => $_SESSION[$guid]['gibbonPersonID']);
+                                $data = array('gibbonCourseClassID' => $gibbonCourseClassID, 'date' => $_POST["date$lessonCount"], 'timeStart' => $_POST["timeStart$lessonCount"], 'timeEnd' => $_POST["timeEnd$lessonCount"], 'gibbonUnitID' => $gibbonUnitID, 'name' => $row['name'].' '.($lessonCount + 1), 'summary' => $summary, 'teachersNotes' => $teachersNotes, 'viewableParents' => $viewableParents, 'viewableStudents' => $viewableStudents, 'gibbonPersonIDCreator' => $session->get('gibbonPersonID'), 'gibbonPersonIDLastEdit' => $session->get('gibbonPersonID'));
                                 $sql = "INSERT INTO gibbonPlannerEntry SET gibbonCourseClassID=:gibbonCourseClassID, date=:date, timeStart=:timeStart, timeEnd=:timeEnd, gibbonUnitID=:gibbonUnitID, name=:name, summary=:summary, description='', teachersNotes=:teachersNotes, homework='N', viewableParents=:viewableParents, viewableStudents=:viewableStudents, gibbonPersonIDCreator=:gibbonPersonIDCreator, gibbonPersonIDLastEdit=:gibbonPersonIDLastEdit";
                                 $result = $connection2->prepare($sql);
                                 $result->execute($data);
@@ -107,13 +107,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit_deploy.
                         }
                         //It is a block, so add it to the last added lesson
                         else {
-                            $titles = $_POST['title'.$order];
+                            $titles = $_POST['title'.$order] ?? '';
                             $lessonDescriptions[$AI][1] .= $titles.', ';
-                            $types = $_POST['type'.$order];
-                            $lengths = $_POST['length'.$order];
-                            $contents = $_POST['contents'.$order];
-                            $teachersNotes = $_POST['teachersNotes'.$order];
-                            $gibbonUnitBlockID = $_POST['gibbonUnitBlockID'.$order];
+                            $types = $_POST['type'.$order] ?? '';
+                            $lengths = $_POST['length'.$order] ?? '';
+                            $contents = $_POST['contents'.$order] ?? '';
+                            $teachersNotes = $_POST['teachersNotes'.$order] ?? '';
+                            $gibbonUnitBlockID = $_POST['gibbonUnitBlockID'.$order] ?? '';
 
                             try {
                                 $data = array('gibbonUnitClassID' => $gibbonUnitClassID, 'gibbonPlannerEntryID' => $AI, 'gibbonUnitBlockID' => $gibbonUnitBlockID, 'title' => $titles, 'type' => $types, 'length' => $lengths, 'contents' => $contents, 'teachersNotes' => $teachersNotes, 'sequenceNumber' => $sequenceNumber);

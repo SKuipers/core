@@ -35,10 +35,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_approval_ac
         ->add(__('Approve Staff Absences'), 'absences_approval.php')
         ->add(__('Approval'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], $editLink, null);
-    }
-
     $absence = $container->get(StaffAbsenceGateway::class)->getAbsenceDetailsByID($gibbonStaffAbsenceID);
 
     if (empty($absence)) {
@@ -46,7 +42,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_approval_ac
         return;
     }
 
-    if ($absence['gibbonPersonIDApproval'] != $_SESSION[$guid]['gibbonPersonID']) {
+    if ($absence['gibbonPersonIDApproval'] != $session->get('gibbonPersonID')) {
         $page->addError(__('You do not have access to this action.'));
         return;
     }
@@ -61,12 +57,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_approval_ac
 
     // Absence View Composer
     $absenceView = $container->get(AbsenceView::class);
-    $absenceView->setAbsence($gibbonStaffAbsenceID, $_SESSION[$guid]['gibbonPersonID'])->compose($page);
+    $absenceView->setAbsence($gibbonStaffAbsenceID, $session->get('gibbonPersonID'))->compose($page);
     
     // Approval Form
-    $form = Form::create('staffAbsenceApproval', $_SESSION[$guid]['absoluteURL'].'/modules/Staff/absences_approval_actionProcess.php');
+    $form = Form::create('staffAbsenceApproval', $session->get('absoluteURL').'/modules/Staff/absences_approval_actionProcess.php');
 
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+    $form->addHiddenValue('address', $session->get('address'));
     $form->addHiddenValue('gibbonStaffAbsenceID', $gibbonStaffAbsenceID);
 
     $options = [

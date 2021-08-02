@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/district_manage_add.php';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/district_manage_add.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/User Admin/district_manage_add.php') == false) {
     $URL .= '&return=error0';
@@ -27,7 +27,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/district_manage
 } else {
     //Proceed!
     //Validate Inputs
-    $name = $_POST['name'];
+    $name = $_POST['name'] ?? '';
 
     if ($name == '') {
         $URL .= '&return=error1';

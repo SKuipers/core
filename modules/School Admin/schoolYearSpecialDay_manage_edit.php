@@ -18,16 +18,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
+use Gibbon\Services\Format;
 
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYearSpecialDay_manage_edit.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed!
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     //Check if school year specified
     $gibbonSchoolYearSpecialDayID = $_GET['gibbonSchoolYearSpecialDayID'] ?? '';
     $gibbonSchoolYearTermID = $_GET['gibbonSchoolYearTermID'] ?? '';
@@ -52,15 +49,15 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYearSpe
             //Let's go!
             $values = $result->fetch();
 
-            $form = Form::create('specialDayAdd', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/schoolYearSpecialDay_manage_editProcess.php?gibbonSchoolYearSpecialDayID='.$gibbonSchoolYearSpecialDayID.'&gibbonSchoolYearID='.$gibbonSchoolYearID);
+            $form = Form::create('specialDayAdd', $session->get('absoluteURL').'/modules/'.$session->get('module').'/schoolYearSpecialDay_manage_editProcess.php?gibbonSchoolYearSpecialDayID='.$gibbonSchoolYearSpecialDayID.'&gibbonSchoolYearID='.$gibbonSchoolYearID);
 
-            $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+            $form->addHiddenValue('address', $session->get('address'));
             $form->addHiddenValue('gibbonSchoolYearID', $gibbonSchoolYearID);
             $form->addHiddenValue('gibbonSchoolYearTermID', $gibbonSchoolYearTermID);
 
             $row = $form->addRow();
                 $row->addLabel('dateDisplay', __('Date'))->description(__('Must be unique.'));
-                $row->addTextField('dateDisplay')->readonly()->setValue(dateConvertBack($guid, $values['date']));
+                $row->addTextField('dateDisplay')->readonly()->setValue(Format::date($values['date']));
 
             $types = array(
                 'School Closure' => __('School Closure'),

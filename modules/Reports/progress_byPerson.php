@@ -32,10 +32,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/progress_byPerson.
     // Proceed!
     $page->breadcrumbs->add(__('Progress by Person'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     $gibbonSchoolYearID = $gibbon->session->get('gibbonSchoolYearID');
     $gibbonReportingCycleID = $_GET['gibbonReportingCycleID'] ?? '';
     $gibbonReportingScopeID = $_GET['gibbonReportingScopeID'] ?? '';
@@ -50,7 +46,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/progress_byPerson.
     }
 
     // FORM
-    $form = Form::create('archiveByReport', $_SESSION[$guid]['absoluteURL'].'/index.php', 'get');
+    $form = Form::create('archiveByReport', $session->get('absoluteURL').'/index.php', 'get');
     $form->setTitle(__('Filter'));
     $form->setClass('noIntBorder fullWidth');
 

@@ -19,27 +19,27 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/staffApplicationFormSettings.php';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/staffApplicationFormSettings.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/User Admin/staffApplicationFormSettings.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
 } else {
     //Proceed!
-    $staffApplicationFormIntroduction = $_POST['staffApplicationFormIntroduction'];
-    $staffApplicationFormQuestions = $_POST['staffApplicationFormQuestions'];
-    $staffApplicationFormPostscript = $_POST['staffApplicationFormPostscript'];
-    $staffApplicationFormAgreement = $_POST['staffApplicationFormAgreement'];
-    $staffApplicationFormPublicApplications = $_POST['staffApplicationFormPublicApplications'];
-    $staffApplicationFormMilestones = $_POST['staffApplicationFormMilestones'];
-    $staffApplicationFormRequiredDocuments = $_POST['staffApplicationFormRequiredDocuments'];
-    $staffApplicationFormRequiredDocumentsText = $_POST['staffApplicationFormRequiredDocumentsText'];
-    $staffApplicationFormRequiredDocumentsCompulsory = $_POST['staffApplicationFormRequiredDocumentsCompulsory'];
-    $staffApplicationFormNotificationMessage = $_POST['staffApplicationFormNotificationMessage'];
-    $staffApplicationFormNotificationDefault = $_POST['staffApplicationFormNotificationDefault'];
-    $staffApplicationFormDefaultEmail = $_POST['staffApplicationFormDefaultEmail'];
-    $staffApplicationFormDefaultWebsite = $_POST['staffApplicationFormDefaultWebsite'];
-    $staffApplicationFormUsernameFormat = $_POST['staffApplicationFormUsernameFormat'];
+    $staffApplicationFormIntroduction = $_POST['staffApplicationFormIntroduction'] ?? '';
+    $staffApplicationFormQuestions = $_POST['staffApplicationFormQuestions'] ?? '';
+    $staffApplicationFormPostscript = $_POST['staffApplicationFormPostscript'] ?? '';
+    $staffApplicationFormAgreement = $_POST['staffApplicationFormAgreement'] ?? '';
+    $staffApplicationFormPublicApplications = $_POST['staffApplicationFormPublicApplications'] ?? '';
+    $staffApplicationFormMilestones = $_POST['staffApplicationFormMilestones'] ?? '';
+    $staffApplicationFormRequiredDocuments = $_POST['staffApplicationFormRequiredDocuments'] ?? '';
+    $staffApplicationFormRequiredDocumentsText = $_POST['staffApplicationFormRequiredDocumentsText'] ?? '';
+    $staffApplicationFormRequiredDocumentsCompulsory = $_POST['staffApplicationFormRequiredDocumentsCompulsory'] ?? '';
+    $staffApplicationFormNotificationMessage = $_POST['staffApplicationFormNotificationMessage'] ?? '';
+    $staffApplicationFormNotificationDefault = $_POST['staffApplicationFormNotificationDefault'] ?? '';
+    $staffApplicationFormDefaultEmail = $_POST['staffApplicationFormDefaultEmail'] ?? '';
+    $staffApplicationFormDefaultWebsite = $_POST['staffApplicationFormDefaultWebsite'] ?? '';
+    $staffApplicationFormUsernameFormat = $_POST['staffApplicationFormUsernameFormat'] ?? '';
     //Deal with reference links
     $refereeLinks=array() ;
     if (isset($_POST['refereeLinks']) AND isset($_POST['types'])) {

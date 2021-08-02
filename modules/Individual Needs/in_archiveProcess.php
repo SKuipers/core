@@ -19,15 +19,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/in_archive.php';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/in_archive.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/in_archive.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
 } else {
-    $deleteCurrentPlans = $_POST['deleteCurrentPlans'];
-    $title = $_POST['title'];
-    $gibbonPersonIDs = isset($_POST['gibbonPersonID'])? $_POST['gibbonPersonID'] : array();
+    $deleteCurrentPlans = $_POST['deleteCurrentPlans'] ?? '';
+    $title = $_POST['title'] ?? '';
+    $gibbonPersonIDs = $_POST['gibbonPersonID'] ?? array();
     if (!is_array($gibbonPersonIDs)) {
         $gibbonPersonIDs = array($gibbonPersonIDs);
     }
@@ -80,8 +80,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/in_archiv
 
                 //Make archive of record
                 try {
-                    $dataUpdate = array('strategies' => $row['strategies'], 'targets' => $row['targets'], 'notes' => $row['notes'], 'gibbonPersonID' => $gibbonPersonID, 'title' => $title, 'descriptors' => $descriptors);
-                    $sqlUpdate = 'INSERT INTO gibbonINArchive SET gibbonPersonID=:gibbonPersonID, strategies=:strategies, targets=:targets, notes=:notes, archiveTitle=:title, descriptors=:descriptors, archiveTimestamp=now()';
+                    $dataUpdate = array('strategies' => $row['strategies'], 'targets' => $row['targets'], 'notes' => $row['notes'], 'fields' => $row['fields'], 'gibbonPersonID' => $gibbonPersonID, 'title' => $title, 'descriptors' => $descriptors);
+                    $sqlUpdate = 'INSERT INTO gibbonINArchive SET gibbonPersonID=:gibbonPersonID, strategies=:strategies, targets=:targets, notes=:notes, fields=:fields, archiveTitle=:title, descriptors=:descriptors, archiveTimestamp=now()';
                     $resultUpdate = $connection2->prepare($sqlUpdate);
                     $resultUpdate->execute($dataUpdate);
                 } catch (PDOException $e) {
@@ -93,7 +93,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/in_archiv
                 if ($deleteCurrentPlans == 'Y' and $userUpdateFail == false) {
                     try {
                         $dataUpdate = array('gibbonPersonID' => $gibbonPersonID);
-                        $sqlUpdate = "UPDATE gibbonIN SET strategies='', targets='', notes='' WHERE gibbonPersonID=:gibbonPersonID";
+                        $sqlUpdate = "UPDATE gibbonIN SET strategies='', targets='', notes='', fields='' WHERE gibbonPersonID=:gibbonPersonID";
                         $resultUpdate = $connection2->prepare($sqlUpdate);
                         $resultUpdate->execute($dataUpdate);
                     } catch (PDOException $e) {

@@ -17,10 +17,15 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\View\View;
 use Gibbon\Forms\Form;
-use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Services\Format;
+use Gibbon\Forms\CustomFieldHandler;
+use Gibbon\Forms\DatabaseFormFactory;
+use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Domain\Finance\PaymentGateway;
+use Gibbon\Forms\PersonalDocumentHandler;
+use Gibbon\Domain\User\PersonalDocumentGateway;
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -61,32 +66,31 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
         return;
     }
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     //Let's go!
     $application = $result->fetch();
     $proceed = true;
 
     echo "<div class='linkTop'>";
     if ($search != '') {
-        echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Students/applicationForm_manage.php&gibbonSchoolYearID=$gibbonSchoolYearID&search=$search'>".__('Back to Search Results').'</a> | ';
+        echo "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/Students/applicationForm_manage.php&gibbonSchoolYearID=$gibbonSchoolYearID&search=$search'>".__('Back to Search Results').'</a> | ';
     }
 
     $applicationProcessFee = getSettingByScope($connection2, 'Application Form', 'applicationProcessFee');
     if ($application['paymentMade2'] == 'N' && !empty($applicationProcessFee) && is_numeric($applicationProcessFee)) {
-        echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.$_SESSION[$guid]['module']."/applicationForm_manage_edit_fee.php&gibbonApplicationFormID=$gibbonApplicationFormID&gibbonSchoolYearID=$gibbonSchoolYearID&search=$search'>".__('Send Payment Request')."<img style='margin-left: 5px' title='".__('Send Payment Request')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/page_right.png'/></a> &nbsp;|&nbsp; ";
+        echo "<a href='".$session->get('absoluteURL').'/index.php?q=/modules/'.$session->get('module')."/applicationForm_manage_edit_fee.php&gibbonApplicationFormID=$gibbonApplicationFormID&gibbonSchoolYearID=$gibbonSchoolYearID&search=$search'>".__('Send Payment Request')."<img style='margin-left: 5px' title='".__('Send Payment Request')."' src='./themes/".$session->get('gibbonThemeName')."/img/page_right.png'/></a> &nbsp;|&nbsp; ";
     }
 
-    echo "<a target='_blank' href='".$_SESSION[$guid]['absoluteURL'].'/report.php?q=/modules/'.$_SESSION[$guid]['module']."/applicationForm_manage_edit_print.php&gibbonApplicationFormID=$gibbonApplicationFormID'>".__('Print')."<img style='margin-left: 5px' title='".__('Print')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/print.png'/></a>";
+    echo "<a target='_blank' href='".$session->get('absoluteURL').'/report.php?q=/modules/'.$session->get('module')."/applicationForm_manage_edit_print.php&gibbonApplicationFormID=$gibbonApplicationFormID'>".__('Print')."<img style='margin-left: 5px' title='".__('Print')."' src='./themes/".$session->get('gibbonThemeName')."/img/print.png'/></a>";
     echo '</div>';
 
-    $form = Form::create('applicationFormEdit', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/applicationForm_manage_editProcess.php?search='.$search);
+    $customFieldHandler = $container->get(CustomFieldHandler::class);
+    $personalDocumentHandler = $container->get(PersonalDocumentHandler::class);
+
+    $form = Form::create('applicationFormEdit', $session->get('absoluteURL').'/modules/'.$session->get('module').'/applicationForm_manage_editProcess.php?search='.$search);
     $form->setAutocomplete('on');
     $form->setFactory(DatabaseFormFactory::create($pdo));
 
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+    $form->addHiddenValue('address', $session->get('address'));
     $form->addHiddenValue('gibbonSchoolYearID', $gibbonSchoolYearID);
     $form->addHiddenValue('gibbonApplicationFormID', $application['gibbonApplicationFormID']);
 
@@ -138,7 +142,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
     }
 
     $row = $form->addRow();
-        $row->addLabel('dateStart', __('Start Date'))->description(__('Student\'s intended first day at school.'))->append(__('Format:').' '.$_SESSION[$guid]['i18n']['dateFormat']);
+        $row->addLabel('dateStart', __('Start Date'))->description(__('Student\'s intended first day at school.'))->append(__('Format:').' '.$session->get('i18n')['dateFormat']);
         $row->addDate('dateStart')->required();
 
     $row = $form->addRow();
@@ -150,19 +154,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
         $row->addLabel('gibbonYearGroupIDEntry', __('Year Group at Entry'))->description(__('Which year level will student enter.'));
         $row->addSelectYearGroup('gibbonYearGroupIDEntry')->required();
 
-    // ROLL GROUP
-    $sqlSelect = "SELECT gibbonRollGroupID as value, name, gibbonSchoolYearID FROM gibbonRollGroup ORDER BY gibbonSchoolYearID, name";
+    // FORM GROUP
+    $sqlSelect = "SELECT gibbonFormGroupID as value, name, gibbonSchoolYearID FROM gibbonFormGroup ORDER BY gibbonSchoolYearID, name";
     $resultSelect = $pdo->executeQuery(array(), $sqlSelect);
 
-    $rollGroups = ($resultSelect->rowCount() > 0)? $resultSelect->fetchAll() : array();
-    $rollGroupsChained = array_combine(array_column($rollGroups, 'value'), array_column($rollGroups, 'gibbonSchoolYearID'));
-    $rollGroupsOptions = array_combine(array_column($rollGroups, 'value'), array_column($rollGroups, 'name'));
+    $formGroups = ($resultSelect->rowCount() > 0)? $resultSelect->fetchAll() : array();
+    $formGroupsChained = array_combine(array_column($formGroups, 'value'), array_column($formGroups, 'gibbonSchoolYearID'));
+    $formGroupsOptions = array_combine(array_column($formGroups, 'value'), array_column($formGroups, 'name'));
 
     $row = $form->addRow();
-        $row->addLabel('gibbonRollGroupID', __('Roll Group at Entry'))->description(__('If set, the student will automatically be enrolled on Accept.'));
-        $row->addSelect('gibbonRollGroupID')
-            ->fromArray($rollGroupsOptions)
-            ->chainedTo('gibbonSchoolYearIDEntry', $rollGroupsChained)
+        $row->addLabel('gibbonFormGroupID', __('Form Group at Entry'))->description(__('If set, the student will automatically be enrolled on Accept.'));
+        $row->addSelect('gibbonFormGroupID')
+            ->fromArray($formGroupsOptions)
+            ->chainedTo('gibbonSchoolYearIDEntry', $formGroupsChained)
             ->placeholder();
 
     // DAY TYPE
@@ -281,7 +285,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
 
         }
         $row = $table->addRow();
-        $row->addContent("<a href='#' onclick='if (confirm(\"".$messageDelete."\")) window.location = \"".$_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/applicationForm_manage_deleteLinkProcess.php?gibbonApplicationFormID='.$gibbonApplicationFormID."&gibbonSchoolYearID=".$gibbonSchoolYearID."\"; else return false;'><img style='margin-left: 4px' title='".__('Remove').' '.__('Sibling Applications')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/garbage.png'/></a>")->addClass('right');
+        $row->addContent("<a href='#' onclick='if (confirm(\"".$messageDelete."\")) window.location = \"".$session->get('absoluteURL').'/modules/'.$session->get('module').'/applicationForm_manage_deleteLinkProcess.php?gibbonApplicationFormID='.$gibbonApplicationFormID."&gibbonSchoolYearID=".$gibbonSchoolYearID."\"; else return false;'><img style='margin-left: 4px' title='".__('Remove').' '.__('Sibling Applications')."' src='./themes/".$session->get('gibbonThemeName')."/img/garbage.png'/></a>")->addClass('right');
 
     } else {
         // Or add a new link (mutually exclusive, to prevent linking multiple families)
@@ -310,6 +314,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                     ->prepend("<input type='submit' style='float:right' value='".__('Go')."' onclick='if(confirm(\"".$messageConfirm."\")) document.forms[0].submit(); else return false;'>");
         }
     }
+
+    $countryName = ($session->has('country')) ? __($session->get('country')).' ' : '';
+    $nationalityList = getSettingByScope($connection2, 'User Admin', 'nationality');
+    $residencyStatusList = getSettingByScope($connection2, 'User Admin', 'residencyStatus');
 
     // STUDENT PERSONAL DATA
     $form->addRow()->addHeading(__('Student'));
@@ -344,7 +352,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
             $row->addSelectGender('gender')->required();
 
         $row = $form->addRow();
-            $row->addLabel('dob', __('Date of Birth'))->description($_SESSION[$guid]['i18n']['dateFormat'])->prepend(__('Format:'));
+            $row->addLabel('dob', __('Date of Birth'))->description($session->get('i18n')['dateFormat'])->prepend(__('Format:'));
             $row->addDate('dob')->required();
 
         // STUDENT BACKGROUND
@@ -370,43 +378,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
             $row->addLabel('languageThird', __('Third Language'));
             $row->addSelectLanguage('languageThird')->placeholder('');
 
-        $row = $form->addRow();
-            $row->addLabel('countryOfBirth', __('Country of Birth'));
-            $row->addSelectCountry('countryOfBirth')->required();
 
-        $row = $form->addRow();
-            $row->addLabel('citizenship1', __('Citizenship'));
-            $nationalityList = getSettingByScope($connection2, 'User Admin', 'nationality');
-            if (!empty($nationalityList)) {
-                $row->addSelect('citizenship1')->required()->fromString($nationalityList)->placeholder(__('Please select...'));
-            } else {
-                $row->addSelectCountry('citizenship1')->required();
-            }
-
-        $row = $form->addRow();
-            $row->addLabel('citizenship1Passport', __('Citizenship Passport Number'))->description('');
-            $row->addTextField('citizenship1Passport')->maxLength(30);
-
-        $row = $form->addRow();
-            $row->addLabel('citizenship1PassportExpiry', __('Citizenship 1 Passport Expiry Date'));
-            $row->addDate('citizenship1PassportExpiry');
-
-        $row = $form->addRow();
-            $row->addLabel('nationalIDCardNumber', $countryName.__('National ID Card Number'));
-            $row->addTextField('nationalIDCardNumber')->maxLength(30);
-
-        $row = $form->addRow();
-            $row->addLabel('residencyStatus', $countryName.__('Residency/Visa Type'));
-            $residencyStatusList = getSettingByScope($connection2, 'User Admin', 'residencyStatus');
-            if (!empty($residencyStatusList)) {
-                $row->addSelect('residencyStatus')->fromString($residencyStatusList)->placeholder();
-            } else {
-                $row->addTextField('residencyStatus')->maxLength(30);
-            }
-
-        $row = $form->addRow();
-            $row->addLabel('visaExpiryDate', $countryName.__('Visa Expiry Date'))->description($_SESSION[$guid]['i18n']['dateFormat'])->prepend(__('Format:'))->append(__('If relevant.'));
-            $row->addDate('visaExpiryDate');
+        // PERSONAL DOCUMENTS
+        $params = ['student' => true, 'applicationForm' => true];
+        $personalDocumentHandler->addPersonalDocumentsToForm($form, 'gibbonApplicationForm', $gibbonApplicationFormID, $params);
 
         // STUDENT CONTACT
         $form->addRow()->addSubheading(__('Student Contact'));
@@ -516,7 +491,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
     $header->addContent(__('Address'));
     $header->addContent(sprintf(__('Grades%1$sAttended'), '<br/>'));
     $header->addContent(sprintf(__('Language of%1$sInstruction'), '<br/>'));
-    $header->addContent(__('Joining Date'))->append('<br/><small>'.$_SESSION[$guid]['i18n']['dateFormat'].'</small>');
+    $header->addContent(__('Joining Date'))->append('<br/><small>'.$session->get('i18n')['dateFormat'].'</small>');
 
     // Grab some languages, for auto-complete
     $results = $pdo->executeQuery(array(), "SELECT name FROM gibbonLanguage ORDER BY name");
@@ -532,20 +507,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
     }
 
     // CUSTOM FIELDS FOR STUDENT
-    $existingFields = (isset($application["fields"]))? json_decode($application["fields"], true) : null;
-    $resultFields = getCustomFields($connection2, $guid, true, false, false, false, true, null);
-    if ($resultFields->rowCount() > 0) {
-        $heading = $form->addRow()->addSubheading(__('Other Information'));
-
-        while ($rowFields = $resultFields->fetch()) {
-            $name = 'custom'.$rowFields['gibbonPersonFieldID'];
-            $value = (isset($existingFields[$rowFields['gibbonPersonFieldID']]))? $existingFields[$rowFields['gibbonPersonFieldID']] : '';
-
-            $row = $form->addRow();
-                $row->addLabel($name, $rowFields['name'])->description($rowFields['description']);
-                $row->addCustomField($name, $rowFields)->setValue($value);
-        }
-    }
+    $params = ['student' => 1, 'applicationForm' => 1, 'headingLevel' => 'h4'];
+    $customFieldHandler->addCustomFieldsToForm($form, 'User', $params, $application['fields']);
 
     // NEW FAMILY
     if (empty($application['gibbonFamilyID'])) {
@@ -668,6 +631,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
             $row = $form->addRow();
                 $row->addLabel("parent{$i}relationship", __('Relationship'));
                 $row->addSelectRelationship("parent{$i}relationship")->required();
+
+            // CUSTOM FIELDS FOR PARENT 1 WITH FAMILY
+            $params = ['parent' => 1, 'applicationForm' => 1, 'prefix' => 'parent1custom', 'headingPrefix' => __('Parent/Guardian').' '.$i, 'headingLevel' => 'h4'];
+            $customFieldHandler->addCustomFieldsToForm($form, 'User', $params, $application["parent{$i}fields"] ?? '');
         } else {
             // NEW PARENT - IF NOT EXISTS
             if ($i == 2) {
@@ -724,29 +691,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                 $row->addLabel("parent{$i}languageSecond", __('Second Language'));
                 $row->addSelectLanguage("parent{$i}languageSecond")->placeholder();
 
-            $row = $form->addRow()->setClass("parentSection{$i}");
-                $row->addLabel("parent{$i}citizenship1", __('Citizenship'));
-                if (!empty($nationalityList)) {
-                    $row->addSelect("parent{$i}citizenship1")->fromString($nationalityList)->placeholder();
-                } else {
-                    $row->addSelectCountry("parent{$i}citizenship1");
-                }
+            // PERSONAL DOCUMENTS
 
-            $row = $form->addRow()->setClass("parentSection{$i}");
-                $row->addLabel("parent{$i}nationalIDCardNumber", $countryName.__('National ID Card Number'));
-                $row->addTextField("parent{$i}nationalIDCardNumber")->maxLength(30);
-
-            $row = $form->addRow()->setClass("parentSection{$i}");
-                $row->addLabel("parent{$i}residencyStatus", $countryName.__('Residency/Visa Type'));
-                if (!empty($residencyStatusList)) {
-                    $row->addSelect("parent{$i}residencyStatus")->fromString($residencyStatusList)->placeholder();
-                } else {
-                    $row->addTextField("parent{$i}residencyStatus")->maxLength(30);
-                }
-
-            $row = $form->addRow()->setClass("parentSection{$i}");
-                $row->addLabel("parent{$i}visaExpiryDate", $countryName.__('Visa Expiry Date'))->description($_SESSION[$guid]['i18n']['dateFormat'])->prepend(__('Format:'))->append(__('If relevant.'));
-                $row->addDate("parent{$i}visaExpiryDate");
+            $params = ['parent' => true, 'applicationForm' => true, 'prefix' => "parent{$i}", 'class' => "parentSection{$i}"];
+            $personalDocumentHandler->addPersonalDocumentsToForm($form, 'gibbonApplicationFormParent'.$i, $gibbonApplicationFormID, $params);
 
             // PARENT CONTACT
             $row = $form->addRow()->setClass("parentSection{$i}");
@@ -779,21 +727,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                 $row->addTextField("parent{$i}employer")->required()->maxLength(90);
 
             // CUSTOM FIELDS FOR PARENTS
-            $existingFields = (isset($application["parent{$i}fields"]))? json_decode($application["parent{$i}fields"], true) : null;
-            $resultFields = getCustomFields($connection2, $guid, false, false, true, false, true, null);
-            if ($resultFields->rowCount() > 0) {
-                $row = $form->addRow()->setClass("parentSection{$i}");
-                $row->addSubheading(__('Parent/Guardian')." $i ".__('Other Information'));
-
-                while ($rowFields = $resultFields->fetch()) {
-                    $name = "parent{$i}custom".$rowFields['gibbonPersonFieldID'];
-                    $value = (isset($existingFields[$rowFields['gibbonPersonFieldID']]))? $existingFields[$rowFields['gibbonPersonFieldID']] : '';
-
-                    $row = $form->addRow()->setClass("parentSection{$i}");
-                        $row->addLabel($name, $rowFields['name'])->description($rowFields['description']);
-                        $row->addCustomField($name, $rowFields)->setValue($value);
-                }
-            }
+            $params = ['parent' => 1, 'applicationForm' => 1, 'prefix' => "parent{$i}custom", 'headingPrefix' => __('Parent/Guardian')." $i", 'headingLevel' => 'h4', 'class' => "parentSection{$i}"];
+            $customFieldHandler->addCustomFieldsToForm($form, 'User', $params, $application["parent{$i}fields"] ?? '');
         }
     }
 
@@ -804,9 +739,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
 
     $header = $table->addHeaderRow();
     $header->addContent(__('Sibling Name'));
-    $header->addContent(__('Date of Birth'))->append('<br/><small>'.$_SESSION[$guid]['i18n']['dateFormat'].'</small>');
+    $header->addContent(__('Date of Birth'))->append('<br/><small>'.$session->get('i18n')['dateFormat'].'</small>');
     $header->addContent(__('School Attending'));
-    $header->addContent(__('Joining Date'))->append('<br/><small>'.$_SESSION[$guid]['i18n']['dateFormat'].'</small>');
+    $header->addContent(__('Joining Date'))->append('<br/><small>'.$session->get('i18n')['dateFormat'].'</small>');
 
     // Add additional sibling rows up to 3
     for ($i = 1; $i <= 3; ++$i) {
@@ -979,7 +914,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
             $row->addLabel('file'.$i, $requiredDocumentsList[$i]);
                 $row->addFileUpload('file'.$i)
                     ->accepts($fileUploader->getFileExtensions())
-                    ->setAttachments($_SESSION[$guid]['absoluteURL'], $attachments)
+                    ->setAttachments($session->get('absoluteURL'), $attachments)
                     ->setRequired($requiredDocumentsCompulsory == 'Y' && stripos($requiredDocumentsList[$i], $internalDocuments) === false)
                     ->uploadMultiple(true)
                     ->canDelete(true);

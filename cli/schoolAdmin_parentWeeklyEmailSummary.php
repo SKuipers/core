@@ -23,7 +23,7 @@ use Gibbon\Contracts\Comms\Mailer;
 use Gibbon\Comms\NotificationEvent;
 use Gibbon\Domain\Planner\PlannerEntryGateway;
 use Gibbon\Domain\User\FamilyGateway;
-use Gibbon\Domain\RollGroups\RollGroupGateway;
+use Gibbon\Domain\FormGroups\FormGroupGateway;
 use Gibbon\Domain\Planner\PlannerParentWeeklyEmailSummaryGateway;
 
 $_POST['address'] = '/modules/School Admin/emailSummarySettings.php';
@@ -53,7 +53,7 @@ if ($isSchoolOpen == false) {
     return;
 }
 
-if ($_SESSION[$guid]['organisationEmail'] == '') {
+if ($session->get('organisationEmail') == '') {
     echo __('This script cannot be run, as no school email address has been set.');
     return;
 }
@@ -68,7 +68,7 @@ $mail = $container->get(Mailer::class);
 $mail->SMTPKeepAlive = true;
 
 $familyGateway = $container->get(FamilyGateway::class);
-$rollGroupGateway = $container->get(RollGroupGateway::class);
+$formGroupGateway = $container->get(FormGroupGateway::class);
 $plannerEntryGateway = $container->get(PlannerEntryGateway::class);
 $emailSummaryGateway = $container->get(PlannerParentWeeklyEmailSummaryGateway::class);
 $view = $container->get(View::class);
@@ -104,13 +104,13 @@ foreach ($families as $gibbonFamilyID => $students) {
 
         // BEHAVIOUR
         if ($parentWeeklyEmailSummaryIncludeBehaviour == 'Y') {
-            $dataBehaviour = ['gibbonPersonID' => $student['gibbonPersonID'], 'gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'today' => date('Y-m-d'), 'lastWeek' => date('Y-m-d', strtotime('-1 week'))];
+            $dataBehaviour = ['gibbonPersonID' => $student['gibbonPersonID'], 'gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'today' => date('Y-m-d'), 'lastWeek' => date('Y-m-d', strtotime('-1 week'))];
             $sqlBehaviour = "
-                SELECT COUNT(DISTINCT CASE WHEN type='Positive' THEN gibbonBehaviourID END) as positive, 
-                COUNT(DISTINCT CASE WHEN type='Negative' THEN gibbonBehaviourID END) as negative 
-                FROM gibbonBehaviour 
-                WHERE gibbonPersonID=:gibbonPersonID 
-                AND gibbonSchoolYearID=:gibbonSchoolYearID 
+                SELECT COUNT(DISTINCT CASE WHEN type='Positive' THEN gibbonBehaviourID END) as positive,
+                COUNT(DISTINCT CASE WHEN type='Negative' THEN gibbonBehaviourID END) as negative
+                FROM gibbonBehaviour
+                WHERE gibbonPersonID=:gibbonPersonID
+                AND gibbonSchoolYearID=:gibbonSchoolYearID
                 AND date>:lastWeek AND date<=:today";
 
             $behaviour = $pdo->selectOne($sqlBehaviour, $dataBehaviour);
@@ -118,7 +118,7 @@ foreach ($families as $gibbonFamilyID => $students) {
 
         // MARKBOOK
         if ($parentWeeklyEmailSummaryIncludeMarkbook == 'Y') {
-            $dataMarkbook = ['gibbonPersonID' => $student['gibbonPersonID'], 'gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'today' => date('Y-m-d'), 'lastWeek' => date('Y-m-d', strtotime('-1 week'))];
+            $dataMarkbook = ['gibbonPersonID' => $student['gibbonPersonID'], 'gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'today' => date('Y-m-d'), 'lastWeek' => date('Y-m-d', strtotime('-1 week'))];
             $sqlMarkbook = "
                 SELECT
                     CONCAT(gibbonCourse.nameShort, '.', gibbonCourseClass.nameShort) AS class,
@@ -152,12 +152,12 @@ foreach ($families as $gibbonFamilyID => $students) {
         ]);
 
         // Get main form tutor email for reply-to
-        $formTutor = $rollGroupGateway->selectTutorsByRollGroup($student['gibbonRollGroupID'])->fetch();
+        $formTutor = $formGroupGateway->selectTutorsByFormGroup($student['gibbonFormGroupID'])->fetch();
         if (!empty($formTutor)) {
             $replyTo = $formTutor['email'];
             $replyToName = Format::name($formTutor['title'], $formTutor['preferredName'], $formTutor['surname'], 'Staff');
         }
-    
+
         // Check for send this week, and only proceed if no prior send
         $parentContact1 = current($familyAdults);
         $checkExistingSummary = $emailSummaryGateway->getWeeklySummaryDetailsByParent($gibbonSchoolYearID, $parentContact1['gibbonPersonID'], $student['gibbonPersonID']);
@@ -181,7 +181,7 @@ foreach ($families as $gibbonFamilyID => $students) {
             $sendReport['emailFailed']++;
             $sendReport['emailErrors'] .= sprintf(__('An error (%1$s) occurred sending an email to %2$s.'), 'key create failed', $parentContact1['preferredName'].' '.$parentContact1['surname']).'<br/>';
             continue;
-        } 
+        }
 
         // Write key to database
         $data = [
@@ -203,11 +203,11 @@ foreach ($families as $gibbonFamilyID => $students) {
 
         // Send an email to each parent using the same key
         foreach ($familyAdults as $parent) {
-            
-            // Prep email
-            $buttonURL = "/index.php?q=/modules/Planner/planner_parentWeeklyEmailSummaryConfirm.php&key=$key&gibbonPersonIDStudent=".$student['gibbonPersonID'].'&gibbonPersonIDParent='.$parent['gibbonPersonID'].'&gibbonSchoolYearID='.$_SESSION[$guid]['gibbonSchoolYearID'];
 
-            $subject = sprintf(__('Weekly Planner Summary for %1$s via %2$s at %3$s'), $student['surname'].', '.$student['preferredName'].' ('.$student['rollGroup'].')', $gibbon->session->get('systemName'), $gibbon->session->get('organisationNameShort'));
+            // Prep email
+            $buttonURL = "/index.php?q=/modules/Planner/planner_parentWeeklyEmailSummaryConfirm.php&key=$key&gibbonPersonIDStudent=".$student['gibbonPersonID'].'&gibbonPersonIDParent='.$parent['gibbonPersonID'].'&gibbonSchoolYearID='.$session->get('gibbonSchoolYearID');
+
+            $subject = sprintf(__('Weekly Planner Summary for %1$s via %2$s at %3$s'), $student['surname'].', '.$student['preferredName'].' ('.$student['formGroup'].')', $gibbon->session->get('systemName'), $gibbon->session->get('organisationNameShort'));
 
             $body = sprintf(__('Dear %1$s'), $parent['preferredName'].' '.$parent['surname']).',<br/><br/>';
             $body .= $content;
@@ -234,8 +234,8 @@ foreach ($families as $gibbonFamilyID => $students) {
             }
 
             // Clear addresses
-            $mail->ClearAllRecipients(); 
-            $mail->clearReplyTos(); 
+            $mail->ClearAllRecipients();
+            $mail->clearReplyTos();
         }
     }
 }

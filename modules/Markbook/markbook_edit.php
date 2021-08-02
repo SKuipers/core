@@ -44,7 +44,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit.php
 
         if ($gibbonCourseClassID == '') {
             $row = getAnyTaughtClass( $pdo, $gibbon->session->get('gibbonPersonID'), $gibbon->session->get('gibbonSchoolYearID') );
-            $gibbonCourseClassID = (isset($row['gibbonCourseClassID']))? $row['gibbonCourseClassID'] : '';
+            $gibbonCourseClassID = $row['gibbonCourseClassID'] ?? '';
         }
 
         if ($gibbonCourseClassID == '') {
@@ -92,10 +92,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit.php
                     'courseClass' => Format::courseClassName($row['course'], $row['class']),
                 ]));
 
-                if (isset($_GET['return'])) {
-                    returnProcess($guid, $_GET['return'], null, null);
-                }
-
                 //Add multiple columns
                 if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit.php')) {
 
@@ -142,7 +138,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit.php
                     $page = 1;
                 }
 
-                
+
                     $data = array('gibbonCourseClassID' => $gibbonCourseClassID);
                     $sql = 'SELECT * FROM gibbonMarkbookColumn WHERE gibbonCourseClassID=:gibbonCourseClassID ORDER BY completeDate DESC, name';
                     $result = $connection2->prepare($sql);
@@ -217,19 +213,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit.php
                         echo '</td>';
                         echo '<td>';
                         if (!empty($row['date']) && $row['date'] != '0000-00-00') {
-                            echo dateConvertBack($guid, $row['date']);
+                            echo Format::date($row['date']);
                         }
                         echo '</td>';
                         echo '<td>';
                         if ($row['complete'] == 'Y') {
-                            echo dateConvertBack($guid, $row['completeDate']);
+                            echo Format::date($row['completeDate']);
                         }
                         echo '</td>';
                         echo '<td>';
-                        echo $row['viewableStudents'];
+                        echo Format::yesNo($row['viewableStudents']);
                         echo '</td>';
                         echo '<td>';
-                        echo $row['viewableParents'];
+                        echo Format::yesNo($row['viewableParents']);
                         echo '</td>';
                         echo '<td>';
                         echo "<a href='".$gibbon->session->get('absoluteURL').'/index.php?q=/modules/'.$gibbon->session->get('module')."/markbook_edit_edit.php&gibbonCourseClassID=$gibbonCourseClassID&gibbonMarkbookColumnID=".$row['gibbonMarkbookColumnID']."'><img title='".__('Edit')."' src='./themes/".$gibbon->session->get('gibbonThemeName')."/img/config.png'/></a> ";
@@ -269,5 +265,5 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit.php
     }
 
     // Print the sidebar
-    $_SESSION[$guid]['sidebarExtra'] = sidebarExtra($guid, $pdo, $gibbon->session->get('gibbonPersonID'), $gibbonCourseClassID, 'markbook_edit.php');
+    $session->set('sidebarExtra', sidebarExtra($guid, $pdo, $gibbon->session->get('gibbonPersonID'), $gibbonCourseClassID, 'markbook_edit.php'));
 }

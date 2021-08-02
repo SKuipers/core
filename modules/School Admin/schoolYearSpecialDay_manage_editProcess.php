@@ -19,8 +19,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$gibbonSchoolYearSpecialDayID = $_GET['gibbonSchoolYearSpecialDayID'];
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/schoolYearSpecialDay_manage_edit.php&gibbonSchoolYearSpecialDayID='.$gibbonSchoolYearSpecialDayID.'&gibbonSchoolYearID='.$_POST['gibbonSchoolYearID'];
+$gibbonSchoolYearSpecialDayID = $_GET['gibbonSchoolYearSpecialDayID'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/schoolYearSpecialDay_manage_edit.php&gibbonSchoolYearSpecialDayID='.$gibbonSchoolYearSpecialDayID.'&gibbonSchoolYearID='.$_POST['gibbonSchoolYearID'];
 
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYearSpecialDay_manage_edit.php') == false) {
     $URL .= '&return=error0';
@@ -48,10 +48,10 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYearSpe
             header("Location: {$URL}");
         } else {
             //Validate Inputs
-            $type = $_POST['type'];
-            $name = $_POST['name'];
-            $description = $_POST['description'];
-            $gibbonSchoolYearID = $_POST['gibbonSchoolYearID'];
+            $type = $_POST['type'] ?? '';
+            $name = $_POST['name'] ?? '';
+            $description = $_POST['description'] ?? '';
+            $gibbonSchoolYearID = $_POST['gibbonSchoolYearID'] ?? '';
             $schoolOpen = null;
             if (!empty($_POST['schoolOpenH']) && is_numeric($_POST['schoolOpenH']) && is_numeric($_POST['schoolOpenM'])) {
                 $schoolOpen = $_POST['schoolOpenH'].':'.$_POST['schoolOpenM'].':00';

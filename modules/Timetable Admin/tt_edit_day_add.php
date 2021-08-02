@@ -49,15 +49,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/tt_edit_da
 
             $editLink = '';
             if (isset($_GET['editID'])) {
-                $editLink = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Timetable Admin/tt_edit_day_edit.php&gibbonTTDayID='.$_GET['editID'].'&gibbonSchoolYearID='.$_GET['gibbonSchoolYearID'].'&gibbonTTID='.$_GET['gibbonTTID'];
+                $editLink = $session->get('absoluteURL').'/index.php?q=/modules/Timetable Admin/tt_edit_day_edit.php&gibbonTTDayID='.$_GET['editID'].'&gibbonSchoolYearID='.$_GET['gibbonSchoolYearID'].'&gibbonTTID='.$_GET['gibbonTTID'];
             }
-            if (isset($_GET['return'])) {
-                returnProcess($guid, $_GET['return'], $editLink, null);
-            }
+            $page->return->setEditLink($editLink);
 
-            $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/tt_edit_day_addProcess.php');
 
-            $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+            $form = Form::create('action', $session->get('absoluteURL').'/modules/'.$session->get('module').'/tt_edit_day_addProcess.php');
+
+            $form->addHiddenValue('address', $session->get('address'));
             $form->addHiddenValue('gibbonTTID', $gibbonTTID);
             $form->addHiddenValue('gibbonSchoolYearID', $gibbonSchoolYearID);
 

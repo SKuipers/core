@@ -17,14 +17,14 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+
 include '../../gibbon.php';
 
-$gibbonMessengerID=$_POST["gibbonMessengerID"] ;
-$search=NULL ;
-if (isset($_GET["search"])) {
-	$search=$_GET["search"] ;
-}
-$URL=$_SESSION[$guid]["absoluteURL"] . "/index.php?q=/modules/" . getModuleName($_POST["address"]) . "/messenger_manage_edit.php&sidebar=true&search=$search&gibbonMessengerID=" . $gibbonMessengerID ;
+$gibbonMessengerID=$_POST["gibbonMessengerID"] ?? '';
+$search=$_GET["search"] ?? '';
+
+$URL=$session->get('absoluteURL') . "/index.php?q=/modules/" . getModuleName($_POST["address"]) . "/messenger_manage_edit.php&sidebar=true&search=$search&gibbonMessengerID=" . $gibbonMessengerID ;
 $time=time() ;
 
 if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_manage_edit.php")==FALSE) {
@@ -51,19 +51,19 @@ else {
 			$date1=NULL ;
 			if (isset($_POST["date1"])) {
 				if ($_POST["date1"]!="") {
-					$date1=dateConvert($guid, $_POST["date1"]) ;
+					$date1=Format::dateConvert($_POST["date1"]) ;
 				}
 			}
 			$date2=NULL ;
 			if (isset($_POST["date2"])) {
 				if ($_POST["date2"]!="") {
-					$date2=dateConvert($guid, $_POST["date2"]) ;
+					$date2=Format::dateConvert($_POST["date2"]) ;
 				}
 			}
 			$date3=NULL ;
 			if (isset($_POST["date3"])) {
 				if ($_POST["date3"]!="") {
-					$date3=dateConvert($guid, $_POST["date3"]) ;
+					$date3=Format::dateConvert($_POST["date3"]) ;
 				}
 			}
 			$subject=$_POST["subject"] ;
@@ -170,21 +170,21 @@ else {
 					}
 				}
 
-				//Roll Groups
-				if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_rollGroups_my") OR isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_rollGroups_any")) {
-					if ($_POST["rollGroup"]=="Y") {
-						$staff=$_POST["rollGroupsStaff"] ;
-						$students=$_POST["rollGroupsStudents"] ;
+				//Form Groups
+				if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_formGroups_my") OR isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_formGroups_any")) {
+					if ($_POST["formGroup"]=="Y") {
+						$staff=$_POST["formGroupsStaff"] ;
+						$students=$_POST["formGroupsStudents"] ;
 						$parents="N" ;
-						if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_rollGroups_parents")) {
-							$parents=$_POST["rollGroupsParents"] ;
+						if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_formGroups_parents")) {
+							$parents=$_POST["formGroupsParents"] ;
 						}
-						$choices=$_POST["rollGroups"] ;
+						$choices=$_POST["formGroups"] ;
 						if ($choices!="") {
 							foreach ($choices as $t) {
 								try {
 									$data=array("gibbonMessengerID"=>$gibbonMessengerID, "t"=>$t, "staff"=>$staff, "students"=>$students, "parents"=>$parents);
-									$sql="INSERT INTO gibbonMessengerTarget SET gibbonMessengerID=:gibbonMessengerID, type='Roll Group', id=:t, staff=:staff, students=:students, parents=:parents" ;
+									$sql="INSERT INTO gibbonMessengerTarget SET gibbonMessengerID=:gibbonMessengerID, type='Form Group', id=:t, staff=:staff, students=:students, parents=:parents" ;
 									$result=$connection2->prepare($sql);
 									$result->execute($data);
 								}

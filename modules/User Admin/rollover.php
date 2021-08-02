@@ -31,10 +31,6 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
     //Proceed!
     $page->breadcrumbs->add(__('Rollover'));
     
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     $step = null;
     if (isset($_GET['step'])) {
         $step = $_GET['step'];
@@ -49,7 +45,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
         echo __('Step 1');
         echo '</h3>';
 
-        $nextYear = getNextSchoolYearID($_SESSION[$guid]['gibbonSchoolYearID'], $connection2);
+        $nextYear = getNextSchoolYearID($session->get('gibbonSchoolYearID'), $connection2);
         if ($nextYear == false) {
             echo "<div class='error'>";
             echo __('The next school year cannot be determined, so this action cannot be performed.');
@@ -69,14 +65,14 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                 echo __('The next school year cannot be determined, so this action cannot be performed.');
                 echo '</div>';
             } else {
-                $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.$_SESSION[$guid]['module'].'/rollover.php&step=2');
+                $form = Form::create('action', $session->get('absoluteURL').'/index.php?q=/modules/'.$session->get('module').'/rollover.php&step=2');
 
                 $form->setClass('smallIntBorder fullWidth');
 
                 $form->addHiddenValue('nextYear', $nextYear);
 
                 $row = $form->addRow();
-                    $row->addContent(sprintf(__('By clicking the "Proceed" button below you will initiate the rollover from %1$s to %2$s. In a big school this operation may take some time to complete. This will change data in numerous tables across the system! %3$sYou are really, very strongly advised to backup all data before you proceed%4$s.'), '<b>'.$_SESSION[$guid]['gibbonSchoolYearName'].'</b>', '<b>'.$nameNext.'</b>', '<span style="color: #cc0000"><i>', '</span>'));
+                    $row->addContent(sprintf(__('By clicking the "Proceed" button below you will initiate the rollover from %1$s to %2$s. In a big school this operation may take some time to complete. This will change data in numerous tables across the system! %3$sYou are really, very strongly advised to backup all data before you proceed%4$s.'), '<b>'.$session->get('gibbonSchoolYearName').'</b>', '<b>'.$nameNext.'</b>', '<span style="color: #cc0000"><i>', '</span>'));
 
                 $row = $form->addRow();
                     $row->addSubmit('Proceed');
@@ -90,7 +86,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
         echo '</h3>';
 
         $nextYear = $_POST['nextYear'];
-        if ($nextYear == '' or $nextYear != getNextSchoolYearID($_SESSION[$guid]['gibbonSchoolYearID'], $connection2)) {
+        if ($nextYear == '' or $nextYear != getNextSchoolYearID($session->get('gibbonSchoolYearID'), $connection2)) {
             echo "<div class='error'>";
             echo __('The next school year cannot be determined, so this action cannot be performed.');
             echo '</div>';
@@ -114,7 +110,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                 echo sprintf(__('In rolling over to %1$s, the following actions will take place. You may need to adjust some fields below to get the result you desire.'), $nameNext);
                 echo '</p>';
 
-                //Set up years, roll groups and statuses arrays for use later on
+                //Set up years, form groups and statuses arrays for use later on
                 $yearGroups = array();
                 
                     $dataSelect = array();
@@ -125,14 +121,14 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                     $yearGroups[$rowSelect['gibbonYearGroupID']] =  htmlPrep($rowSelect['name']);
                 }
 
-                $rollGroups = array();
+                $formGroups = array();
                 
                     $dataSelect = array('gibbonSchoolYearID' => $nextYear);
-                    $sqlSelect = 'SELECT gibbonRollGroupID, name FROM gibbonRollGroup WHERE gibbonSchoolYearID=:gibbonSchoolYearID ORDER BY name';
+                    $sqlSelect = 'SELECT gibbonFormGroupID, name FROM gibbonFormGroup WHERE gibbonSchoolYearID=:gibbonSchoolYearID ORDER BY name';
                     $resultSelect = $connection2->prepare($sqlSelect);
                     $resultSelect->execute($dataSelect);
                 while ($rowSelect = $resultSelect->fetch()) {
-                    $rollGroups[$rowSelect['gibbonRollGroupID']] =  htmlPrep($rowSelect['name']);
+                    $formGroups[$rowSelect['gibbonFormGroupID']] =  htmlPrep($rowSelect['name']);
                 }
 
                 $statuses = array(
@@ -142,7 +138,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                 );
 
                 //START FORM
-                $form = Form::createTable('rollover', $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.$_SESSION[$guid]['module']."/rollover.php&step=3");
+                $form = Form::createTable('rollover', $session->get('absoluteURL').'/index.php?q=/modules/'.$session->get('module')."/rollover.php&step=3");
 
                 $form->setFactory(DatabaseFormFactory::create($pdo));
                 $form->setClass('smallIntBorder fullWidth');
@@ -169,11 +165,11 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                         $row->addSequenceNumber('nextsequenceNumber', 'gibbonSchoolYear', '', 'sequenceNumber')->required()->maxLength(3)->readonly();
 
                     $row = $subform->addRow();
-                        $row->addLabel('nextfirstDay', __('First Day'))->description($_SESSION[$guid]['i18n']['dateFormat'])->prepend(__('Format:'));
+                        $row->addLabel('nextfirstDay', __('First Day'));
                         $row->addDate('nextfirstDay')->required()->addClass('w-64');
 
                     $row = $subform->addRow();
-                        $row->addLabel('nextlastDay', __('Last Day'))->description($_SESSION[$guid]['i18n']['dateFormat'])->prepend(__('Format:'));
+                        $row->addLabel('nextlastDay', __('Last Day'));
                         $row->addDate('nextlastDay')->required()->addClass('w-64');
 
                     $form->addRow()->addContent($subform->getOutput());
@@ -218,8 +214,8 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                 $form->addRow()->addHeading(__('Enrol New Students (Status Expected)'));
                 $form->addRow()->addContent(__('Take students who are marked expected and enrol them. All parents of new students who are enrolled below will have their status set to "Full". If a student is not enrolled, they will be set to "Left".'));
 
-                if (count($yearGroups) < 1 or count($rollGroups) < 1) {
-                    $form->addRow()->addAlert(__('Year groups or roll groups are not properly set up, so you cannot proceed with this section.'), 'error');
+                if (count($yearGroups) < 1 or count($formGroups) < 1) {
+                    $form->addRow()->addAlert(__('Year groups or form groups are not properly set up, so you cannot proceed with this section.'), 'error');
                 } else {
                     try {
                         $dataEnrol = array();
@@ -252,7 +248,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                                 $column = $row->addColumn();
                                     $column->addSelect($count."-enrol-gibbonYearGroupID")->fromArray($yearGroups)->required()->setClass('shortWidth floatNone');
                                 $column = $row->addColumn();
-                                    $column->addSelect($count."-enrol-gibbonRollGroupID")->fromArray($rollGroups)->required()->setClass('shortWidth floatNone');
+                                    $column->addSelect($count."-enrol-gibbonFormGroupID")->fromArray($formGroups)->required()->setClass('shortWidth floatNone');
                         }
                         $form->addHiddenValue("enrol-count", $count);
                     }
@@ -262,8 +258,8 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                 $form->addRow()->addHeading(__('Enrol New Students (Status Full)'));
                 $form->addRow()->addContent(__('Take new students who are already set as full, but who were not enrolled last year, and enrol them. These students probably came through the Online Application form, and may already be enrolled in next year: if this is the case, their enrolment will be updated as per the information below. All parents of new students who are enrolled below will have their status set to "Full". If a student is not enrolled, they will be set to "Left"'));
 
-                if (count($yearGroups) < 1 or count($rollGroups) < 1) {
-                    $form->addRow()->addAlert(__('Year groups or roll groups are not properly set up, so you cannot proceed with this section.'), 'error');
+                if (count($yearGroups) < 1 or count($formGroups) < 1) {
+                    $form->addRow()->addAlert(__('Year groups or form groups are not properly set up, so you cannot proceed with this section.'), 'error');
                 } else {
                     $students = array();
                     $count = 0;
@@ -289,8 +285,8 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                     } else {
                         while ($rowEnrol = $resultEnrol->fetch()) {
                             try {
-                                $dataEnrolled = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'gibbonPersonID' => $rowEnrol['gibbonPersonID']);
-                                $sqlEnrolled = "SELECT gibbonStudentEnrolment.* FROM gibbonPerson JOIN gibbonRole ON (gibbonPerson.gibbonRoleIDPrimary=gibbonRole.gibbonRoleID) JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID) JOIN gibbonRollGroup ON (gibbonStudentEnrolment.gibbonRollGroupID=gibbonRollGroup.gibbonRollGroupID) WHERE gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID AND status='Full' AND category='Student' AND gibbonStudentEnrolment.gibbonPersonID=:gibbonPersonID ORDER BY surname, preferredName";
+                                $dataEnrolled = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'gibbonPersonID' => $rowEnrol['gibbonPersonID']);
+                                $sqlEnrolled = "SELECT gibbonStudentEnrolment.* FROM gibbonPerson JOIN gibbonRole ON (gibbonPerson.gibbonRoleIDPrimary=gibbonRole.gibbonRoleID) JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID) JOIN gibbonFormGroup ON (gibbonStudentEnrolment.gibbonFormGroupID=gibbonFormGroup.gibbonFormGroupID) WHERE gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID AND status='Full' AND category='Student' AND gibbonStudentEnrolment.gibbonPersonID=:gibbonPersonID ORDER BY surname, preferredName";
                                 $resultEnrolled = $connection2->prepare($sqlEnrolled);
                                 $resultEnrolled->execute($dataEnrolled);
                             } catch (PDOException $e) {
@@ -320,7 +316,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                                 $count++;
                                 //Check for enrolment in next year (caused by automated enrolment on application form accept)
                                 $yearGroupSelect = '';
-                                $rollGroupSelect = '';
+                                $formGroupSelect = '';
                                 try {
                                     $dataEnrolled = array('gibbonSchoolYearID' => $nextYear, 'gibbonPersonID' => $student[0]);
                                     $sqlEnrolled = 'SELECT * FROM gibbonStudentEnrolment WHERE gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonPersonID=:gibbonPersonID';
@@ -332,7 +328,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                                 if ($resultEnrolled->rowCount() == 1) {
                                     $rowEnrolled = $resultEnrolled->fetch();
                                     $yearGroupSelect = $rowEnrolled['gibbonYearGroupID'];
-                                    $rollGroupSelect = $rowEnrolled['gibbonRollGroupID'];
+                                    $formGroupSelect = $rowEnrolled['gibbonFormGroupID'];
                                 }
 
                                 $form->addHiddenValue($count."-enrolFull-gibbonPersonID", $student[0]);
@@ -344,7 +340,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                                     $column = $row->addColumn();
                                         $column->addSelect($count."-enrolFull-gibbonYearGroupID")->fromArray($yearGroups)->required()->setClass('shortWidth floatNone')->selected($yearGroupSelect);
                                     $column = $row->addColumn();
-                                        $column->addSelect($count."-enrolFull-gibbonRollGroupID")->fromArray($rollGroups)->placeholder()->setClass('shortWidth floatNone')->selected($rollGroupSelect);
+                                        $column->addSelect($count."-enrolFull-gibbonFormGroupID")->fromArray($formGroups)->required()->setClass('shortWidth floatNone')->selected($formGroupSelect);
                             }
                             $form->addHiddenValue("enrolFull-count", $count);
                         }
@@ -357,16 +353,16 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
 
                 $lastYearGroup = getLastYearGroupID($connection2);
 
-                if (count($yearGroups) < 1 or count($rollGroups) < 1) {
-                    $form->addRow()->addAlert(__('Year groups or roll groups are not properly set up, so you cannot proceed with this section.'), 'error');
+                if (count($yearGroups) < 1 or count($formGroups) < 1) {
+                    $form->addRow()->addAlert(__('Year groups or form groups are not properly set up, so you cannot proceed with this section.'), 'error');
                 } else {
                     try {
-                        $dataReenrol = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'gibbonYearGroupID' => $lastYearGroup);
-                        $sqlReenrol = "SELECT gibbonPerson.gibbonPersonID, surname, preferredName, gibbonRole.name, category, gibbonStudentEnrolment.gibbonYearGroupID, gibbonRollGroupIDNext
+                        $dataReenrol = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'gibbonYearGroupID' => $lastYearGroup);
+                        $sqlReenrol = "SELECT gibbonPerson.gibbonPersonID, surname, preferredName, gibbonRole.name, category, gibbonStudentEnrolment.gibbonYearGroupID, gibbonFormGroupIDNext
                             FROM gibbonPerson
                                 JOIN gibbonRole ON (gibbonPerson.gibbonRoleIDPrimary=gibbonRole.gibbonRoleID)
                                 JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID)
-                                JOIN gibbonRollGroup ON (gibbonStudentEnrolment.gibbonRollGroupID=gibbonRollGroup.gibbonRollGroupID)
+                                JOIN gibbonFormGroup ON (gibbonStudentEnrolment.gibbonFormGroupID=gibbonFormGroup.gibbonFormGroupID)
                             WHERE gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID AND status='Full' AND category='Student' AND NOT gibbonYearGroupID=:gibbonYearGroupID ORDER BY surname, preferredName";
                         $resultReenrol = $connection2->prepare($sqlReenrol);
                         $resultReenrol->execute($dataReenrol);
@@ -397,11 +393,11 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                                 $form->addRow()->addAlert($e->getMessage(), 'error');
                             }
                             $enrolmentCheckYearGroup = null;
-                            $enrolmentCheckRollGroup = null;
+                            $enrolmentCheckFormGroup = null;
                             if ($resultEnrolmentCheck->rowCount() == 1) {
                                 $rowEnrolmentCheck = $resultEnrolmentCheck->fetch();
                                 $enrolmentCheckYearGroup = $rowEnrolmentCheck['gibbonYearGroupID'];
-                                $enrolmentCheckRollGroup = $rowEnrolmentCheck['gibbonRollGroupID'];
+                                $enrolmentCheckFormGroup = $rowEnrolmentCheck['gibbonFormGroupID'];
                             }
 
                             $form->addHiddenValue($count."-reenrol-gibbonPersonID", $rowReenrol['gibbonPersonID']);
@@ -409,16 +405,16 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                                 $row->addColumn()->addContent(Format::name('', $rowReenrol['preferredName'], $rowReenrol['surname'], 'Student', true));
                                 $row->addColumn()->addContent(__($rowReenrol['name']));
                                 $column = $row->addColumn();
-                                    $column->addCheckbox($count."-reenrol-enrol")->setValue('Y')->checked(!empty($enrolmentCheckRollGroup)? 'Y' : 'N')->alignLeft();
-                                //If no enrolment, try and work out next year and roll group
+                                    $column->addCheckbox($count."-reenrol-enrol")->setValue('Y')->checked(!empty($enrolmentCheckFormGroup)? 'Y' : 'N')->alignLeft();
+                                //If no enrolment, try and work out next year and form group
                                 if (is_null($enrolmentCheckYearGroup)) {
                                     $enrolmentCheckYearGroup=getNextYearGroupID($rowReenrol['gibbonYearGroupID'], $connection2);
-                                    $enrolmentCheckRollGroup=$rowReenrol['gibbonRollGroupIDNext'];
+                                    $enrolmentCheckFormGroup=$rowReenrol['gibbonFormGroupIDNext'];
                                 }
                                 $column = $row->addColumn();
                                     $column->addSelect($count."-reenrol-gibbonYearGroupID")->fromArray($yearGroups)->required()->setClass('shortWidth floatNone')->selected($enrolmentCheckYearGroup);
                                 $column = $row->addColumn();
-                                        $column->addSelect($count."-reenrol-gibbonRollGroupID")->fromArray($rollGroups)->placeholder()->setClass('shortWidth floatNone')->selected($enrolmentCheckRollGroup);
+                                        $column->addSelect($count."-reenrol-gibbonFormGroupID")->fromArray($formGroups)->required()->setClass('shortWidth floatNone')->selected($enrolmentCheckFormGroup);
                         }
                         $form->addHiddenValue("reenrol-count", $count);
                     }
@@ -429,7 +425,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                 $form->addRow()->addContent(__('This step finds students in the last year of school and sets their status.'));
 
                 try {
-                    $dataFinal = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'gibbonYearGroupID' => $lastYearGroup);
+                    $dataFinal = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'gibbonYearGroupID' => $lastYearGroup);
                     $sqlFinal = "SELECT gibbonPerson.gibbonPersonID, surname, preferredName, name, category FROM gibbonPerson JOIN gibbonRole ON (gibbonPerson.gibbonRoleIDPrimary=gibbonRole.gibbonRoleID) JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonSchoolYearID=:gibbonSchoolYearID AND status='Full' AND category='Student' AND gibbonYearGroupID=:gibbonYearGroupID ORDER BY surname, preferredName";
                     $resultFinal = $connection2->prepare($sqlFinal);
                     $resultFinal->execute($dataFinal);
@@ -509,7 +505,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
         }
     } elseif ($step == 3) {
         $nextYear = $_POST['nextYear'];
-        if ($nextYear == '' or $nextYear != getNextSchoolYearID($_SESSION[$guid]['gibbonSchoolYearID'], $connection2)) {
+        if ($nextYear == '' or $nextYear != getNextSchoolYearID($session->get('gibbonSchoolYearID'), $connection2)) {
             echo "<div class='error'>";
             echo __('The next school year cannot be determined, so this action cannot be performed.');
             echo '</div>';
@@ -543,8 +539,8 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                     $name = $_POST['nextname'];
                     $status = $_POST['nextstatus'];
                     $sequenceNumber = $_POST['nextsequenceNumber'];
-                    $firstDay = dateConvert($guid, $_POST['nextfirstDay']);
-                    $lastDay = dateConvert($guid, $_POST['nextlastDay']);
+                    $firstDay = Format::dateConvert($_POST['nextfirstDay']);
+                    $lastDay = Format::dateConvert($_POST['nextlastDay']);
 
                     if ($name == '' or $status == '' or $sequenceNumber == '' or is_numeric($sequenceNumber) == false or $firstDay == '' or $lastDay == '') {
                         echo "<div class='error'>";
@@ -584,7 +580,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                 }
 
                 //Remember year end date of current year before advance
-                $dateEnd = $_SESSION[$guid]['gibbonSchoolYearLastDay'];
+                $dateEnd = $session->get('gibbonSchoolYearLastDay');
 
                 //ADVANCE SCHOOL YEAR
                 echo '<h4>';
@@ -594,7 +590,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                 //Write to database
                 $advance = true;
                 try {
-                    $data = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID']);
+                    $data = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'));
                     $sql = "UPDATE gibbonSchoolYear SET status='Past' WHERE gibbonSchoolYearID=:gibbonSchoolYearID";
                     $result = $connection2->prepare($sql);
                     $result->execute($data);
@@ -619,9 +615,9 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                     }
                     if ($advance2) {
                         setCurrentSchoolYear($guid, $connection2);
-                        $_SESSION[$guid]['gibbonSchoolYearIDCurrent'] = $_SESSION[$guid]['gibbonSchoolYearID'];
-                        $_SESSION[$guid]['gibbonSchoolYearNameCurrent'] = $_SESSION[$guid]['gibbonSchoolYearName'];
-                        $_SESSION[$guid]['gibbonSchoolYearSequenceNumberCurrent'] = $_SESSION[$guid]['gibbonSchoolYearSequenceNumber'];
+                        $session->set('gibbonSchoolYearIDCurrent', $session->get('gibbonSchoolYearID'));
+                        $session->set('gibbonSchoolYearNameCurrent', $session->get('gibbonSchoolYearName'));
+                        $session->set('gibbonSchoolYearSequenceNumberCurrent', $session->get('gibbonSchoolYearSequenceNumber'));
 
                         echo "<div class='success'>";
                         echo __('Advance was successful, you are now in a new academic year!');
@@ -650,7 +646,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                                 $expected = true;
                                 try {
                                     if ($status == 'Full') {
-                                        $data = array('status' => $status, 'gibbonPersonID' => $gibbonPersonID, 'dateStart' => $_SESSION[$guid]['gibbonSchoolYearFirstDay']);
+                                        $data = array('status' => $status, 'gibbonPersonID' => $gibbonPersonID, 'dateStart' => $session->get('gibbonSchoolYearFirstDay'));
                                         $sql = 'UPDATE gibbonPerson SET status=:status, dateStart=:dateStart WHERE gibbonPersonID=:gibbonPersonID';
                                     } elseif ($status == 'Left' or $status == 'Expected') {
                                         $data = array('status' => $status, 'gibbonPersonID' => $gibbonPersonID);
@@ -701,14 +697,14 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                                 $gibbonPersonID = $_POST["$i-enrol-gibbonPersonID"];
                                 $enrol = $_POST["$i-enrol-enrol"];
                                 $gibbonYearGroupID = $_POST["$i-enrol-gibbonYearGroupID"];
-                                $gibbonRollGroupID = $_POST["$i-enrol-gibbonRollGroupID"];
+                                $gibbonFormGroupID = $_POST["$i-enrol-gibbonFormGroupID"];
 
                                 //Write to database
                                 if ($enrol == 'Y') {
                                     $enrolled = true;
                                     try {
-                                        $data = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'gibbonPersonID' => $gibbonPersonID, 'gibbonYearGroupID' => $gibbonYearGroupID, 'gibbonRollGroupID' => $gibbonRollGroupID);
-                                        $sql = 'INSERT INTO gibbonStudentEnrolment SET gibbonSchoolYearID=:gibbonSchoolYearID, gibbonPersonID=:gibbonPersonID, gibbonYearGroupID=:gibbonYearGroupID, gibbonRollGroupID=:gibbonRollGroupID';
+                                        $data = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'gibbonPersonID' => $gibbonPersonID, 'gibbonYearGroupID' => $gibbonYearGroupID, 'gibbonFormGroupID' => $gibbonFormGroupID);
+                                        $sql = 'INSERT INTO gibbonStudentEnrolment SET gibbonSchoolYearID=:gibbonSchoolYearID, gibbonPersonID=:gibbonPersonID, gibbonYearGroupID=:gibbonYearGroupID, gibbonFormGroupID=:gibbonFormGroupID';
                                         $result = $connection2->prepare($sql);
                                         $result->execute($data);
                                     } catch (PDOException $e) {
@@ -788,7 +784,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                                 $gibbonPersonID = $_POST["$i-enrolFull-gibbonPersonID"].'<br/>';
                                 $enrol = $_POST["$i-enrolFull-enrol"];
                                 $gibbonYearGroupID = $_POST["$i-enrolFull-gibbonYearGroupID"];
-                                $gibbonRollGroupID = $_POST["$i-enrolFull-gibbonRollGroupID"];
+                                $gibbonFormGroupID = $_POST["$i-enrolFull-gibbonFormGroupID"];
 
                                 //Write to database
                                 if ($enrol == 'Y') {
@@ -796,7 +792,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
 
                                     try {
                                         //Check for enrolment
-                                        $data = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'gibbonPersonID' => $gibbonPersonID);
+                                        $data = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'gibbonPersonID' => $gibbonPersonID);
                                         $sql = 'SELECT * FROM gibbonStudentEnrolment WHERE gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonPersonID=:gibbonPersonID';
                                         $result = $connection2->prepare($sql);
                                         $result->execute($data);
@@ -806,8 +802,8 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                                     if ($enrolled) {
                                         if ($result->rowCount() == 0) {
                                             try {
-                                                $data = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'gibbonPersonID' => $gibbonPersonID, 'gibbonYearGroupID' => $gibbonYearGroupID, 'gibbonRollGroupID' => $gibbonRollGroupID);
-                                                $sql = 'INSERT INTO gibbonStudentEnrolment SET gibbonSchoolYearID=:gibbonSchoolYearID, gibbonPersonID=:gibbonPersonID, gibbonYearGroupID=:gibbonYearGroupID, gibbonRollGroupID=:gibbonRollGroupID';
+                                                $data = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'gibbonPersonID' => $gibbonPersonID, 'gibbonYearGroupID' => $gibbonYearGroupID, 'gibbonFormGroupID' => $gibbonFormGroupID);
+                                                $sql = 'INSERT INTO gibbonStudentEnrolment SET gibbonSchoolYearID=:gibbonSchoolYearID, gibbonPersonID=:gibbonPersonID, gibbonYearGroupID=:gibbonYearGroupID, gibbonFormGroupID=:gibbonFormGroupID';
                                                 $result = $connection2->prepare($sql);
                                                 $result->execute($data);
                                             } catch (PDOException $e) {
@@ -815,8 +811,8 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                                             }
                                         } elseif ($result->rowCount() == 1) {
                                             try {
-                                                $data = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'gibbonPersonID' => $gibbonPersonID, 'gibbonYearGroupID' => $gibbonYearGroupID, 'gibbonRollGroupID' => $gibbonRollGroupID);
-                                                $sql = 'UPDATE gibbonStudentEnrolment SET gibbonYearGroupID=:gibbonYearGroupID, gibbonRollGroupID=:gibbonRollGroupID WHERE gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonPersonID=:gibbonPersonID';
+                                                $data = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'gibbonPersonID' => $gibbonPersonID, 'gibbonYearGroupID' => $gibbonYearGroupID, 'gibbonFormGroupID' => $gibbonFormGroupID);
+                                                $sql = 'UPDATE gibbonStudentEnrolment SET gibbonYearGroupID=:gibbonYearGroupID, gibbonFormGroupID=:gibbonFormGroupID WHERE gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonPersonID=:gibbonPersonID';
                                                 $result = $connection2->prepare($sql);
                                                 $result->execute($data);
                                             } catch (PDOException $e) {
@@ -901,7 +897,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                                 $gibbonPersonID = $_POST["$i-reenrol-gibbonPersonID"];
                                 $enrol = $_POST["$i-reenrol-enrol"];
                                 $gibbonYearGroupID = $_POST["$i-reenrol-gibbonYearGroupID"];
-                                $gibbonRollGroupID = $_POST["$i-reenrol-gibbonRollGroupID"];
+                                $gibbonFormGroupID = $_POST["$i-reenrol-gibbonFormGroupID"];
 
                                 //Write to database
                                 if ($enrol == 'Y') {
@@ -922,8 +918,8 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                                         echo "<div class='error'>".$e->getMessage().'</div>';
                                     } elseif ($result->rowCount() == 1) {
                                         try {
-                                            $data2 = array('gibbonSchoolYearID' => $nextYear, 'gibbonPersonID' => $gibbonPersonID, 'gibbonYearGroupID' => $gibbonYearGroupID, 'gibbonRollGroupID' => $gibbonRollGroupID);
-                                            $sql2 = 'UPDATE gibbonStudentEnrolment SET gibbonYearGroupID=:gibbonYearGroupID, gibbonRollGroupID=:gibbonRollGroupID WHERE gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonPersonID=:gibbonPersonID';
+                                            $data2 = array('gibbonSchoolYearID' => $nextYear, 'gibbonPersonID' => $gibbonPersonID, 'gibbonYearGroupID' => $gibbonYearGroupID, 'gibbonFormGroupID' => $gibbonFormGroupID);
+                                            $sql2 = 'UPDATE gibbonStudentEnrolment SET gibbonYearGroupID=:gibbonYearGroupID, gibbonFormGroupID=:gibbonFormGroupID WHERE gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonPersonID=:gibbonPersonID';
                                             $result2 = $connection2->prepare($sql2);
                                             $result2->execute($data2);
                                         } catch (PDOException $e) {
@@ -936,8 +932,8 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/rollover.php') 
                                     } elseif ($result->rowCount() == 0) {
                                         //Else, write
                                         try {
-                                            $data2 = array('gibbonSchoolYearID' => $nextYear, 'gibbonPersonID' => $gibbonPersonID, 'gibbonYearGroupID' => $gibbonYearGroupID, 'gibbonRollGroupID' => $gibbonRollGroupID);
-                                            $sql2 = 'INSERT INTO gibbonStudentEnrolment SET gibbonSchoolYearID=:gibbonSchoolYearID, gibbonPersonID=:gibbonPersonID, gibbonYearGroupID=:gibbonYearGroupID, gibbonRollGroupID=:gibbonRollGroupID';
+                                            $data2 = array('gibbonSchoolYearID' => $nextYear, 'gibbonPersonID' => $gibbonPersonID, 'gibbonYearGroupID' => $gibbonYearGroupID, 'gibbonFormGroupID' => $gibbonFormGroupID);
+                                            $sql2 = 'INSERT INTO gibbonStudentEnrolment SET gibbonSchoolYearID=:gibbonSchoolYearID, gibbonPersonID=:gibbonPersonID, gibbonYearGroupID=:gibbonYearGroupID, gibbonFormGroupID=:gibbonFormGroupID';
                                             $result2 = $connection2->prepare($sql2);
                                             $result2->execute($data2);
                                         } catch (PDOException $e) {

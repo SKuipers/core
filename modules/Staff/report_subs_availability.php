@@ -35,13 +35,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_subs_availabi
         ->add(__('Substitute Availability'), 'report_subs_availability.php')
         ->add(__('Daily'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     $date = isset($_GET['date']) ? Format::dateConvert($_GET['date']) : date('Y-m-d');
     $dateObject = new DateTimeImmutable($date);
-    $dateFormat = $_SESSION[$guid]['i18n']['dateFormatPHP'];
+    $dateFormat = $session->get('i18n')['dateFormatPHP'];
 
     $allDay = $_GET['allDay'] ?? null;
     $timeStart = $_GET['timeStart'] ?? null;
@@ -58,14 +54,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_subs_availabi
         ->filterBy('allStaff', $allStaff)
         ->fromPOST();
 
-    $form = Form::create('searchForm', $_SESSION[$guid]['absoluteURL'].'/index.php', 'get');
+    $form = Form::create('searchForm', $session->get('absoluteURL').'/index.php', 'get');
     $form->setTitle(__('Filter'));
 
     $form->setClass('noIntBorder fullWidth');
 
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+    $form->addHiddenValue('address', $session->get('address'));
     $form->addHiddenValue('sidebar', $_GET['sidebar'] ?? '');
-    $form->addHiddenValue('q', '/modules/'.$_SESSION[$guid]['module'].'/report_subs_availability.php');
+    $form->addHiddenValue('q', '/modules/'.$session->get('module').'/report_subs_availability.php');
 
     $row = $form->addRow();
         $row->addLabel('date', __('Date'));

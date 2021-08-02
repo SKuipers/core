@@ -36,30 +36,28 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_take
     $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed!
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, array('error3' => __('Your request failed because the specified date is in the future, or is not a school day.')));
-    }
+    $page->return->addReturns(['error3' => __('Your request failed because the specified date is in the future, or is not a school day.')]);
 
     $attendance = new AttendanceView($gibbon, $pdo);
 
     $today = date('Y-m-d');
-    $currentDate = isset($_GET['currentDate'])? dateConvert($guid, $_GET['currentDate']) : $today;
+    $currentDate = isset($_GET['currentDate'])? Format::dateConvert($_GET['currentDate']) : $today;
     $gibbonPersonID = isset($_GET['gibbonPersonID'])? $_GET['gibbonPersonID'] : null;
 
-    $form = Form::create('filter', $_SESSION[$guid]['absoluteURL'].'/index.php', 'get');
+    $form = Form::create('filter', $session->get('absoluteURL').'/index.php', 'get');
     $form->setFactory(DatabaseFormFactory::create($pdo));
     $form->setClass('noIntBorder fullWidth');
     $form->setTitle(__('Choose Student'));
 
-    $form->addHiddenValue('q', '/modules/'.$_SESSION[$guid]['module'].'/attendance_take_byPerson.php');
+    $form->addHiddenValue('q', '/modules/'.$session->get('module').'/attendance_take_byPerson.php');
 
     $row = $form->addRow();
         $row->addLabel('gibbonPersonID', __('Student'));
-        $row->addSelectStudent('gibbonPersonID', $_SESSION[$guid]['gibbonSchoolYearID'])->required()->selected($gibbonPersonID)->placeholder();
+        $row->addSelectStudent('gibbonPersonID', $session->get('gibbonSchoolYearID'))->required()->selected($gibbonPersonID)->placeholder();
 
     $row = $form->addRow();
         $row->addLabel('currentDate', __('Date'));
-        $row->addDate('currentDate')->required()->setValue(dateConvertBack($guid, $currentDate));
+        $row->addDate('currentDate')->required()->setValue(Format::date($currentDate));
 
     $row = $form->addRow();
         $row->addSearchSubmit($gibbon->session);
@@ -80,7 +78,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_take
                 $countClassAsSchool = getSettingByScope($connection2, 'Attendance', 'countClassAsSchool');
 
                 //Get last 5 school days from currentDate within the last 100
-                $timestamp = dateConvertToTimestamp($currentDate);
+                $timestamp = Format::timestamp($currentDate);
 
                 // Get school-wide attendance logs
                 $attendanceLogGateway = $container->get(AttendanceLogPersonGateway::class);
@@ -129,12 +127,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_take
                     });
 
                 $table->addColumn('direction', __('Attendance'))
-                    ->format(function ($log) use ($guid) {
+                    ->format(function ($log) use ($session) {
                         if (empty($log['direction'])) return Format::small(__('Not Taken'));
 
                         $output = '<b>'.__($log['direction']).'</b> ('.__($log['type']). (!empty($log['reason'])? ', '.__($log['reason']) : '') .')';
                         if (!empty($log['comment'])) {
-                            $output .= '&nbsp;<img title="'.$log['comment'].'" src="./themes/'.$_SESSION[$guid]['gibbonThemeName'].'/img/messageWall.png" width=16 height=16/>';
+                            $output .= '&nbsp;<img title="'.$log['comment'].'" src="./themes/'.$session->get('gibbonThemeName').'/img/messageWall.png" width=16 height=16/>';
                         }
 
                         return $output;
@@ -169,7 +167,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_take
                         });
                 }
 
-                // School-wide attendance: Roll Group, Person, Future and Self Registration
+                // School-wide attendance: Form Group, Person, Future and Self Registration
                 $schoolTable = clone $table;
                 $schoolTable->setTitle(__('Attendance Log'));
                 $schoolTable->setDescription(count($logs) > 0 ? __('The following attendance log has been recorded for the selected student today:') : '');
@@ -201,14 +199,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_take
                 echo '<br/>';
 
                 // FORM: Take Attendance by Person
-                $form = Form::create('attendanceByPerson', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']. '/attendance_take_byPersonProcess.php?gibbonPersonID='.$gibbonPersonID);
+                $form = Form::create('attendanceByPerson', $session->get('absoluteURL').'/modules/'.$session->get('module'). '/attendance_take_byPersonProcess.php?gibbonPersonID='.$gibbonPersonID);
                 $form->setAutocomplete('off');
 
                 if ($currentDate < $today) {
                     $form->addConfirmation(__('The selected date for attendance is in the past. Are you sure you want to continue?'));
                 }
 
-                $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+                $form->addHiddenValue('address', $session->get('address'));
                 $form->addHiddenValue('currentDate', $currentDate);
 
                 $form->addRow()->addHeading(__('Take Attendance'));

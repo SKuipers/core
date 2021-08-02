@@ -28,10 +28,6 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/house_manage.
     //Proceed!
     $page->breadcrumbs->add(__('Manage Houses'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     $houseGateway = $container->get(HouseGateway::class);
 
     // QUERY
@@ -56,9 +52,9 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/house_manage.
 
     $table->addColumn('logo', __('Logo'))
     ->notSortable()
-    ->format(function($values) use ($guid) { 
+    ->format(function($values) use ($session) {
         $return = null;
-        $return .= ($values['logo'] != '') ? "<img class='user' style='max-width: 75px' src='".$_SESSION[$guid]['absoluteURL'].'/'.$values['logo']."'/>":"<img class='user' style='max-width: 75px' src='".$_SESSION[$guid]['absoluteURL'].'/themes/'.$_SESSION[$guid]['gibbonThemeName']."/img/anonymous_240_square.jpg'/>";
+        $return .= ($values['logo'] != '') ? "<img class='user' style='max-width: 75px' src='".$session->get('absoluteURL').'/'.$values['logo']."'/>":"<img class='user' style='max-width: 75px' src='".$session->get('absoluteURL').'/themes/'.$session->get('gibbonThemeName')."/img/anonymous_240_square.jpg'/>";
         return $return;
     });
     $table->addColumn('name', __('Name'));
@@ -67,7 +63,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/house_manage.
     // ACTIONS
     $table->addActionColumn()
         ->addParam('gibbonHouseID')
-        ->format(function ($facilities, $actions) use ($guid) {
+        ->format(function ($facilities, $actions) {
             $actions->addAction('edit', __('Edit'))
                     ->setURL('/modules/School Admin/house_manage_edit.php');
 

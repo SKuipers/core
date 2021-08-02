@@ -53,10 +53,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_criteria
         return;
     }
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     $reportingCriteriaGateway = $container->get(ReportingCriteriaGateway::class);
  
     $values = $reportingCriteriaGateway->getByID($gibbonReportingCriteriaID);
@@ -82,7 +78,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_criteria
     $form->addHiddenValue('gibbonReportingScopeID', $gibbonReportingScopeID);
     $form->addHiddenValue('gibbonReportingCycleID', $gibbonReportingCycleID);
     $form->addHiddenValue('gibbonYearGroupID', $values['gibbonYearGroupID']);
-    $form->addHiddenValue('gibbonRollGroupID', $values['gibbonRollGroupID']);
+    $form->addHiddenValue('gibbonFormGroupID', $values['gibbonFormGroupID']);
     $form->addHiddenValue('gibbonCourseID', $values['gibbonCourseID']);
     $form->addHiddenValue('groupID', $values['groupID']);
 

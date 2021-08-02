@@ -17,6 +17,9 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+use Gibbon\Domain\User\PersonalDocumentGateway;
+
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
 
@@ -69,7 +72,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
             echo '<tr>';
             echo "<td style='padding-top: 15px; vertical-align: top'>";
             echo "<span style='font-size: 115%; font-weight: bold'>".__('Start Date').'</span><br/>';
-            echo '<i>'.dateConvertBack($guid, $row['dateStart']).'</i>';
+            echo '<i>'.Format::date($row['dateStart']).'</i>';
             echo '</td>';
             echo "<td style='padding-top: 15px; vertical-align: top'>";
             echo "<span style='font-size: 115%; font-weight: bold'>".__('Milestones').'</span><br/>';
@@ -147,7 +150,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
                 echo '</td>';
                 echo "<td style='width: 33%; padding-top: 15px; vertical-align: top'>";
                 echo "<span style='font-size: 115%; font-weight: bold'>".__('Date of Birth').'</span><br/>';
-                echo '<i>'.dateConvertBack($guid, $row['dob']).'</i>';
+                echo '<i>'.Format::date($row['dob']).'</i>';
                 echo '</td>';
                 echo "<td style='width: 33%; padding-top: 15px; vertical-align: top'>";
 
@@ -165,52 +168,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
                 echo "<td style='width: 33%; padding-top: 15px; vertical-align: top'>";
                 echo "<span style='font-size: 115%; font-weight: bold'>".__('Third Language').'</span><br/>';
                 echo '<i>'.htmlPrep($row['languageThird']).'</i>';
-                echo '</td>';
-                echo '</tr>';
-                echo '<tr>';
-                echo "<td style='width: 33%; padding-top: 15px; vertical-align: top'>";
-                echo "<span style='font-size: 115%; font-weight: bold'>".__('Country of Birth').'</span><br/>';
-                echo '<i>'.htmlPrep($row['countryOfBirth']).'</i>';
-                echo '</td>';
-                echo "<td style='width: 33%; padding-top: 15px; vertical-align: top'>";
-                echo "<span style='font-size: 115%; font-weight: bold'>".__('Citizenship').'</span><br/>';
-                echo '<i>'.htmlPrep($row['citizenship1']).'</i>';
-                echo '</td>';
-                echo "<td style='width: 33%; padding-top: 15px; vertical-align: top'>";
-                echo "<span style='font-size: 115%; font-weight: bold'>".__('Passport Number').'</span><br/>';
-                echo '<i>'.htmlPrep($row['citizenship1Passport']).'</i>';
-                echo '</td>';
-                echo '</tr>';
-                echo '<tr>';
-                echo "<td style='width: 33%; padding-top: 15px; vertical-align: top'>";
-                echo "<span style='font-size: 115%; font-weight: bold'>";
-                if ($_SESSION[$guid]['country'] == '') {
-                    echo '<b>'.__('National ID Card Number').'</b>';
-                } else {
-                    echo '<b>'.$_SESSION[$guid]['country'].' '.__('ID Card Number').'</b>';
-                }
-                echo '</span><br/>';
-                echo '<i>'.htmlPrep($row['nationalIDCardNumber']).'</i>';
-                echo '</td>';
-                echo "<td style='width: 33%; padding-top: 15px; vertical-align: top'>";
-                echo "<span style='font-size: 115%; font-weight: bold'>";
-                if ($_SESSION[$guid]['country'] == '') {
-                    echo '<b>'.__('Residency/Visa Type').'</b>';
-                } else {
-                    echo '<b>'.$_SESSION[$guid]['country'].' '.__('Residency/Visa Type').'</b>';
-                }
-                echo '</span><br/>';
-                echo '<i>'.htmlPrep($row['residencyStatus']).'</i>';
-                echo '</td>';
-                echo "<td style='width: 33%; padding-top: 15px; vertical-align: top'>";
-                echo "<span style='font-size: 115%; font-weight: bold'>";
-                if ($_SESSION[$guid]['country'] == '') {
-                    echo '<b>'.__('Visa Expiry Date').'</b>';
-                } else {
-                    echo '<b>'.$_SESSION[$guid]['country'].' '.__('Visa Expiry Date').'</b>';
-                }
-                echo '</span><br/>';
-                echo '<i>'.dateConvertBack($guid, $row['visaExpiryDate']).'</i>';
                 echo '</td>';
                 echo '</tr>';
                 echo '<tr>';
@@ -236,6 +193,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
                 echo '</tr>';
             }
             echo '</table>';
+
+            $params = ['staff' => true, 'notEmpty' => true];
+            if (!empty($row['gibbonPersonID'])) {
+                $documents = $container->get(PersonalDocumentGateway::class)->selectPersonalDocuments('gibbonPerson', $row['gibbonPersonID'], $params)->fetchAll();
+            } else {
+                $documents = $container->get(PersonalDocumentGateway::class)->selectPersonalDocuments('gibbonStaffApplicationForm', $gibbonStaffApplicationFormID, $params)->fetchAll();
+            }
+
+            echo $page->fetchFromTemplate('ui/personalDocuments.twig.html', ['documents' => $documents]);
         }
     }
 }

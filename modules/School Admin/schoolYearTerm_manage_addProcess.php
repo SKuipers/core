@@ -17,9 +17,11 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+
 include '../../gibbon.php';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/schoolYearTerm_manage_add.php';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/schoolYearTerm_manage_add.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYearTerm_manage_add.php') == false) {
     $URL .= '&return=error0';
@@ -27,12 +29,12 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYearTer
 } else {
     //Proceed!
     //Validate Inputs
-    $gibbonSchoolYearID = $_POST['gibbonSchoolYearID'];
-    $sequenceNumber = $_POST['sequenceNumber'];
-    $name = $_POST['name'];
-    $nameShort = $_POST['nameShort'];
-    $firstDay = dateConvert($guid, $_POST['firstDay']);
-    $lastDay = dateConvert($guid, $_POST['lastDay']);
+    $gibbonSchoolYearID = $_POST['gibbonSchoolYearID'] ?? '';
+    $sequenceNumber = $_POST['sequenceNumber'] ?? '';
+    $name = $_POST['name'] ?? '';
+    $nameShort = $_POST['nameShort'] ?? '';
+    $firstDay = Format::dateConvert($_POST['firstDay']);
+    $lastDay = Format::dateConvert($_POST['lastDay']);
 
     if ($gibbonSchoolYearID == '' or $name == '' or $nameShort == '' or $sequenceNumber == '' or is_numeric($sequenceNumber) == false or $firstDay == '' or $lastDay == '') {
         $URL .= '&return=error1';

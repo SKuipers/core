@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
 use Gibbon\Forms\Prefab\DeleteForm;
 
 //Module includes
@@ -58,7 +59,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_delete.php
         if ($viewBy == 'date') {
             $date = $_GET['date'];
             if (isset($_GET['dateHuman'])) {
-                $date = dateConvert($guid, $_GET['dateHuman']);
+                $date = Format::dateConvert($_GET['dateHuman']);
             }
             if ($date == '') {
                 $date = date('Y-m-d');
@@ -85,7 +86,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_delete.php
         $paramsVar = '&' . http_build_query($params); // for backward compatibile uses below (should be get rid of)
 
         list($todayYear, $todayMonth, $todayDay) = explode('-', $today);
-        $todayStamp = mktime(0, 0, 0, $todayMonth, $todayDay, $todayYear);
+        $todayStamp = mktime(12, 0, 0, $todayMonth, $todayDay, $todayYear);
 
         //Check if school year specified
         $gibbonCourseClassID = isset($_GET['gibbonCourseClassID'])? $_GET['gibbonCourseClassID'] : '';
@@ -102,7 +103,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_delete.php
                         $data = array('date' => $date, 'gibbonPlannerEntryID' => $gibbonPlannerEntryID);
                         $sql = 'SELECT gibbonPlannerEntryID, gibbonUnitID, gibbonCourse.nameShort AS course, gibbonCourseClass.nameShort AS class, gibbonPlannerEntry.name FROM gibbonPlannerEntry JOIN gibbonCourseClass ON (gibbonPlannerEntry.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) JOIN gibbonCourse ON (gibbonCourse.gibbonCourseID=gibbonCourseClass.gibbonCourseID) WHERE date=:date AND gibbonPlannerEntryID=:gibbonPlannerEntryID';
                     } else {
-                        $data = array('date' => $date, 'gibbonPlannerEntryID' => $gibbonPlannerEntryID, 'gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID']);
+                        $data = array('date' => $date, 'gibbonPlannerEntryID' => $gibbonPlannerEntryID, 'gibbonPersonID' => $session->get('gibbonPersonID'));
                         $sql = "SELECT gibbonPlannerEntryID, gibbonUnitID, gibbonCourse.nameShort AS course, gibbonCourseClass.nameShort AS class, gibbonPlannerEntry.name, role FROM gibbonPlannerEntry JOIN gibbonCourseClass ON (gibbonPlannerEntry.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) JOIN gibbonCourseClassPerson ON (gibbonCourseClass.gibbonCourseClassID=gibbonCourseClassPerson.gibbonCourseClassID) JOIN gibbonCourse ON (gibbonCourse.gibbonCourseID=gibbonCourseClass.gibbonCourseID) WHERE gibbonCourseClassPerson.gibbonPersonID=:gibbonPersonID AND role='Teacher' AND date=:date AND gibbonPlannerEntryID=:gibbonPlannerEntryID";
                     }
                 } else {
@@ -110,7 +111,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_delete.php
                         $data = array('gibbonCourseClassID' => $gibbonCourseClassID, 'gibbonPlannerEntryID' => $gibbonPlannerEntryID);
                         $sql = 'SELECT gibbonPlannerEntryID, gibbonUnitID, gibbonCourse.nameShort AS course, gibbonCourseClass.nameShort AS class, gibbonPlannerEntry.name FROM gibbonPlannerEntry JOIN gibbonCourseClass ON (gibbonPlannerEntry.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) JOIN gibbonCourse ON (gibbonCourse.gibbonCourseID=gibbonCourseClass.gibbonCourseID) WHERE gibbonPlannerEntry.gibbonCourseClassID=:gibbonCourseClassID AND gibbonPlannerEntryID=:gibbonPlannerEntryID';
                     } else {
-                        $data = array('gibbonCourseClassID' => $gibbonCourseClassID, 'gibbonPlannerEntryID' => $gibbonPlannerEntryID, 'gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID']);
+                        $data = array('gibbonCourseClassID' => $gibbonCourseClassID, 'gibbonPlannerEntryID' => $gibbonPlannerEntryID, 'gibbonPersonID' => $session->get('gibbonPersonID'));
                         $sql = "SELECT gibbonPlannerEntryID, gibbonUnitID, gibbonCourse.nameShort AS course, gibbonCourseClass.nameShort AS class, gibbonPlannerEntry.name, role FROM gibbonPlannerEntry JOIN gibbonCourseClass ON (gibbonPlannerEntry.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) JOIN gibbonCourseClassPerson ON (gibbonCourseClass.gibbonCourseClassID=gibbonCourseClassPerson.gibbonCourseClassID) JOIN gibbonCourse ON (gibbonCourse.gibbonCourseID=gibbonCourseClass.gibbonCourseID) WHERE gibbonCourseClassPerson.gibbonPersonID=:gibbonPersonID AND role='Teacher' AND gibbonPlannerEntry.gibbonCourseClassID=:gibbonCourseClassID AND gibbonPlannerEntryID=:gibbonPlannerEntryID";
                     }
                 }
@@ -128,16 +129,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_delete.php
                 //Let's go!
                 $row = $result->fetch();
                 if ($viewBy == 'date') {
-                    $extra = dateConvertBack($guid, $date);
+                    $extra = Format::date($date);
                 } else {
                     $extra = $row['course'].'.'.$row['class'];
                 }
 
-                if (isset($_GET['return'])) {
-                    returnProcess($guid, $_GET['return'], null, null);
-                }
-
-                $form = DeleteForm::createForm($_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/planner_deleteProcess.php?gibbonPlannerEntryID=$gibbonPlannerEntryID");
+                $form = DeleteForm::createForm($session->get('absoluteURL').'/modules/'.$session->get('module')."/planner_deleteProcess.php?gibbonPlannerEntryID=$gibbonPlannerEntryID");
                 echo $form->getOutput();
             }
         }

@@ -29,10 +29,6 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/space_manage.
     //Proceed!
     $page->breadcrumbs->add(__('Manage Facilities'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     $search = isset($_GET['search'])? $_GET['search'] : '';
 
     $facilityGateway = $container->get(FacilityGateway::class);
@@ -47,10 +43,10 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/space_manage.
     echo __('Search');
     echo '</h3>';
 
-    $form = Form::create('filter', $_SESSION[$guid]['absoluteURL'].'/index.php', 'get');
+    $form = Form::create('filter', $session->get('absoluteURL').'/index.php', 'get');
     $form->setClass('noIntBorder fullWidth');
 
-    $form->addHiddenValue('q', '/modules/'.$_SESSION[$guid]['module'].'/space_manage.php');
+    $form->addHiddenValue('q', '/modules/'.$session->get('module').'/space_manage.php');
 
     $row = $form->addRow();
         $row->addLabel('search', __('Search For'));
@@ -99,7 +95,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/space_manage.
     $table->addActionColumn()
         ->addParam('gibbonSpaceID')
         ->addParam('search', $criteria->getSearchText(true))
-        ->format(function ($facilities, $actions) use ($guid) {
+        ->format(function ($facilities, $actions) {
             $actions->addAction('edit', __('Edit'))
                     ->setURL('/modules/School Admin/space_manage_edit.php');
 

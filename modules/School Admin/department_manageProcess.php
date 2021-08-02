@@ -19,14 +19,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/department_manage.php';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/department_manage.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/department_manage.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
 } else {
     //Proceed!
-    $makeDepartmentsPublic = $_POST['makeDepartmentsPublic'];
+    $makeDepartmentsPublic = $_POST['makeDepartmentsPublic'] ?? '';
 
     //Write to database
     $fail = false;

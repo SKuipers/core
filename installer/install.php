@@ -20,6 +20,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\View\Page;
 use Gibbon\Forms\Form;
 use Gibbon\Data\Validator;
+use Gibbon\Services\Format;
+use Gibbon\Database\Updater;
+use Gibbon\Database\Connection;
 use Gibbon\Database\MySqlConnector;
 use Gibbon\Forms\DatabaseFormFactory;
 
@@ -55,10 +58,10 @@ if (empty($step)) {
     $guid = $_POST['guid'] ?? '';
     $guid = preg_replace('/[^a-z0-9-]/', '', substr($guid, 0, 36));
 }
-// Use the POSTed GUID in place of "undefined". 
-// Later steps have the guid in the config file but without 
+// Use the POSTed GUID in place of "undefined".
+// Later steps have the guid in the config file but without
 // a way to store variables relibly prior to that, installation can fail
-$gibbon->session->setGuid($guid); 
+$gibbon->session->setGuid($guid);
 $gibbon->session->set('absolutePath', realpath('../'));
 
 // Generate and save a nonce for forms on this page to use
@@ -92,8 +95,8 @@ $code = $_POST['code'] ?? 'en_GB';
 
 // Attempt to download & install the required language files
 if ($step >= 1) {
-    $languageInstalled = !i18nFileExists($gibbon->session->get('absolutePath'), $code) 
-        ? i18nFileInstall($gibbon->session->get('absolutePath'), $code) 
+    $languageInstalled = !i18nFileExists($gibbon->session->get('absolutePath'), $code)
+        ? i18nFileInstall($gibbon->session->get('absolutePath'), $code)
         : true;
 }
 
@@ -104,11 +107,16 @@ if (function_exists('gettext')) {
     textdomain('gibbon');
 }
 
-echo '<h2>'.sprintf(__('Installation - Step %1$s'), ($step + 1)).'</h2>';
-
 $isConfigValid = true;
 $isNonceValid = true;
 $canInstall = true;
+
+$steps = [
+    1 => __('System Requirements'),
+    2 => __('Database Settings'),
+    3 => __('User Account'),
+    4 => __('Installation Complete'),
+];
 
 // Check session for the presence of a valid nonce; if found, remove it so it's used only once.
 if ($step >= 1) {
@@ -155,10 +163,6 @@ if ($canInstall == false) {
 } else if ($step == 0) { //Choose language
 
     //PROCEED
-    echo "<div class='success'>";
-    echo __('The directory containing the Gibbon files is writable, so the installation may proceed.');
-    echo '</div>';
-
     $trueIcon = "<img title='" . __('Yes'). "' src='../themes/Default/img/iconTick.png' style='width:20px;height:20px;margin-right:10px' />";
     $falseIcon = "<img title='" . __('No'). "' src='../themes/Default/img/iconCross.png' style='width:20px;height:20px;margin-right:10px' />";
 
@@ -172,7 +176,10 @@ if ($canInstall == false) {
     $extensions = $gibbon->getSystemRequirement('extensions');
 
     $form = Form::create('installer', "./install.php?step=1");
+    $form->setTitle(__('Installation - Step {count}', ['count' => $step + 1]));
+    $form->setDescription(Format::alert(__('The directory containing the Gibbon files is writable, so the installation may proceed.'), 'success'));
     $form->setClass('smallIntBorder w-full');
+    $form->setMultiPartForm($steps, 1);
 
     $form->addHiddenValue('guid', $guid);
     $form->addHiddenValue('nonce', $nonce);
@@ -190,7 +197,7 @@ if ($canInstall == false) {
 
     if ($apacheVersion !== false) {
         $apacheModules = @apache_get_modules();
-        
+
         foreach ($apacheRequirement as $moduleName) {
             $active = @in_array($moduleName, $apacheModules);
             $row = $form->addRow();
@@ -231,6 +238,8 @@ if ($canInstall == false) {
     }
 
     $form = Form::create('installer', "./install.php?step=2");
+    $form->setTitle(__('Installation - Step {count}', ['count' => $step + 1]));
+    $form->setMultiPartForm($steps, 2);
 
     $form->addHiddenValue('guid', $guid);
     $form->addHiddenValue('nonce', $nonce);
@@ -278,18 +287,20 @@ if ($canInstall == false) {
         $config = compact('databaseServer', 'databaseUsername', 'databasePassword');
         $mysqlConnector = new MySqlConnector();
 
-        if ($pdo = $mysqlConnector->connect($config)) {
+        try {
+            $pdo = $mysqlConnector->connect($config, true);
             $mysqlConnector->useDatabase($pdo, $databaseName);
             $connection2 = $pdo->getConnection();
             $container->share(Gibbon\Contracts\Database\Connection::class, $pdo);
+        } catch (\Exception $e) {
+            echo "<div class='error'>";
+            echo '<div>' . sprintf(__('A database connection could not be established. Please %1$stry again%2$s.'), "<a href='./install.php'>", '</a>') . '</div>';
+            echo '<div>' . sprintf(__('Error details: {error_message}', ['error_message' => $e->getMessage()])) . '</div>';
+            echo '</div>';
         }
     }
 
-    if (empty($pdo)) {
-        echo "<div class='error'>";
-        echo sprintf(__('A database connection could not be established. Please %1$stry again%2$s.'), "<a href='./install.php'>", '</a>');
-        echo '</div>';
-    } else {
+    if ($pdo instanceof Connection) {
         //Set up config.php
         include './installerFunctions.php';
         $configData = compact('databaseServer', 'databaseUsername', 'databasePassword', 'databaseName', 'guid');
@@ -335,7 +346,7 @@ if ($canInstall == false) {
                     if ($demoData == 'Y') {
                         if (file_exists('../gibbon_demo.sql') == false) {
                             echo "<div class='error'>";
-                            echo __('../gibbon_demo.sql does not exist, so we will conintue without demo data.');
+                            echo __('../gibbon_demo.sql does not exist, so we will continue without demo data.');
                             echo '</div>';
                         } else {
                             $query = @fread(@fopen('../gibbon_demo.sql', 'r'), @filesize('../gibbon_demo.sql')) or die('Encountered a problem.');
@@ -357,7 +368,7 @@ if ($canInstall == false) {
 
                             if ($demoFail) {
                                 echo "<div class='error'>";
-                                echo __('There were some issues installing the demo data, but we will conintue anyway.');
+                                echo __('There were some issues installing the demo data, but we will continue anyway.');
                                 echo '</div>';
                             }
                         }
@@ -382,8 +393,10 @@ if ($canInstall == false) {
                     //Let's gather some more information
 
                     $form = Form::create('installer', "./install.php?step=3");
-
+                    $form->setTitle(__('Installation - Step {count}', ['count' => $step + 1]));
                     $form->setFactory(DatabaseFormFactory::create($pdo));
+                    $form->setMultiPartForm($steps, 3);
+
                     $form->addHiddenValue('guid', $guid);
                     $form->addHiddenValue('nonce', $nonce);
                     $form->addHiddenValue('code', $code);
@@ -574,15 +587,18 @@ if ($canInstall == false) {
     //New PDO DB connection
     $mysqlConnector = new MySqlConnector();
 
-    if ($pdo = $mysqlConnector->connect($gibbon->getConfig())) {
+    try {
+        $pdo = $mysqlConnector->connect($gibbon->getConfig(), true);
         $connection2 = $pdo->getConnection();
+    } catch (Exception $e) {
+        echo "<div class='error'>";
+        echo '<div>' . sprintf(__('A database connection could not be established. Please %1$stry again%2$s.'), "<a href='./install.php'>", '</a>') . '</div>';
+        echo '<div>' . sprintf(__('Error details: {error_message}', ['error_message' => $e->getMessage()])) . '</div>';
+        echo '</div>';
     }
 
-    if (empty($pdo)) {
-        echo "<div class='error'>";
-        echo sprintf(__('A database connection could not be established. Please %1$stry again%2$s.'), "<a href='./install.php'>", '</a>');
-        echo '</div>';
-    } else {
+    // check if correctly created the PDO object.
+    if ($pdo instanceof Connection) {
         //Get user account details
         $title = $_POST['title'];
         $surname = $_POST['surname'];
@@ -831,29 +847,19 @@ if ($canInstall == false) {
                         $settingsFail = true;
                     }
                     if ($cuttingEdgeCode == 'Y') {
-                        include '../CHANGEDB.php';
-                        $sqlTokens = explode(';end', $sql[(count($sql))][1]);
-                        $versionMaxLinesMax = (count($sqlTokens) - 1);
-                        $tokenCount = 0;
+                        $updater = $container->get(Updater::class);
+                        $errors = $updater->update();
+
+                        if (!empty($errors)) {
+                            echo Format::alert(__('Some aspects of your update failed.'));
+                        }
+                        
                         try {
-                            $data = array('cuttingEdgeCodeLine' => $versionMaxLinesMax);
+                            $data = array('cuttingEdgeCodeLine' => $updater->cuttingEdgeMaxLine);
                             $sql = "UPDATE gibbonSetting SET value=:cuttingEdgeCodeLine WHERE scope='System' AND name='cuttingEdgeCodeLine'";
                             $result = $connection2->prepare($sql);
                             $result->execute($data);
                         } catch (PDOException $e) {
-                        }
-
-                        foreach ($sqlTokens as $sqlToken) {
-                            if ($tokenCount <= $versionMaxLinesMax) { //Decide whether this has been run or not
-                                if (trim($sqlToken) != '') {
-                                    try {
-                                        $result = $connection2->query($sqlToken);
-                                    } catch (PDOException $e) {
-                                        $partialFail = true;
-                                    }
-                                }
-                            }
-                            ++$tokenCount;
                         }
                     }
 
@@ -874,6 +880,11 @@ if ($canInstall == false) {
                         echo "<iframe class='support' style='display: none; height: 10px; width: 10px' src='https://gibbonedu.org/services/support/supportRegistration.php?absolutePathProtocol=".urlencode($absolutePathProtocol).'&absolutePath='.urlencode($absolutePath).'&organisationName='.urlencode($organisationName).'&email='.urlencode($email).'&title='.urlencode($title).'&surname='.urlencode($surname).'&preferredName='.urlencode($preferredName)."'></iframe>";
                     }
 
+                    $form = Form::create('installer', "./install.php?step=4");
+                    $form->setTitle(__('Installation - Step {count}', ['count' => $step + 1]));
+                    $form->setMultiPartForm($steps, 4);
+                    echo $form->getOutput();
+
                     if ($settingsFail == true) {
                         echo "<div class='error'>";
                         echo sprintf(__('Some settings did not save. The system may work, but you may need to remove everything and start again. Try and %1$sgo to your Gibbon homepage%2$s and login as user <u>admin</u> with password <u>gibbon</u>.'), "<a href='$absoluteURL'>", '</a>');
@@ -883,9 +894,9 @@ if ($canInstall == false) {
                     } else {
                         echo "<div class='success'>";
                         echo sprintf(__('Congratulations, your installation is complete. Feel free to %1$sgo to your Gibbon homepage%2$s and login with the username and password you created.'), "<a href='$absoluteURL'>", '</a>');
-                        echo '<br/><br/>';
-                        echo sprintf(__('It is also advisable to follow the %1$sPost-Install and Server Config instructions%2$s.'), "<a target='_blank' href='https://gibbonedu.org/support/administrators/installing-gibbon/'>", '</a>');
                         echo '</div>';
+
+                        echo $page->fetchFromTemplate('ui/gettingStarted.twig.html', ['postInstall' => true]);
                     }
                 }
             }
@@ -893,16 +904,15 @@ if ($canInstall == false) {
     }
 }
 
-                        
-         
 $page->write(ob_get_clean());
 
 $page->addData([
     'gibbonThemeName' => 'Default',
     'absolutePath'    => realpath('../'),
     'absoluteURL'     => str_replace('/installer/install.php', '', $_SERVER['PHP_SELF']),
-    'bodyBackground'  => "background: url('../themes/Default/img/backgroundPage.jpg') repeat fixed center top #A88EDB!important;",
-    'sidebar'         => true
+    'sidebar'         => true,
+    'contentClass'    => 'max-w-4xl mx-auto px-12 pt-6 pb-12',
+    'step'            => $step,
 ]);
 
 echo $page->render('installer/install.twig.html');

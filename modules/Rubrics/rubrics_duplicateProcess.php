@@ -22,17 +22,13 @@ include '../../gibbon.php';
 include './moduleFunctions.php';
 
 //Search & Filters
-$search = null;
-if (isset($_GET['search'])) {
-    $search = $_GET['search'];
-}
-$filter2 = null;
-if (isset($_GET['filter2'])) {
-    $filter2 = $_GET['filter2'];
-}
+$search = $_GET['search'] ?? '';
 
-$gibbonRubricID = $_GET['gibbonRubricID'];
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/rubrics_duplicate.php&gibbonRubricID=$gibbonRubricID&search=$search&filter2=$filter2";
+$filter2 = $_GET['filter2'] ?? '';
+
+
+$gibbonRubricID = $_GET['gibbonRubricID'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/rubrics_duplicate.php&gibbonRubricID=$gibbonRubricID&search=$search&filter2=$filter2";
 
 if (isActionAccessible($guid, $connection2, '/modules/Rubrics/rubrics_duplicate.php') == false) {
     $URL .= '&return=error0';
@@ -58,7 +54,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Rubrics/rubrics_duplicate.
                         $data = array('gibbonRubricID' => $gibbonRubricID);
                         $sql = 'SELECT * FROM gibbonRubric WHERE gibbonRubricID=:gibbonRubricID';
                     } elseif ($highestAction == 'Manage Rubrics_viewAllEditLearningArea') {
-                        $data = array('gibbonRubricID' => $gibbonRubricID, 'gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID']);
+                        $data = array('gibbonRubricID' => $gibbonRubricID, 'gibbonPersonID' => $session->get('gibbonPersonID'));
                         $sql = "SELECT * FROM gibbonRubric JOIN gibbonDepartment ON (gibbonRubric.gibbonDepartmentID=gibbonDepartment.gibbonDepartmentID) JOIN gibbonDepartmentStaff ON (gibbonDepartmentStaff.gibbonDepartmentID=gibbonDepartment.gibbonDepartmentID) AND NOT gibbonRubric.gibbonDepartmentID IS NULL WHERE gibbonRubricID=:gibbonRubricID AND (role='Coordinator' OR role='Teacher (Curriculum)') AND gibbonPersonID=:gibbonPersonID AND scope='Learning Area'";
                     }
                     $result = $connection2->prepare($sql);
@@ -88,7 +84,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Rubrics/rubrics_duplicate.
                     } else {
                         //Write to database
                         try {
-                            $data = array('scope' => $scope, 'gibbonDepartmentID' => $gibbonDepartmentID, 'name' => $name, 'active' => $row['active'], 'category' => $row['category'], 'description' => $row['description'], 'gibbonYearGroupIDList' => $row['gibbonYearGroupIDList'], 'gibbonScaleID' => $row['gibbonScaleID'], 'gibbonPersonIDCreator' => $_SESSION[$guid]['gibbonPersonID']);
+                            $data = array('scope' => $scope, 'gibbonDepartmentID' => $gibbonDepartmentID, 'name' => $name, 'active' => $row['active'], 'category' => $row['category'], 'description' => $row['description'], 'gibbonYearGroupIDList' => $row['gibbonYearGroupIDList'], 'gibbonScaleID' => $row['gibbonScaleID'], 'gibbonPersonIDCreator' => $session->get('gibbonPersonID'));
                             $sql = 'INSERT INTO gibbonRubric SET scope=:scope, gibbonDepartmentID=:gibbonDepartmentID, name=:name, active=:active, category=:category, description=:description, gibbonYearGroupIDList=:gibbonYearGroupIDList, gibbonScaleID=:gibbonScaleID, gibbonPersonIDCreator=:gibbonPersonIDCreator';
                             $result = $connection2->prepare($sql);
                             $result->execute($data);

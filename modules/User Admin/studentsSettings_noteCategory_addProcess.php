@@ -19,16 +19,16 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/studentsSettings_noteCategory_add.php';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/studentsSettings_noteCategory_add.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/User Admin/studentsSettings_noteCategory_add.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
 } else {
     //Proceed!
-    $name = $_POST['name'];
-    $active = $_POST['active'];
-    $template = $_POST['template'];
+    $name = $_POST['name'] ?? '';
+    $active = $_POST['active'] ?? '';
+    $template = $_POST['template'] ?? '';
 
     //Validate Inputs
     if ($name == '' or $active == '') {

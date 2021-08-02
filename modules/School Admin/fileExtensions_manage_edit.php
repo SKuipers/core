@@ -29,10 +29,6 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/fileExtension
         ->add(__('Manage File Extensions'), 'fileExtensions_manage.php')
         ->add(__('Edit File Extensions'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     //Check if school year specified
     $gibbonFileExtensionID = $_GET['gibbonFileExtensionID'];
     if ($gibbonFileExtensionID == '') {
@@ -50,9 +46,9 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/fileExtension
             //Let's go!
             $values = $result->fetch();
 
-            $form = Form::create('fileExtensions', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/fileExtensions_manage_editProcess.php?gibbonFileExtensionID='.$gibbonFileExtensionID);
+            $form = Form::create('fileExtensions', $session->get('absoluteURL').'/modules/'.$session->get('module').'/fileExtensions_manage_editProcess.php?gibbonFileExtensionID='.$gibbonFileExtensionID);
 
-            $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+            $form->addHiddenValue('address', $session->get('address'));
 
             $illegalTypes = FileUploader::getIllegalFileExtensions();
 

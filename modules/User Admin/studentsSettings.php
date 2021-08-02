@@ -29,10 +29,6 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/studentsSetting
     //Proceed!
     $page->breadcrumbs->add(__('Students Settings'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     echo '<h3>';
     echo __('Student Note Categories');
     echo '</h3>';
@@ -82,9 +78,9 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/studentsSetting
     echo __('Settings');
     echo '</h3>';
 
-    $form = Form::create('studentsSettings', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/studentsSettingsProcess.php');
+    $form = Form::create('studentsSettings', $session->get('absoluteURL').'/modules/'.$session->get('module').'/studentsSettingsProcess.php');
 
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+    $form->addHiddenValue('address', $session->get('address'));
 
     $form->addRow()->addHeading(__('Student Notes'));
 
@@ -183,11 +179,6 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/studentsSetting
         $row->addTextArea($setting['name'])->setValue($setting['value']);
         
     $form->addRow()->addHeading(__('Miscellaneous'));
-
-    $setting = getSettingByScope($connection2, 'Students', 'extendedBriefProfile', true);
-    $row = $form->addRow();
-        $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
-        $row->addYesNo($setting['name'])->selected($setting['value'])->required();
 
     $setting = getSettingByScope($connection2, 'School Admin', 'studentAgreementOptions', true);
     $row = $form->addRow();

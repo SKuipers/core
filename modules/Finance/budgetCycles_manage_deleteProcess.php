@@ -19,9 +19,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$gibbonFinanceBudgetCycleID = $_GET['gibbonFinanceBudgetCycleID'];
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/budgetCycles_manage_delete.php&gibbonFinanceBudgetCycleID='.$gibbonFinanceBudgetCycleID;
-$URLDelete = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/budgetCycles_manage.php';
+$gibbonFinanceBudgetCycleID = $_GET['gibbonFinanceBudgetCycleID'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/budgetCycles_manage_delete.php&gibbonFinanceBudgetCycleID='.$gibbonFinanceBudgetCycleID;
+$URLDelete = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/budgetCycles_manage.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/Finance/budgetCycles_manage_delete.php') == false) {
     $URL .= '&return=error0';
@@ -60,7 +60,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/budgetCycles_manag
                 exit();
             }
 
-            
+
                 $data = array('gibbonFinanceBudgetCycleID' => $gibbonFinanceBudgetCycleID);
                 $sql = 'DELETE FROM gibbonFinanceBudgetCycleAllocation WHERE gibbonFinanceBudgetCycleID=:gibbonFinanceBudgetCycleID';
                 $result = $connection2->prepare($sql);

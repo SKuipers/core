@@ -19,14 +19,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$value = $_POST['value'];
-$descriptor = $_POST['descriptor'];
-$sequenceNumber = $_POST['sequenceNumber'];
-$isDefault = $_POST['isDefault'];
+$value = $_POST['value'] ?? '';
+$descriptor = $_POST['descriptor'] ?? '';
+$sequenceNumber = $_POST['sequenceNumber'] ?? '';
+$isDefault = $_POST['isDefault'] ?? '';
 
-$gibbonScaleID = $_POST['gibbonScaleID'];
+$gibbonScaleID = $_POST['gibbonScaleID'] ?? '';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/gradeScales_manage_edit_grade_add.php&gibbonScaleID=$gibbonScaleID";
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/gradeScales_manage_edit_grade_add.php&gibbonScaleID=$gibbonScaleID";
 
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/gradeScales_manage_edit_grade_add.php') == false) {
     $URL .= '&return=error0';

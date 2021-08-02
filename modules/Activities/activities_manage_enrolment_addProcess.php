@@ -17,14 +17,17 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\System\LogGateway;
+
 include '../../gibbon.php';
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
 
-$gibbonActivityID = $_GET['gibbonActivityID'];
+$logGateway = $container->get(LogGateway::class);
+$gibbonActivityID = $_GET['gibbonActivityID'] ?? '';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/activities_manage_enrolment_add.php&gibbonActivityID=$gibbonActivityID&search=".$_GET['search']."&gibbonSchoolYearTermID=".$_GET['gibbonSchoolYearTermID'];
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/activities_manage_enrolment_add.php&gibbonActivityID=$gibbonActivityID&search=".$_GET['search']."&gibbonSchoolYearTermID=".$_GET['gibbonSchoolYearTermID'];
 
 if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_manage_enrolment_add.php') == false) {
     $URL .= '&return=error0';
@@ -32,7 +35,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
 } else {
     //Proceed!
     //Validate Inputs
-    $status = $_POST['status'];
+    $status = $_POST['status'] ?? '';
 
     if ($gibbonActivityID == '' or $status == '') {
         $URL .= '&return=error1';
@@ -51,7 +54,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
         } else {
             foreach ($choices as $t) {
                 //Check to see if student is already registered in this activity
-                
+
                     $data = array('gibbonPersonID' => $t, 'gibbonActivityID' => $gibbonActivityID);
                     $sql = 'SELECT * FROM gibbonActivityStudent WHERE gibbonPersonID=:gibbonPersonID AND gibbonActivityID=:gibbonActivityID';
                     $result = $connection2->prepare($sql);
@@ -70,7 +73,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
 
                     //Set log
                     $gibbonModuleID = getModuleIDFromName($connection2, 'Activities') ;
-                    setLog($connection2, $_SESSION[$guid]['gibbonSchoolYearIDCurrent'], $gibbonModuleID, $_SESSION[$guid]['gibbonPersonID'], 'Activities - Student Added', array('gibbonPersonIDStudent' => $t));
+                    $logGateway->addLog($session->get('gibbonSchoolYearIDCurrent'), $gibbonModuleID, $session->get('gibbonPersonID'), 'Activities - Student Added', array('gibbonPersonIDStudent' => $t));
                 }
             }
             //Write to database

@@ -17,14 +17,16 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+
 include '../../gibbon.php';
 
-$gibbonStaffID = $_GET['gibbonStaffID'];
-$search = $_GET['search'];
+$gibbonStaffID = $_GET['gibbonStaffID'] ?? '';
+$search = $_GET['search'] ?? '';
 
 if ($gibbonStaffID == '') { echo 'Fatal error loading this page!';
 } else {
-    $URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/staff_manage_edit_contract_add.php&gibbonStaffID=$gibbonStaffID&search=$search";
+    $URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/staff_manage_edit_contract_add.php&gibbonStaffID=$gibbonStaffID&search=$search";
 
     if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage_edit_contract_add.php') == false) {
         $URL .= '&return=error0';
@@ -54,82 +56,27 @@ if ($gibbonStaffID == '') { echo 'Fatal error loading this page!';
                 $row = $result->fetch();
                 $username = $row['username'];
 
-                $title = $_POST['title'];
-                $status = $_POST['status'];
-                $dateStart = null;
-                if (isset($_POST['dateStart'])) {
-                    $dateStart = dateConvert($guid, $_POST['dateStart']);
-                }
-                $dateEnd = null;
-                if (isset($_POST['dateEnd'])) {
-                    if ($_POST['dateEnd'] != '') {
-                        $dateEnd = dateConvert($guid, $_POST['dateEnd']);
-                    }
-                }
-                $salaryScale = null;
-                if (isset($_POST['salaryScale'])) {
-                    $salaryScale = $_POST['salaryScale'];
-                }
-                $salaryAmount = null;
-                if (isset($_POST['salaryAmount']) && $_POST['salaryAmount'] != '') {
-                    $salaryAmount = $_POST['salaryAmount'];
-                }
-                $salaryPeriod = null;
-                if (isset($_POST['salaryPeriod'])) {
-                    $salaryPeriod = $_POST['salaryPeriod'];
-                }
-                $responsibility = null;
-                if (isset($_POST['responsibility'])) {
-                    $responsibility = $_POST['responsibility'];
-                }
-                $responsibilityAmount = null;
-                if (isset($_POST['responsibilityAmount']) && $_POST['responsibilityAmount'] != '') {
-                    $responsibilityAmount = $_POST['responsibilityAmount'];
-                }
-                $responsibilityPeriod = null;
-                if (isset($_POST['responsibilityPeriod'])) {
-                    $responsibilityPeriod = $_POST['responsibilityPeriod'];
-                }
-                $housingAmount = null;
-                if (isset($_POST['housingAmount']) && $_POST['housingAmount'] != '') {
-                    $housingAmount = $_POST['housingAmount'];
-                }
-                $housingPeriod = null;
-                if (isset($_POST['housingPeriod'])) {
-                    $housingPeriod = $_POST['housingPeriod'];
-                }
-                $travelAmount = null;
-                if (isset($_POST['travelAmount']) && $_POST['travelAmount'] != '') {
-                    $travelAmount = $_POST['travelAmount'];
-                }
-                $travelPeriod = null;
-                if (isset($_POST['travelPeriod'])) {
-                    $travelPeriod = $_POST['travelPeriod'];
-                }
-                $retirementAmount = null;
-                if (isset($_POST['retirementAmount']) && $_POST['retirementAmount'] != '') {
-                    $retirementAmount = $_POST['retirementAmount'];
-                }
-                $retirementPeriod = null;
-                if (isset($_POST['retirementPeriod'])) {
-                    $retirementPeriod = $_POST['retirementPeriod'];
-                }
-                $bonusAmount = null;
-                if (isset($_POST['bonusAmount']) && $_POST['bonusAmount'] != '') {
-                    $bonusAmount = $_POST['bonusAmount'];
-                }
-                $bonusPeriod = null;
-                if (isset($_POST['bonusPeriod'])) {
-                    $bonusPeriod = $_POST['bonusPeriod'];
-                }
-                $education = null;
-                if (isset($_POST['education'])) {
-                    $education = $_POST['education'];
-                }
-                $notes = null;
-                if (isset($_POST['notes'])) {
-                    $notes = $_POST['notes'];
-                }
+                $title = $_POST['title'] ?? '';
+                $status = $_POST['status'] ?? '';
+                $dateStart = !empty($_POST['dateStart']) ? Format::dateConvert($_POST['dateStart']) : null;
+                $dateEnd = !empty($_POST['dateEnd']) ?  Format::dateConvert($_POST['dateEnd']) : null;
+                $salaryScale = $_POST['salaryScale'] ?? '';
+                $salaryAmount = $_POST['salaryAmount'] ?? '';
+                $salaryPeriod = $_POST['salaryPeriod'] ?? '';
+                $responsibility = $_POST['responsibility'] ?? '';
+                $responsibilityAmount = $_POST['responsibilityAmount'] ?? '';
+                $responsibilityPeriod = $_POST['responsibilityPeriod'] ?? '';
+                $housingAmount = $_POST['housingAmount'] ?? '';
+                $housingPeriod = $_POST['housingPeriod'] ?? '';
+                $travelAmount = $_POST['travelAmount'] ?? '';
+                $travelPeriod = $_POST['travelPeriod'] ?? '';
+                $retirementAmount = $_POST['retirementAmount'] ?? '';
+                $retirementPeriod = $_POST['retirementPeriod'] ?? '';
+                $bonusAmount = $_POST['bonusAmount'] ?? '';
+                $bonusPeriod = $_POST['bonusPeriod'] ?? '';
+                $education = $_POST['education'] ?? '';
+                $notes = $_POST['notes'] ?? '';
+
 
                 $partialFail = false;
 
@@ -154,7 +101,7 @@ if ($gibbonStaffID == '') { echo 'Fatal error loading this page!';
                 } else {
                     //Write to database
                     try {
-                        $data = array('gibbonStaffID' => $gibbonStaffID, 'title' => $title, 'status' => $status, 'dateStart' => $dateStart, 'dateEnd' => $dateEnd, 'salaryScale' => $salaryScale, 'salaryAmount' => $salaryAmount, 'salaryPeriod' => $salaryPeriod, 'responsibility' => $responsibility, 'responsibilityAmount' => $responsibilityAmount, 'responsibilityPeriod' => $responsibilityPeriod, 'housingAmount' => $housingAmount, 'housingPeriod' => $housingPeriod, 'travelAmount' => $travelAmount, 'travelPeriod' => $travelPeriod, 'retirementAmount' => $retirementAmount, 'retirementPeriod' => $retirementPeriod, 'bonusAmount' => $bonusAmount, 'bonusPeriod' => $bonusPeriod, 'education' => $education, 'notes' => $notes, 'contractUpload' => $contractUpload, 'gibbonPersonIDCreator' => $_SESSION[$guid]['gibbonPersonID']);
+                        $data = array('gibbonStaffID' => $gibbonStaffID, 'title' => $title, 'status' => $status, 'dateStart' => $dateStart, 'dateEnd' => $dateEnd, 'salaryScale' => $salaryScale, 'salaryAmount' => $salaryAmount, 'salaryPeriod' => $salaryPeriod, 'responsibility' => $responsibility, 'responsibilityAmount' => $responsibilityAmount, 'responsibilityPeriod' => $responsibilityPeriod, 'housingAmount' => $housingAmount, 'housingPeriod' => $housingPeriod, 'travelAmount' => $travelAmount, 'travelPeriod' => $travelPeriod, 'retirementAmount' => $retirementAmount, 'retirementPeriod' => $retirementPeriod, 'bonusAmount' => $bonusAmount, 'bonusPeriod' => $bonusPeriod, 'education' => $education, 'notes' => $notes, 'contractUpload' => $contractUpload, 'gibbonPersonIDCreator' => $session->get('gibbonPersonID'));
                         $sql = 'INSERT INTO gibbonStaffContract SET gibbonStaffID=:gibbonStaffID, title=:title, status=:status, dateStart=:dateStart, dateEnd=:dateEnd, salaryScale=:salaryScale, salaryAmount=:salaryAmount, salaryPeriod=:salaryPeriod, responsibility=:responsibility, responsibilityAmount=:responsibilityAmount, responsibilityPeriod=:responsibilityPeriod, housingAmount=:housingAmount, housingPeriod=:housingPeriod, travelAmount=:travelAmount, travelPeriod=:travelPeriod, retirementAmount=:retirementAmount, retirementPeriod=:retirementPeriod, bonusAmount=:bonusAmount, bonusPeriod=:bonusPeriod, education=:education, notes=:notes, contractUpload=:contractUpload, gibbonPersonIDCreator=:gibbonPersonIDCreator';
                         $result = $connection2->prepare($sql);
                         $result->execute($data);

@@ -17,13 +17,15 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+
 include '../../gibbon.php';
 
 $enableEffort = getSettingByScope($connection2, 'Markbook', 'enableEffort');
 $enableRubrics = getSettingByScope($connection2, 'Markbook', 'enableRubrics');
 
-$gibbonCourseClassID = $_GET['gibbonCourseClassID'];
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['address'])."/markbook_edit_addMulti.php&gibbonCourseClassID=$gibbonCourseClassID";
+$gibbonCourseClassID = $_GET['gibbonCourseClassID'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_GET['address'])."/markbook_edit_addMulti.php&gibbonCourseClassID=$gibbonCourseClassID";
 
 if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_addMulti.php') == false) {
     $URL .= '&return=error0';
@@ -35,14 +37,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_add
     } else {
         //Proceed!
         //Validate Inputs
-        $gibbonCourseClassIDMulti = $_POST['gibbonCourseClassIDMulti'];
-        $name = $_POST['name'];
-        $description = $_POST['description'];
-        $type = $_POST['type'];
-        $date = (!empty($_POST['date']))? dateConvert($guid, $_POST['date']) : date('Y-m-d');
+        $gibbonCourseClassIDMulti = $_POST['gibbonCourseClassIDMulti'] ?? '';
+        $name = $_POST['name'] ?? '';
+        $description = $_POST['description'] ?? '';
+        $type = $_POST['type'] ?? '';
+        $date = (!empty($_POST['date']))? Format::dateConvert($_POST['date']) : date('Y-m-d');
         $gibbonSchoolYearTermID = (!empty($_POST['gibbonSchoolYearTermID']))? $_POST['gibbonSchoolYearTermID'] : null;
         //Sort out attainment
-        $attainment = $_POST['attainment'];
+        $attainment = $_POST['attainment'] ?? '';
         $attainmentWeighting = 1;
         $attainmentRaw = 'N';
         $attainmentRawMax = null;
@@ -106,21 +108,21 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_add
                 }
             }
         }
-        $comment = $_POST['comment'];
-        $uploadedResponse = $_POST['uploadedResponse'];
-        $completeDate = $_POST['completeDate'];
+        $comment = $_POST['comment'] ?? '';
+        $uploadedResponse = $_POST['uploadedResponse'] ?? '';
+        $completeDate = $_POST['completeDate'] ?? '';
         if ($completeDate == '') {
             $completeDate = null;
             $complete = 'N';
         } else {
-            $completeDate = dateConvert($guid, $completeDate);
+            $completeDate = Format::dateConvert($completeDate);
             $complete = 'Y';
         }
-        $viewableStudents = $_POST['viewableStudents'];
-        $viewableParents = $_POST['viewableParents'];
+        $viewableStudents = $_POST['viewableStudents'] ?? '';
+        $viewableParents = $_POST['viewableParents'] ?? '';
         $attachment = '';
-        $gibbonPersonIDCreator = $_SESSION[$guid]['gibbonPersonID'];
-        $gibbonPersonIDLastEdit = $_SESSION[$guid]['gibbonPersonID'];
+        $gibbonPersonIDCreator = $session->get('gibbonPersonID');
+        $gibbonPersonIDLastEdit = $session->get('gibbonPersonID');
 
         //Lock markbook column table
         try {
@@ -199,7 +201,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_add
             }
 
             //Unlock module table
-            
+
                 $sql = 'UNLOCK TABLES';
                 $result = $connection2->query($sql);
 

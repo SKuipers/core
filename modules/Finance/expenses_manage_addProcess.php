@@ -17,18 +17,20 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+
 include '../../gibbon.php';
 
 //Module includes
 include './moduleFunctions.php';
 
-$gibbonFinanceBudgetCycleID = $_POST['gibbonFinanceBudgetCycleID'];
-$gibbonFinanceBudgetID2 = $_POST['gibbonFinanceBudgetID2'];
-$status2 = $_POST['status2'];
+$gibbonFinanceBudgetCycleID = $_POST['gibbonFinanceBudgetCycleID'] ?? '';
+$gibbonFinanceBudgetID2 = $_POST['gibbonFinanceBudgetID2'] ?? '';
+$status2 = $_POST['status2'] ?? '';
 
 if ($gibbonFinanceBudgetCycleID == '') { echo 'Fatal error loading this page!';
 } else {
-    $URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/expenses_manage_add.php&gibbonFinanceBudgetCycleID=$gibbonFinanceBudgetCycleID&gibbonFinanceBudgetID2=$gibbonFinanceBudgetID2&status2=$status2";
+    $URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/expenses_manage_add.php&gibbonFinanceBudgetCycleID=$gibbonFinanceBudgetCycleID&gibbonFinanceBudgetID2=$gibbonFinanceBudgetID2&status2=$status2";
 
     if (isActionAccessible($guid, $connection2, '/modules/Finance/expenses_manage_add.php', 'Manage Expenses_all') == false) {
         $URL .= '&return=error0';
@@ -39,20 +41,20 @@ if ($gibbonFinanceBudgetCycleID == '') { echo 'Fatal error loading this page!';
             $URL .= '&return=error0';
             header("Location: {$URL}");
         } else {
-            $gibbonFinanceBudgetID = $_POST['gibbonFinanceBudgetID'];
-            $status = $_POST['status'];
-            $title = $_POST['title'];
-            $body = $_POST['body'];
-            $cost = $_POST['cost'];
-            $countAgainstBudget = $_POST['countAgainstBudget'];
-            $purchaseBy = $_POST['purchaseBy'];
-            $purchaseDetails = $_POST['purchaseDetails'];
+            $gibbonFinanceBudgetID = $_POST['gibbonFinanceBudgetID'] ?? '';
+            $status = $_POST['status'] ?? '';
+            $title = $_POST['title'] ?? '';
+            $body = $_POST['body'] ?? '';
+            $cost = $_POST['cost'] ?? '';
+            $countAgainstBudget = $_POST['countAgainstBudget'] ?? '';
+            $purchaseBy = $_POST['purchaseBy'] ?? '';
+            $purchaseDetails = $_POST['purchaseDetails'] ?? '';
             if ($status == 'Paid') {
-                $paymentDate = dateConvert($guid, $_POST['paymentDate']);
-                $paymentAmount = $_POST['paymentAmount'];
-                $gibbonPersonIDPayment = $_POST['gibbonPersonIDPayment'];
-                $paymentMethod = $_POST['paymentMethod'];
-                $paymentID = $_POST['paymentID'];
+                $paymentDate = !empty($_POST['paymentDate']) ? Format::dateConvert($_POST['paymentDate']) : null;
+                $paymentAmount = $_POST['paymentAmount'] ?? '';
+                $gibbonPersonIDPayment = $_POST['gibbonPersonIDPayment'] ?? '';
+                $paymentMethod = $_POST['paymentMethod'] ?? '';
+                $paymentID = $_POST['paymentID'] ?? '';
             } else {
                 $paymentDate = null;
                 $paymentAmount = null;
@@ -67,7 +69,7 @@ if ($gibbonFinanceBudgetCycleID == '') { echo 'Fatal error loading this page!';
             } else {
                 //Write to database
                 try {
-                    $data = array('gibbonFinanceBudgetCycleID' => $gibbonFinanceBudgetCycleID, 'gibbonFinanceBudgetID' => $gibbonFinanceBudgetID, 'title' => $title, 'body' => $body, 'status' => $status, 'statusApprovalBudgetCleared' => 'Y', 'cost' => $cost, 'countAgainstBudget' => $countAgainstBudget, 'purchaseBy' => $purchaseBy, 'purchaseDetails' => $purchaseDetails, 'gibbonPersonIDCreator' => $_SESSION[$guid]['gibbonPersonID'], 'paymentDate' => $paymentDate, 'paymentAmount' => $paymentAmount, 'gibbonPersonIDPayment' => $gibbonPersonIDPayment, 'paymentMethod' => $paymentMethod, 'paymentID' => $paymentID);
+                    $data = array('gibbonFinanceBudgetCycleID' => $gibbonFinanceBudgetCycleID, 'gibbonFinanceBudgetID' => $gibbonFinanceBudgetID, 'title' => $title, 'body' => $body, 'status' => $status, 'statusApprovalBudgetCleared' => 'Y', 'cost' => $cost, 'countAgainstBudget' => $countAgainstBudget, 'purchaseBy' => $purchaseBy, 'purchaseDetails' => $purchaseDetails, 'gibbonPersonIDCreator' => $session->get('gibbonPersonID'), 'paymentDate' => $paymentDate, 'paymentAmount' => $paymentAmount, 'gibbonPersonIDPayment' => $gibbonPersonIDPayment, 'paymentMethod' => $paymentMethod, 'paymentID' => $paymentID);
                     $sql = "INSERT INTO gibbonFinanceExpense SET gibbonFinanceBudgetCycleID=:gibbonFinanceBudgetCycleID, gibbonFinanceBudgetID=:gibbonFinanceBudgetID, title=:title, body=:body, status=:status, statusApprovalBudgetCleared=:statusApprovalBudgetCleared, cost=:cost, countAgainstBudget=:countAgainstBudget, purchaseBy=:purchaseBy, purchaseDetails=:purchaseDetails, gibbonPersonIDCreator=:gibbonPersonIDCreator, timestampCreator='".date('Y-m-d H:i:s')."', paymentDate=:paymentDate, paymentAmount=:paymentAmount, gibbonPersonIDPayment=:gibbonPersonIDPayment, paymentMethod=:paymentMethod, paymentID=:paymentID";
                     $result = $connection2->prepare($sql);
                     $result->execute($data);
@@ -81,7 +83,7 @@ if ($gibbonFinanceBudgetCycleID == '') { echo 'Fatal error loading this page!';
 
                 //Add log entry
                 try {
-                    $data = array('gibbonFinanceExpenseID' => $gibbonFinanceExpenseID, 'gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID']);
+                    $data = array('gibbonFinanceExpenseID' => $gibbonFinanceExpenseID, 'gibbonPersonID' => $session->get('gibbonPersonID'));
                     $sql = "INSERT INTO gibbonFinanceExpenseLog SET gibbonFinanceExpenseID=:gibbonFinanceExpenseID, gibbonPersonID=:gibbonPersonID, timestamp='".date('Y-m-d H:i:s')."', action='Approval - Exempt', comment=''";
                     $result = $connection2->prepare($sql);
                     $result->execute($data);
@@ -97,7 +99,7 @@ if ($gibbonFinanceBudgetCycleID == '') { echo 'Fatal error loading this page!';
                 //Add Payment log entry if needed
                 if ($status == 'Paid') {
                     try {
-                        $data = array('gibbonFinanceExpenseID' => $gibbonFinanceExpenseID, 'gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID']);
+                        $data = array('gibbonFinanceExpenseID' => $gibbonFinanceExpenseID, 'gibbonPersonID' => $session->get('gibbonPersonID'));
                         $sql = "INSERT INTO gibbonFinanceExpenseLog SET gibbonFinanceExpenseID=:gibbonFinanceExpenseID, gibbonPersonID=:gibbonPersonID, timestamp='".date('Y-m-d H:i:s')."', action='Payment', comment=''";
                         $result = $connection2->prepare($sql);
                         $result->execute($data);

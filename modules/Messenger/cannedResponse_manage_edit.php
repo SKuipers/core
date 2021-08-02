@@ -28,10 +28,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Messenger/cannedResponse_m
     $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed!
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     //Check if school year specified
     $gibbonMessengerCannedResponseID = $_GET['gibbonMessengerCannedResponseID'];
     if ($gibbonMessengerCannedResponseID == '') {
@@ -49,9 +45,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Messenger/cannedResponse_m
             //Let's go!
             $values = $result->fetch(); 
             
-            $form = Form::create('canneResponse', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/cannedResponse_manage_editProcess.php?gibbonMessengerCannedResponseID='.$gibbonMessengerCannedResponseID);
+            $form = Form::create('canneResponse', $session->get('absoluteURL').'/modules/'.$session->get('module').'/cannedResponse_manage_editProcess.php?gibbonMessengerCannedResponseID='.$gibbonMessengerCannedResponseID);
                 
-            $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+            $form->addHiddenValue('address', $session->get('address'));
 
             $row = $form->addRow();
                 $row->addLabel('subject', __('Subject'))->description(__('Must be unique.'));

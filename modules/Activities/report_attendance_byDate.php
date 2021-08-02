@@ -31,38 +31,34 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/report_attendan
 } else {
     //Proceed!
     $today = date('Y-m-d');
-    $date = (isset($_GET['date']))? dateConvert($guid, $_GET['date']) : date('Y-m-d');
+    $date = (isset($_GET['date']))? Format::dateConvert($_GET['date']) : date('Y-m-d');
     $sort = (isset($_GET['sort']))? $_GET['sort'] : 'surname';
     $viewMode = isset($_REQUEST['format']) ? $_REQUEST['format'] : '';
 
     if (empty($viewMode)) {
         $page->breadcrumbs->add(__('Activity Attendance by Date'));
 
-        if (isset($_GET['return'])) {
-            returnProcess($guid, $_GET['return'], null, null);
-        }
-
         // Options & Filters
-        $form = Form::create('filter', $_SESSION[$guid]['absoluteURL'].'/index.php', 'get');
+        $form = Form::create('filter', $session->get('absoluteURL').'/index.php', 'get');
 
         $form->setTitle(__('Choose Date'));
         $form->setClass('noIntBorder fullWidth');
 
-        $form->addHiddenValue('q', '/modules/'.$_SESSION[$guid]['module'].'/report_attendance_byDate.php');
-        $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+        $form->addHiddenValue('q', '/modules/'.$session->get('module').'/report_attendance_byDate.php');
+        $form->addHiddenValue('address', $session->get('address'));
 
         $row = $form->addRow();
-            $row->addLabel('date', __('Date'))->description($_SESSION[$guid]['i18n']['dateFormat'])->prepend(__('Format:'));
-            $row->addDate('date')->setValue(dateConvertBack($guid, $date))->required();
+            $row->addLabel('date', __('Date'))->description($session->get('i18n')['dateFormat'])->prepend(__('Format:'));
+            $row->addDate('date')->setValue(Format::date($date))->required();
 
-        $sortOptions = array('absent' => __('Absent'), 'surname' => __('Surname'), 'preferredName' => __('Given Name'), 'rollGroup' => __('Roll Group'));
+        $sortOptions = array('absent' => __('Absent'), 'surname' => __('Surname'), 'preferredName' => __('Given Name'), 'formGroup' => __('Form Group'));
         $row = $form->addRow();
             $row->addLabel('sort', __('Sort By'));
             $row->addSelect('sort')->fromArray($sortOptions)->selected($sort);
 
         $row = $form->addRow();
             $row->addFooter();
-            $row->addSearchSubmit($gibbon->session);
+            $row->addSearchSubmit($session);
 
         echo $form->getOutput();
     }
@@ -83,7 +79,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/report_attendan
     }
 
     //Turn $date into UNIX timestamp and extract day of week
-    $dayOfWeek = date('l', dateConvertToTimestamp($date));
+    $dayOfWeek = date('l', Format::timestamp($date));
     $dateType = getSettingByScope($connection2, 'Activities', 'dateType');
 
     $activityGateway = $container->get(ActivityReportGateway::class);
@@ -91,7 +87,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/report_attendan
     switch ($sort) {
         case 'surname':         $defaultSort = ['gibbonPerson.surname', 'gibbonPerson.preferredName']; break;
         case 'preferredName':   $defaultSort = ['gibbonPerson.preferredName', 'gibbonPerson.surname']; break;
-        case 'rollGroup':       $defaultSort = ['rollGroup', 'gibbonPerson.surname', 'gibbonPerson.preferredName']; break;
+        case 'formGroup':       $defaultSort = ['formGroup', 'gibbonPerson.surname', 'gibbonPerson.preferredName']; break;
         case 'absent':
         default:                $defaultSort = ['attendance', 'gibbonPerson.surname', 'gibbonPerson.preferredName']; break;
     }
@@ -103,10 +99,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/report_attendan
         ->pageSize(!empty($viewMode) ? 0 : 50)
         ->fromPOST();
 
-    $activityAttendance = $activityGateway->queryActivityAttendanceByDate($criteria, $_SESSION[$guid]['gibbonSchoolYearID'], $dateType, $date);
+    $activityAttendance = $activityGateway->queryActivityAttendanceByDate($criteria, $session->get('gibbonSchoolYearID'), $dateType, $date);
 
     // DATA TABLE
-    $table = ReportTable::createPaginated('attendance_byDate', $criteria)->setViewMode($viewMode, $gibbon->session);
+    $table = ReportTable::createPaginated('attendance_byDate', $criteria)->setViewMode($viewMode, $session);
 
     $table->setTitle(__('Activity Attendance by Date'));
 
@@ -117,15 +113,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/report_attendan
 
     $table->addMetaData('post', ['date' => $date]);
 
-    $table->addColumn('rollGroup', __('Roll Group'))->width('10%');
+    $table->addColumn('formGroup', __('Form Group'))->width('10%');
     $table->addColumn('student', __('Student'))
         ->sortable(['gibbonPerson.surname', 'gibbonPerson.preferredName'])
         ->format(Format::using('name', ['', 'preferredName', 'surname', 'Student', true]));
-    $table->addColumn('attendance', __('Attendance'));
+    $table->addColumn('attendance', __('Attendance'))->translatable();
     $table->addColumn('activity', __('Activity'));
     $table->addColumn('provider', __('Provider'))
-        ->format(function($activity) use ($guid){
-            return ($activity['provider'] == 'School')? $_SESSION[$guid]['organisationNameShort'] : __('External');
+        ->format(function($activity) use ($session){
+            return ($activity['provider'] == 'School')? $session->get('organisationNameShort') : __('External');
         });
 
     echo $table->render($activityAttendance);

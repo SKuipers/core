@@ -18,7 +18,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
+use Gibbon\Forms\CustomFieldHandler;
 use Gibbon\Forms\DatabaseFormFactory;
+use Gibbon\Forms\PersonalDocumentHandler;
+use Gibbon\Domain\User\PersonalDocumentGateway;
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -52,25 +55,31 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
             echo __('The specified record does not exist.');
             echo '</div>';
         } else {
-            if (isset($_GET['return'])) {
-                returnProcess($guid, $_GET['return'], null, null);
-            }
-
             //Let's go!
             $values = $result->fetch();
             $proceed = true;
 
-            echo "<div class='linkTop'>";
-            if ($search != '') {
-                echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Staff/applicationForm_manage.php&search=$search'>".__('Back to Search Results').'</a> | ';
-            }
-            echo "<a target='_blank' href='".$_SESSION[$guid]['absoluteURL'].'/report.php?q=/modules/'.$_SESSION[$guid]['module']."/applicationForm_manage_edit_print.php&gibbonStaffApplicationFormID=$gibbonStaffApplicationFormID'>".__('Print')."<img style='margin-left: 5px' title='".__('Print')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/print.png'/></a>";
-            echo '</div>';
+            $customFieldHandler = $container->get(CustomFieldHandler::class);
 
-            $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/applicationForm_manage_editProcess.php?search=$search");
+            $form = Form::create('action', $session->get('absoluteURL').'/modules/'.$session->get('module')."/applicationForm_manage_editProcess.php?search=$search");
             $form->setFactory(DatabaseFormFactory::create($pdo));
 
-            $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+            $form->addHiddenValue('address', $session->get('address'));
+
+            if ($search != '') {
+                $form->addHeaderAction('back', __('Back to Search Results'))
+                ->setURL('/modules/Staff/applicationForm_manage.php')
+                ->addParam('search', $search)
+                ->displayLabel()
+                ->append(' | ');
+            }
+
+            $form->addHeaderAction('print', __('Print'))
+                ->setURL('/report.php')
+                ->addParam('q', '/modules/Staff/applicationForm_manage_edit_print.php')
+                ->addParam('gibbonStaffApplicationFormID', $gibbonStaffApplicationFormID)
+                ->directLink()
+                ->displayLabel();
 
             $form->addRow()->addHeading(__('For Office Use'));
 
@@ -117,7 +126,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
             }
 
             $row = $form->addRow();
-                $row->addLabel('dateStart', __('Start Date'))->description(__('Intended first day at school.'))->append(__('Format:').' '.$_SESSION[$guid]['i18n']['dateFormat']);
+                $row->addLabel('dateStart', __('Start Date'))->description(__('Intended first day at school.'));
                 $row->addDate('dateStart');
 
             $row = $form->addRow();
@@ -152,11 +161,21 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
                 $form->addHiddenValue('gibbonPersonID', $values['gibbonPersonID']);
                 $row = $form->addRow();
                     $row->addLabel('surname', __('Surname'));
-                    $row->addTextField('surname')->required()->maxLength(30)->readonly()->setValue($_SESSION[$guid]['surname']);
+                    $row->addTextField('surname')->required()->maxLength(30)->readonly()->setValue($session->get('surname'));
 
                 $row = $form->addRow();
                     $row->addLabel('preferredName', __('Preferred Name'));
-                    $row->addTextField('preferredName')->required()->maxLength(30)->readonly()->setValue($_SESSION[$guid]['preferredName']);
+                    $row->addTextField('preferredName')->required()->maxLength(30)->readonly()->setValue($session->get('preferredName'));
+
+                // PERSONAL DOCUMENTS
+                $params = ['staff' => true, 'notEmpty' => true];
+                $documents = $container->get(PersonalDocumentGateway::class)->selectPersonalDocuments('gibbonPerson', $values['gibbonPersonID'], $params)->fetchAll();
+
+                if (!empty($documents)) {
+                    $col = $form->addRow()->addColumn();
+                    $col->addLabel('personalDocuments', __('Personal Documents'));
+                    $col->addContent($page->fetchFromTemplate('ui/personalDocuments.twig.html', ['documents' => $documents, 'noTitle' => true]));
+                }
             }
             else { //Not logged in
                 $row = $form->addRow();
@@ -184,7 +203,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
                     $row->addSelectGender('gender')->required();
 
                 $row = $form->addRow();
-                    $row->addLabel('dob', __('Date of Birth'))->description($_SESSION[$guid]['i18n']['dateFormat'])->prepend(__('Format:'));
+                    $row->addLabel('dob', __('Date of Birth'));
                     $row->addDate('dob')->required();
 
                 $form->addRow()->addHeading(__('Background Data'));
@@ -205,36 +224,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
                     $row->addLabel('countryOfBirth', __('Country of Birth'));
                     $row->addSelectCountry('countryOfBirth')->required();
 
-                $row = $form->addRow();
-                    $row->addLabel('citizenship1', __('Citizenship'));
-                    $nationalityList = getSettingByScope($connection2, 'User Admin', 'nationality');
-                    if (!empty($nationalityList)) {
-                        $row->addSelect('citizenship1')->required()->fromString($nationalityList)->placeholder(__('Please select...'));
-                    } else {
-                        $row->addSelectCountry('citizenship1')->required();
-                    }
+                $nationalityList = getSettingByScope($connection2, 'User Admin', 'nationality');
+                $residencyStatusList = getSettingByScope($connection2, 'User Admin', 'residencyStatus');
 
-                $countryName = (isset($_SESSION[$guid]['country']))? __($_SESSION[$guid]['country']).' ' : '';
-                $row = $form->addRow();
-                    $row->addLabel('citizenship1Passport', __('Citizenship Passport Number'))->description('');
-                    $row->addTextField('citizenship1Passport')->maxLength(30);
-
-                $row = $form->addRow();
-                    $row->addLabel('nationalIDCardNumber', $countryName.__('National ID Card Number'));
-                    $row->addTextField('nationalIDCardNumber')->maxLength(30);
-
-                $row = $form->addRow();
-                    $row->addLabel('residencyStatus', $countryName.__('Residency/Visa Type'));
-                    $residencyStatusList = getSettingByScope($connection2, 'User Admin', 'residencyStatus');
-                    if (!empty($residencyStatusList)) {
-                        $row->addSelect('residencyStatus')->fromString($residencyStatusList)->placeholder();
-                    } else {
-                        $row->addTextField('residencyStatus')->maxLength(30);
-                    }
-
-                $row = $form->addRow();
-                    $row->addLabel('visaExpiryDate', $countryName.__('Visa Expiry Date'))->description($_SESSION[$guid]['i18n']['dateFormat'])->prepend(__('Format:'))->append(__('If relevant.'));
-                    $row->addDate('visaExpiryDate');
+                // PERSONAL DOCUMENTS
+                $params = ['staff' => true, 'applicationForm' => true];
+                $container->get(PersonalDocumentHandler::class)->addPersonalDocumentsToForm($form, 'gibbonStaffApplicationForm', $gibbonStaffApplicationFormID, $params);
 
                 $form->addRow()->addHeading(__('Contacts'));
 
@@ -264,20 +259,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
                     $row->addSelectCountry('homeAddressCountry')->required();
             }
 
-            // CUSTOM FIELDS FOR STAFF
-            $existingFields = isset($values['fields'])? json_decode($values['fields'], true) : null;
-            $resultFields = getCustomFields($connection2, $guid, false, true, false, false, true, null);
-            if ($resultFields->rowCount() > 0) {
-                $form->addRow()->addHeading(__('Other Information'));
-
-                while ($rowFields = $resultFields->fetch()) {
-                    $name = 'custom'.$rowFields['gibbonPersonFieldID'];
-                    $value = (isset($existingFields[$rowFields['gibbonPersonFieldID']]))? $existingFields[$rowFields['gibbonPersonFieldID']] : '';
-                    $row = $form->addRow();
-                        $row->addLabel($name, $rowFields['name'])->description($rowFields['description']);
-                        $row->addCustomField($name, $rowFields)->setValue($value);
-                }
-            }
+            // CUSTOM FIELDS FOR USER: STAFF
+            $params = ['staff' => 1, 'applicationForm' => 1, 'headingLevel' => 'h4'];
+            $customFieldHandler->addCustomFieldsToForm($form, 'User', $params, $values['fields']);
 
             // REQURIED DOCUMENTS
             $staffApplicationFormRequiredDocuments = getSettingByScope($connection2, 'Staff', 'staffApplicationFormRequiredDocuments');
@@ -312,7 +296,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
                         $rowFile = $resultFile->fetch();
                         $row->addWebLink(__('Download'))
                             ->addClass('right')
-                            ->setURL($_SESSION[$guid]['absoluteURL'].'/'.$rowFile['path'])
+                            ->setURL($session->get('absoluteURL').'/'.$rowFile['path'])
                             ->setTarget('_blank');
                     }
                 }
@@ -335,6 +319,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
                     $row->addEmail('referenceEmail2')->required();
 
             }
+
+            // CUSTOM FIELDS FOR STAFF RECORD
+            $params = ['applicationForm' => 1, 'prefix' => 'customStaff'];
+            $customFieldHandler->addCustomFieldsToForm($form, 'Staff', $params, $values['staffFields']);
 
             $form->loadAllValuesFrom($values);
 

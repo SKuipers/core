@@ -61,7 +61,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/report_catalogSumm
 	$result = $pdo->executeQuery($data, $sql, '_');
 
     //Cache TypeFields
-    
+
         $dataTypeFields = array() ;
         $sqlTypeFields = "SELECT gibbonLibraryType.* FROM gibbonLibraryType";
         $resultTypeFields = $connection2->prepare($sqlTypeFields);
@@ -141,7 +141,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/report_catalogSumm
 		//Column E
 		$x = '';
 		if ($row['ownershipType'] == 'School') {
-            $x = $_SESSION[$guid]['organisationNameShort'];
+            $x = $session->get('organisationNameShort');
         } elseif ($row['ownershipType'] == 'Individual') {
             $x = 'Individual';
         }
@@ -164,7 +164,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/report_catalogSumm
         if ($row['purchaseDate'] == '') {
             $x .= __('Unknown');
         } else {
-            $x .= dateConvertBack($guid, $row['purchaseDate']);
+            $x .= Format::date($row['purchaseDate']);
         }
         if ($row['vendor'] != '') {
             $x .= "; ".$row['vendor'];
@@ -172,8 +172,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/report_catalogSumm
 		$excel->getActiveSheet()->setCellValueByColumnAndRow(6, $r, $x);
 		//Column H
 		$x = '';
-        $typeFieldsInner = unserialize($typeFields[$row['gibbonLibraryTypeID']]['fields']);
-        $fields = unserialize($row['fields']);
+        $typeFieldsInner = json_decode($typeFields[$row['gibbonLibraryTypeID']]['fields'], true);
+        $fields = json_decode($row['fields'], true);
         foreach ($typeFieldsInner as $typeField) {
             if (isset($fields[$typeField['name']])) {
                 if ($fields[$typeField['name']] != '') {

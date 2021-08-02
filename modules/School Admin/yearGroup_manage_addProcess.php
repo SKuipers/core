@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/yearGroup_manage_add.php';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/yearGroup_manage_add.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/yearGroup_manage_add.php') == false) {
     $URL .= '&return=error0';
@@ -27,10 +27,10 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/yearGroup_man
 } else {
     //Proceed!
     //Validate Inputs
-    $name = $_POST['name'];
-    $nameShort = $_POST['nameShort'];
-    $sequenceNumber = $_POST['sequenceNumber'];
-    $gibbonPersonIDHOY = $_POST['gibbonPersonIDHOY'];
+    $name = $_POST['name'] ?? '';
+    $nameShort = $_POST['nameShort'] ?? '';
+    $sequenceNumber = $_POST['sequenceNumber'] ?? '';
+    $gibbonPersonIDHOY = $_POST['gibbonPersonIDHOY'] ?? '';
 
     if ($name == '' or $nameShort == '' or $sequenceNumber == '' or is_numeric($sequenceNumber) == false) {
         $URL .= '&return=error1';

@@ -24,13 +24,9 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/family_manage_d
     $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed!
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     //Check if school year specified
-    $gibbonFamilyID = $_GET['gibbonFamilyID'];
-    $search = $_GET['search'];
+    $gibbonFamilyID = $_GET['gibbonFamilyID'] ?? '';
+    $search = $_GET['search'] ?? '';
     if ($gibbonFamilyID == '') {
         $page->addError(__('You have not specified one or more required parameters.'));
     } else {
@@ -43,7 +39,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/family_manage_d
         if ($result->rowCount() != 1) {
             $page->addError(__('The specified record cannot be found.'));
         } else {
-            $form = DeleteForm::createForm($_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/family_manage_deleteProcess.php?gibbonFamilyID=$gibbonFamilyID&search=$search", true);
+            $form = DeleteForm::createForm($session->get('absoluteURL').'/modules/'.$session->get('module')."/family_manage_deleteProcess.php?gibbonFamilyID=$gibbonFamilyID&search=$search", true);
             echo $form->getOutput();
 
         }

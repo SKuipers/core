@@ -17,12 +17,14 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+
 include '../../gibbon.php';
 
 //Module includes
 include './moduleFunctions.php';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['address']).'/messenger_postQuickWall.php';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_GET['address']).'/messenger_postQuickWall.php';
 $time = time();
 
 if (isActionAccessible($guid, $connection2, '/modules/Messenger/messenger_postQuickWall.php') == false) {
@@ -35,7 +37,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Messenger/messenger_postQu
     } else {
         //Proceed!
         //Setup return variables
-        $messageWall = $_POST['messageWall'];
+        $messageWall = $_POST['messageWall'] ?? '';
         if ($messageWall != 'Y') {
             $messageWall = 'N';
         }
@@ -43,23 +45,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Messenger/messenger_postQu
         $date1 = null;
         if (isset($_POST['date1'])) {
             if ($_POST['date1'] != '') {
-                $date1 = dateConvert($guid, $_POST['date1']);
+                $date1 = Format::dateConvert($_POST['date1']);
             }
         }
         $date2 = null;
         if (isset($_POST['date2'])) {
             if ($_POST['date2'] != '') {
-                $date2 = dateConvert($guid, $_POST['date2']);
+                $date2 = Format::dateConvert($_POST['date2']);
             }
         }
         $date3 = null;
         if (isset($_POST['date3'])) {
             if ($_POST['date3'] != '') {
-                $date3 = dateConvert($guid, $_POST['date3']);
+                $date3 = Format::dateConvert($_POST['date3']);
             }
         }
-        $subject = $_POST['subject'];
-        $body = stripslashes($_POST['body']);
+        $subject = $_POST['subject'] ?? '';
+        $body = stripslashes($_POST['body'] ?? '');
 
         // Turn copy-pasted div breaks into paragraph breaks
         $body = str_replace(['<div ', '<div>', '</div>'], ['<p ', '<p>', '</p>'], $body);
@@ -70,7 +72,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Messenger/messenger_postQu
         } else {
             //Write to database
             try {
-                $data = array('gibbonSchoolYearID' => $gibbon->session->get('gibbonSchoolYearID'), 'email' => '', 'messageWall' => $messageWall, "messageWallPin" => $messageWallPin, 'messageWall_date1' => $date1, 'messageWall_date2' => $date2, 'messageWall_date3' => $date3, 'sms' => '', 'subject' => $subject, 'body' => $body, 'gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID'], 'timestamp' => date('Y-m-d H:i:s'));
+                $data = array('gibbonSchoolYearID' => $gibbon->session->get('gibbonSchoolYearID'), 'email' => '', 'messageWall' => $messageWall, "messageWallPin" => $messageWallPin, 'messageWall_date1' => $date1, 'messageWall_date2' => $date2, 'messageWall_date3' => $date3, 'sms' => '', 'subject' => $subject, 'body' => $body, 'gibbonPersonID' => $session->get('gibbonPersonID'), 'timestamp' => date('Y-m-d H:i:s'));
                 $sql = 'INSERT INTO gibbonMessenger SET gibbonSchoolYearID=:gibbonSchoolYearID, email=:email, messageWall=:messageWall, messageWallPin=:messageWallPin, messageWall_date1=:messageWall_date1, messageWall_date2=:messageWall_date2, messageWall_date3=:messageWall_date3, sms=:sms, subject=:subject, body=:body, gibbonPersonID=:gibbonPersonID, timestamp=:timestamp';
                 $result = $connection2->prepare($sql);
                 $result->execute($data);
@@ -86,7 +88,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Messenger/messenger_postQu
             $AI = str_pad($connection2->lastInsertID(), 12, '0', STR_PAD_LEFT);
 
             $partialFail = false;
-            $choices = $_POST['roleCategories'];
+            $choices = $_POST['roleCategories'] ?? '';
             if ($choices != '') {
                 foreach ($choices as $t) {
                     try {
@@ -105,7 +107,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Messenger/messenger_postQu
                 header("Location: {$URL}");
             } else {
                 //Success 0
-                $_SESSION[$guid]['pageLoads'] = null;
+                $session->set('pageLoads', null);
 				$URL .= "&return=success0&editID=$AI";
                 header("Location: {$URL}");
             }

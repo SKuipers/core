@@ -21,11 +21,11 @@ use Gibbon\Domain\Timetable\CourseGateway;
 
 include '../../gibbon.php';
 
-$gibbonSchoolYearID = $_GET['gibbonSchoolYearID'];
-$gibbonCourseID = $_GET['gibbonCourseID'];
-$gibbonUnitID = $_GET['gibbonUnitID'];
-$classCount = $_POST['classCount'];
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['address'])."/units_edit.php&gibbonUnitID=$gibbonUnitID&gibbonCourseID=$gibbonCourseID&gibbonSchoolYearID=$gibbonSchoolYearID";
+$gibbonSchoolYearID = $_GET['gibbonSchoolYearID'] ?? '';
+$gibbonCourseID = $_GET['gibbonCourseID'] ?? '';
+$gibbonUnitID = $_GET['gibbonUnitID'] ?? '';
+$classCount = $_POST['classCount'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_GET['address'])."/units_edit.php&gibbonUnitID=$gibbonUnitID&gibbonCourseID=$gibbonCourseID&gibbonSchoolYearID=$gibbonSchoolYearID";
 
 if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit.php') == false) {
     $URL .= '&return=error0';
@@ -43,18 +43,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit.php') =
             //Proceed!
 
             //Validate Inputs
-            $name = $_POST['name'];
-            $description = $_POST['description'];
-            $tags = $_POST['tags'];
-            $active = $_POST['active'];
-            $map = $_POST['map'];
-            $ordering = $_POST['ordering'];
-            $details = $_POST['details'];
-            $license = $_POST['license'];
-            $sharedPublic = null;
-            if (isset($_POST['sharedPublic'])) {
-                $sharedPublic = $_POST['sharedPublic'];
-            }
+            $name = $_POST['name'] ?? '';
+            $description = $_POST['description'] ?? '';
+            $tags = $_POST['tags'] ?? '';
+            $active = $_POST['active'] ?? '';
+            $map = $_POST['map'] ?? '';
+            $ordering = $_POST['ordering'] ?? '';
+            $details = $_POST['details'] ?? '';
+            $license = $_POST['license'] ?? '';
+            $sharedPublic = $_POST['sharedPublic'] ?? '';
+
 
             if ($gibbonSchoolYearID == '' or $gibbonCourseID == '' or $gibbonUnitID == '' or $name == '' or $description == '' or $active == '' or $map == '' or $ordering == '') {
                 $URL .= '&return=error3';
@@ -106,7 +104,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit.php') =
                                 $content = $attachment;
                             }
                         } else {
-                            $attachment = $_POST['attachment'];
+                            $attachment = $_POST['attachment'] ?? '';
                         }
 
                         //Update classes
@@ -150,10 +148,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit.php') =
                         }
 
                         //Update blocks
-                        $order = '';
-                        if (isset($_POST['order'])) {
-                            $order = $_POST['order'];
-                        }
+                        $order = $_POST['order'] ?? '';
                         $sequenceNumber = 0;
                         $dataRemove = array();
                         $whereRemove = '';
@@ -175,9 +170,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit.php') =
                                     if ($_POST["length$i"] != 'length (min)') {
                                         $length = $_POST["length$i"];
                                     }
-                                    $contents = $_POST["contents$i"];
-                                    $teachersNotes = $_POST["teachersNotes$i"];
-                                    $gibbonUnitBlockID = $_POST["gibbonUnitBlockID$i"];
+                                    $contents = $_POST["contents$i"] ?? '';
+                                    $teachersNotes = $_POST["teachersNotes$i"] ?? '';
+                                    $gibbonUnitBlockID = $_POST["gibbonUnitBlockID$i"] ?? '';
 
                                     if ($gibbonUnitBlockID != '') {
                                         try {
@@ -256,7 +251,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit.php') =
 
                         //Write to database
                         try {
-                            $data = array('name' => $name, 'attachment' => $attachment, 'description' => $description, 'tags' => $tags, 'active' => $active, 'map' => $map, 'ordering' => $ordering, 'details' => $details, 'license' => $license, 'sharedPublic' => $sharedPublic, 'gibbonPersonIDLastEdit' => $_SESSION[$guid]['gibbonPersonID'], 'gibbonUnitID' => $gibbonUnitID);
+                            $data = array('name' => $name, 'attachment' => $attachment, 'description' => $description, 'tags' => $tags, 'active' => $active, 'map' => $map, 'ordering' => $ordering, 'details' => $details, 'license' => $license, 'sharedPublic' => $sharedPublic, 'gibbonPersonIDLastEdit' => $session->get('gibbonPersonID'), 'gibbonUnitID' => $gibbonUnitID);
                             $sql = 'UPDATE gibbonUnit SET name=:name, attachment=:attachment, description=:description, tags=:tags, active=:active, map=:map, ordering=:ordering, details=:details, license=:license, sharedPublic=:sharedPublic, gibbonPersonIDLastEdit=:gibbonPersonIDLastEdit WHERE gibbonUnitID=:gibbonUnitID';
                             $result = $connection2->prepare($sql);
                             $result->execute($data);

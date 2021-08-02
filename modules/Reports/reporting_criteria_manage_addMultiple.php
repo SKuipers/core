@@ -59,10 +59,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_criteria
         return;
     }
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     $form = Form::create('reportCriteriaManage', $gibbon->session->get('absoluteURL').'/modules/Reports/reporting_criteria_manage_addMultipleProcess.php');
     $form->setFactory(DatabaseFormFactory::create($pdo));
 
@@ -84,10 +80,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_criteria
         $row = $form->addRow();
             $row->addLabel('gibbonYearGroupID', __('Year Groups'));
             $row->addSelectYearGroup('gibbonYearGroupID')->selectMultiple()->selected($scopeTypeIDs);
-    } elseif ($reportingScope['scopeType'] == 'Roll Group') {
+    } elseif ($reportingScope['scopeType'] == 'Form Group') {
         $row = $form->addRow();
-            $row->addLabel('gibbonRollGroupID', __('Roll Groups'));
-            $row->addSelectRollGroup('gibbonRollGroupID', $reportingCycle['gibbonSchoolYearID'])->selectMultiple()->selected($scopeTypeIDs);
+            $row->addLabel('gibbonFormGroupID', __('Form Groups'));
+            $row->addSelectFormGroup('gibbonFormGroupID', $reportingCycle['gibbonSchoolYearID'])->selectMultiple()->selected($scopeTypeIDs);
     } elseif ($reportingScope['scopeType'] == 'Course') {
         $row = $form->addRow();
             $row->addLabel('gibbonCourseID', __('Course'));

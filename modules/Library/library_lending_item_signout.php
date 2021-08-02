@@ -36,7 +36,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_lending_it
     if (empty($gibbonLibraryItemID)) {
         $page->addError(__('You have not specified one or more required parameters.'));
     } else {
-        
+
             $data = array('gibbonLibraryItemID' => $gibbonLibraryItemID);
             $sql = 'SELECT * FROM gibbonLibraryItem WHERE gibbonLibraryItemID=:gibbonLibraryItemID';
             $result = $connection2->prepare($sql);
@@ -49,13 +49,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_lending_it
         } else {
             $values = $result->fetch();
 
-            if (isset($_GET['return'])) {
-                returnProcess($guid, $_GET['return'], null, null);
-            }
-
             if ($values['returnAction'] != '') {
                 if ($values['gibbonPersonIDReturnAction'] != '') {
-                    
+
                         $dataPerson = array('gibbonPersonID' => $values['gibbonPersonIDReturnAction']);
                         $sqlPerson = 'SELECT surname, preferredName FROM gibbonPerson WHERE gibbonPersonID=:gibbonPersonID';
                         $resultPerson = $connection2->prepare($sqlPerson);
@@ -86,14 +82,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_lending_it
 
             if ($_GET['name'] != '' or $_GET['gibbonLibraryTypeID'] != '' or $_GET['gibbonSpaceID'] != '' or $_GET['status'] != '') {
                 echo "<div class='linkTop'>";
-                echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Library/library_lending_item.php&name='.$_GET['name']."&gibbonLibraryItemID=$gibbonLibraryItemID&gibbonLibraryTypeID=".$_GET['gibbonLibraryTypeID'].'&gibbonSpaceID='.$_GET['gibbonSpaceID'].'&status='.$_GET['status']."'>".__('Back').'</a>';
+                echo "<a href='".$session->get('absoluteURL').'/index.php?q=/modules/Library/library_lending_item.php&name='.$_GET['name']."&gibbonLibraryItemID=$gibbonLibraryItemID&gibbonLibraryTypeID=".$_GET['gibbonLibraryTypeID'].'&gibbonSpaceID='.$_GET['gibbonSpaceID'].'&status='.$_GET['status']."'>".__('Back').'</a>';
                 echo '</div>';
             }
 
-            $form = Form::create('libraryLendingSignout', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/library_lending_item_signoutProcess.php?name=".$_GET['name'].'&gibbonLibraryTypeID='.$_GET['gibbonLibraryTypeID'].'&gibbonSpaceID='.$_GET['gibbonSpaceID'].'&status='.$_GET['status']);
+            $form = Form::create('libraryLendingSignout', $session->get('absoluteURL').'/modules/'.$session->get('module')."/library_lending_item_signoutProcess.php?name=".$_GET['name'].'&gibbonLibraryTypeID='.$_GET['gibbonLibraryTypeID'].'&gibbonSpaceID='.$_GET['gibbonSpaceID'].'&status='.$_GET['status']);
             $form->setFactory(DatabaseFormFactory::create($pdo));
 
-            $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+            $form->addHiddenValue('address', $session->get('address'));
             $form->addHiddenValue('gibbonLibraryItemID', $gibbonLibraryItemID);
             $form->addHiddenValue('statusCurrent', $values['status']);
 
@@ -126,21 +122,21 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_lending_it
 
             $people = array();
 
-            $data = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'date' => date('Y-m-d'));
-            $sql = "SELECT gibbonPerson.gibbonPersonID, preferredName, surname, username, gibbonRollGroup.name AS rollGroupName
+            $data = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'date' => date('Y-m-d'));
+            $sql = "SELECT gibbonPerson.gibbonPersonID, preferredName, surname, username, gibbonFormGroup.name AS formGroupName
                 FROM gibbonPerson
                     JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID)
-                    JOIN gibbonRollGroup ON (gibbonStudentEnrolment.gibbonRollGroupID=gibbonRollGroup.gibbonRollGroupID)
+                    JOIN gibbonFormGroup ON (gibbonStudentEnrolment.gibbonFormGroupID=gibbonFormGroup.gibbonFormGroupID)
                 WHERE status='Full'
                     AND (dateStart IS NULL OR dateStart<=:date)
                     AND (dateEnd IS NULL  OR dateEnd>=:date)
-                    AND gibbonRollGroup.gibbonSchoolYearID=:gibbonSchoolYearID
+                    AND gibbonFormGroup.gibbonSchoolYearID=:gibbonSchoolYearID
                 ORDER BY name, surname, preferredName";
             $result = $pdo->executeQuery($data, $sql);
 
             if ($result->rowCount() > 0) {
-                $people['--'.__('Students By Roll Group').'--'] = array_reduce($result->fetchAll(), function ($group, $item) {
-                    $group[$item['gibbonPersonID']] = $item['rollGroupName'].' - '.Format::name('', htmlPrep($item['preferredName']), htmlPrep($item['surname']), 'Student', true).' ('.$item['username'].')';
+                $people['--'.__('Students By Form Group').'--'] = array_reduce($result->fetchAll(), function ($group, $item) {
+                    $group[$item['gibbonPersonID']] = $item['formGroupName'].' - '.Format::name('', htmlPrep($item['preferredName']), htmlPrep($item['surname']), 'Student', true).' ('.$item['username'].')';
                     return $group;
                 }, array());
             }
@@ -164,7 +160,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_lending_it
             $loanLength = (is_numeric($loanLength) == false or $loanLength < 0) ? 7 : $loanLength ;
             $row = $form->addRow();
                 $row->addLabel('returnExpected', __('Expected Return Date'))->description(sprintf(__('Default renew length is today plus %1$s day(s)'), $loanLength));
-                $row->addDate('returnExpected')->setValue(date($_SESSION[$guid]['i18n']['dateFormatPHP'], time() + ($loanLength * 60 * 60 * 24)))->required();
+                $row->addDate('returnExpected')->setValue(date($session->get('i18n')['dateFormatPHP'], time() + ($loanLength * 60 * 60 * 24)))->required();
 
             $row = $form->addRow()->addHeading(__('On Return'));
 

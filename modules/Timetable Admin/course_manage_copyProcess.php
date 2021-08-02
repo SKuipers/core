@@ -19,9 +19,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$gibbonSchoolYearID = $_GET['gibbonSchoolYearID'];
-$gibbonSchoolYearIDNext = $_GET['gibbonSchoolYearIDNext'];
-$URL = $_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Timetable Admin/course_manage.php&gibbonSchoolYearID=$gibbonSchoolYearIDNext";
+$gibbonSchoolYearID = $_GET['gibbonSchoolYearID'] ?? '';
+$gibbonSchoolYearIDNext = $_GET['gibbonSchoolYearIDNext'] ?? '';
+$URL = $session->get('absoluteURL')."/index.php?q=/modules/Timetable Admin/course_manage.php&gibbonSchoolYearID=$gibbonSchoolYearIDNext";
 
 if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/course_manage.php') == false) {
     $URL .= '&return=error0';

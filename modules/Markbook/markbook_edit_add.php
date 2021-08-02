@@ -63,18 +63,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_add
                     $data = array('gibbonCourseClassID' => $gibbonCourseClassID);
                     $sql = 'SELECT gibbonCourse.nameShort AS course, gibbonCourseClass.nameShort AS class, gibbonCourseClass.gibbonCourseClassID, gibbonCourse.gibbonDepartmentID, gibbonYearGroupIDList FROM gibbonCourse, gibbonCourseClass WHERE gibbonCourse.gibbonCourseID=gibbonCourseClass.gibbonCourseID AND gibbonCourseClass.gibbonCourseClassID=:gibbonCourseClassID ORDER BY course, class';
                 } elseif ($highestAction == 'Edit Markbook_multipleClassesInDepartment') {
-                    $data = array('gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID'], 'gibbonCourseClassID' => $gibbonCourseClassID);
-                    $sql = "SELECT gibbonCourse.nameShort AS course, gibbonCourseClass.nameShort AS class, gibbonCourseClass.gibbonCourseClassID, gibbonCourse.gibbonDepartmentID, gibbonYearGroupIDList 
+                    $data = array('gibbonPersonID' => $session->get('gibbonPersonID'), 'gibbonCourseClassID' => $gibbonCourseClassID);
+                    $sql = "SELECT gibbonCourse.nameShort AS course, gibbonCourseClass.nameShort AS class, gibbonCourseClass.gibbonCourseClassID, gibbonCourse.gibbonDepartmentID, gibbonYearGroupIDList
                     FROM gibbonCourse
                     JOIN gibbonCourseClass ON (gibbonCourse.gibbonCourseID=gibbonCourseClass.gibbonCourseID)
                     LEFT JOIN gibbonDepartmentStaff ON (gibbonDepartmentStaff.gibbonDepartmentID=gibbonCourse.gibbonDepartmentID AND gibbonDepartmentStaff.gibbonPersonID=:gibbonPersonID)
                     LEFT JOIN gibbonCourseClassPerson ON (gibbonCourseClassPerson.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID AND gibbonCourseClassPerson.gibbonPersonID=:gibbonPersonID)
-                    WHERE ((gibbonCourseClassPerson.gibbonCourseClassPersonID IS NOT NULL AND gibbonCourseClassPerson.role='Teacher') 
+                    WHERE ((gibbonCourseClassPerson.gibbonCourseClassPersonID IS NOT NULL AND gibbonCourseClassPerson.role='Teacher')
                         OR (gibbonDepartmentStaff.gibbonDepartmentStaffID IS NOT NULL AND (gibbonDepartmentStaff.role = 'Coordinator' OR gibbonDepartmentStaff.role = 'Assistant Coordinator' OR gibbonDepartmentStaff.role= 'Teacher (Curriculum)'))
                         )
                     AND gibbonCourseClass.gibbonCourseClassID=:gibbonCourseClassID ORDER BY course, class";
                 } else {
-                    $data = array('gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID'], 'gibbonCourseClassID' => $gibbonCourseClassID);
+                    $data = array('gibbonPersonID' => $session->get('gibbonPersonID'), 'gibbonCourseClassID' => $gibbonCourseClassID);
                     $sql = "SELECT gibbonCourse.nameShort AS course, gibbonCourseClass.nameShort AS class, gibbonCourseClass.gibbonCourseClassID, gibbonCourse.gibbonDepartmentID, gibbonYearGroupIDList FROM gibbonCourse, gibbonCourseClass, gibbonCourseClassPerson WHERE gibbonCourse.gibbonCourseID=gibbonCourseClass.gibbonCourseID AND gibbonCourseClass.gibbonCourseClassID=gibbonCourseClassPerson.gibbonCourseClassID AND gibbonCourseClassPerson.gibbonPersonID=:gibbonPersonID AND role='Teacher' AND gibbonCourseClass.gibbonCourseClassID=:gibbonCourseClassID ORDER BY course, class";
                 }
                 $result = $connection2->prepare($sql);
@@ -106,15 +106,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_add
                 $returns['success1'] = __('Planner was successfully added: you opted to add a linked Markbook column, and you can now do so below.');
                 $editLink = '';
                 if (isset($_GET['editID'])) {
-                    $editLink = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Markbook/markbook_edit_edit.php&gibbonMarkbookColumnID='.$_GET['editID'].'&gibbonCourseClassID='.$gibbonCourseClassID;
+                    $editLink = $session->get('absoluteURL').'/index.php?q=/modules/Markbook/markbook_edit_edit.php&gibbonMarkbookColumnID='.$_GET['editID'].'&gibbonCourseClassID='.$gibbonCourseClassID;
                 }
-                if (isset($_GET['return'])) {
-                    returnProcess($guid, $_GET['return'], $editLink, $returns);
-                }
+                $page->return->setEditLink($editLink);
+                $page->return->addReturns($returns);
 
-                $form = Form::create('markbook', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/markbook_edit_addProcess.php?gibbonCourseClassID='.$gibbonCourseClassID.'&address='.$_SESSION[$guid]['address']);
+                $form = Form::create('markbook', $session->get('absoluteURL').'/modules/'.$session->get('module').'/markbook_edit_addProcess.php?gibbonCourseClassID='.$gibbonCourseClassID.'&address='.$session->get('address'));
                 $form->setFactory(DatabaseFormFactory::create($pdo));
-                $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+                $form->addHiddenValue('address', $session->get('address'));
 
                 $form->addRow()->addHeading(__('Basic Information'));
 
@@ -167,7 +166,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_add
 
                 // DATE
                 if ($enableGroupByTerm == 'Y') {
-                    $data = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'date' => $date);
+                    $data = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'date' => $date);
                     $sql = "SELECT gibbonSchoolYearTermID FROM gibbonSchoolYearTerm WHERE gibbonSchoolYearID=:gibbonSchoolYearID AND :date BETWEEN firstDay AND lastDay ORDER BY sequenceNumber";
                     $result = $pdo->executeQuery($data, $sql);
                     $currentTerm = ($result->rowCount() > 0)? $result->fetchColumn(0) : '';
@@ -176,13 +175,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_add
 
                     $row = $form->addRow();
                         $row->addLabel('gibbonSchoolYearTermID', __('Term'));
-                        $row->addSelectSchoolYearTerm('gibbonSchoolYearTermID', $_SESSION[$guid]['gibbonSchoolYearID'])->selected($currentTerm);
+                        $row->addSelectSchoolYearTerm('gibbonSchoolYearTermID', $session->get('gibbonSchoolYearID'))->selected($currentTerm);
 
                     $row = $form->addRow();
                         $row->addLabel('date', __('Date'));
-                        $row->addDate('date')->setValue(dateConvertBack($guid, $date))->required();
+                        $row->addDate('date')->setValue(Format::date($date))->required();
                 } else {
-                    $form->addHiddenValue('date', dateConvertBack($guid, $date));
+                    $form->addHiddenValue('date', Format::date($date));
                 }
 
                 $form->addRow()->addHeading(__('Assessment'));
@@ -206,7 +205,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_add
 
                 $row = $form->addRow()->addClass('attainmentRow');
                     $row->addLabel('gibbonScaleIDAttainment', $attainmentScaleLabel);
-                    $row->addSelectGradeScale('gibbonScaleIDAttainment')->required()->selected($_SESSION[$guid]['defaultAssessmentScale']);
+                    $row->addSelectGradeScale('gibbonScaleIDAttainment')->required()->selected($session->get('defaultAssessmentScale'));
 
                 if ($enableRawAttainment == 'Y') {
                     $row = $form->addRow()->addClass('attainmentRow');
@@ -281,5 +280,5 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_add
     }
 
     // Print the sidebar
-    $_SESSION[$guid]['sidebarExtra'] = sidebarExtra($guid, $pdo, $_SESSION[$guid]['gibbonPersonID'], $gibbonCourseClassID, 'markbook_edit_add.php');
+    $session->set('sidebarExtra', sidebarExtra($guid, $pdo, $session->get('gibbonPersonID'), $gibbonCourseClassID, 'markbook_edit_add.php'));
 }

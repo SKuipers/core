@@ -21,9 +21,9 @@ include '../../gibbon.php';
 
 include './moduleFunctions.php';
 
-$gibbonFinanceFeeCategoryID = $_POST['gibbonFinanceFeeCategoryID'];
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/feeCategories_manage_delete.php&gibbonFinanceFeeCategoryID=$gibbonFinanceFeeCategoryID";
-$URLDelete = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/feeCategories_manage.php';
+$gibbonFinanceFeeCategoryID = $_POST['gibbonFinanceFeeCategoryID'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/feeCategories_manage_delete.php&gibbonFinanceFeeCategoryID=$gibbonFinanceFeeCategoryID";
+$URLDelete = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/feeCategories_manage.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/Finance/feeCategories_manage_delete.php') == false) {
     $URL .= '&return=error0';
@@ -62,7 +62,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/feeCategories_mana
             }
 
             //Update any fees using this category to "Other"
-            
+
                 $data = array('gibbonFinanceFeeCategoryID' => $gibbonFinanceFeeCategoryID);
                 $sql = 'UPDATE gibbonFinanceFee SET gibbonFinanceFeeCategoryID=1 WHERE gibbonFinanceFeeCategoryID=:gibbonFinanceFeeCategoryID';
                 $result = $connection2->prepare($sql);

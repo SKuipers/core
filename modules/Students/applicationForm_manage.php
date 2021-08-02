@@ -31,20 +31,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
     //Proceed!
     $page->breadcrumbs->add(__('Manage Applications'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     $gibbonSchoolYearID = '';
     if (isset($_GET['gibbonSchoolYearID'])) {
         $gibbonSchoolYearID = $_GET['gibbonSchoolYearID'];
     }
-    if ($gibbonSchoolYearID == '' or $gibbonSchoolYearID == $_SESSION[$guid]['gibbonSchoolYearID']) {
-        $gibbonSchoolYearID = $_SESSION[$guid]['gibbonSchoolYearID'];
-        $gibbonSchoolYearName = $_SESSION[$guid]['gibbonSchoolYearName'];
+    if ($gibbonSchoolYearID == '' or $gibbonSchoolYearID == $session->get('gibbonSchoolYearID')) {
+        $gibbonSchoolYearID = $session->get('gibbonSchoolYearID');
+        $gibbonSchoolYearName = $session->get('gibbonSchoolYearName');
     }
 
-    if ($gibbonSchoolYearID != $_SESSION[$guid]['gibbonSchoolYearID']) {
+    if ($gibbonSchoolYearID != $session->get('gibbonSchoolYearID')) {
         
             $data = array('gibbonSchoolYearID' => $_GET['gibbonSchoolYearID']);
             $sql = 'SELECT * FROM gibbonSchoolYear WHERE gibbonSchoolYearID=:gibbonSchoolYearID';
@@ -69,13 +65,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
         echo "<div class='linkTop'>";
             //Print year picker
             if (getPreviousSchoolYearID($gibbonSchoolYearID, $connection2) != false) {
-                echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.$_SESSION[$guid]['module'].'/applicationForm_manage.php&gibbonSchoolYearID='.getPreviousSchoolYearID($gibbonSchoolYearID, $connection2)."'>".__('Previous Year').'</a> ';
+                echo "<a href='".$session->get('absoluteURL').'/index.php?q=/modules/'.$session->get('module').'/applicationForm_manage.php&gibbonSchoolYearID='.getPreviousSchoolYearID($gibbonSchoolYearID, $connection2)."'>".__('Previous Year').'</a> ';
             } else {
                 echo __('Previous Year').' ';
             }
         echo ' | ';
         if (getNextSchoolYearID($gibbonSchoolYearID, $connection2) != false) {
-            echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.$_SESSION[$guid]['module'].'/applicationForm_manage.php&gibbonSchoolYearID='.getNextSchoolYearID($gibbonSchoolYearID, $connection2)."'>".__('Next Year').'</a> ';
+            echo "<a href='".$session->get('absoluteURL').'/index.php?q=/modules/'.$session->get('module').'/applicationForm_manage.php&gibbonSchoolYearID='.getNextSchoolYearID($gibbonSchoolYearID, $connection2)."'>".__('Next Year').'</a> ';
         } else {
             echo __('Next Year').' ';
         }
@@ -99,10 +95,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
         echo __('Search');
         echo '</h2>';
 
-        $form = Form::create('searchForm', $_SESSION[$guid]['absoluteURL'].'/index.php', 'get');
+        $form = Form::create('searchForm', $session->get('absoluteURL').'/index.php', 'get');
         $form->setFactory(DatabaseFormFactory::create($pdo));
         $form->setClass('noIntBorder fullWidth');
-        $form->addHiddenValue('q', '/modules/'.$_SESSION[$guid]['module'].'/applicationForm_manage.php');
+        $form->addHiddenValue('q', '/modules/'.$session->get('module').'/applicationForm_manage.php');
         $form->addHiddenValue('gibbonSchoolYearID', $gibbonSchoolYearID);
 
         $row = $form->addRow();
@@ -159,8 +155,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
             'paid:n'         => __('Paid').': '.__('No'),
             'paid:exemption' => __('Paid').': '.__('Exemption'),
 
-            'rollGroup:y'         => __('Form Group').': '.__('Yes'),
-            'rollGroup:n'         => __('Form Group').': '.__('No'),
+            'formGroup:y'         => __('Form Group').': '.__('Yes'),
+            'formGroup:n'         => __('Form Group').': '.__('No'),
         ]);
 
         $table->addColumn('gibbonApplicationFormID', __('ID'))
@@ -169,7 +165,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
         $table->addColumn('student', __('Student'))
             ->description(__('Application Date'))
             ->sortable(['surname', 'preferredName'])
-            ->format(function ($application) use ($applicationGateway, $guid) {
+            ->format(function ($application) use ($applicationGateway, $session) {
                 $output = '';
 
                 // Add a list of linked sibling appplications as an icon with hover-over text
@@ -178,7 +174,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                     $siblings = array_map(function($sibling) {
                         return '- ' . Format::name('', $sibling['preferredName'], $sibling['surname'], 'Student', true).' ('.$sibling['status'].')';
                     }, $linkedApplications->fetchAll());
-                    $output .= "<img title='" . __('Sibling Applications') .'<br/>' . implode('<br/>', $siblings). "' src='./themes/" . $_SESSION[$guid]["gibbonThemeName"] . "/img/attendance.png'/ style='float: right;   width:20px; height:20px;margin-left:4px;'>";
+                    $output .= "<img title='" . __('Sibling Applications') .'<br/>' . implode('<br/>', $siblings). "' src='./themes/" . $session->get("gibbonThemeName") . "/img/attendance.png'/ style='float: right;   width:20px; height:20px;margin-left:4px;'>";
                 }
                 
                 $output .= '<strong>'.Format::name('', $application['preferredName'], $application['surname'], 'Student', true, true) . '</strong><br/>';

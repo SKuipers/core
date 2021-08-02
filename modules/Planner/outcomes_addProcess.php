@@ -21,12 +21,9 @@ include '../../gibbon.php';
 
 include './moduleFunctions.php';
 
-$filter2 = '';
-if (isset($_GET['filter2'])) {
-    $filter2 = $_GET['filter2'];
-}
+$filter2 = $_GET['filter2'] ?? '';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/outcomes_add.php&filter2=$filter2";
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/outcomes_add.php&filter2=$filter2";
 
 if (isActionAccessible($guid, $connection2, '/modules/Planner/outcomes_add.php') == false) {
     $URL .= '&return=error0';
@@ -42,18 +39,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/outcomes_add.php')
             header("Location: {$URL}");
         } else {
             //Proceed!
-            $scope = $_POST['scope'];
+            $scope = $_POST['scope'] ?? '';
             if ($scope == 'Learning Area') {
-                $gibbonDepartmentID = $_POST['gibbonDepartmentID'];
+                $gibbonDepartmentID = $_POST['gibbonDepartmentID'] ?? '';
             } else {
                 $gibbonDepartmentID = null;
             }
-            $name = $_POST['name'];
-            $nameShort = $_POST['nameShort'];
-            $active = $_POST['active'];
-            $category = $_POST['category'];
-            $description = $_POST['description'];
-            $gibbonYearGroupIDList = isset($_POST['gibbonYearGroupIDList'])? $_POST['gibbonYearGroupIDList'] : array();
+            $name = $_POST['name'] ?? '';
+            $nameShort = $_POST['nameShort'] ?? '';
+            $active = $_POST['active'] ?? '';
+            $category = $_POST['category'] ?? '';
+            $description = $_POST['description'] ?? '';
+            $gibbonYearGroupIDList = $_POST['gibbonYearGroupIDList'] ?? array();
             $gibbonYearGroupIDList = implode(',', $gibbonYearGroupIDList);
 
             if ($scope == '' or ($scope == 'Learning Area' and $gibbonDepartmentID == '') or $name == '' or $nameShort == '' or $active == '') {
@@ -62,7 +59,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/outcomes_add.php')
             } else {
                 //Write to database
                 try {
-                    $data = array('scope' => $scope, 'gibbonDepartmentID' => $gibbonDepartmentID, 'name' => $name, 'nameShort' => $nameShort, 'active' => $active, 'category' => $category, 'description' => $description, 'gibbonYearGroupIDList' => $gibbonYearGroupIDList, 'gibbonPersonIDCreator' => $_SESSION[$guid]['gibbonPersonID']);
+                    $data = array('scope' => $scope, 'gibbonDepartmentID' => $gibbonDepartmentID, 'name' => $name, 'nameShort' => $nameShort, 'active' => $active, 'category' => $category, 'description' => $description, 'gibbonYearGroupIDList' => $gibbonYearGroupIDList, 'gibbonPersonIDCreator' => $session->get('gibbonPersonID'));
                     $sql = 'INSERT INTO gibbonOutcome SET scope=:scope, gibbonDepartmentID=:gibbonDepartmentID, name=:name, nameShort=:nameShort, active=:active, category=:category, description=:description, gibbonYearGroupIDList=:gibbonYearGroupIDList, gibbonPersonIDCreator=:gibbonPersonIDCreator';
                     $result = $connection2->prepare($sql);
                     $result->execute($data);

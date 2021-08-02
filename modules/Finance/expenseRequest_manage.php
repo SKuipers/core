@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
+use Gibbon\Services\Format;
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -28,10 +29,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenseRequest_man
 } else {
     //Proceed!
     $page->breadcrumbs->add(__('My Expense Requests'));
-
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
 
     echo '<p>';
     echo __('This action allows you to create and manage expense requests, which will be submitted for approval to the relevant individuals. You will be notified when a request has been approved.').'<br/>';
@@ -281,7 +278,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenseRequest_man
                             echo number_format($row['cost'], 2, '.', ',');
                             echo '</td>';
                             echo '<td>';
-                            echo dateConvertBack($guid, substr($row['timestampCreator'], 0, 10));
+                            echo Format::date(substr($row['timestampCreator'], 0, 10));
                             echo '</td>';
                             echo '<td>';
                             echo "<a href='".$gibbon->session->get('absoluteURL').'/index.php?q=/modules/'.$gibbon->session->get('module').'/expenseRequest_manage_view.php&gibbonFinanceExpenseID='.$row['gibbonFinanceExpenseID']."&gibbonFinanceBudgetCycleID=$gibbonFinanceBudgetCycleID&status2=$status2&gibbonFinanceBudgetID2=$gibbonFinanceBudgetID2'><img title='".__('View')."' src='./themes/".$gibbon->session->get('gibbonThemeName')."/img/plus.png'/></a> ";

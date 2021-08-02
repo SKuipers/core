@@ -54,10 +54,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit_deploy.
     }
 
     // Proceed!
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     // Check if course & school year specified
     if ($gibbonCourseID == '' or $gibbonSchoolYearID == '' or $gibbonCourseClassID == '' or $gibbonUnitClassID == '') {
         $page->addError(__('You have not specified one or more required parameters.'));
@@ -208,7 +204,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit_deploy.
         }
 
         // FORM
-        $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/modules/Planner/units_edit_deployProcess.php?'.http_build_query($urlParams));
+        $form = Form::create('action', $session->get('absoluteURL').'/modules/Planner/units_edit_deployProcess.php?'.http_build_query($urlParams));
         $form->setFactory(PlannerFormFactory::create($pdo));
         $form->setTitle(__('Step 2 - Distribute Blocks'));
         $form->setDescription(__('You can now add your unit blocks using the dropdown menu in each lesson. Blocks can be dragged from one lesson to another.'));
@@ -316,7 +312,7 @@ $('.blockAdd').change(function () {
     var parent = $(this).parents('.blockLesson');
     var sortable = $('.sortableArea', parent);
 
-    $(sortable).append($('<div class="draggable z-100">').load("<?php echo $_SESSION[$guid]['absoluteURL']; ?>/modules/Planner/units_add_blockAjax.php?mode=workingDeploy&gibbonUnitID=<?php echo $gibbonUnitID; ?>&gibbonUnitBlockID=" + $(this).val(), "id=" + count) );
+    $(sortable).append($('<div class="draggable z-100">').load("<?php echo $session->get('absoluteURL'); ?>/modules/Planner/units_add_blockAjax.php?mode=workingDeploy&gibbonUnitID=<?php echo $gibbonUnitID; ?>&gibbonUnitBlockID=" + $(this).val(), "id=" + count) );
     count++;
 });
     

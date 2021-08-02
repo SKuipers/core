@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
 use Gibbon\Module\Attendance\AttendanceView;
 use Gibbon\Domain\Attendance\AttendanceLogPersonGateway;
 
@@ -26,17 +27,17 @@ require __DIR__ . '/../../gibbon.php';
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php' ;
 
-$gibbonCourseClassID=$_POST["gibbonCourseClassID"] ;
-$currentDate=$_POST["currentDate"] ;
+$gibbonCourseClassID=$_POST["gibbonCourseClassID"] ?? '';
+$currentDate=$_POST["currentDate"] ?? '';
 $today=date("Y-m-d");
 
-$moduleName = getModuleName($_POST["address"]);
+$moduleName = getModuleName($_POST["address"] ?? '');
 
 if ($moduleName == "Planner") {
-    $gibbonPlannerEntryID = $_POST['gibbonPlannerEntryID'];
-    $URL=$_SESSION[$guid]["absoluteURL"] . "/index.php?q=/modules/" . $moduleName . "/planner_view_full.php&gibbonPlannerEntryID=$gibbonPlannerEntryID&viewBy=date&gibbonCourseClassID=$gibbonCourseClassID&date=" . $currentDate ;
+    $gibbonPlannerEntryID = $_POST['gibbonPlannerEntryID'] ?? '';
+    $URL=$session->get("absoluteURL") . "/index.php?q=/modules/" . $moduleName . "/planner_view_full.php&gibbonPlannerEntryID=$gibbonPlannerEntryID&viewBy=date&gibbonCourseClassID=$gibbonCourseClassID&date=" . $currentDate ;
 } else {
-    $URL=$_SESSION[$guid]["absoluteURL"] . "/index.php?q=/modules/" . $moduleName . "/attendance_take_byCourseClass.php&gibbonCourseClassID=$gibbonCourseClassID&currentDate=" . dateConvertBack($guid, $currentDate) ;
+    $URL=$session->get("absoluteURL") . "/index.php?q=/modules/" . $moduleName . "/attendance_take_byCourseClass.php&gibbonCourseClassID=$gibbonCourseClassID&currentDate=" . Format::date($currentDate) ;
 }
 
 if (isActionAccessible($guid, $connection2, "/modules/Attendance/attendance_take_byCourseClass.php")==FALSE) {
@@ -109,12 +110,12 @@ else {
                     }
 
                     if ($resultLog->rowCount()<1) {
-                        $data=array("gibbonPersonIDTaker"=>$_SESSION[$guid]["gibbonPersonID"], "gibbonCourseClassID"=>$gibbonCourseClassID, "date"=>$currentDate, "timestampTaken"=>date("Y-m-d H:i:s"));
+                        $data=array("gibbonPersonIDTaker"=>$session->get("gibbonPersonID"), "gibbonCourseClassID"=>$gibbonCourseClassID, "date"=>$currentDate, "timestampTaken"=>date("Y-m-d H:i:s"));
                         $sql="INSERT INTO gibbonAttendanceLogCourseClass SET gibbonPersonIDTaker=:gibbonPersonIDTaker, gibbonCourseClassID=:gibbonCourseClassID, date=:date, timestampTaken=:timestampTaken" ;
 
                     } else {
                         $resultUpdate=$resultLog->fetch() ;
-                        $data=array("gibbonAttendanceLogCourseClassID" => $resultUpdate['gibbonAttendanceLogCourseClassID'], "gibbonPersonIDTaker"=>$_SESSION[$guid]["gibbonPersonID"], "gibbonCourseClassID"=>$gibbonCourseClassID, "date"=>$currentDate, "timestampTaken"=>date("Y-m-d H:i:s"));
+                        $data=array("gibbonAttendanceLogCourseClassID" => $resultUpdate['gibbonAttendanceLogCourseClassID'], "gibbonPersonIDTaker"=>$session->get("gibbonPersonID"), "gibbonCourseClassID"=>$gibbonCourseClassID, "date"=>$currentDate, "timestampTaken"=>date("Y-m-d H:i:s"));
                         $sql="UPDATE gibbonAttendanceLogCourseClass SET gibbonPersonIDTaker=:gibbonPersonIDTaker, gibbonCourseClassID=:gibbonCourseClassID, date=:date, timestampTaken=:timestampTaken WHERE gibbonAttendanceLogCourseClassID=:gibbonAttendanceLogCourseClassID" ;
                     }
 
@@ -133,13 +134,13 @@ else {
                     $attendanceLogGateway = $container->get(AttendanceLogPersonGateway::class);
 
                     $recordSchoolAttendance = $_POST['recordSchoolAttendance'] ?? 'N';
-                    $count=$_POST["count"] ;
+                    $count=$_POST["count"] ?? '';
                     $partialFail=FALSE ;
 
                     for ($i=0; $i<$count; $i++) {
                         $gibbonPersonID=$_POST[$i . "-gibbonPersonID"] ;
 
-                        $type=$_POST[$i . "-type"] ;
+                        $type=$_POST[$i . "-type"] ?? '';
                         $reason=$_POST[$i . "-reason"] ?? '';
                         $comment=$_POST[$i . "-comment"] ?? '';
                         $prefilled=$_POST[$i . "-prefilled"] ?? '';
@@ -182,12 +183,12 @@ else {
                             'type'                   => $type,
                             'reason'                 => $reason,
                             'comment'                => $comment,
-                            'gibbonPersonIDTaker'    => $_SESSION[$guid]['gibbonPersonID'],
+                            'gibbonPersonIDTaker'    => $session->get('gibbonPersonID'),
                             'gibbonCourseClassID'    => $gibbonCourseClassID,
                             'date'                   => $currentDate,
                             'timestampTaken'         => date('Y-m-d H:i:s'),
                         ];
-                        
+
                         if (!$existing) {
                             // If no records then create one
                             $inserted = $attendanceLogGateway->insert($data);
@@ -196,7 +197,7 @@ else {
                             $updated = $attendanceLogGateway->update($gibbonAttendanceLogPersonID, $data);
                             $partialFail &= !$updated;
                         }
-                        
+
                         if ($recordFirstClassAsSchool == 'Y' && empty($prefilled)) {
                             $data['context'] = 'Person';
                             $inserted = $attendanceLogGateway->insert($data);

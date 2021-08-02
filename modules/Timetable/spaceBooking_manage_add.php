@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
+use Gibbon\Services\Format;
 use Gibbon\Forms\DatabaseFormFactory;
 
 //Module includes
@@ -39,10 +40,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable/spaceBooking_man
             ->add(__('Manage Facility Bookings'), 'spaceBooking_manage.php')
             ->add(__('Add Facility Booking'));
 
-        if (isset($_GET['return'])) {
-            returnProcess($guid, $_GET['return'], null, null);
-        }
-
         $step = null;
         if (isset($_GET['step'])) {
             $step = $_GET['step'];
@@ -57,16 +54,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable/spaceBooking_man
             echo __('Step 1 - Choose Facility');
             echo '</h2>';
 
-            $form = Form::create('spaceBookingStep1', $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.$_SESSION[$guid]['module'].'/spaceBooking_manage_add.php&step=2');
+            $form = Form::create('spaceBookingStep1', $session->get('absoluteURL').'/index.php?q=/modules/'.$session->get('module').'/spaceBooking_manage_add.php&step=2');
             $form->setFactory(DatabaseFormFactory::create($pdo));
 
-            $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+            $form->addHiddenValue('address', $session->get('address'));
             $form->addHiddenValue('source', isset($_REQUEST['source'])? $_REQUEST['source'] : '');
 
             $facilities = array();
 
             $foreignKeyID = isset($_GET['gibbonSpaceID'])? 'gibbonSpaceID-'.$_GET['gibbonSpaceID'] : '';
-            $date = isset($_GET['date'])? dateConvertBack($guid, $_GET['date']) : '';
+            $date = isset($_GET['date'])? Format::date($_GET['date']) : '';
             $timeStart = isset($_GET['timeStart'])? $_GET['timeStart'] : '';
             $timeEnd = isset($_GET['timeEnd'])? $_GET['timeEnd'] : '';
 
@@ -89,7 +86,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable/spaceBooking_man
                 $row->addSelect('foreignKeyID')->fromArray($facilities)->required()->placeholder()->selected($foreignKeyID);
 
             $row = $form->addRow();
-                $row->addLabel('date', __('Date'))->description($_SESSION[$guid]['i18n']['dateFormat'])->prepend(__('Format:'));
+                $row->addLabel('date', __('Date'))->description($session->get('i18n')['dateFormat'])->prepend(__('Format:'));
                 $row->addDate('date')->required()->setValue($date);
 
             $row = $form->addRow();
@@ -136,7 +133,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable/spaceBooking_man
                     $foreignKeyID = substr($_POST['foreignKeyID'], 20);
                 }
             }
-            $date = dateConvert($guid, $_POST['date']);
+            $date = Format::dateConvert($_POST['date']);
             $timeStart = $_POST['timeStart'];
             $timeEnd = $_POST['timeEnd'];
             $repeat = $_POST['repeat'];
@@ -179,9 +176,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable/spaceBooking_man
 
                     $available = false;
 
-                    $form = Form::create('spaceBookingStep1', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/spaceBooking_manage_addProcess.php');
+                    $form = Form::create('spaceBookingStep1', $session->get('absoluteURL').'/modules/'.$session->get('module').'/spaceBooking_manage_addProcess.php');
 
-                    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+                    $form->addHiddenValue('address', $session->get('address'));
                     $form->addHiddenValue('source', isset($_REQUEST['source'])? $_REQUEST['source'] : '');
 
                     $form->addHiddenValue('foreignKey', $foreignKey);
@@ -197,11 +194,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable/spaceBooking_man
                         $available = isSpaceFree($guid, $connection2, $foreignKey, $foreignKeyID, $date, $timeStart, $timeEnd);
                         if ($available == true) {
                             $row = $form->addRow()->addClass('current');
-                            $row->addLabel('dates[]', dateConvertBack($guid, $date))->description(__('Available'));
+                            $row->addLabel('dates[]', Format::date($date))->description(__('Available'));
                             $row->addCheckbox('dates[]')->setValue($date)->checked($date);
                         } else {
                             $row = $form->addRow()->addClass('error');
-                            $row->addLabel('dates[]', dateConvertBack($guid, $date))->description(__('Not Available'));
+                            $row->addLabel('dates[]', Format::date($date))->description(__('Not Available'));
                             $row->addCheckbox('dates[]')->setValue($date)->disabled();
                         }
                     } elseif ($repeat == 'Daily' and $repeatDaily >= 2 and $repeatDaily <= 20) {
@@ -221,11 +218,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable/spaceBooking_man
                                 //Print days
                                 if (isSpaceFree($guid, $connection2, $foreignKey, $foreignKeyID, $dateTemp, $timeStart, $timeEnd) == true) {
                                     $row = $form->addRow()->addClass('current');
-                                    $row->addLabel('dates[]', dateConvertBack($guid, $dateTemp))->description(__('Available'));
+                                    $row->addLabel('dates[]', Format::date($dateTemp))->description(__('Available'));
                                     $row->addCheckbox('dates[]')->setValue($dateTemp)->checked($dateTemp);
                                 } else {
                                     $row = $form->addRow()->addClass('error');
-                                    $row->addLabel('dates[]', dateConvertBack($guid, $dateTemp))->description(__('Not Available'));
+                                    $row->addLabel('dates[]', Format::date($dateTemp))->description(__('Not Available'));
                                     $row->addCheckbox('dates[]')->setValue($dateTemp)->disabled();
                                 }
                             } else {
@@ -253,11 +250,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable/spaceBooking_man
                                 //Print days
                                 if (isSpaceFree($guid, $connection2, $foreignKey, $foreignKeyID, $dateTemp, $timeStart, $timeEnd) == true) {
                                     $row = $form->addRow()->addClass('current');
-                                    $row->addLabel('dates[]', dateConvertBack($guid, $dateTemp))->description(__('Available'));
+                                    $row->addLabel('dates[]', Format::date($dateTemp))->description(__('Available'));
                                     $row->addCheckbox('dates[]')->setValue($dateTemp)->checked($dateTemp);
                                 } else {
                                     $row = $form->addRow()->addClass('error');
-                                    $row->addLabel('dates[]', dateConvertBack($guid, $dateTemp))->description(__('Not Available'));
+                                    $row->addLabel('dates[]', Format::date($dateTemp))->description(__('Not Available'));
                                     $row->addCheckbox('dates[]')->setValue($dateTemp)->disabled();
                                 }
                             } else {

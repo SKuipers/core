@@ -43,7 +43,7 @@ class FamilyGateway extends QueryableGateway implements ScrubbableGateway
 
     private static $scrubbableKey = 'gibbonFamilyID';
     private static $scrubbableColumns = ['nameAddress' => '', 'homeAddress' => '', 'homeAddressDistrict' => '', 'homeAddressCountry' => '', 'status' => 'Other', 'languageHomePrimary' => '', 'languageHomeSecondary' => ''];
-    
+
     /**
      * @param QueryCriteria $criteria
      * @return DataSet
@@ -102,12 +102,12 @@ class FamilyGateway extends QueryableGateway implements ScrubbableGateway
             ->newQuery()
             ->from($this->getTableName())
             ->cols([
-                'gibbonFamily.gibbonFamilyID', 'gibbonFamily.name', 'gibbonPerson.gibbonPersonID', 'gibbonPerson.surname', 'gibbonPerson.preferredName', 'gibbonRollGroup.nameShort as rollGroup', 'gibbonRollGroup.gibbonRollGroupID', 'gibbonYearGroup.gibbonYearGroupID'
+                'gibbonFamily.gibbonFamilyID', 'gibbonFamily.name', 'gibbonPerson.gibbonPersonID', 'gibbonPerson.surname', 'gibbonPerson.preferredName', 'gibbonFormGroup.nameShort as formGroup', 'gibbonFormGroup.gibbonFormGroupID', 'gibbonYearGroup.gibbonYearGroupID'
             ])
             ->innerJoin('gibbonFamilyChild', 'gibbonFamilyChild.gibbonFamilyID=gibbonFamily.gibbonFamilyID')
             ->innerJoin('gibbonStudentEnrolment', 'gibbonStudentEnrolment.gibbonPersonID=gibbonFamilyChild.gibbonPersonID')
             ->innerJoin('gibbonPerson', 'gibbonPerson.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID')
-            ->innerJoin('gibbonRollGroup', 'gibbonRollGroup.gibbonRollGroupID=gibbonStudentEnrolment.gibbonRollGroupID')
+            ->innerJoin('gibbonFormGroup', 'gibbonFormGroup.gibbonFormGroupID=gibbonStudentEnrolment.gibbonFormGroupID')
             ->innerJoin('gibbonYearGroup', 'gibbonYearGroup.gibbonYearGroupID=gibbonStudentEnrolment.gibbonYearGroupID')
             ->where('gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID')
             ->bindValue('gibbonSchoolYearID', $gibbonSchoolYearID)
@@ -115,7 +115,7 @@ class FamilyGateway extends QueryableGateway implements ScrubbableGateway
             ->where('(gibbonPerson.dateStart IS NULL OR gibbonPerson.dateStart <= :today)')
             ->where('(gibbonPerson.dateEnd IS NULL OR gibbonPerson.dateEnd >= :today)')
             ->bindValue('today', date('Y-m-d'))
-            ->orderBy(['gibbonYearGroup.sequenceNumber', 'gibbonRollGroup.nameShort', 'gibbonPerson.surname', 'gibbonPerson.preferredName']);
+            ->orderBy(['gibbonYearGroup.sequenceNumber', 'gibbonFormGroup.nameShort', 'gibbonPerson.surname', 'gibbonPerson.preferredName']);
 
         return $this->runSelect($query);
     }
@@ -185,15 +185,17 @@ class FamilyGateway extends QueryableGateway implements ScrubbableGateway
     {
         $gibbonPersonIDList = is_array($gibbonPersonID) ? implode(',', $gibbonPersonID) : $gibbonPersonID;
         $data = array('gibbonPersonIDList' => $gibbonPersonIDList);
-        $sql = "SELECT gibbonFamilyChild.gibbonPersonID, gibbonFamilyAdult.gibbonFamilyID, gibbonPerson.*, gibbonFamilyAdult.childDataAccess, gibbonFamilyAdult.contactEmail, gibbonFamilyAdult.contactCall
+        $sql = "SELECT gibbonFamilyChild.gibbonPersonID, gibbonFamilyAdult.gibbonFamilyID, gibbonPerson.*, gibbonFamilyAdult.childDataAccess, gibbonFamilyAdult.contactEmail, gibbonFamilyAdult.contactCall, GROUP_CONCAT(DISTINCT (CASE WHEN gibbonPersonalDocumentType.name IS NOT NULL THEN gibbonPersonalDocument.country END) SEPARATOR ', ') as citizenship
             FROM gibbonFamilyChild
             JOIN gibbonFamilyAdult ON (gibbonFamilyAdult.gibbonFamilyID=gibbonFamilyChild.gibbonFamilyID)
             JOIN gibbonPerson ON (gibbonFamilyAdult.gibbonPersonID=gibbonPerson.gibbonPersonID)
+            LEFT JOIN gibbonPersonalDocument ON (gibbonPersonalDocument.foreignTable='gibbonPerson' AND gibbonPersonalDocument.foreignTableID=gibbonPerson.gibbonPersonID AND gibbonPersonalDocument.country IS NOT NULL)
+            LEFT JOIN gibbonPersonalDocumentType ON (gibbonPersonalDocumentType.gibbonPersonalDocumentTypeID=gibbonPersonalDocument.gibbonPersonalDocumentTypeID AND gibbonPersonalDocumentType.document='Passport')
             WHERE FIND_IN_SET(gibbonFamilyChild.gibbonPersonID, :gibbonPersonIDList)";
 
         if (!$allUsers) $sql .= " AND gibbonPerson.status='Full'";
 
-        $sql .= " ORDER BY gibbonFamilyAdult.contactPriority, gibbonPerson.surname, gibbonPerson.preferredName";
+        $sql .= " GROUP BY gibbonFamilyAdult.gibbonPersonID ORDER BY gibbonFamilyAdult.contactPriority, gibbonPerson.surname, gibbonPerson.preferredName";
 
         return $this->db()->select($sql, $data);
     }

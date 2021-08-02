@@ -28,10 +28,6 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/cacheManager.
     // Proceed!
     $page->breadcrumbs->add(__('Cache Manager'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     $settingGateway = $container->get(SettingGateway::class);
     $setting = $settingGateway->getSettingByScope('System', 'cachePath', true);
 
@@ -55,16 +51,21 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/cacheManager.
         $iterator->next();
     }
 
+    // mPDF Cache Check
+    $mPDFCachePath = $gibbon->session->get('absolutePath').'/vendor/mpdf/mpdf/tmp';
+
     if (!is_dir($cachePath) || !is_writeable($cachePath)) {
         echo Format::alert(__('Your cache directory is missing or is not system writeable. Check the file permissions in your cache directory and resolve these errors manually.'), 'error');
     } elseif ($fileCount != $fileWriteable) {
         echo Format::alert(__('{count} files or folders in the cache directory are not system writeable. This will cause errors if the cache system cannot update or delete these files. Check the file permissions in your cache directory and resolve these errors manually.', ['count' => $fileCount - $fileWriteable]), 'error');
+    } else if (!is_writeable($mPDFCachePath)) {
+        echo Format::alert(__('The path {path} is missing or is not system writeable. Check the file permissions on your server and resolve these errors manually.', ['path' => $mPDFCachePath]), 'error');
     } else {
         echo Format::alert(__('Caching is running smoothly. All files and folders in your cache directory are system writeable.'), 'success');
     }
 
     // FORM
-    $form = Form::create('cacheSettings', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/cacheManager_settingsProcess.php');
+    $form = Form::create('cacheSettings', $session->get('absoluteURL').'/modules/'.$session->get('module').'/cacheManager_settingsProcess.php');
 
     $form->addRow()->addHeading(__('Settings'));
 
@@ -77,7 +78,7 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/cacheManager.
     echo $form->getOutput();
 
     // CLEAR CACHE
-    $form = Form::create('clearCache', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/cacheManager_clearCacheProcess.php');
+    $form = Form::create('clearCache', $session->get('absoluteURL').'/modules/'.$session->get('module').'/cacheManager_clearCacheProcess.php');
     $form->addClass('mt-10');
 
     $form->addRow()->addHeading(__('System Data'));
@@ -85,12 +86,17 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/cacheManager.
     $row = $form->addRow();
         $row->addLabel('templateCache', __('Template Cache'));
         $row->addContent(Format::tag(Format::filesize($templatesSize), 'dull'));
-        $row->addCheckbox('templateCache')->setValue('Y')->checked('Y');
+        $row->addCheckbox('templateCache')->setValue('Y')->checked('N');
 
     $row = $form->addRow();
         $row->addLabel('reportsCache', __('Reports Cache'));
         $row->addContent(Format::tag(Format::filesize($reportsSize), 'dull'));
-        $row->addCheckbox('reportsCache')->setValue('Y')->checked('Y');
+        $row->addCheckbox('reportsCache')->setValue('Y')->checked('N');
+
+    $row = $form->addRow();
+        $row->addLabel('frontEndCache', __('Front End Cache'));
+        $row->addContent(Format::tag('.css .js', 'dull'));
+        $row->addCheckbox('frontEndCache')->setValue('Y')->checked('N');
 
     $row = $form->addRow()->addSubmit(__('Clear Cache'));
 

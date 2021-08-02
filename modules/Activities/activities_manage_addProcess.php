@@ -17,33 +17,35 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+
 include '../../gibbon.php';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/activities_manage_add.php&search='.$_GET['search'].'&gibbonSchoolYearTermID='.$_GET['gibbonSchoolYearTermID'];
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/activities_manage_add.php&search='.$_GET['search'].'&gibbonSchoolYearTermID='.$_GET['gibbonSchoolYearTermID'];
 
 if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_manage_add.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
 } else {
     //Proceed!
-    $name = $_POST['name'];
-    $provider = $_POST['provider'];
-    $active = $_POST['active'];
-    $registration = $_POST['registration'];
-    $dateType = $_POST['dateType'];
+    $name = $_POST['name'] ?? '';
+    $provider = $_POST['provider'] ?? '';
+    $active = $_POST['active'] ?? '';
+    $registration = $_POST['registration'] ?? '';
+    $dateType = $_POST['dateType'] ?? '';
     if ($dateType == 'Term') {
-        $gibbonSchoolYearTermIDList = isset($_POST['gibbonSchoolYearTermIDList'])? $_POST['gibbonSchoolYearTermIDList'] : array();
+        $gibbonSchoolYearTermIDList =  $_POST['gibbonSchoolYearTermIDList'] ?? [];
         $gibbonSchoolYearTermIDList = implode(',', $gibbonSchoolYearTermIDList);
     } elseif ($dateType == 'Date') {
-        $listingStart = dateConvert($guid, $_POST['listingStart']);
-        $listingEnd = dateConvert($guid, $_POST['listingEnd']);
-        $programStart = dateConvert($guid, $_POST['programStart']);
-        $programEnd = dateConvert($guid, $_POST['programEnd']);
+        $listingStart = !empty($_POST['listingStart']) ? Format::dateConvert($_POST['listingStart']) : null;
+        $listingEnd = !empty($_POST['listingEnd']) ? Format::dateConvert($_POST['listingEnd']) : null;
+        $programStart = !empty($_POST['programStart']) ? Format::dateConvert($_POST['programStart']) : null;
+        $programEnd = !empty($_POST['programEnd']) ? Format::dateConvert($_POST['programEnd']) : null;
     }
-    $gibbonYearGroupIDList = isset($_POST['gibbonYearGroupIDList'])? $_POST['gibbonYearGroupIDList'] : array();
+    $gibbonYearGroupIDList = $_POST['gibbonYearGroupIDList'] ?? array();
     $gibbonYearGroupIDList = implode(',', $gibbonYearGroupIDList);
 
-    $maxParticipants = $_POST['maxParticipants'];
+    $maxParticipants = $_POST['maxParticipants'] ?? '';
     if (getSettingByScope($connection2, 'Activities', 'payment') == 'None' or getSettingByScope($connection2, 'Activities', 'payment') == 'Single') {
         $paymentOn = false;
         $payment = null;
@@ -51,11 +53,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
         $paymentFirmness = null;
     } else {
         $paymentOn = true;
-        $payment = $_POST['payment'];
-        $paymentType = $_POST['paymentType'];
-        $paymentFirmness = $_POST['paymentFirmness'];
+        $payment = $_POST['payment'] ?? '';
+        $paymentType = $_POST['paymentType'] ?? '';
+        $paymentFirmness = $_POST['paymentFirmness'] ?? '';
     }
-    $description = $_POST['description'];
+    $description = $_POST['description'] ?? '';
 
     if ($dateType == '' or $name == '' or $provider == '' or $active == '' or $registration == '' or $maxParticipants == '' or ($paymentOn and ($payment == '' or $paymentType == '' or $paymentFirmness == '')) or ($dateType == 'Date' and ($listingStart == '' or $listingEnd == '' or $programStart == '' or $programEnd == ''))) {
         $URL .= '&return=error1';
@@ -69,10 +71,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
 
         try {
             if ($dateType == 'Date') {
-                $data = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'name' => $name, 'provider' => $provider, 'type' => $type, 'active' => $active, 'registration' => $registration, 'listingStart' => $listingStart, 'listingEnd' => $listingEnd, 'programStart' => $programStart, 'programEnd' => $programEnd, 'gibbonYearGroupIDList' => $gibbonYearGroupIDList, 'maxParticipants' => $maxParticipants, 'payment' => $payment, 'paymentType' => $paymentType, 'paymentFirmness' => $paymentFirmness, 'description' => $description);
+                $data = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'name' => $name, 'provider' => $provider, 'type' => $type, 'active' => $active, 'registration' => $registration, 'listingStart' => $listingStart, 'listingEnd' => $listingEnd, 'programStart' => $programStart, 'programEnd' => $programEnd, 'gibbonYearGroupIDList' => $gibbonYearGroupIDList, 'maxParticipants' => $maxParticipants, 'payment' => $payment, 'paymentType' => $paymentType, 'paymentFirmness' => $paymentFirmness, 'description' => $description);
                 $sql = "INSERT INTO gibbonActivity SET gibbonSchoolYearID=:gibbonSchoolYearID, name=:name, provider=:provider, type=:type, active=:active, registration=:registration, gibbonSchoolYearTermIDList='', listingStart=:listingStart, listingEnd=:listingEnd, programStart=:programStart, programEnd=:programEnd, gibbonYearGroupIDList=:gibbonYearGroupIDList, maxParticipants=:maxParticipants, payment=:payment, paymentType=:paymentType, paymentFirmness=:paymentFirmness, description=:description";
             } else {
-                $data = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'name' => $name, 'provider' => $provider, 'type' => $type, 'active' => $active, 'registration' => $registration, 'gibbonSchoolYearTermIDList' => $gibbonSchoolYearTermIDList, 'gibbonYearGroupIDList' => $gibbonYearGroupIDList, 'maxParticipants' => $maxParticipants, 'payment' => $payment, 'paymentType' => $paymentType, 'paymentFirmness' => $paymentFirmness, 'description' => $description);
+                $data = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'name' => $name, 'provider' => $provider, 'type' => $type, 'active' => $active, 'registration' => $registration, 'gibbonSchoolYearTermIDList' => $gibbonSchoolYearTermIDList, 'gibbonYearGroupIDList' => $gibbonYearGroupIDList, 'maxParticipants' => $maxParticipants, 'payment' => $payment, 'paymentType' => $paymentType, 'paymentFirmness' => $paymentFirmness, 'description' => $description);
                 $sql = 'INSERT INTO gibbonActivity SET gibbonSchoolYearID=:gibbonSchoolYearID, name=:name, provider=:provider, type=:type, active=:active, registration=:registration, gibbonSchoolYearTermIDList=:gibbonSchoolYearTermIDList, listingStart=NULL, listingEnd=NULL, programStart=NULL, programEnd=NULL, gibbonYearGroupIDList=:gibbonYearGroupIDList, maxParticipants=:maxParticipants, payment=:payment, paymentType=:paymentType, paymentFirmness=:paymentFirmness, description=:description';
             }
             $result = $connection2->prepare($sql);
@@ -89,19 +91,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
         //Scan through slots
         $partialFail = false;
         for ($i = 1; $i < 3; ++$i) {
-            $gibbonDaysOfWeekID = $_POST["gibbonDaysOfWeekID$i"];
-            $timeStart = $_POST["timeStart$i"];
-            $timeEnd = $_POST["timeEnd$i"];
+            $gibbonDaysOfWeekID = $_POST["gibbonDaysOfWeekID$i"] ?? '';
+            $timeStart = $_POST["timeStart$i"] ?? '';
+            $timeEnd = $_POST["timeEnd$i"] ?? '';
             $type = 'Internal';
             if (isset($_POST['slot'.$i.'Location'])) {
                 $type = $_POST['slot'.$i.'Location'];
             }
             $gibbonSpaceID = null;
             if ($type == 'Internal') {
-                $gibbonSpaceID = isset($_POST["gibbonSpaceID$i"])? $_POST["gibbonSpaceID$i"] : null;
+                $gibbonSpaceID = $_POST["gibbonSpaceID$i"] ?? null;
                 $locationExternal = '';
             } else {
-                $locationExternal = $_POST['location'.$i.'External'];
+                $locationExternal = $_POST['location'.$i.'External'] ?? '';
             }
 
             if ($gibbonDaysOfWeekID != '' and $timeStart != '' and $timeEnd != '') {
@@ -116,9 +118,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
             }
         }
 
-        //Scan through staff
-        $staff = isset($_POST['staff'])? $_POST['staff'] : null;
-        $role = isset($_POST['role']) ? $_POST['role'] : 'Other';
+        // Scan through staff
+        $staff = $_POST['staff'] ?? [];
+        $role = $_POST['role'] ?? 'Other';
+
+        // make sure that staff is an array
+        if (!is_array($staff)) {
+            $staff = [(string) $staff];
+        }
 
         if (count($staff) > 0) {
             foreach ($staff as $t) {

@@ -17,11 +17,13 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\User\PersonalDocumentGateway;
+
 include '../../gibbon.php';
 
-$gibbonPersonID = $_GET['gibbonPersonID'];
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/user_manage_delete.php&gibbonPersonID='.$gibbonPersonID.'&search='.$_GET['search'];
-$URLDelete = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/user_manage.php&search='.$_GET['search'];
+$gibbonPersonID = $_GET['gibbonPersonID'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/user_manage_delete.php&gibbonPersonID='.$gibbonPersonID.'&search='.$_GET['search'];
+$URLDelete = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/user_manage.php&search='.$_GET['search'];
 
 if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_delete.php') == false) {
     $URL .= '&return=error0';
@@ -59,6 +61,9 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_del
                 header("Location: {$URL}");
                 exit();
             }
+
+            // Personal Documents
+            $container->get(PersonalDocumentGateway::class)->deletePersonalDocuments('gibbonPerson', $gibbonPersonID);
 
             $URLDelete = $URLDelete.'&return=success0';
             header("Location: {$URLDelete}");

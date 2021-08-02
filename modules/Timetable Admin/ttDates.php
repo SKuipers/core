@@ -26,21 +26,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/ttDates.ph
     //Proceed!
     $page->breadcrumbs->add(__('Tie Days to Dates'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     $gibbonSchoolYearID = '';
     if (isset($_GET['gibbonSchoolYearID'])) {
         $gibbonSchoolYearID = $_GET['gibbonSchoolYearID'];
     }
-    if ($gibbonSchoolYearID == '' or $gibbonSchoolYearID == $_SESSION[$guid]['gibbonSchoolYearID']) {
-        $gibbonSchoolYearID = $_SESSION[$guid]['gibbonSchoolYearID'];
-        $gibbonSchoolYearName = $_SESSION[$guid]['gibbonSchoolYearName'];
+    if ($gibbonSchoolYearID == '' or $gibbonSchoolYearID == $session->get('gibbonSchoolYearID')) {
+        $gibbonSchoolYearID = $session->get('gibbonSchoolYearID');
+        $gibbonSchoolYearName = $session->get('gibbonSchoolYearName');
     }
 
-    if ($gibbonSchoolYearID != $_SESSION[$guid]['gibbonSchoolYearID']) {
-        
+    if ($gibbonSchoolYearID != $session->get('gibbonSchoolYearID')) {
+
             $data = array('gibbonSchoolYearID' => $_GET['gibbonSchoolYearID']);
             $sql = 'SELECT * FROM gibbonSchoolYear WHERE gibbonSchoolYearID=:gibbonSchoolYearID';
             $result = $connection2->prepare($sql);
@@ -67,19 +63,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/ttDates.ph
         echo "<div class='linkTop'>";
             //Print year picker
             if (getPreviousSchoolYearID($gibbonSchoolYearID, $connection2) != false) {
-                echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.$_SESSION[$guid]['module'].'/ttDates.php&gibbonSchoolYearID='.getPreviousSchoolYearID($gibbonSchoolYearID, $connection2)."'>".__('Previous Year').'</a> ';
+                echo "<a href='".$session->get('absoluteURL').'/index.php?q=/modules/'.$session->get('module').'/ttDates.php&gibbonSchoolYearID='.getPreviousSchoolYearID($gibbonSchoolYearID, $connection2)."'>".__('Previous Year').'</a> ';
             } else {
                 echo __('Previous Year').' ';
             }
         echo ' | ';
         if (getNextSchoolYearID($gibbonSchoolYearID, $connection2) != false) {
-            echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.$_SESSION[$guid]['module'].'/ttDates.php&gibbonSchoolYearID='.getNextSchoolYearID($gibbonSchoolYearID, $connection2)."'>".__('Next Year').'</a> ';
+            echo "<a href='".$session->get('absoluteURL').'/index.php?q=/modules/'.$session->get('module').'/ttDates.php&gibbonSchoolYearID='.getNextSchoolYearID($gibbonSchoolYearID, $connection2)."'>".__('Next Year').'</a> ';
         } else {
             echo __('Next Year').' ';
         }
         echo '</div>';
 
-        
+
             $data = array('gibbonSchoolYearID' => $gibbonSchoolYearID);
             $sql = 'SELECT * FROM gibbonSchoolYearTerm WHERE gibbonSchoolYearID=:gibbonSchoolYearID';
             $result = $connection2->prepare($sql);
@@ -91,10 +87,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/ttDates.ph
             echo '</div>';
         } else {
 
-            $form = Form::create('ttDates', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/ttDates_addMultiProcess.php?gibbonSchoolYearID='.$gibbonSchoolYearID);
+            $page->addData('preventOverflow', true);
+
+            $form = Form::createTable('ttDates', $session->get('absoluteURL').'/modules/'.$session->get('module').'/ttDates_addMultiProcess.php?gibbonSchoolYearID='.$gibbonSchoolYearID);
             $form->setClass('w-full blank');
-            
-            $form->addHiddenValue('q', $_SESSION[$guid]['address']);
+
+            $form->addHiddenValue('q', $session->get('address'));
 
             while ($values = $result->fetch()) {
                 $row = $form->addRow()->addHeading($values['name']);
@@ -107,39 +105,36 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/ttDates.ph
                 //Count back to first Monday before first day
                 $startDayStamp = $firstDayStamp;
                 while (date('D', $startDayStamp) != 'Mon') {
-					$startDayStamp = strtotime('-1 day', $startDayStamp);  
+					$startDayStamp = strtotime('-1 day', $startDayStamp);
                 }
 
                 //Count forward to first Sunday after last day
                 $endDayStamp = $lastDayStamp;
                 while (date('D', $endDayStamp) != 'Sun') {
-					$endDayStamp = strtotime('+1 day', $endDayStamp);  
+					$endDayStamp = strtotime('+1 day', $endDayStamp);
                 }
 
                 //Get the special days
-                
-                    $dataSpecial = array('gibbonSchoolYearTermID' => $values['gibbonSchoolYearTermID']);
-                    $sqlSpecial = 'SELECT date, type, name FROM gibbonSchoolYearSpecialDay WHERE gibbonSchoolYearTermID=:gibbonSchoolYearTermID ORDER BY date';
-                    $resultSpecial = $connection2->prepare($sqlSpecial);
-                    $resultSpecial->execute($dataSpecial);
+                $dataSpecial = array('gibbonSchoolYearTermID' => $values['gibbonSchoolYearTermID']);
+                $sqlSpecial = 'SELECT date, type, name FROM gibbonSchoolYearSpecialDay WHERE gibbonSchoolYearTermID=:gibbonSchoolYearTermID ORDER BY date';
+                $resultSpecial = $connection2->prepare($sqlSpecial);
+                $resultSpecial->execute($dataSpecial);
 
                 $specialDays = $resultSpecial->fetchAll(\PDO::FETCH_GROUP|\PDO::FETCH_UNIQUE);
 
                 // Get the TT day names
-                
-                    $dataDay = array();
-                    $sqlDay = 'SELECT date, gibbonTTDay.nameShort AS dayName, gibbonTT.nameShort AS ttName FROM gibbonTTDayDate JOIN gibbonTTDay ON (gibbonTTDayDate.gibbonTTDayID=gibbonTTDay.gibbonTTDayID) JOIN gibbonTT ON (gibbonTTDay.gibbonTTID=gibbonTT.gibbonTTID)';
-                    $resultDay = $connection2->prepare($sqlDay);
-                    $resultDay->execute($dataDay);
+                $dataDay = array();
+                $sqlDay = 'SELECT date, gibbonTTDay.nameShort AS dayName, gibbonTT.nameShort AS ttName, color, fontColor FROM gibbonTTDayDate JOIN gibbonTTDay ON (gibbonTTDayDate.gibbonTTDayID=gibbonTTDay.gibbonTTDayID) JOIN gibbonTT ON (gibbonTTDay.gibbonTTID=gibbonTT.gibbonTTID)';
+                $resultDay = $connection2->prepare($sqlDay);
+                $resultDay->execute($dataDay);
 
                 $ttDays = $resultDay->fetchAll(\PDO::FETCH_GROUP);
 
 				//Check which days are school days
-                
-                    $dataDays = array();
-                    $sqlDays = "SELECT nameShort, schoolDay FROM gibbonDaysOfWeek";
-                    $resultDays = $connection2->prepare($sqlDays);
-                    $resultDays->execute($dataDays);
+                $dataDays = array();
+                $sqlDays = "SELECT nameShort, schoolDay FROM gibbonDaysOfWeek";
+                $resultDays = $connection2->prepare($sqlDays);
+                $resultDays->execute($dataDays);
 
                 $days = $resultDays->fetchAll(\PDO::FETCH_KEY_PAIR);
 
@@ -162,13 +157,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/ttDates.ph
 
                     // $column = $row->addColumn();
                     // $column->addContent()->addClass('textCenter');
-                    $row->addCheckbox('checkall'.$dowShort.$values['nameShort'])->prepend(__($dowLong).'<br/>')->append($script)->alignCenter();
+                    $row->addCheckbox('checkall'.$dowShort.$values['nameShort'])->prepend(__($dowLong).'<br/>')->append($script)->alignCenter()->addClass('sticky top-0 z-10');
                 }
 
                 for ($i = $startDayStamp; $i <= $endDayStamp;$i = strtotime('+1 day', $i)) {
                     $date = date('Y-m-d', $i);
                     $dayOfWeek = date('D', $i);
-                    $formattedDate = date($_SESSION[$guid]['i18n']['dateFormatPHP'], $i);
+                    $formattedDate = date($session->get('i18n')['dateFormatPHP'], $i);
 
                     if ($dayOfWeek == 'Mon') {
                         $row = $table->addRow();
@@ -193,12 +188,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/ttDates.ph
 
                             $column->addCheckbox('dates[]')->setValue($i)->setClass($dayOfWeek.$values['nameShort'])->alignCenter();
 
-                            $column->addContent("<br/><a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.$_SESSION[$guid]['module']."/ttDates_edit.php&gibbonSchoolYearID=$gibbonSchoolYearID&dateStamp=".$i."'><img style='margin-top: 3px' title='".__('Edit')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/config.png'/></a><br/>");
+                            $column->addContent("<br/><a href='".$session->get('absoluteURL').'/index.php?q=/modules/'.$session->get('module')."/ttDates_edit.php&gibbonSchoolYearID=$gibbonSchoolYearID&dateStamp=".$i."'><img style='margin-top: 3px' title='".__('Edit')."' src='./themes/".$session->get('gibbonThemeName')."/img/config.png'/></a><br/>");
 
                             if (isset($ttDays[$date])) {
                                 foreach ($ttDays[$date] as $day) {
-                                    $column->addContent($day['ttName'].' '.$day['dayName'])->wrap('<b>', '</b>');
+                                    if (empty($day['color'])) {
+                                        $column->addContent($day['ttName'].' '.$day['dayName'])->wrap('<b>', '</b>');
+                                    }
+                                    else {
+                                        $column->addContent($day['ttName'].' '.$day['dayName'])->wrap('<div class=\'h-8\'style=\'background-color: '.$day['color'].'; color: '.$day['fontColor'].'\'><b>', '</b></div>');
+                                    }
+
                                 }
+                                $column->addClass('success');
                             }
                         }
                     }
@@ -210,8 +212,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/ttDates.ph
 
             $data= array('gibbonSchoolYearID' => $gibbonSchoolYearID);
             $sql = "SELECT gibbonTTDay.gibbonTTDayID as value, CONCAT(gibbonTT.name, ': ', gibbonTTDay.nameShort) as name
-                    FROM gibbonTTDay 
-                    JOIN gibbonTT ON (gibbonTTDay.gibbonTTID=gibbonTT.gibbonTTID) 
+                    FROM gibbonTTDay
+                    JOIN gibbonTT ON (gibbonTTDay.gibbonTTID=gibbonTT.gibbonTTID)
                     WHERE gibbonTT.gibbonSchoolYearID=:gibbonSchoolYearID ORDER BY gibbonTT.name, gibbonTTDay.name";
 
             $table = $form->addRow()->addTable()->setClass('fullWidth smallIntBorder');
@@ -219,10 +221,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/ttDates.ph
                 $row->addLabel('gibbonTTDayID', __('Day'));
                 $row->addSelect('gibbonTTDayID')->fromQuery($pdo, $sql, $data)->addClass('mediumWidth');
 
+            $row = $table->addRow();
+                $row->addLabel('overwrite', __('Overwrite'))->description(__('Should existing timetable days be replaced by the new ones?'));
+                $row->addCheckbox('overwrite')->setValue('Y')->checked('N');
+
             $row = $table->addRow()->addClass('right');
                 $row->addContent();
                 $row->addSubmit();
-            
+
             echo $form->getOutput();
         }
     }

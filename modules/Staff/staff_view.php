@@ -62,7 +62,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view.php') == 
         ->filterBy('biographicalGrouping', $urlParams['grouping'])
         ->filterBy('all', $urlParams['allStaff'])
         ->pageSize(!empty($viewMode) ? 0 : 50)
-        ->fromPOST();
+        ->fromPOST('staffDirectory');
 
     // FILTERS
     if (empty($viewMode)) {
@@ -72,12 +72,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view.php') == 
             $page->breadcrumbs->add(__('Staff Directory'));
         }
 
-        $form = Form::create('filters', $_SESSION[$guid]['absoluteURL'].'/index.php', 'get');
+        $form = Form::create('filters', $session->get('absoluteURL').'/index.php', 'get');
         $form->setTitle(__('Search'));
 
         $form->setClass('noIntBorder fullWidth');
 
-        $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+        $form->addHiddenValue('address', $session->get('address'));
         $form->addHiddenValue('q', '/modules/Staff/staff_view.php');
         $form->addHiddenValue('sidebar', $directoryView ? 'false' : '');
         $form->addHiddenValue('view', $urlParams['view']);
@@ -235,11 +235,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view.php') == 
             }
             $table->addColumn('jobTitle', __('Job Title'))
                 ->context('primary')
-                ->description(__('Roll Group'))
+                ->description(__('Form Group'))
                 ->sortable(['jobTitle', 'gibbonPerson.surname', 'gibbonPerson.preferredName'])
                 ->format(function ($person) {
                     return (!empty($person['jobTitle']) ? $person['jobTitle'] : '').'<br/>'.
-                        (!empty($person['rollGroupName']) ? Format::small($person['rollGroupName']) : '');
+                        (!empty($person['formGroupName']) ? Format::small($person['formGroupName']) : '');
                 });
         }
 

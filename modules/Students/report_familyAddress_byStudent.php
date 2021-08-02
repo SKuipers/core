@@ -45,14 +45,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_familyAddr
     if (empty($viewMode)) {
         $page->breadcrumbs->add(__('Family Address by Student'));
 
-        $form = Form::create('action', $_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Students/report_familyAddress_byStudent.php");
+        $form = Form::create('action', $session->get('absoluteURL')."/index.php?q=/modules/Students/report_familyAddress_byStudent.php");
         $form->setTitle(__('Choose Students'));
         $form->setFactory(DatabaseFormFactory::create($pdo));
         $form->setClass('noIntBorder fullWidth');
 
         $row = $form->addRow();
             $row->addLabel('gibbonPersonID', __('Students'));
-            $row->addSelectStudent('gibbonPersonID', $gibbonSchoolYearID, array("allStudents" => false, "byName" => true, "byRoll" => true))
+            $row->addSelectStudent('gibbonPersonID', $gibbonSchoolYearID, array("allStudents" => false, "byName" => true, "byForm" => true))
                 ->isRequired()
                 ->selectMultiple()
                 ->selected($choices);

@@ -38,15 +38,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/investiga
     } else {
         $page->breadcrumbs->add(__('Manage Investigations'));
 
-        if (isset($_GET['return'])) {
-            returnProcess($guid, $_GET['return'], null, null);
-        }
-
         $gibbonPersonID = $_GET['gibbonPersonID'] ?? '';
-        $gibbonRollGroupID = $_GET['gibbonRollGroupID'] ?? '';
+        $gibbonFormGroupID = $_GET['gibbonFormGroupID'] ?? '';
         $gibbonYearGroupID = $_GET['gibbonYearGroupID'] ?? '';
 
-        $form = Form::create('filter', $_SESSION[$guid]['absoluteURL'].'/index.php', 'get');
+        $form = Form::create('filter', $session->get('absoluteURL').'/index.php', 'get');
         $form->setTitle(__('Filter'));
         $form->setClass('noIntBorder fullWidth');
         $form->setFactory(DatabaseFormFactory::create($pdo));
@@ -55,11 +51,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/investiga
 
         $row = $form->addRow();
             $row->addLabel('gibbonPersonID', __('Student'));
-            $row->addSelectStudent('gibbonPersonID', $_SESSION[$guid]['gibbonSchoolYearID'])->selected($gibbonPersonID)->placeholder();
+            $row->addSelectStudent('gibbonPersonID', $session->get('gibbonSchoolYearID'))->selected($gibbonPersonID)->placeholder();
 
         $row = $form->addRow();
-            $row->addLabel('gibbonRollGroupID', __('Roll Group'));
-            $row->addSelectRollGroup('gibbonRollGroupID', $_SESSION[$guid]['gibbonSchoolYearID'])->selected($gibbonRollGroupID)->placeholder();
+            $row->addLabel('gibbonFormGroupID', __('Form Group'));
+            $row->addSelectFormGroup('gibbonFormGroupID', $session->get('gibbonSchoolYearID'))->selected($gibbonFormGroupID)->placeholder();
 
         $row = $form->addRow();
             $row->addLabel('gibbonYearGroupID', __('Year Group'));
@@ -74,7 +70,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/investiga
         $criteria = $investigationGateway->newQueryCriteria()
             ->sortBy('date', 'DESC')
             ->filterBy('student', $gibbonPersonID)
-            ->filterBy('rollGroup', $gibbonRollGroupID)
+            ->filterBy('formGroup', $gibbonFormGroupID)
             ->filterBy('yearGroup', $gibbonYearGroupID)
             ->fromPOST();
 
@@ -82,9 +78,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/investiga
         $criteria2 = $contributionsGateway->newQueryCriteria();
 
         if ($highestAction == 'Manage Investigations_all') {
-            $records = $investigationGateway->queryInvestigations($criteria, $_SESSION[$guid]['gibbonSchoolYearID']);
+            $records = $investigationGateway->queryInvestigations($criteria, $session->get('gibbonSchoolYearID'));
         } else if ($highestAction == 'Manage Investigations_my') {
-            $records = $investigationGateway->queryInvestigations($criteria, $_SESSION[$guid]['gibbonSchoolYearID'], $_SESSION[$guid]['gibbonPersonID']);
+            $records = $investigationGateway->queryInvestigations($criteria, $session->get('gibbonSchoolYearID'), $session->get('gibbonPersonID'));
         } else {
             return;
         }
@@ -96,7 +92,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/investiga
         $table->addHeaderAction('add', __('Add'))
             ->setURL('/modules/Individual Needs/investigations_manage_add.php')
             ->addParam('gibbonPersonID', $gibbonPersonID)
-            ->addParam('gibbonRollGroupID', $gibbonRollGroupID)
+            ->addParam('gibbonFormGroupID', $gibbonFormGroupID)
             ->addParam('gibbonYearGroupID', $gibbonYearGroupID)
             ->displayLabel();
 
@@ -147,13 +143,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/investiga
             });
 
         $table->addColumn('student', __('Student'))
-            ->description(__('Roll Group'))
+            ->description(__('Form Group'))
             ->sortable(['student.surname', 'student.preferredName'])
             ->width('25%')
             ->format(function ($person) {
                 $url = './index.php?q=/modules/Students/student_view_details.php&gibbonPersonID='.$person['gibbonPersonID'].'&subpage=Individual Needs&search=&allStudents=&sort=surname,preferredName';
                 return '<b>'.Format::link($url, Format::name('', $person['preferredName'], $person['surname'], 'Student', true)).'</b>'
-                      .'<br/><small><i>'.$person['rollGroup'].'</i></small>';
+                      .'<br/><small><i>'.$person['formGroup'].'</i></small>';
             });
 
         $table->addColumn('date', __('Date'))
@@ -170,7 +166,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/investiga
 
         $table->addActionColumn()
             ->addParam('gibbonPersonID', $gibbonPersonID)
-            ->addParam('gibbonRollGroupID', $gibbonRollGroupID)
+            ->addParam('gibbonFormGroupID', $gibbonFormGroupID)
             ->addParam('gibbonYearGroupID', $gibbonYearGroupID)
             ->addParam('gibbonINInvestigationID')
             ->format(function ($person, $actions) use ($highestAction) {

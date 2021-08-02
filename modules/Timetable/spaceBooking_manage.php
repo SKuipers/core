@@ -35,10 +35,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable/spaceBooking_man
         //Proceed!
         $page->breadcrumbs->add(__('Manage Facility Bookings'));
 
-        if (isset($_GET['return'])) {
-            returnProcess($guid, $_GET['return'], null, null);
-        }
-
         if ($highestAction == 'Manage Facility Bookings_allBookings') {
             echo '<p>'.__('This page allows you to create facility and library bookings, whilst managing bookings created by all users. Only current and future bookings are shown: past bookings are hidden.').'</p>';
         } else {
@@ -54,7 +50,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable/spaceBooking_man
         if ($highestAction == 'Manage Facility Bookings_allBookings') {
             $facilityBookings = $facilityBookingGateway->queryFacilityBookings($criteria);
         } else {
-            $facilityBookings = $facilityBookingGateway->queryFacilityBookings($criteria, $_SESSION[$guid]['gibbonPersonID']);
+            $facilityBookings = $facilityBookingGateway->queryFacilityBookings($criteria, $session->get('gibbonPersonID'));
         }
 
         // DATA TABLE
@@ -67,9 +63,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable/spaceBooking_man
         $table->addColumn('date', __('Date'))
             ->format(Format::using('date', 'date'));
         $table->addColumn('name', __('Facility'))
-            ->format(function($row) use ($guid) {
+            ->format(function($row) use ($session) {
                 if ($row['foreignKey']=='gibbonSpaceID') {
-                    $output = Format::link($_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Timetable/tt_space_view.php&gibbonSpaceID='.str_pad($row['foreignKeyID'], 10, '0', STR_PAD_LEFT).'&ttDate='.dateConvertBack($guid, $row['date']), $row['name']);
+                    $output = Format::link($session->get('absoluteURL').'/index.php?q=/modules/Timetable/tt_space_view.php&gibbonSpaceID='.str_pad($row['foreignKeyID'], 10, '0', STR_PAD_LEFT).'&ttDate='.Format::date($row['date']), $row['name']);
                 } else {
                     $output = $row['name'];
                 }

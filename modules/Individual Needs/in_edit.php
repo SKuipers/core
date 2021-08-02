@@ -18,11 +18,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
-use Gibbon\Forms\DatabaseFormFactory;
-use Gibbon\Services\Format;
-use Gibbon\Domain\IndividualNeeds\INAssistantGateway;
-use Gibbon\Tables\DataTable;
 use Gibbon\Domain\DataSet;
+use Gibbon\Services\Format;
+use Gibbon\Tables\DataTable;
+use Gibbon\Forms\CustomFieldHandler;
+use Gibbon\Forms\DatabaseFormFactory;
+use Gibbon\Domain\System\CustomFieldGateway;
+use Gibbon\Domain\IndividualNeeds\INAssistantGateway;
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -54,13 +56,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/in_edit.p
                 ->add(__('Edit Individual Needs Record'));
         }
 
-        if (isset($_GET['return'])) {
-            returnProcess($guid, $_GET['return']);
-        }
 
-        
-            $data = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'gibbonPersonID' => $gibbonPersonID);
-            $sql = "SELECT gibbonPerson.gibbonPersonID, gibbonStudentEnrolmentID, surname, preferredName, gibbonYearGroup.name AS yearGroup, gibbonRollGroup.nameShort AS rollGroup, dateStart, dateEnd, image_240 FROM gibbonPerson, gibbonStudentEnrolment, gibbonYearGroup, gibbonRollGroup WHERE (gibbonPerson.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID) AND (gibbonStudentEnrolment.gibbonYearGroupID=gibbonYearGroup.gibbonYearGroupID) AND (gibbonStudentEnrolment.gibbonRollGroupID=gibbonRollGroup.gibbonRollGroupID) AND gibbonRollGroup.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonPerson.gibbonPersonID=:gibbonPersonID AND gibbonPerson.status='Full' ORDER BY surname, preferredName";
+            $data = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'gibbonPersonID' => $gibbonPersonID);
+            $sql = "SELECT gibbonPerson.gibbonPersonID, gibbonStudentEnrolmentID, surname, preferredName, gibbonYearGroup.name AS yearGroup, gibbonFormGroup.nameShort AS formGroup, dateStart, dateEnd, image_240 FROM gibbonPerson, gibbonStudentEnrolment, gibbonYearGroup, gibbonFormGroup WHERE (gibbonPerson.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID) AND (gibbonStudentEnrolment.gibbonYearGroupID=gibbonYearGroup.gibbonYearGroupID) AND (gibbonStudentEnrolment.gibbonFormGroupID=gibbonFormGroup.gibbonFormGroupID) AND gibbonFormGroup.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonPerson.gibbonPersonID=:gibbonPersonID AND gibbonPerson.status='Full' ORDER BY surname, preferredName";
             $result = $connection2->prepare($sql);
             $result->execute($data);
 
@@ -75,16 +73,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/in_edit.p
             $source = isset($_GET['source'])? $_GET['source'] : null;
             $gibbonINDescriptorID = isset($_GET['gibbonINDescriptorID'])? $_GET['gibbonINDescriptorID'] : null;
             $gibbonAlertLevelID = isset($_GET['gibbonAlertLevelID'])? $_GET['gibbonAlertLevelID'] : null;
-            $gibbonRollGroupID = isset($_GET['gibbonRollGroupID'])? $_GET['gibbonRollGroupID'] : null;
+            $gibbonFormGroupID = isset($_GET['gibbonFormGroupID'])? $_GET['gibbonFormGroupID'] : null;
             $gibbonYearGroupID = isset($_GET['gibbonYearGroupID'])? $_GET['gibbonYearGroupID'] : null;
 
             if ($search != '' and $source == '') {
                 echo "<div class='linkTop'>";
-                echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Individual Needs/in_view.php&search='.$search."'>".__('Back to Search Results').'</a>';
+                echo "<a href='".$session->get('absoluteURL').'/index.php?q=/modules/Individual Needs/in_view.php&search='.$search."'>".__('Back to Search Results').'</a>';
                 echo '</div>';
-            } elseif (($gibbonINDescriptorID != '' or $gibbonAlertLevelID != '' or $gibbonRollGroupID != '' or $gibbonYearGroupID != '') and $source == 'summary') {
+            } elseif (($gibbonINDescriptorID != '' or $gibbonAlertLevelID != '' or $gibbonFormGroupID != '' or $gibbonYearGroupID != '') and $source == 'summary') {
                 echo "<div class='linkTop'>";
-                echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Individual Needs/in_summary.php&gibbonINDescriptorID='.$gibbonINDescriptorID.'&gibbonAlertLevelID='.$gibbonAlertLevelID.'&=gibbonRollGroupID'.$gibbonRollGroupID.'&gibbonYearGroupID='.$gibbonYearGroupID."'>".__('Back to Search Results').'</a>';
+                echo "<a href='".$session->get('absoluteURL').'/index.php?q=/modules/Individual Needs/in_summary.php&gibbonINDescriptorID='.$gibbonINDescriptorID.'&gibbonAlertLevelID='.$gibbonAlertLevelID.'&=gibbonFormGroupID'.$gibbonFormGroupID.'&gibbonYearGroupID='.$gibbonYearGroupID."'>".__('Back to Search Results').'</a>';
                 echo '</div>';
             }
 
@@ -112,13 +110,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/in_edit.p
                     $archivedIEP = $archivedIEPs[$gibbonINArchiveID];
                 }
 
-                $archiveOptions = array_map(function($item) use ($guid) {
-                    return $item['archiveTitle'].' ('.dateConvertBack($guid, substr($item['archiveTimestamp'], 0, 10)).')';
+                $archiveOptions = array_map(function($item) {
+                    return $item['archiveTitle'].' ('.Format::date(substr($item['archiveTimestamp'], 0, 10)).')';
                 }, $archivedIEPs);
 
-                $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.$_SESSION[$guid]['module']."/in_edit.php&gibbonPersonID=$gibbonPersonID&search=$search&source=$source&gibbonINDescriptorID=$gibbonINDescriptorID&gibbonAlertLevelID=$gibbonAlertLevelID&gibbonRollGroupID=$gibbonRollGroupID&gibbonYearGroupID=$gibbonYearGroupID");
+                $form = Form::create('action', $session->get('absoluteURL').'/index.php?q=/modules/'.$session->get('module')."/in_edit.php&gibbonPersonID=$gibbonPersonID&search=$search&source=$source&gibbonINDescriptorID=$gibbonINDescriptorID&gibbonAlertLevelID=$gibbonAlertLevelID&gibbonFormGroupID=$gibbonFormGroupID&gibbonYearGroupID=$gibbonYearGroupID");
                 $form->setClass('blank fullWidth');
-                $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+                $form->addHiddenValue('address', $session->get('address'));
 
                 $col = $form->addRow()->addColumn()->addClass('flex justify-end items-center');
                     $col->addLabel('gibbonINArchiveID', __('Archived Plans'))->addClass('mr-1');
@@ -135,22 +133,22 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/in_edit.p
             }
 
             echo "<div class='linkTop'>";
-            echo "<a href='".$_SESSION[$guid]['absoluteURL']."/report.php?q=/modules/Individual Needs/in_edit_print.php&gibbonPersonID=$gibbonPersonID&search=$search&source=$source&gibbonINDescriptorID=$gibbonINDescriptorID&gibbonAlertLevelID=$gibbonAlertLevelID&gibbonRollGroupID=$gibbonRollGroupID&gibbonYearGroupID=$gibbonYearGroupID'>".__('Print').'<img style="margin-left: 5px" title="'.__('Print').'" src="./themes/'.$_SESSION[$guid]['gibbonThemeName'].'/img/print.png"/></a>';
+            echo "<a href='".$session->get('absoluteURL')."/report.php?q=/modules/Individual Needs/in_edit_print.php&gibbonPersonID=$gibbonPersonID&search=$search&source=$source&gibbonINDescriptorID=$gibbonINDescriptorID&gibbonAlertLevelID=$gibbonAlertLevelID&gibbonRollGroupID=$gibbonRollGroupID&gibbonYearGroupID=$gibbonYearGroupID'>".__('Print').'<img style="margin-left: 5px" title="'.__('Print').'" src="./themes/'.$session->get('gibbonThemeName').'/img/print.png"/></a>';
             echo '</div>';
             
             // DISPLAY STUDENT DATA
             $table = DataTable::createDetails('personal');
             $table->addColumn('name', __('Name'))->format(Format::using('name', ['', 'preferredName', 'surname', 'Student', 'true']));
                         $table->addColumn('yearGroup', __('Year Group'));
-                        $table->addColumn('rollGroup', __('Roll Group'));
+                        $table->addColumn('formGroup', __('Form Group'));
 
             echo $table->render([$student]);
 
-            $form = Form::create('individualNeeds', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/in_editProcess.php?gibbonPersonID=$gibbonPersonID&search=$search&source=$source&gibbonINDescriptorID=$gibbonINDescriptorID&gibbonAlertLevelID=$gibbonAlertLevelID&gibbonRollGroupID=$gibbonRollGroupID&gibbonYearGroupID=$gibbonYearGroupID");
+            $form = Form::create('individualNeeds', $session->get('absoluteURL').'/modules/'.$session->get('module')."/in_editProcess.php?gibbonPersonID=$gibbonPersonID&search=$search&source=$source&gibbonINDescriptorID=$gibbonINDescriptorID&gibbonAlertLevelID=$gibbonAlertLevelID&gibbonFormGroupID=$gibbonFormGroupID&gibbonYearGroupID=$gibbonYearGroupID");
 
             $form->setFactory(DatabaseFormFactory::create($pdo));
             $form->setClass('w-full blank');
-            $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+            $form->addHiddenValue('address', $session->get('address'));
             $form->addHiddenValue('gibbonPersonID', $gibbonPersonID);
 
             // IN STATUS TABLE - TODO: replace this with OO
@@ -165,11 +163,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/in_edit.p
             } else {
                 $form->addRow()->addAlert(__('Your request failed due to a database error.'), 'error');
             }
-            
+
             // LIST EDUCATIONAL ASSISTANTS
             if (empty($gibbonINArchiveID)) {
                 $form->addRow()->addSubheading(__('Educational Assistants'))->setClass('mt-4 mb-2');
-                
+
                 if (!empty($educationalAssistants)) {
                     $table = $form->addRow()->addTable()->addClass('smallIntBorder fullWidth colorOddEven');
                     $header = $table->addHeaderRow();
@@ -185,8 +183,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/in_edit.p
                             $row->addContent($ea['comment']);
 
                         if ($highestAction == 'Individual Needs Records_viewEdit') {
-                            $row->addWebLink('<img title="'.__('Delete').'" src="./themes/'.$_SESSION[$guid]['gibbonThemeName'].'/img/garbage.png"/></a>')
-                                ->setURL($_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/in_edit_assistant_deleteProcess.php')
+                            $row->addWebLink('<img title="'.__('Delete').'" src="./themes/'.$session->get('gibbonThemeName').'/img/garbage.png"/></a>')
+                                ->setURL($session->get('absoluteURL').'/modules/'.$session->get('module').'/in_edit_assistant_deleteProcess.php')
                                 ->addParam('address', $_GET['q'])
                                 ->addParam('gibbonPersonIDAssistant', $ea['gibbonPersonIDAssistant'])
                                 ->addParam('gibbonPersonIDStudent', $gibbonPersonID)
@@ -214,9 +212,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/in_edit.p
             }
 
             // DISPLAY AND EDIT IEP
-            $form->addRow()->addSubheading(__('Individual Education Plan'))->setClass('mt-4 mb-2');
+           
 
-            $table = $form->addRow()->addTable()->setClass('smallIntBorder fullWidth');
+            $table = $form->addRow()->addTable()->setClass('smallIntBorder fullWidth mt-2');
+
+            $table->addRow()->addHeading(__('Individual Education Plan'))->setClass('mt-4 mb-2');
 
             if (!empty($gibbonINArchiveID)) {
                 // ARCHIVED IEP
@@ -231,6 +231,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/in_edit.p
                 $col = $table->addRow()->addColumn();
                     $col->addContent(__('Notes & Review'))->wrap('<strong style="font-size: 135%;">', '</strong>');
                     $col->addContent($archivedIEP['notes'])->wrap('<p>', '</p>');
+
+                // CUSTOM FIELDS
+                $container->get(CustomFieldHandler::class)->addCustomFieldsToForm($form, 'Individual Needs', ['table' => $table, 'readonly' => true], $archivedIEP['fields']);
             } else {
                 if (empty($IEP)) { // New record, get templates if they exist
                     $IEP['targets'] = getSettingByScope($connection2, 'Individual Needs', 'targetsTemplate');
@@ -262,15 +265,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/in_edit.p
                     } else {
                         $col->addContent($IEP['notes'])->wrap('<p>', '</p>');
                     }
+
+                // CUSTOM FIELDS
+                $container->get(CustomFieldHandler::class)->addCustomFieldsToForm($form, 'Individual Needs', ['table' => $table], $IEP['fields'] ?? []);
             }
 
             if (empty($gibbonINArchiveID) && ($highestAction == 'Individual Needs Records_viewEdit' || $highestAction == 'Individual Needs Records_viewContribute')) {
-                $table->addRow()->addSubmit();
+                $form->addRow()->addTable()->setClass('smallIntBorder fullWidth mt-2')->addRow()->addSubmit();
             }
 
             echo $form->getOutput();
         }
     }
     //Set sidebar
-    $_SESSION[$guid]['sidebarExtra'] = getUserPhoto($guid, $student['image_240'] ?? '', 240);
+    $session->set('sidebarExtra', getUserPhoto($guid, $student['image_240'] ?? '', 240));
 }

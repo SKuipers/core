@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
 
@@ -52,19 +54,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable/tt_space_view.ph
                 ->add(__('View Timetable by Facility'), 'tt_space.php')
                 ->add($row['name']);
 
-            if (isset($_GET['return'])) {
-                returnProcess($guid, $_GET['return'], null, null);
-            }
-
             if ($search != '') {
                 echo "<div class='linkTop'>";
-                echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Timetable/tt_space.php&search=$search'>".__('Back to Search Results').'</a>';
+                echo "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/Timetable/tt_space.php&search=$search'>".__('Back to Search Results').'</a>';
                 echo '</div>';
             }
 
             $ttDate = null;
             if (isset($_REQUEST['ttDate'])) {
-                $date = dateConvert($guid, $_REQUEST['ttDate']);
+                $date = Format::dateConvert($_REQUEST['ttDate']);
                 $ttDate = strtotime('last Sunday +1 day', strtotime($date));
             }
 
@@ -72,12 +70,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable/tt_space_view.ph
                 if ($_POST['fromTT'] == 'Y') {
                     if (isset($_POST['spaceBookingCalendar'])) {
                         if ($_POST['spaceBookingCalendar'] == 'on' or $_POST['spaceBookingCalendar'] == 'Y') {
-                            $_SESSION[$guid]['viewCalendarSpaceBooking'] = 'Y';
+                            $session->set('viewCalendarSpaceBooking', 'Y');
                         } else {
-                            $_SESSION[$guid]['viewCalendarSpaceBooking'] = 'N';
+                            $session->set('viewCalendarSpaceBooking', 'N');
                         }
                     } else {
-                        $_SESSION[$guid]['viewCalendarSpaceBooking'] = 'N';
+                        $session->set('viewCalendarSpaceBooking', 'N');
                     }
                 }
             }

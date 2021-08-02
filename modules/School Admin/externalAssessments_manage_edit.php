@@ -34,10 +34,6 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/externalAsses
         ->add(__('Manage External Assessments'), 'externalAssessments_manage.php')
         ->add(__('Edit External Assessment'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     //Check if school year specified
     $gibbonExternalAssessmentID = $_GET['gibbonExternalAssessmentID'];
     if ($gibbonExternalAssessmentID == '') {
@@ -55,9 +51,9 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/externalAsses
             //Let's go!
             $values = $result->fetch();
 
-            $form = Form::create('externalAssessmentEdit', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/externalAssessments_manage_editProcess.php?gibbonExternalAssessmentID='.$gibbonExternalAssessmentID);
+            $form = Form::create('externalAssessmentEdit', $session->get('absoluteURL').'/modules/'.$session->get('module').'/externalAssessments_manage_editProcess.php?gibbonExternalAssessmentID='.$gibbonExternalAssessmentID);
 
-            $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+            $form->addHiddenValue('address', $session->get('address'));
             $form->addHiddenValue('gibbonExternalAssessmentID', $gibbonExternalAssessmentID);
 
             $row = $form->addRow();

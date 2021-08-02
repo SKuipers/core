@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
 use Gibbon\Comms\NotificationEvent;
 use Gibbon\Comms\NotificationSender;
 use Gibbon\Domain\System\NotificationGateway;
@@ -28,13 +29,11 @@ getSystemSettings($guid, $connection2);
 setCurrentSchoolYear($guid, $connection2);
 
 //Set up for i18n via gettext
-if (isset($_SESSION[$guid]['i18n']['code'])) {
-    if ($_SESSION[$guid]['i18n']['code'] != null) {
-        putenv('LC_ALL='.$_SESSION[$guid]['i18n']['code']);
-        setlocale(LC_ALL, $_SESSION[$guid]['i18n']['code']);
-        bindtextdomain('gibbon', getcwd().'/../i18n');
-        textdomain('gibbon');
-    }
+if (!empty($session->get('i18n')['code'])) {
+    putenv('LC_ALL='.$session->get('i18n')['code']);
+    setlocale(LC_ALL, $session->get('i18n')['code']);
+    bindtextdomain('gibbon', getcwd().'/../i18n');
+    textdomain('gibbon');
 }
 
 //Check for CLI, so this cannot be run through browser
@@ -49,7 +48,7 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
         $partialFail = false;
 
         $userReport = array();
-        $adminReport = array( 'rollGroup' => array(), 'classes' => array() );
+        $adminReport = array( 'classes' => array() );
 
         $enabledByClass = getSettingByScope($connection2, 'Attendance', 'attendanceCLINotifyByClass');
         $additionalUsersList = getSettingByScope($connection2, 'Attendance', 'attendanceCLIAdditionalUsers');
@@ -61,7 +60,7 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
         //Produce array of attendance data for Classes ------------------------------------------------------------------------------------------------------
         if ($enabledByClass == 'Y') {
             try {
-                $data = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'date' => $currentDate, 'time' => date("H:i:s"));
+                $data = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'date' => $currentDate, 'time' => date("H:i:s"));
 
                 // Looks for only courses that are scheduled on the current day and have attendance='Y', also grabs tutor name
                 $sql = "SELECT gibbonCourseClass.gibbonCourseClassID, gibbonCourseClass.name as class, gibbonCourse.name as course, gibbonCourse.nameShort as courseShort,  gibbonCourseClassPerson.gibbonPersonID, gibbonPerson.preferredName, gibbonPerson.surname, (SELECT count(*) FROM gibbonCourseClassPerson JOIN gibbonPerson AS student ON (gibbonCourseClassPerson.gibbonPersonID=student.gibbonPersonID) WHERE role='Student' AND gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID AND student.status='Full' AND (student.dateStart IS NULL OR student.dateStart<=:date) AND (student.dateEnd IS NULL OR student.dateEnd>=:date)) AS studentCount
@@ -141,10 +140,10 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
                     }
 
                     $report .= '<br/><br/>';
-                    $report .= sprintf(__('%1$s classes have not been registered today (%2$s).'), count($adminReport['classes']), dateConvertBack($guid, $currentDate)).'<br/><br/>'.$reportInner;
+                    $report .= sprintf(__('%1$s classes have not been registered today (%2$s).'), count($adminReport['classes']), Format::date($currentDate)).'<br/><br/>'.$reportInner;
                 } else {
                     $report .= '<br/><br/>';
-                    $report .= sprintf(__('All classes have been registered today (%1$s).'), dateConvertBack($guid, $currentDate));
+                    $report .= sprintf(__('All classes have been registered today (%1$s).'), Format::date($currentDate));
                 }
             }
         }
@@ -174,7 +173,7 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
                     }
                 }
 
-                $notificationSender->addNotification($gibbonPersonID, $notificationText, 'Attendance', '/index.php?q=/modules/Attendance/attendance.php&currentDate='.dateConvertBack($guid, date('Y-m-d')));
+                $notificationSender->addNotification($gibbonPersonID, $notificationText, 'Attendance', '/index.php?q=/modules/Attendance/attendance.php&currentDate='.Format::date(date('Y-m-d')));
             }
 
             // Notify Additional Users
@@ -185,7 +184,7 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
                     foreach ($additionalUsers as $gibbonPersonID) {
                         // Confirm that this user still has permission to access these reports
                         try {
-                            $data = array( 'gibbonPersonID' => $gibbonPersonID, 'action1' => '%report_rollGroupsNotRegistered_byDate.php%', 'action2' => '%report_courseClassesNotRegistered_byDate.php%' );
+                            $data = array( 'gibbonPersonID' => $gibbonPersonID, 'action1' => '%report_formGroupsNotRegistered_byDate.php%', 'action2' => '%report_courseClassesNotRegistered_byDate.php%' );
                             $sql = "SELECT gibbonAction.name FROM gibbonAction, gibbonPermission, gibbonRole, gibbonPerson WHERE (gibbonAction.URLList LIKE :action1 OR gibbonAction.URLList LIKE :action2) AND (gibbonAction.gibbonActionID=gibbonPermission.gibbonActionID) AND (gibbonPermission.gibbonRoleID=gibbonRole.gibbonRoleID) AND (gibbonPermission.gibbonRoleID=gibbonPerson.gibbonRoleIDPrimary) AND (gibbonPerson.gibbonPersonID=:gibbonPersonID) AND (gibbonAction.gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Attendance'))";
                             $result = $connection2->prepare($sql);
                             $result->execute($data);
@@ -207,7 +206,7 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
         $event->setActionLink('/index.php?q=/modules/Attendance/report_courseClassesNotRegistered_byDate.php');
 
         // Add admin, then push the event to the notification sender
-        $event->addRecipient($_SESSION[$guid]['organisationAdministrator']);
+        $event->addRecipient($session->get('organisationAdministrator'));
         $event->pushNotifications($notificationGateway, $notificationSender);
 
         // Send all notifications

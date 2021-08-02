@@ -19,9 +19,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 namespace Gibbon\Database;
 
-use Gibbon\Contracts\Database\Connection as ConnectionInterface;
 use PDO;
 use Psr\Log\LoggerInterface;
+use Gibbon\Database\Result;
+use Gibbon\Contracts\Database\Connection as ConnectionInterface;
 
 /**
  * Database Connection.
@@ -103,7 +104,7 @@ class Connection implements ConnectionInterface
      *
      * @param  string  $query
      * @param  array   $bindings
-     * @return array
+     * @return object
      */
     public function select($query, $bindings = [])
     {
@@ -208,7 +209,7 @@ class Connection implements ConnectionInterface
 
         $this->errorMessage = $e->getMessage();
 
-        return new \PDOStatement();
+        return new Result();
     }
 
     /**
@@ -223,7 +224,7 @@ class Connection implements ConnectionInterface
      *
      * @return	\PDOStatement
      */
-    public function executeQuery($data, $query, $error = null)
+    public function executeQuery($data = [], $query = "", $error = null)
     {
         return $this->run($query, $data);
     }

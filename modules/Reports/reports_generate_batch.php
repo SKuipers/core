@@ -34,10 +34,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reports_generate.p
         ->add(__('Run'));
 
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     $gibbonReportID = $_GET['gibbonReportID'] ?? '';
     
     $reportGateway = $container->get(ReportGateway::class);
@@ -74,14 +70,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reports_generate.p
 
     $bulkActions = array(
         'Generate' => __('Generate'),
+        'Delete' => __('Delete'),
     );
 
     $col = $form->createBulkActionColumn($bulkActions);
         $col->addSelect('status')
             ->fromArray(['Draft' => __('Draft'), 'Final' => __('Final')])
             ->required()
-            ->setClass('w-32');
+            ->setClass('status w-32');
         $col->addSubmit(__('Go'));
+
+    $form->toggleVisibilityByClass('status')->onSelect('action')->when('Generate');
 
     // Data TABLE
     $table = $form->addRow()->addDataTable('reportsGenerate', $criteria)->withData($reports);
@@ -132,7 +131,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reports_generate.p
             if (count($reportLogs) == 0) {
                 $actions->addAction('run', __('Run'))
                         ->setIcon('run')
-                        ->isModal(650, 135)
+                        ->isModal(650, 300)
                         ->addParam('contextData', $report['gibbonYearGroupID'])
                         ->setURL('/modules/Reports/reports_generate_batchConfirm.php');
             } else {
@@ -158,7 +157,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reports_generate.p
 <script>
 $('.statusBar').each(function(index, element) {
     var refresh = setInterval(function () {
-        var path = "<?php echo $_SESSION[$guid]['absoluteURL'] ?>/modules/Reports/reports_generate_ajax.php";
+        var path = "<?php echo $session->get('absoluteURL') ?>/modules/Reports/reports_generate_ajax.php";
         var postData = { gibbonLogID: $(element).data('id'), gibbonReportID: $(element).data('report'), contextID: $(element).data('context') };
         $(element).load(path, postData, function(responseText, textStatus, jqXHR) {
             if (responseText.indexOf('Complete') >= 0) {

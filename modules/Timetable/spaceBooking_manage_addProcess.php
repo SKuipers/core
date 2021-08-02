@@ -17,12 +17,14 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+
 include '../../gibbon.php';
 
 //Module includes
 include './moduleFunctions.php';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/spaceBooking_manage_add.php';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/spaceBooking_manage_add.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/Timetable/spaceBooking_manage_add.php') == false) {
     $URL .= '&return=error0';
@@ -35,12 +37,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable/spaceBooking_man
         header("Location: {$URL}");
     } else {
         //Proceed!
-        $foreignKey = $_POST['foreignKey'];
-        $foreignKeyID = $_POST['foreignKeyID'];
-        $dates = $_POST['dates'];
-        $timeStart = $_POST['timeStart'];
-        $timeEnd = $_POST['timeEnd'];
-        $repeat = $_POST['repeat'];
+        $foreignKey = $_POST['foreignKey'] ?? '';
+        $foreignKeyID = $_POST['foreignKeyID'] ?? '';
+        $dates = $_POST['dates'] ?? '';
+        $timeStart = $_POST['timeStart'] ?? '';
+        $timeEnd = $_POST['timeEnd'] ?? '';
+        $repeat = $_POST['repeat'] ?? '';
         $repeatDaily = null;
         $repeatWeekly = null;
         if ($repeat == 'Daily') {
@@ -74,7 +76,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable/spaceBooking_man
                 } else {
                     //Write to database
                     try {
-                        $data = array('foreignKey' => $foreignKey, 'foreignKeyID' => $foreignKeyID, 'date' => $date, 'timeStart' => $timeStart, 'timeEnd' => $timeEnd, 'gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID']);
+                        $data = array('foreignKey' => $foreignKey, 'foreignKeyID' => $foreignKeyID, 'date' => $date, 'timeStart' => $timeStart, 'timeEnd' => $timeEnd, 'gibbonPersonID' => $session->get('gibbonPersonID'));
                         $sql = 'INSERT INTO gibbonTTSpaceBooking SET foreignKey=:foreignKey, foreignKeyID=:foreignKeyID, date=:date, timeStart=:timeStart, timeEnd=:timeEnd, gibbonPersonID=:gibbonPersonID';
                         $result = $connection2->prepare($sql);
                         $result->execute($data);
@@ -87,7 +89,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable/spaceBooking_man
             $successCount = count($dates) - $failCount;
 
             //Unlock locked database tables
-            
+
                 $sql = 'UNLOCK TABLES';
                 $result = $connection2->query($sql);
 
@@ -100,8 +102,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable/spaceBooking_man
             } else {
                 // Redirect back to View Timetable by Facility if we started there
                 if (isset($_POST['source']) && $_POST['source'] == 'tt') {
-                    $ttDate = dateConvertBack($guid, $dates[0]);
-                    $URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Timetable/tt_space_view.php&gibbonSpaceID='.$foreignKeyID.'&ttDate='.$ttDate;
+                    $ttDate = Format::date($dates[0]);
+                    $URL = $session->get('absoluteURL').'/index.php?q=/modules/Timetable/tt_space_view.php&gibbonSpaceID='.$foreignKeyID.'&ttDate='.$ttDate;
                 }
 
                 $URL .= '&return=success0';

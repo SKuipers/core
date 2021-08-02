@@ -28,10 +28,6 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/yearGroup_man
     //Proceed!
     $page->breadcrumbs->add(__('Manage Year Groups'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     $yearGroupGateway = $container->get(YearGroupGateway::class);
 
     // QUERY
@@ -62,7 +58,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/yearGroup_man
     // ACTIONS
     $table->addActionColumn()
         ->addParam('gibbonYearGroupID')
-        ->format(function ($facilities, $actions) use ($guid) {
+        ->format(function ($facilities, $actions) {
             $actions->addAction('edit', __('Edit'))
                     ->setURL('/modules/School Admin/yearGroup_manage_edit.php');
 

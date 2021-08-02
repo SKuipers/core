@@ -37,10 +37,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/archive_manage_upl
         ->add(__('Upload Reports'), 'archive_manage_upload.php')
         ->add(__('Step {number}', ['number' => 2]));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     $gibbonReportArchiveID = $_POST['gibbonReportArchiveID'] ?? '';
     $gibbonSchoolYearID = $_POST['gibbonSchoolYearID'] ?? '';
     $reportIdentifier = $_POST['reportIdentifier'] ?? '';
@@ -165,7 +161,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/archive_manage_upl
             return Format::name('', $person['preferredName'], $person['surname'], 'Student', true)
                    .'<br/>'.Format::small(Format::userStatusInfo($person));
         });
-    $table->addColumn('rollGroup', __('Roll Group'));
+    $table->addColumn('formGroup', __('Form Group'));
     $table->addColumn('username', __('Username'));
     $table->addColumn('filename', __('File Name'));
     $table->addColumn('status', __('Status'))

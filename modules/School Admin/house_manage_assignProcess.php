@@ -19,8 +19,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/School Admin/house_manage_assign.php';
-$URLSuccess = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Students/report_students_byHouse.php';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/School Admin/house_manage_assign.php';
+$URLSuccess = $session->get('absoluteURL').'/index.php?q=/modules/Students/report_students_byHouse.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/house_manage_assign.php') == false) {
     $URL .= '&return=error0';
@@ -29,11 +29,11 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/house_manage_
     //Proceed!
     //Validate Inputs
 
-    $gibbonYearGroupIDList = (isset($_POST['gibbonYearGroupIDList']))? $_POST['gibbonYearGroupIDList'] : '';
-    $gibbonHouseIDList = (isset($_POST['gibbonHouseIDList']))? $_POST['gibbonHouseIDList'] : '';
-    $balanceYearGroup = (isset($_POST['balanceYearGroup']))? $_POST['balanceYearGroup'] : '';
-    $balanceGender = (isset($_POST['balanceGender']))? $_POST['balanceGender'] : '';
-    $overwrite = (isset($_POST['overwrite']))? $_POST['overwrite'] : '';
+    $gibbonYearGroupIDList = $_POST['gibbonYearGroupIDList'] ?? '';
+    $gibbonHouseIDList = $_POST['gibbonHouseIDList'] ?? '';
+    $balanceYearGroup = $_POST['balanceYearGroup'] ?? '';
+    $balanceGender = $_POST['balanceGender'] ?? '';
+    $overwrite = $_POST['overwrite'] ?? '';
 
     if (empty($gibbonYearGroupIDList) || empty($gibbonHouseIDList) || empty($balanceYearGroup) || empty($balanceGender) || empty($overwrite)) {
         $URL .= "&return=error1";
@@ -67,7 +67,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/house_manage_
             } else {
                 // Grab the applicable houses and current totals for this year group (or set of year groups)
                 try {
-                    $data = array('gibbonHouseIDList' => $gibbonHouseIDList, 'gibbonYearGroupIDs' => $gibbonYearGroupIDs, 'gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'today' => date('Y-m-d'));
+                    $data = array('gibbonHouseIDList' => $gibbonHouseIDList, 'gibbonYearGroupIDs' => $gibbonYearGroupIDs, 'gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'today' => date('Y-m-d'));
                     $sql = "SELECT gibbonHouse.gibbonHouseID as groupBy, gibbonHouse.gibbonHouseID, count(gibbonStudentEnrolment.gibbonPersonID) AS total, count(CASE WHEN gibbonPerson.gender='M' THEN gibbonStudentEnrolment.gibbonPersonID END) as totalM, count(CASE WHEN gibbonPerson.gender='F' THEN gibbonStudentEnrolment.gibbonPersonID END) as totalF
                         FROM gibbonHouse
                             LEFT JOIN gibbonPerson ON (gibbonPerson.gibbonHouseID=gibbonHouse.gibbonHouseID
@@ -99,7 +99,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/house_manage_
 
             // Grab the list of students
             try {
-                $data = array('gibbonYearGroupIDs' => $gibbonYearGroupIDs, 'gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'today' => date('Y-m-d'));
+                $data = array('gibbonYearGroupIDs' => $gibbonYearGroupIDs, 'gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'today' => date('Y-m-d'));
                 $sql = "SELECT gibbonStudentEnrolment.gibbonYearGroupID, gibbonPerson.gender, gibbonPerson.gibbonPersonID, gibbonPerson.gibbonHouseID FROM
                         gibbonPerson
                         JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID)

@@ -19,15 +19,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$name = $_POST['name'];
-$nameShort = $_POST['nameShort'];
-$color = $_POST['color'];
-$fontColor = $_POST['fontColor'];
-$gibbonSchoolYearID = $_POST['gibbonSchoolYearID'];
-$gibbonTTID = $_POST['gibbonTTID'];
-$gibbonTTColumnID = $_POST['gibbonTTColumnID'];
+$name = $_POST['name'] ?? '';
+$nameShort = $_POST['nameShort'] ?? '';
+$color = $_POST['color'] ?? '';
+$fontColor = $_POST['fontColor'] ?? '';
+$gibbonSchoolYearID = $_POST['gibbonSchoolYearID'] ?? '';
+$gibbonTTID = $_POST['gibbonTTID'] ?? '';
+$gibbonTTColumnID = $_POST['gibbonTTColumnID'] ?? '';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/tt_edit_day_add.php&gibbonSchoolYearID=$gibbonSchoolYearID&gibbonTTID=$gibbonTTID";
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/tt_edit_day_add.php&gibbonSchoolYearID=$gibbonSchoolYearID&gibbonTTID=$gibbonTTID";
 
 if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/tt_edit_day_add.php') == false) {
     $URL .= '&return=error0';

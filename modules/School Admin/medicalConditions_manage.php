@@ -29,13 +29,11 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/medicalCondit
     //Proceed!
     $page->breadcrumbs->add(__('Manage Medical Conditions'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
+    $form = Form::create('medicalSettings', $session->get('absoluteURL').'/modules/'.$session->get('module').'/medicalConditions_manageProcess.php' );
 
-    $form = Form::create('medicalSettings', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/medicalConditions_manageProcess.php' );
+    $form->setTitle(__('Settings'));
 
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+    $form->addHiddenValue('address', $session->get('address'));
 
     $setting = getSettingByScope($connection2, 'Students', 'medicalConditionIntro', true);
     $col = $form->addRow()->addColumn();
@@ -60,6 +58,8 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/medicalCondit
     // DATA TABLE
     $table = DataTable::createPaginated('medicalConditionsManage', $criteria);
 
+    $table->setTitle(__('Conditions'));
+
     $table->addHeaderAction('add', __('Add'))
         ->setURL('/modules/School Admin/medicalConditions_manage_add.php')
         ->displayLabel();
@@ -70,7 +70,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/medicalCondit
     // ACTIONS
     $table->addActionColumn()
         ->addParam('gibbonMedicalConditionID')
-        ->format(function ($facilities, $actions) use ($guid) {
+        ->format(function ($facilities, $actions) {
             $actions->addAction('edit', __('Edit'))
                     ->setURL('/modules/School Admin/medicalConditions_manage_edit.php');
 

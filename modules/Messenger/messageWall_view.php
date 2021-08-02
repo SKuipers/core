@@ -18,6 +18,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
+use Gibbon\Services\Format;
+use Gibbon\Domain\User\UserGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Messenger/messageWall_view.php') == false) {
     //Acess denied
@@ -25,13 +27,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Messenger/messageWall_view
     echo __('Your request failed because you do not have access to this action.');
     echo '</div>';
 } else {
-    $dateFormat = $_SESSION[$guid]['i18n']['dateFormatPHP'];
+    $dateFormat = $session->get('i18n')['dateFormatPHP'];
     $date = isset($_REQUEST['date'])? $_REQUEST['date'] : date($dateFormat);
 
     $page->breadcrumbs->add(($date === date($dateFormat)) ?
         __('Today\'s Messages').' ('.$date.')' :
         __('View Messages').' ('.$date.')');
 
+    // Update messenger last read timestamp
+    $gibbon->session->set('messengerLastRead', date('Y-m-d H:i:s'));
+    $container->get(UserGateway::class)->update($gibbon->session->get('gibbonPersonID'), ['messengerLastRead' => date('Y-m-d H:i:s')]);
+
+    // Handle attendance student registration message
     if (isset($_GET['return'])) {
         $status = (!empty($_GET['status'])) ? $_GET['status'] : __('Unknown');
         $emailLink = getSettingByScope($connection2, 'System', 'emailLink');
@@ -42,17 +49,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Messenger/messageWall_view
             $suggest = sprintf(__('Why not read the messages below, or %1$scheck your email%2$s?'), "<a target='_blank' href='$emailLink'>", '</a>');
         }
         $suggest = '<b>'.$suggest.'</b>';
-        returnProcess($guid, $_GET['return'], null, array('message0' => sprintf(__('Attendance has been taken for you today. Your current status is: %1$s.'), "<b>".$status."</b>").'<br/><br/>'.$suggest));
+        $page->return->addReturns(['message0' => sprintf(__('Attendance has been taken for you today. Your current status is: %1$s.'), "<b>".$status."</b>").'<br/><br/>'.$suggest]);
+
     }
 
-	$form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.$_SESSION[$guid]['module'].'/messageWall_view.php');
+	$form = Form::create('action', $session->get('absoluteURL').'/index.php?q=/modules/'.$session->get('module').'/messageWall_view.php');
 	$form->setClass('blank fullWidth');
 
-	$form->addHiddenValue('address', $_SESSION[$guid]['address']);
+	$form->addHiddenValue('address', $session->get('address'));
 
 	$row = $form->addRow()->addClass('flex flex-wrap');
 
-	$link = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.$_SESSION[$guid]['module'].'/messageWall_view.php';
+	$link = $session->get('absoluteURL').'/index.php?q=/modules/'.$session->get('module').'/messageWall_view.php';
 	$prevDay = DateTime::createFromFormat($dateFormat, $date)->modify('-1 day')->format($dateFormat);
 	$nextDay = DateTime::createFromFormat($dateFormat, $date)->modify('+1 day')->format($dateFormat);
 
@@ -66,6 +74,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Messenger/messageWall_view
 
 	echo $form->getOutput();
 
-    echo getMessages($guid, $connection2, 'print', dateConvert($guid, $date));
+    echo getMessages($guid, $connection2, 'print', Format::dateConvert($date));
 }
 ?>

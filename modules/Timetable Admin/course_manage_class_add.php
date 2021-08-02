@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
+use Gibbon\Forms\CustomFieldHandler;
 
 if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/course_manage_class_add.php') == false) {
     // Access denied
@@ -33,12 +34,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/course_man
 
     $editLink = '';
     if (isset($_GET['editID'])) {
-        $editLink = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Timetable Admin/course_manage_class_edit.php&gibbonCourseClassID='.$_GET['editID'].'&gibbonCourseID='.$gibbonCourseID.'&gibbonSchoolYearID='.$gibbonSchoolYearID;
+        $editLink = $session->get('absoluteURL').'/index.php?q=/modules/Timetable Admin/course_manage_class_edit.php&gibbonCourseClassID='.$_GET['editID'].'&gibbonCourseID='.$gibbonCourseID.'&gibbonSchoolYearID='.$gibbonSchoolYearID;
     }
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], $editLink, null);
-    }
+    $page->return->setEditLink($editLink);
 
     if ($gibbonSchoolYearID == '' or $gibbonCourseID == '') {
         $page->addError(__('You have not specified one or more required parameters.'));
@@ -56,12 +55,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/course_man
         } else {
 			$values = $result->fetch(); 
 
-			$form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/course_manage_class_addProcess.php');
+			$form = Form::create('action', $session->get('absoluteURL').'/modules/'.$session->get('module').'/course_manage_class_addProcess.php');
 
-			$form->addHiddenValue('address', $_SESSION[$guid]['address']);
+			$form->addHiddenValue('address', $session->get('address'));
 			$form->addHiddenValue('gibbonSchoolYearID', $gibbonSchoolYearID);
 			$form->addHiddenValue('gibbonCourseID', $gibbonCourseID);
 			
+            $row = $form->addRow()->addHeading(__('Basic Details'));
+
 			$row = $form->addRow();
 				$row->addLabel('schoolYearName', __('School Year'));
 				$row->addTextField('schoolYearName')->required()->readonly()->setValue($values['yearName']);
@@ -87,6 +88,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/course_man
 				$row->addLabel('attendance', __('Track Attendance?'))->description(__('Should this class allow attendance to be taken?'));
 				$row->addYesNo('attendance');
 			}
+
+            // Custom Fields
+            $container->get(CustomFieldHandler::class)->addCustomFieldsToForm($form, 'Class', []);
 
 			$row = $form->addRow();
 				$row->addFooter();

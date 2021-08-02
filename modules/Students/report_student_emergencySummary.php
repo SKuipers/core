@@ -36,8 +36,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_student_em
     $viewMode = $_REQUEST['format'] ?? '';
     $choices = $_POST['gibbonPersonID'] ?? [];
     //If $choices is blank, check to see if session is being used to inject gibbonPersonID list
-    if (count($choices) == 0 && !empty($_SESSION[$guid]['report_student_emergencySummary.php_choices'])) {
-        $choices = $_SESSION[$guid]['report_student_emergencySummary.php_choices'];
+    if (count($choices) == 0 && $session->has('report_student_emergencySummary.php_choices')) {
+        $choices = $session->get('report_student_emergencySummary.php_choices');
     }
     $gibbonSchoolYearID = $gibbon->session->get('gibbonSchoolYearID');
 
@@ -56,14 +56,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_student_em
 
         $choices = isset($_POST['gibbonPersonID'])? $_POST['gibbonPersonID'] : array();
 
-        $form = Form::create('action', $_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Students/report_student_emergencySummary.php");
+        $form = Form::create('action', $session->get('absoluteURL')."/index.php?q=/modules/Students/report_student_emergencySummary.php");
         $form->setTitle(__('Choose Students'));
         $form->setFactory(DatabaseFormFactory::create($pdo));
         $form->setClass('noIntBorder fullWidth');
 
         $row = $form->addRow();
             $row->addLabel('gibbonPersonID', __('Students'));
-            $row->addSelectStudent('gibbonPersonID', $_SESSION[$guid]['gibbonSchoolYearID'], array("allStudents" => false, "byName" => true, "byRoll" => true))
+            $row->addSelectStudent('gibbonPersonID', $session->get('gibbonSchoolYearID'), array("allStudents" => false, "byName" => true, "byForm" => true))
                 ->isRequired()
                 ->selectMultiple()
                 ->selected($choices);
@@ -108,11 +108,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_student_em
         ->description(__('Last Update'))
         ->sortable(['gibbonPerson.surname', 'gibbonPerson.preferredName'])
         ->format(function ($student) use ($cutoffDate) {
-            $output = Format::name('', $student['preferredName'], $student['surname'], 'Student', true, true).'<br/><br/>';
+            $output = Format::name('', $student['preferredName'], $student['surname'], 'Student', true, true).'<br/>';
 
             $output .= ($student['lastPersonalUpdate'] < $cutoffDate) ? '<span style="color: #ff0000; font-weight: bold"><i>' : '<span><i>';
             $output .= !empty($student['lastPersonalUpdate']) ? Format::date($student['lastPersonalUpdate']) : __('N/A');
             $output .= '</i></span>';
+
+            $output .= '<br/><br/>';
+            $output .= '<i>'.__('Email').'</i>: '.$student['email'].'<br/>';
+            $output .= Format::phone($student['phone1'], $student['phone1CountryCode'], '<i>'.$student['phone1Type'].'<i>');
 
             return $output;
         });
@@ -124,7 +128,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_student_em
         ->format(function ($student) use ($view) {
             return $view->fetchFromTemplate(
                 'formats/familyContacts.twig.html',
-                ['familyAdults' => $student['familyAdults']]
+                ['familyAdults' => $student['familyAdults'], 'includePhoneNumbers' => true]
             );
         });
 

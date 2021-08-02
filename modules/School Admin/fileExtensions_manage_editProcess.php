@@ -19,8 +19,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$gibbonFileExtensionID = $_GET['gibbonFileExtensionID'];
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/fileExtensions_manage_edit.php&gibbonFileExtensionID='.$gibbonFileExtensionID;
+$gibbonFileExtensionID = $_GET['gibbonFileExtensionID'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/fileExtensions_manage_edit.php&gibbonFileExtensionID='.$gibbonFileExtensionID;
 
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/fileExtensions_manage_edit.php') == false) {
     $URL .= '&return=error0';
@@ -49,8 +49,8 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/fileExtension
         } else {
             //Validate Inputs
             $extension = strtolower($_POST['extension']);
-            $name = $_POST['name'];
-            $type = $_POST['type'];
+            $name = $_POST['name'] ?? '';
+            $type = $_POST['type'] ?? '';
 
             $illegalFileExtensions = Gibbon\FileUploader::getIllegalFileExtensions();
 

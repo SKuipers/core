@@ -20,7 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 include '../../gibbon.php';
 
 $gibbonActivityID = $_GET['gibbonActivityID'];
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/activities_attendance.php&gibbonActivityID=$gibbonActivityID";
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/activities_attendance.php&gibbonActivityID=$gibbonActivityID";
 
 if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_attendanceProcess.php') == false) {
     $URL .= '&return=error0';
@@ -28,7 +28,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_atte
 } else {
     //Proceed!
 
-    $gibbonPersonID = $_POST['gibbonPersonID'];
+    $gibbonPersonID = $_POST['gibbonPersonID'] ?? '';
 
     $highestAction = getHighestGroupedAction($guid, '/modules/Activities/activities_attendance.php', $connection2);
 
@@ -58,8 +58,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_atte
         }
     }
 
-    $sessions = (isset($_POST['sessions'])) ? $_POST['sessions'] : null;
-    $attendance = (isset($_POST['attendance'])) ? $_POST['attendance'] : null;
+    $sessions = $_POST['sessions'] ?? null;
+    $attendance = $_POST['attendance'] ?? null;
 
     if ($gibbonActivityID == '' || $gibbonPersonID == '') {
         $URL .= '&return=error1';

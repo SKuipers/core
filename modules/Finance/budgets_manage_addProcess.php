@@ -21,17 +21,17 @@ include '../../gibbon.php';
 
 include './moduleFunctions.php';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/budgets_manage_add.php';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/budgets_manage_add.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/Finance/budgets_manage_add.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
 } else {
     //Proceed!
-    $name = $_POST['name'];
-    $nameShort = $_POST['nameShort'];
-    $active = $_POST['active'];
-    $category = $_POST['category'];
+    $name = $_POST['name'] ?? '';
+    $nameShort = $_POST['nameShort'] ?? '';
+    $active = $_POST['active'] ?? '';
+    $category = $_POST['category'] ?? '';
 
     if ($name == '' or $nameShort == '' or $active == '' or $category == '') {
         $URL .= '&return=error1';
@@ -55,7 +55,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/budgets_manage_add
         } else {
             //Write to database
             try {
-                $data = array('name' => $name, 'nameShort' => $nameShort, 'active' => $active, 'category' => $category, 'gibbonPersonIDCreator' => $_SESSION[$guid]['gibbonPersonID']);
+                $data = array('name' => $name, 'nameShort' => $nameShort, 'active' => $active, 'category' => $category, 'gibbonPersonIDCreator' => $session->get('gibbonPersonID'));
                 $sql = "INSERT INTO gibbonFinanceBudget SET name=:name, nameShort=:nameShort, active=:active, category=:category, gibbonPersonIDCreator=:gibbonPersonIDCreator, timestampCreator='".date('Y-m-d H:i:s')."'";
                 $result = $connection2->prepare($sql);
                 $result->execute($data);
@@ -64,7 +64,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/budgets_manage_add
                 header("Location: {$URL}");
                 exit();
             }
-            
+
             $AI = $connection2->lastInsertID();
 
             //Scan through staff
@@ -80,7 +80,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/budgets_manage_add
             if (count($staff) > 0) {
                 foreach ($staff as $t) {
                     //Check to see if person is already registered in this budget
-                    
+
                         $dataGuest = array('gibbonPersonID' => $t, 'gibbonFinanceBudgetID' => $AI);
                         $sqlGuest = 'SELECT * FROM gibbonFinanceBudgetPerson WHERE gibbonPersonID=:gibbonPersonID AND gibbonFinanceBudgetID=:gibbonFinanceBudgetID';
                         $resultGuest = $connection2->prepare($sqlGuest);

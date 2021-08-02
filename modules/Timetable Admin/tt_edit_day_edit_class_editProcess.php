@@ -19,23 +19,23 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$gibbonTTDayID = $_GET['gibbonTTDayID'];
-$gibbonTTID = $_GET['gibbonTTID'];
-$gibbonSchoolYearID = $_GET['gibbonSchoolYearID'];
-$gibbonTTColumnRowID = $_GET['gibbonTTColumnRowID'];
-$gibbonCourseClassID = $_GET['gibbonCourseClassID'];
-$gibbonTTDayRowClassID = $_GET['gibbonTTDayRowClassID'];
+$gibbonTTDayID = $_GET['gibbonTTDayID'] ?? '';
+$gibbonTTID = $_GET['gibbonTTID'] ?? '';
+$gibbonSchoolYearID = $_GET['gibbonSchoolYearID'] ?? '';
+$gibbonTTColumnRowID = $_GET['gibbonTTColumnRowID'] ?? '';
+$gibbonCourseClassID = $_GET['gibbonCourseClassID'] ?? '';
+$gibbonTTDayRowClassID = $_GET['gibbonTTDayRowClassID'] ?? '';
 
 if ($gibbonTTDayID == '' or $gibbonTTID == '' or $gibbonSchoolYearID == '' or $gibbonTTColumnRowID == '' or $gibbonCourseClassID == '') { echo 'Fatal error loading this page!';
 } else {
-    $URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/tt_edit_day_edit_class_edit.php&gibbonTTDayID=$gibbonTTDayID&gibbonTTID=$gibbonTTID&gibbonSchoolYearID=$gibbonSchoolYearID&gibbonTTColumnRowID=$gibbonTTColumnRowID&gibbonTTDayRowClassID=$gibbonTTDayRowClassID&gibbonCourseClassID=$gibbonCourseClassID";
+    $URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/tt_edit_day_edit_class_edit.php&gibbonTTDayID=$gibbonTTDayID&gibbonTTID=$gibbonTTID&gibbonSchoolYearID=$gibbonSchoolYearID&gibbonTTColumnRowID=$gibbonTTColumnRowID&gibbonTTDayRowClassID=$gibbonTTDayRowClassID&gibbonCourseClassID=$gibbonCourseClassID";
 
     if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/tt_edit_day_edit_class_edit.php') == false) {
         $URL .= '&return=error0';
         header("Location: {$URL}");
     } else {
         //Proceed!
-        $gibbonSpaceID = $_POST['gibbonSpaceID'];
+        $gibbonSpaceID = !empty($_POST['gibbonSpaceID']) ? $_POST['gibbonSpaceID'] : null;
 
         //Check if school year specified
         if ($gibbonTTDayID == '') {

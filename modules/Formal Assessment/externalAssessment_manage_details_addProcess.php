@@ -17,22 +17,21 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+
 include '../../gibbon.php';
 
 $count = 0;
 if (is_numeric($_POST['count'])) {
     $count = $_POST['count'];
 }
-$gibbonPersonID = $_POST['gibbonPersonID'];
-$gibbonExternalAssessmentID = $_POST['gibbonExternalAssessmentID'];
-$date = dateConvert($guid, $_POST['date']);
-$search = $_GET['search'];
-$allStudents = '';
-if (isset($_GET['allStudents'])) {
-    $allStudents = $_GET['allStudents'];
-}
+$gibbonPersonID = $_POST['gibbonPersonID'] ?? '';
+$gibbonExternalAssessmentID = $_POST['gibbonExternalAssessmentID'] ?? '';
+$date = !empty($_POST['date']) ? Format::dateConvert($_POST['date']) : null;
+$search = $_GET['search'] ?? '';
+$allStudents = $_GET['allStudents'] ?? '';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/externalAssessment_manage_details_add.php&gibbonExternalAssessmentID=$gibbonExternalAssessmentID&gibbonPersonID=$gibbonPersonID&step=2&search=$search&allStudents=$allStudents";
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/externalAssessment_manage_details_add.php&gibbonExternalAssessmentID=$gibbonExternalAssessmentID&gibbonPersonID=$gibbonPersonID&step=2&search=$search&allStudents=$allStudents";
 
 if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/externalAssessment_manage_details_add.php') == false) {
     $URL .= '&return=error0';
@@ -58,7 +57,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/external
                 $partialFail = true;
             }
         }
-        
+
         //Write to database
         try {
             $data = array('gibbonExternalAssessmentID' => $gibbonExternalAssessmentID, 'gibbonPersonID' => $gibbonPersonID, 'date' => $date, 'attachment' => $attachment);

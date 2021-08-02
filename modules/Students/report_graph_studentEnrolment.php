@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
+use Gibbon\Services\Format;
 use Gibbon\UI\Chart\Chart;
 
 //Module includes
@@ -63,8 +64,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_graph_stud
     echo __('Choose Date');
     echo '</h2>';
 
-    $dateStart = (isset($_POST['dateStart']))? dateConvert($guid, $_POST['dateStart']) : $_SESSION[$guid]['gibbonSchoolYearFirstDay'];
-    $dateEnd = (isset($_POST['dateEnd']))? dateConvert($guid, $_POST['dateEnd']) : $_SESSION[$guid]['gibbonSchoolYearLastDay'];
+    $dateStart = (isset($_POST['dateStart']))? Format::dateConvert($_POST['dateStart']) : $session->get('gibbonSchoolYearFirstDay');
+    $dateEnd = (isset($_POST['dateEnd']))? Format::dateConvert($_POST['dateEnd']) : $session->get('gibbonSchoolYearLastDay');
     $interval =  (isset($_POST['interval']))? $_POST['interval'] : '+1 week';
     $excludeLeft = $_POST['excludeLeft'] ?? '';
 
@@ -75,7 +76,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_graph_stud
         $dateEnd = $swapDates;
     }
 
-    // Get the roll groups - revert to All if it's selected
+    // Get the form groups - revert to All if it's selected
     $yearGroups = !empty($_POST['gibbonYearGroupID'])? $_POST['gibbonYearGroupID'] : array('all');
     if (in_array('all', $yearGroups)) $yearGroups = array('all');
 
@@ -88,17 +89,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_graph_stud
         '+1 year' => __('Year')
     );
 
-    $form = Form::create('attendanceTrends', $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Students/report_graph_studentEnrolment.php');
+    $form = Form::create('attendanceTrends', $session->get('absoluteURL').'/index.php?q=/modules/Students/report_graph_studentEnrolment.php');
 
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
-
-    $row = $form->addRow();
-        $row->addLabel('dateStart', __('Start Date'))->description($_SESSION[$guid]['i18n']['dateFormat'])->prepend(__('Format:'));
-        $row->addDate('dateStart')->setValue(dateConvertBack($guid, $dateStart))->required();
+    $form->addHiddenValue('address', $session->get('address'));
 
     $row = $form->addRow();
-        $row->addLabel('dateEnd', __('End Date'))->description($_SESSION[$guid]['i18n']['dateFormat'])->prepend(__('Format:'));
-        $row->addDate('dateEnd')->setValue(dateConvertBack($guid, $dateEnd))->required();
+        $row->addLabel('dateStart', __('Start Date'));
+        $row->addDate('dateStart')->setValue(Format::date($dateStart))->required();
+
+    $row = $form->addRow();
+        $row->addLabel('dateEnd', __('End Date'));
+        $row->addDate('dateEnd')->setValue(Format::date($dateEnd))->required();
 
     $row = $form->addRow();
         $row->addLabel('interval', __('Interval'));

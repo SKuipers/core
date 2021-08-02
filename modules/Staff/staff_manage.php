@@ -30,10 +30,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage.php') =
     //Proceed!
     $page->breadcrumbs->add(__('Manage Staff'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     $search = (isset($_GET['search']) ? $_GET['search'] : '');
     $allStaff = (isset($_GET['allStaff']) ? $_GET['allStaff'] : '');
 
@@ -50,12 +46,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage.php') =
     echo __('Search & Filter');
     echo '</h2>';
 
-    $form = Form::create('searchForm', $_SESSION[$guid]['absoluteURL']."/index.php", 'get');
+    $form = Form::create('searchForm', $session->get('absoluteURL')."/index.php", 'get');
 
     $form->setClass('noIntBorder fullWidth');
 
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
-    $form->addHiddenValue('q', "/modules/".$_SESSION[$guid]['module']."/staff_manage.php");
+    $form->addHiddenValue('address', $session->get('address'));
+    $form->addHiddenValue('q', "/modules/".$session->get('module')."/staff_manage.php");
 
     $row = $form->addRow();
         $row->addLabel('search', __('Search For'))->description(__('Preferred, surname, username.'));
@@ -78,7 +74,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage.php') =
     $staff = $staffGateway->queryAllStaff($criteria);
 
     // FORM
-    $form = BulkActionForm::create('bulkAction', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/staff_manageProcessBulk.php?search='.$search.'&allStaff='.$allStaff);
+    $form = BulkActionForm::create('bulkAction', $session->get('absoluteURL').'/modules/'.$session->get('module').'/staff_manageProcessBulk.php?search='.$search.'&allStaff='.$allStaff);
     $form->addHiddenValue('search', $search);
 
     $bulkActions = array(
@@ -137,7 +133,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage.php') =
     $table->addActionColumn()
         ->addParam('gibbonStaffID')
         ->addParam('search', $criteria->getSearchText(true))
-        ->format(function ($person, $actions) use ($guid) {
+        ->format(function ($person, $actions) {
             $actions->addAction('edit', __('Edit'))
                     ->setURL('/modules/Staff/staff_manage_edit.php');
 

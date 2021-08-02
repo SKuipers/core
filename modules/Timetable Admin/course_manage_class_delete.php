@@ -24,10 +24,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/course_man
     $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed!
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     //Check if school year specified
     $gibbonCourseClassID = $_GET['gibbonCourseClassID'] ?? '';
     $gibbonCourseID = $_GET['gibbonCourseID'] ?? '';
@@ -44,7 +40,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/course_man
         if ($result->rowCount() != 1) {
             $page->addError(__('The specified record cannot be found.'));
         } else {
-            $form = DeleteForm::createForm($_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/course_manage_class_deleteProcess.php?gibbonCourseClassID=$gibbonCourseClassID&gibbonCourseID=$gibbonCourseID&gibbonSchoolYearID=$gibbonSchoolYearID");
+            $form = DeleteForm::createForm($session->get('absoluteURL').'/modules/'.$session->get('module')."/course_manage_class_deleteProcess.php?gibbonCourseClassID=$gibbonCourseClassID&gibbonCourseID=$gibbonCourseID&gibbonSchoolYearID=$gibbonSchoolYearID");
             echo $form->getOutput();
         }
     }

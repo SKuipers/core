@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
+use Gibbon\Services\Format;
 
 if (isActionAccessible($guid, $connection2, '/modules/User Admin/dataUpdaterSettings.php') == false) {
     // Access denied
@@ -26,12 +27,8 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/dataUpdaterSett
     //Proceed!
     $page->breadcrumbs->add(__('Data Updater Settings'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
-    $form = Form::create('dataUpdaterSettings', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/dataUpdaterSettingsProcess.php');
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+    $form = Form::create('dataUpdaterSettings', $session->get('absoluteURL').'/modules/'.$session->get('module').'/dataUpdaterSettingsProcess.php');
+    $form->addHiddenValue('address', $session->get('address'));
 
     $row = $form->addRow()->addHeading(__('Settings'));
 
@@ -47,6 +44,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/dataUpdaterSett
         'Personal' => __('Personal'),
         'Medical' => __('Medical'),
         'Finance' => __('Finance'),
+        'Staff' => __('Staff'),
     );
     $setting = getSettingByScope($connection2, 'Data Updater', 'requiredUpdatesByType', true);
     $row = $form->addRow()->addClass('requiredUpdates');
@@ -56,7 +54,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/dataUpdaterSett
     $setting = getSettingByScope($connection2, 'Data Updater', 'cutoffDate', true);
     $row = $form->addRow()->addClass('requiredUpdates');
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description($setting['description']);
-        $row->addDate($setting['name'])->required()->setValue(dateConvertBack($guid, $setting['value']));
+        $row->addDate($setting['name'])->required()->setValue(Format::date($setting['value']));
 
     $sql = "SELECT DISTINCT category as value, category as name FROM gibbonRole ORDER BY category";
     $setting = getSettingByScope($connection2, 'Data Updater', 'redirectByRoleCategory', true);
@@ -74,10 +72,10 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/dataUpdaterSett
     echo '<h2>'.__('Required Fields for Personal Updates').'</h2>';
     echo '<p>'.__('These required field settings apply to all users, except those who hold the ability to submit a data update request for all users in the system (generally just admins).').'</p>';
 
-    $form = Form::createTable('dataUpdaterSettingsFields', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/dataUpdaterSettingsFieldsProcess.php');
+    $form = Form::createTable('dataUpdaterSettingsFields', $session->get('absoluteURL').'/modules/'.$session->get('module').'/dataUpdaterSettingsFieldsProcess.php');
     
     $form->setClass('fullWidth rowHighlight');
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+    $form->addHiddenValue('address', $session->get('address'));
     
     // Default settings
     $settingDefaults = [
@@ -106,15 +104,6 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/dataUpdaterSett
         'countryOfBirth'         => ['label' => __('Country of Birth'), 'default' => ''],
         'ethnicity'              => ['label' => __('Ethnicity'), 'default' => ''],
         'religion'               => ['label' => __('Religion'), 'default' => ''],
-        'citizenship1'           => ['label' => __('Citizenship 1'), 'default' => ''],
-        'citizenship1Passport'   => ['label' => __('Citizenship 1 Passport'), 'default' => ''],
-        'citizenship1PassportExpiry'   => ['label' => __('Citizenship 1 Passport Expiry Date'), 'default' => ''],
-        'citizenship2'           => ['label' => __('Citizenship 2'), 'default' => ''],
-        'citizenship2Passport'   => ['label' => __('Citizenship 2 Passport'), 'default' => ''],
-        'citizenship2PassportExpiry'   => ['label' => __('Citizenship 2 Passport Expiry Date'), 'default' => ''],
-        'nationalIDCardNumber'   => ['label' => __('National ID Card Number'), 'default' => ''],
-        'residencyStatus'        => ['label' => __('Residency Status'), 'default' => ''],
-        'visaExpiryDate'         => ['label' => __('Visa Expiry Date'), 'default' => ''],
         'profession'             => ['label' => __('Profession'), 'default' => ''],
         'employer'               => ['label' => __('Employer'), 'default' => ''],
         'jobTitle'               => ['label' => __('Job Title'), 'default' => ''],

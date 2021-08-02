@@ -24,13 +24,10 @@ use Gibbon\Domain\School\YearGroupGateway;
 
 include '../../gibbon.php';
 
-$gibbonPersonID = $_GET['gibbonPersonID'];
-$subpage = $_GET['subpage'];
-$allStudents = '';
-if (isset($_GET['allStudents'])) {
-    $allStudents = $_GET['allStudents'];
-}
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/student_view_details_notes_add.php&gibbonPersonID=$gibbonPersonID&search=".$_GET['search']."&subpage=$subpage&category=".$_GET['category']."&allStudents=$allStudents";
+$gibbonPersonID = $_GET['gibbonPersonID'] ?? '';
+$subpage = $_GET['subpage'] ?? '';
+$allStudents = $_GET['allStudents'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/student_view_details_notes_add.php&gibbonPersonID=$gibbonPersonID&search=".$_GET['search']."&subpage=$subpage&category=".$_GET['category']."&allStudents=$allStudents";
 
 if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_details_notes_add.php') == false) {
     $URL .= '&return=error0';
@@ -48,7 +45,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
         } else {
             //Check for existence of student
             try {
-                $data = array('gibbonPersonID' => $gibbonPersonID, 'gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID']);
+                $data = array('gibbonPersonID' => $gibbonPersonID, 'gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'));
                 $sql = 'SELECT gibbonPerson.surname, gibbonPerson.preferredName, gibbonPerson.status, gibbonStudentEnrolment.gibbonYearGroupID
                     FROM gibbonPerson
                     LEFT JOIN gibbonStudentEnrolment ON (gibbonPerson.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID AND gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID)
@@ -71,8 +68,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
 
                 //Proceed!
                 //Validate Inputs
-                $title = $_POST['title'];
-                $gibbonStudentNoteCategoryID = $_POST['gibbonStudentNoteCategoryID'];
+                $title = $_POST['title'] ?? '';
+                $gibbonStudentNoteCategoryID = $_POST['gibbonStudentNoteCategoryID'] ?? '';
                 if ($gibbonStudentNoteCategoryID == '') {
                     $gibbonStudentNoteCategoryID = null;
                 }
@@ -84,7 +81,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                 } else {
                     //Write to database
                     try {
-                        $data = array('gibbonStudentNoteCategoryID' => $gibbonStudentNoteCategoryID, 'title' => $title, 'note' => $note, 'gibbonPersonID' => $gibbonPersonID, 'gibbonPersonIDCreator' => $_SESSION[$guid]['gibbonPersonID'], 'timestamp' => date('Y-m-d H:i:s', time()));
+                        $data = array('gibbonStudentNoteCategoryID' => $gibbonStudentNoteCategoryID, 'title' => $title, 'note' => $note, 'gibbonPersonID' => $gibbonPersonID, 'gibbonPersonIDCreator' => $session->get('gibbonPersonID'), 'timestamp' => date('Y-m-d H:i:s', time()));
                         $sql = 'INSERT INTO gibbonStudentNote SET gibbonStudentNoteCategoryID=:gibbonStudentNoteCategoryID, title=:title, note=:note, gibbonPersonID=:gibbonPersonID, gibbonPersonIDCreator=:gibbonPersonIDCreator, timestamp=:timestamp';
                         $result = $connection2->prepare($sql);
                         $result->execute($data);
@@ -100,7 +97,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                         // Raise a new notification event
                         $event = new NotificationEvent('Students', 'New Student Note');
 
-                        $staffName = Format::name('', $_SESSION[$guid]['preferredName'], $_SESSION[$guid]['surname'], 'Staff', false, true);
+                        $staffName = Format::name('', $session->get('preferredName'), $session->get('surname'), 'Staff', false, true);
                         $studentName = Format::name('', $row['preferredName'], $row['surname'], 'Student', false);
 
                         $event->setNotificationText(sprintf(__('%1$s has added a student note ("%2$s") about %3$s.'), $staffName, $title, $studentName));
@@ -111,11 +108,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
 
                         if ($noteCreationNotification == 'Tutors' or $noteCreationNotification == 'Tutors & Teachers') {
                             try {
-                                $data = array('gibbonPersonID' => $gibbonPersonID, 'gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID']);
+                                $data = array('gibbonPersonID' => $gibbonPersonID, 'gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'));
                                 $sql = "SELECT gibbonPerson.gibbonPersonID
     								FROM gibbonStudentEnrolment
-    								JOIN gibbonRollGroup ON (gibbonStudentEnrolment.gibbonRollGroupID=gibbonRollGroup.gibbonRollGroupID)
-    								LEFT JOIN gibbonPerson ON ((gibbonPerson.gibbonPersonID=gibbonRollGroup.gibbonPersonIDTutor AND gibbonPerson.status='Full') OR (gibbonPerson.gibbonPersonID=gibbonRollGroup.gibbonPersonIDTutor2 AND gibbonPerson.status='Full') OR (gibbonPerson.gibbonPersonID=gibbonRollGroup.gibbonPersonIDTutor3 AND gibbonPerson.status='Full'))
+    								JOIN gibbonFormGroup ON (gibbonStudentEnrolment.gibbonFormGroupID=gibbonFormGroup.gibbonFormGroupID)
+    								LEFT JOIN gibbonPerson ON ((gibbonPerson.gibbonPersonID=gibbonFormGroup.gibbonPersonIDTutor AND gibbonPerson.status='Full') OR (gibbonPerson.gibbonPersonID=gibbonFormGroup.gibbonPersonIDTutor2 AND gibbonPerson.status='Full') OR (gibbonPerson.gibbonPersonID=gibbonFormGroup.gibbonPersonIDTutor3 AND gibbonPerson.status='Full'))
     								WHERE gibbonStudentEnrolment.gibbonPersonID=:gibbonPersonID AND gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID";
                                 $result = $connection2->prepare($sql);
                                 $result->execute($data);
@@ -133,8 +130,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
 
                         }
                         if ($noteCreationNotification == 'Tutors & Teachers') {
-                            
-                                $data = array('gibbonPersonID' => $gibbonPersonID, 'gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID']);
+
+                                $data = array('gibbonPersonID' => $gibbonPersonID, 'gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'));
                                 $sql = "SELECT DISTINCT teacher.gibbonPersonID FROM gibbonPerson AS teacher JOIN gibbonCourseClassPerson AS teacherClass ON (teacherClass.gibbonPersonID=teacher.gibbonPersonID)  JOIN gibbonCourseClassPerson AS studentClass ON (studentClass.gibbonCourseClassID=teacherClass.gibbonCourseClassID) JOIN gibbonPerson AS student ON (studentClass.gibbonPersonID=student.gibbonPersonID) JOIN gibbonCourseClass ON (studentClass.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) JOIN gibbonCourse ON (gibbonCourseClass.gibbonCourseID=gibbonCourse.gibbonCourseID) WHERE teacher.status='Full' AND teacherClass.role='Teacher' AND studentClass.role='Student' AND student.gibbonPersonID=:gibbonPersonID AND gibbonCourse.gibbonSchoolYearID=:gibbonSchoolYearID ORDER BY teacher.preferredName, teacher.surname, teacher.email ;";
                                 $result = $connection2->prepare($sql);
                                 $result->execute($data);

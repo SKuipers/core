@@ -17,10 +17,12 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Forms\CustomFieldHandler;
+
 include '../../gibbon.php';
 
-$gibbonCourseID = $_GET['gibbonCourseID'];
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/course_manage_edit.php&gibbonCourseID='.$gibbonCourseID.'&gibbonSchoolYearID='.$_POST['gibbonSchoolYearID'];
+$gibbonCourseID = $_GET['gibbonCourseID'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/course_manage_edit.php&gibbonCourseID='.$gibbonCourseID.'&gibbonSchoolYearID='.$_POST['gibbonSchoolYearID'];
 
 if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/course_manage_edit.php') == false) {
     $URL .= '&return=error0';
@@ -48,21 +50,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/course_man
             header("Location: {$URL}");
         } else {
             //Validate Inputs
-            if ($_POST['gibbonDepartmentID'] != '') {
-                $gibbonDepartmentID = $_POST['gibbonDepartmentID'];
-            } else {
-                $gibbonDepartmentID = null;
-            }
-            $name = $_POST['name'];
-            $nameShort = $_POST['nameShort'];
-            $orderBy = $_POST['orderBy'];
-            $description = $_POST['description'];
-            $map = $_POST['map'];
-            $gibbonSchoolYearID = $_POST['gibbonSchoolYearID'];
-            $credits = $_POST['credits'];
-            $weight = $_POST['weight'];
-            $gibbonYearGroupIDList = (isset($_POST['gibbonYearGroupIDList']))? implode(',', $_POST['gibbonYearGroupIDList']) : '';
-            $gibbonCourseIDParent = (!empty($_POST['gibbonCourseIDParent']))? $_POST['gibbonCourseIDParent'] : null;
+            $gibbonDepartmentID = !empty($_POST['gibbonDepartmentID']) ? $_POST['gibbonDepartmentID'] : null;
+            $name = $_POST['name'] ?? '';
+            $nameShort = $_POST['nameShort'] ?? '';
+            $orderBy = $_POST['orderBy'] ?? '';
+            $description = $_POST['description'] ?? '';
+            $map = $_POST['map'] ?? '';
+            $credits = $_POST['credits'] ?? null;
+            $weight = $_POST['weight'] ?? null;
+            $gibbonSchoolYearID = $_POST['gibbonSchoolYearID'] ?? '';
+            $gibbonYearGroupIDList = implode(',', $_POST['gibbonYearGroupIDList'] ?? []);
+            $gibbonCourseIDParent = $_POST['gibbonCourseIDParent'] ?? null;
 
             if ($name == '' or $nameShort == '' or $gibbonSchoolYearID == '' or $map == '') {
                 $URL .= '&return=error3';
@@ -80,14 +78,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/course_man
                     exit();
                 }
 
+                $customRequireFail = false;
+                $fields = $container->get(CustomFieldHandler::class)->getFieldDataFromPOST('Course', [], $customRequireFail);
+
+                if ($customRequireFail) {
+                    $URL .= '&return=error1';
+                    header("Location: {$URL}");
+                    exit;
+                }
+
                 if ($result->rowCount() > 0) {
                     $URL .= '&return=error3';
                     header("Location: {$URL}");
                 } else {
                     //Write to database
                     try {
-                        $data = array('gibbonDepartmentID' => $gibbonDepartmentID, 'name' => $name, 'nameShort' => $nameShort, 'orderBy' => $orderBy, 'description' => $description, 'map' => $map, 'gibbonYearGroupIDList' => $gibbonYearGroupIDList, 'gibbonCourseID' => $gibbonCourseID, 'credits' => $credits, 'weight' => $weight, 'gibbonCourseIDParent' => $gibbonCourseIDParent);
-                        $sql = 'UPDATE gibbonCourse SET gibbonDepartmentID=:gibbonDepartmentID, name=:name, nameShort=:nameShort, orderBy=:orderBy, description=:description, map=:map, gibbonYearGroupIDList=:gibbonYearGroupIDList, credits=:credits, weight=:weight, gibbonCourseIDParent=:gibbonCourseIDParent WHERE gibbonCourseID=:gibbonCourseID';
+                        $data = array('gibbonDepartmentID' => $gibbonDepartmentID, 'name' => $name, 'nameShort' => $nameShort, 'orderBy' => $orderBy, 'description' => $description, 'map' => $map, 'gibbonYearGroupIDList' => $gibbonYearGroupIDList, 'gibbonCourseID' => $gibbonCourseID, 'credits' => $credits, 'weight' => $weight, 'gibbonCourseIDParent' => $gibbonCourseIDParent, 'fields' => $fields);
+                        $sql = 'UPDATE gibbonCourse SET gibbonDepartmentID=:gibbonDepartmentID, name=:name, nameShort=:nameShort, orderBy=:orderBy, description=:description, map=:map, gibbonYearGroupIDList=:gibbonYearGroupIDList, credits=:credits, weight=:weight, gibbonCourseIDParent=:gibbonCourseIDParent, fields=:fields WHERE gibbonCourseID=:gibbonCourseID';
                         $result = $connection2->prepare($sql);
                         $result->execute($data);
                     } catch (PDOException $e) {

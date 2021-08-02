@@ -17,11 +17,13 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+
 include '../../gibbon.php';
 
-$gibbonCourseClassID = $_GET['gibbonCourseClassID'];
-$gibbonInternalAssessmentColumnID = $_GET['gibbonInternalAssessmentColumnID'];
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['address'])."/internalAssessment_write_data.php&gibbonInternalAssessmentColumnID=$gibbonInternalAssessmentColumnID&gibbonCourseClassID=$gibbonCourseClassID";
+$gibbonCourseClassID = $_GET['gibbonCourseClassID'] ?? '';
+$gibbonInternalAssessmentColumnID = $_GET['gibbonInternalAssessmentColumnID'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_GET['address'])."/internalAssessment_write_data.php&gibbonInternalAssessmentColumnID=$gibbonInternalAssessmentColumnID&gibbonCourseClassID=$gibbonCourseClassID";
 
 if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internalAssessment_write_data.php') == false) {
     $URL .= '&return=error0';
@@ -53,9 +55,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internal
                 header("Location: {$URL}");
             } else {
                 $row = $result->fetch();
-                $attachmentCurrent = isset($_POST['attachment'])? $_POST['attachment'] : '';
+                $attachmentCurrent = $_POST['attachment'] ?? '';
                 $name = $row['name'];
-                $count = $_POST['count'];
+                $count = $_POST['count'] ?? '';
                 $partialFail = false;
                 $attainment = $row['attainment'];
                 $gibbonScaleIDAttainment = $row['gibbonScaleIDAttainment'];
@@ -65,7 +67,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internal
                 $uploadedResponse = $row['uploadedResponse'];
 
                 for ($i = 1;$i <= $count;++$i) {
-                    $gibbonPersonIDStudent = $_POST["$i-gibbonPersonID"];
+                    $gibbonPersonIDStudent = $_POST["$i-gibbonPersonID"] ?? '';
                     //Attainment
                     if ($attainment == 'N') {
                         $attainmentValue = null;
@@ -74,7 +76,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internal
                         $attainmentValue = '';
                         $attainmentDescriptor = '';
                     } else {
-                        $attainmentValue = $_POST["$i-attainmentValue"];
+                        $attainmentValue = $_POST["$i-attainmentValue"] ?? '';
                     }
                     //Effort
                     if ($effort == 'N') {
@@ -84,23 +86,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internal
                         $effortValue = '';
                         $effortDescriptor = '';
                     } else {
-                        $effortValue = $_POST["$i-effortValue"];
+                        $effortValue = $_POST["$i-effortValue"] ?? '';
                     }
                     //Comment
                     if ($comment != 'Y') {
                         $commentValue = null;
                     } else {
-                        $commentValue = $_POST["comment$i"];
+                        $commentValue = $_POST["comment$i"] ?? '';
                     }
-                    $gibbonPersonIDLastEdit = $_SESSION[$guid]['gibbonPersonID'];
+                    $gibbonPersonIDLastEdit = $session->get('gibbonPersonID');
 
                     //SET AND CALCULATE FOR ATTAINMENT
                     if ($attainment == 'Y' and $gibbonScaleIDAttainment != '') {
                         //Without personal warnings
                         $attainmentDescriptor = '';
                         if ($attainmentValue != '') {
-                            $lowestAcceptableAttainment = $_POST['lowestAcceptableAttainment'];
-                            $scaleAttainment = $_POST['scaleAttainment'];
+                            $lowestAcceptableAttainment = $_POST['lowestAcceptableAttainment'] ?? '';
+                            $scaleAttainment = $_POST['scaleAttainment'] ?? '';
                             try {
                                 $dataScale = array('attainmentValue' => $attainmentValue, 'scaleAttainment' => $scaleAttainment);
                                 $sqlScale = 'SELECT * FROM gibbonScaleGrade JOIN gibbonScale ON (gibbonScaleGrade.gibbonScaleID=gibbonScale.gibbonScaleID) WHERE value=:attainmentValue AND gibbonScaleGrade.gibbonScaleID=:scaleAttainment';
@@ -123,8 +125,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internal
                     if ($effort == 'Y' and $gibbonScaleIDEffort != '') {
                         $effortDescriptor = '';
                         if ($effortValue != '') {
-                            $lowestAcceptableEffort = $_POST['lowestAcceptableEffort'];
-                            $scaleEffort = $_POST['scaleEffort'];
+                            $lowestAcceptableEffort = $_POST['lowestAcceptableEffort'] ?? '';
+                            $scaleEffort = $_POST['scaleEffort'] ?? '';
                             try {
                                 $dataScale = array('effortValue' => $effortValue, 'scaleEffort' => $scaleEffort);
                                 $sqlScale = 'SELECT * FROM gibbonScaleGrade JOIN gibbonScale ON (gibbonScaleGrade.gibbonScaleID=gibbonScale.gibbonScaleID) WHERE value=:effortValue AND gibbonScaleGrade.gibbonScaleID=:scaleEffort';
@@ -145,13 +147,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internal
 
                     $time = time();
 
-                    $attachment = isset($_POST["attachment$i"])? $_POST["attachment$i"] : '';
+                    $attachment = $_POST["attachment$i"] ?? '';
 
                     //Move attached file, if there is one
                     if ($uploadedResponse == 'Y') {
                         if (!empty($_FILES["response$i"]['tmp_name'])) {
                             $fileUploader = new Gibbon\FileUploader($pdo, $gibbon->session);
-                
+
                             $file = (isset($_FILES["response$i"]))? $_FILES["response$i"] : null;
 
                             // Upload the file, return the /uploads relative path
@@ -199,12 +201,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internal
                 }
 
                 //Update column
-                $description = $_POST['description'];
+                $description = $_POST['description'] ?? '';
                 $time = time();
                 //Move attached file, if there is one
                 if (!empty($_FILES['file']['tmp_name'])) {
                     $fileUploader = new Gibbon\FileUploader($pdo, $gibbon->session);
-                
+
                     $file = (isset($_FILES['file']))? $_FILES['file'] : null;
 
                     // Upload the file, return the /uploads relative path
@@ -216,12 +218,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internal
                 } else {
                     $attachment = $attachmentCurrent;
                 }
-                $completeDate = $_POST['completeDate'];
+                $completeDate = $_POST['completeDate'] ?? '';
                 if ($completeDate == '') {
                     $completeDate = null;
                     $complete = 'N';
                 } else {
-                    $completeDate = dateConvert($guid, $completeDate);
+                    $completeDate = Format::dateConvert($completeDate);
                     $complete = 'Y';
                 }
                 try {

@@ -40,10 +40,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_delete.php')
         echo '</div>';
     } else {
         //Proceed!
-        if (isset($_GET['return'])) {
-            returnProcess($guid, $_GET['return'], null, null);
-        }
-
         //Check if courseschool year specified
         if ($gibbonCourseID == '' or $gibbonSchoolYearID == '') {
             echo "<div class='error'>";
@@ -81,7 +77,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_delete.php')
                         echo __('The specified record cannot be found.');
                         echo '</div>';
                     } else {
-                        $form = DeleteForm::createForm($_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/units_deleteProcess.php?gibbonUnitID=$gibbonUnitID&gibbonCourseID=$gibbonCourseID&gibbonSchoolYearID=$gibbonSchoolYearID");
+                        $form = DeleteForm::createForm($session->get('absoluteURL').'/modules/'.$session->get('module')."/units_deleteProcess.php?gibbonUnitID=$gibbonUnitID&gibbonCourseID=$gibbonCourseID&gibbonSchoolYearID=$gibbonSchoolYearID");
                         echo $form->getOutput();
                     }
                 }

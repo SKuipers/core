@@ -38,6 +38,7 @@ require_once './gibbon.php';
 require_once './modules/Messenger/moduleFunctions.php';
 
 // Setup the Page and Session objects
+$theme = $container->get('theme');
 $page = $container->get('page');
 $session = $container->get('session');
 
@@ -59,7 +60,7 @@ if ($isLoggedIn && $module = $page->getModule()) {
  *
  * TODO: When we implement routing, these can become part of the HTTP middleware.
  */
-$session->set('pageLoads', !$session->exists('pageLoads') ? 0 : $session->get('pageLoads', -1)+1);
+$session->set('pageLoads', !$session->exists('pageLoads') ? 0 : $session->get('pageLoads', -1) + 1);
 
 $cacheLoad = true;
 $caching = $gibbon->getConfig('caching');
@@ -160,7 +161,7 @@ if ($session->get('pageLoads') == 0 && !$session->has('address')) { // First pag
                                     '/index.php?q=/modules/Attendance'.
                                     '/attendance_studentSelfRegister.php'.
                                     '&redirect=true';
-                                $session->set('pageLoads', null);
+                                $session->forget('pageLoads');
                                 header("Location: {$URL}");
                                 exit;
                             }
@@ -189,7 +190,7 @@ if ($session->get('pageLoads') == 0 && !$session->has('address')) { // First pag
 
                     if ($updatesRequiredCount > 0) {
                         $URL = $session->get('absoluteURL').'/index.php?q=/modules/Data Updater/data_updates.php&redirect=true';
-                        $session->set('pageLoads', null);
+                        $session->forget('pageLoads');
                         header("Location: {$URL}");
                         exit;
                     }
@@ -374,16 +375,11 @@ if (getSettingByScope($connection2, 'User Admin', 'personalBackground') == 'Y' &
 } else if ($session->has('organisationBackground')) {
     $backgroundImage = $session->get('absoluteURL').'/'.$session->get('organisationBackground');
     $backgroundScroll = 'repeat fixed center top';
-} else {
-    $backgroundImage = $session->get('absoluteURL').'/themes/'.$session->get('gibbonThemeName').'/img/backgroundPage.jpg';
-    $backgroundScroll = 'repeat fixed center top';
 }
 
-$page->stylesheets->add(
-    'personal-background',
-    'body { background: url("'.$backgroundImage.'") '.$backgroundScroll.' #626cd3!important; }',
-    ['type' => 'inline']
-);
+if (!empty($backgroundImage)) {
+    $page->addData(['bodyBackground' => 'background: url("'.$backgroundImage.'") '.$backgroundScroll.' #626cd3!important;background-size: cover !important;']);
+}
 
 $page->stylesheets->add('theme-dev', 'resources/assets/css/theme.min.css');
 $page->stylesheets->add('core', 'resources/assets/css/core.min.css', ['weight' => 10]);
@@ -452,25 +448,6 @@ if ($isLoggedIn) {
 }
 
 /**
- * RETURN PROCESS
- *
- * Adds an alert to the index based on the URL 'return' parameter.
- *
- * TODO: Remove all returnProcess() from pages. We could add a method to the
- * Page class to allow them to register custom messages, or use Session flash
- * to add the message directly from the Process pages.
- */
-if (!$session->has('address') && !empty($_GET['return'])) {
-    $customReturns = [
-        'success1' => __('Password reset was successful: you may now log in.')
-    ];
-
-    if ($alert = returnProcessGetAlert($_GET['return'], '', $customReturns)) {
-        $page->addAlert($alert['context'], $alert['text']);
-    }
-}
-
-/**
  * MENU ITEMS & FAST FINDER
  *
  * TODO: Move this somewhere more sensible.
@@ -485,23 +462,6 @@ if ($isLoggedIn && !$upgrade) {
     }
 
     $moduleGateway = $container->get(ModuleGateway::class);
-
-    if ($cacheLoad || !$session->has('menuMainItems')) {
-        $menuMainItems = $moduleGateway->selectModulesByRole($session->get('gibbonRoleIDCurrent'))->fetchGrouped();
-
-        foreach ($menuMainItems as $category => &$items) {
-            foreach ($items as &$item) {
-                $modulePath = '/modules/'.$item['name'];
-                $entryURL = ($item['entryURL'] == 'index.php' || isActionAccessible($guid, $connection2, $modulePath.'/'.$item['entryURL']))
-                    ? $item['entryURL']
-                    : $item['alternateEntryURL'];
-
-                $item['url'] = $session->get('absoluteURL').'/index.php?q='.$modulePath.'/'.$entryURL;
-            }
-        }
-
-        $session->set('menuMainItems', $menuMainItems);
-    }
 
     if ($page->getModule()) {
         $currentModule = $page->getModule()->getName();
@@ -529,6 +489,26 @@ if ($isLoggedIn && !$upgrade) {
         $session->forget(['menuModuleItems', 'menuModuleName']);
     }
 
+    if ($cacheLoad || !$session->has('menuMainItems')) {
+        $menuMainItems = $moduleGateway->selectModulesByRole($session->get('gibbonRoleIDCurrent'))->fetchGrouped();
+
+        foreach ($menuMainItems as $category => &$items) {
+            foreach ($items as &$item) {
+                $modulePath = '/modules/'.$item['name'];
+                $entryURL = ($item['entryURL'] == 'index.php' || isActionAccessible($guid, $connection2, $modulePath.'/'.$item['entryURL']))
+                    ? $item['entryURL']
+                    : $item['alternateEntryURL'];
+
+                $item['active'] = $session->get('menuModuleName') == $item['name'];
+                $item['url'] = $session->get('absoluteURL').'/index.php?q='.$modulePath.'/'.$entryURL;
+            }
+        }
+
+        $session->set('menuMainItems', $menuMainItems);
+    }
+
+
+
     // Setup cached message array only if there are recent posts, or if more than one hour has elapsed
     $messageWallLatestPost = $container->get(MessengerGateway::class)->getRecentMessageWallTimestamp();
     $messageWallRefreshed = $gibbon->session->get('messageWallRefreshed', 0);
@@ -547,17 +527,12 @@ if ($isLoggedIn && !$upgrade) {
  * into the template engine for rendering. They're a work in progress, but once
  * they're more finalized we can document them for theme developers.
  */
-$header = $container->get(Gibbon\UI\Components\Header::class);
 
 $page->addData([
     'isLoggedIn'        => $isLoggedIn,
-    'gibbonThemeName'   => $session->get('gibbonThemeName'),
-    'gibbonHouseIDLogo' => $session->get('gibbonHouseIDLogo'),
     'organisationLogo'  => $session->get('organisationLogo'),
     'organisationName'  => $session->get('organisationName'),
-    'minorLinks'        => $header->getMinorLinks($cacheLoad),
-    'notificationTray'  => $header->getNotificationTray($cacheLoad),
-    'sidebar'           => $showSidebar,
+    'cacheString'       => $session->get('cacheString'),
     'version'           => $gibbon->getVersion(),
     'versionName'       => 'v'.$gibbon->getVersion().($session->get('cuttingEdgeCode') == 'Y'? 'dev' : ''),
     'rightToLeft'       => $session->get('i18n')['rtl'] == 'Y',
@@ -566,9 +541,9 @@ $page->addData([
 
 if ($isLoggedIn) {
     $page->addData([
-        'menuMain'   => $session->get('menuMainItems', []),
-        'menuModule' => $session->get('menuModuleItems', []),
-        'fastFinder' => $session->get('fastFinder'),
+        'menuMain'       => $session->get('menuMainItems', []),
+        'menuModule'     => $session->get('menuModuleItems', []),
+        'fastFinder'     => $session->get('fastFinder'),
     ]);
 }
 
@@ -619,7 +594,7 @@ if (!$session->has('address')) {
         // Pinned Messages
         $pinnedMessagesOnHome = getSettingByScope($connection2, 'Messenger', 'pinnedMessagesOnHome');
         if ($pinnedMessagesOnHome == 'Y' && isActionAccessible($guid, $connection2, '/modules/Messenger/messageWall_view.php')) {
-            $pinnedMessages = array_reduce($gibbon->session->get('messageWallArray'), function ($group, $item) {
+            $pinnedMessages = array_reduce($gibbon->session->get('messageWallArray', []), function ($group, $item) {
                 if ($item['messageWallPin'] == 'Y') {
                     $group[$item['gibbonMessengerID']] = $item;
                 }
@@ -638,6 +613,7 @@ if (!$session->has('address')) {
             $globals = [
                 'guid'        => $guid,
                 'connection2' => $connection2,
+                'session'     => $session,
             ];
 
             $session->set('index_custom.php', $page->fetchFromFile('./index_custom.php', $globals));
@@ -652,13 +628,19 @@ if (!$session->has('address')) {
 
         switch ($category) {
             case 'Parent':
-                $page->write($container->get(Gibbon\UI\Dashboard\ParentDashboard::class)->getOutput());
+                if (getSettingByScope($connection2, 'School Admin', 'parentDashboardEnable') != "N") {
+                    $page->write($container->get(Gibbon\UI\Dashboard\ParentDashboard::class)->getOutput());
+                }
                 break;
             case 'Student':
-                $page->write($container->get(Gibbon\UI\Dashboard\StudentDashboard::class)->getOutput());
+                if (getSettingByScope($connection2, 'School Admin', 'studentDashboardEnable') != "N") {
+                    $page->write($container->get(Gibbon\UI\Dashboard\StudentDashboard::class)->getOutput());
+                }
                 break;
             case 'Staff':
-                $page->write($container->get(Gibbon\UI\Dashboard\StaffDashboard::class)->getOutput());
+                if (getSettingByScope($connection2, 'School Admin', 'staffDashboardEnable') != "N") {
+                    $page->write($container->get(Gibbon\UI\Dashboard\StaffDashboard::class)->getOutput());
+                }
                 break;
             case 'Other':
                 break;
@@ -683,6 +665,7 @@ if (!$session->has('address')) {
             'autoloader'  => $autoloader,
             'container'   => $container,
             'page'        => $page,
+            'session'     => $session,
         ];
 
         if (is_file('./'.$address)) {
@@ -694,6 +677,33 @@ if (!$session->has('address')) {
 }
 
 /**
+ * HEADER DATA
+ *
+ * Add this after loading page content, so it can update based on page changes.
+ */
+if ($isLoggedIn) {
+    $header = $container->get(Gibbon\UI\Components\Header::class);
+
+    $page->addData([
+        'currentUser'       => $header->getUserDetails(),
+        'minorLinks'        => $header->getMinorLinks(),
+        'statusTray'        => $header->getStatusTray(),
+    ]);
+}
+
+/**
+ * RETURN PROCESS
+ *
+ * Adds an alert to the index based on the URL 'return' parameter.
+ */
+if (!empty($_GET['return'])) {
+    if (!($session->get('address') == 'notifications.php' AND $session->get('username') == '')) {
+        if ($alert = $page->return->process($_GET['return'])){
+            $page->addAlert($alert['context'], $alert['text']);
+        }
+    }
+}
+/**
  * GET SIDEBAR CONTENT
  *
  * TODO: rewrite the Sidebar class as a template file.
@@ -704,6 +714,7 @@ if ($showSidebar) {
     $session->set('sidebarExtra', '');
 
     $page->addData([
+        'sidebar'         => $showSidebar,
         'sidebarContents' => $container->get(Gibbon\UI\Components\Sidebar::class)->getOutput(),
         'sidebarPosition' => $session->get('sidebarExtraPosition'),
     ]);

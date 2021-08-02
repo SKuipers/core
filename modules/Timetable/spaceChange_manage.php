@@ -35,10 +35,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable/spaceChange_mana
         //Proceed!
         $page->breadcrumbs->add(__('Manage Facility Changes'));
 
-        if (isset($_GET['return'])) {
-            returnProcess($guid, $_GET['return'], null, null);
-        }
-
         if ($highestAction == 'Manage Facility Changes_allClasses') {
             echo '<p>'.__('This page allows you to create and manage one-off location changes within any class in the timetable. Only current and future changes are shown: past changes are hidden.').'</p>';
         } else if ($highestAction == 'Manage Facility Changes_myDepartment') {
@@ -56,9 +52,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable/spaceChange_mana
         if ($highestAction == 'Manage Facility Changes_allClasses') {
             $facilityChanges = $facilityChangeGateway->queryFacilityChanges($criteria);
         } else if ($highestAction == 'Manage Facility Changes_myDepartment') {
-            $facilityChanges = $facilityChangeGateway->queryFacilityChangesByDepartment($criteria, $_SESSION[$guid]['gibbonPersonID']);
+            $facilityChanges = $facilityChangeGateway->queryFacilityChangesByDepartment($criteria, $session->get('gibbonPersonID'));
         } else {
-            $facilityChanges = $facilityChangeGateway->queryFacilityChanges($criteria, $_SESSION[$guid]['gibbonPersonID']);
+            $facilityChanges = $facilityChangeGateway->queryFacilityChanges($criteria, $session->get('gibbonPersonID'));
         }
 
         // DATA TABLE

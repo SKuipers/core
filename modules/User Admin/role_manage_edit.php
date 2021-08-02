@@ -28,10 +28,6 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/role_manage_edi
         ->add(__('Manage Roles'),'role_manage.php')
         ->add(__('Edit Role'));     
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     //Check if school year specified
     $gibbonRoleID = $_GET['gibbonRoleID'];
     if ($gibbonRoleID == '') {
@@ -50,9 +46,9 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/role_manage_edi
             $role = $result->fetch();
             $isReadOnly = ($role['type'] == 'Core');
 
-            $form = Form::create('addRole', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/role_manage_editProcess.php?gibbonRoleID='.$gibbonRoleID);
+            $form = Form::create('addRole', $session->get('absoluteURL').'/modules/'.$session->get('module').'/role_manage_editProcess.php?gibbonRoleID='.$gibbonRoleID);
 
-            $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+            $form->addHiddenValue('address', $session->get('address'));
 
             $categories = array(
                 'Staff'   => __('Staff'),
@@ -85,7 +81,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/role_manage_edi
 
             $row = $form->addRow();
                 $row->addLabel('description', __('Description'));
-                $row->addTextField('description')->required()->maxLength(60)->readonly($isReadOnly)->setValue($role['description']);
+                $row->addTextField('description')->required()->maxLength(60)->readonly($isReadOnly)->setValue(__($role['description']));
 
             $row = $form->addRow();
                 $row->addLabel('type', __('Type'));

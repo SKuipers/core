@@ -17,15 +17,17 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+
 include '../../gibbon.php';
 
-$gibbonSchoolYearID = $_GET['gibbonSchoolYearID'];
-$gibbonFinanceBillingScheduleID = $_POST['gibbonFinanceBillingScheduleID'];
-$search = $_GET['search'];
+$gibbonSchoolYearID = $_GET['gibbonSchoolYearID'] ?? '';
+$gibbonFinanceBillingScheduleID = $_POST['gibbonFinanceBillingScheduleID'] ?? '';
+$search = $_GET['search'] ?? '';
 
 if ($gibbonFinanceBillingScheduleID == '' or $gibbonSchoolYearID == '') { echo 'Fatal error loading this page!';
 } else {
-    $URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/billingSchedule_manage_edit.php&gibbonFinanceBillingScheduleID=$gibbonFinanceBillingScheduleID&gibbonSchoolYearID=$gibbonSchoolYearID&search=$search";
+    $URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/billingSchedule_manage_edit.php&gibbonFinanceBillingScheduleID=$gibbonFinanceBillingScheduleID&gibbonSchoolYearID=$gibbonSchoolYearID&search=$search";
 
     if (isActionAccessible($guid, $connection2, '/modules/Finance/billingSchedule_manage_edit.php') == false) {
         $URL .= '&return=error0';
@@ -52,11 +54,11 @@ if ($gibbonFinanceBillingScheduleID == '' or $gibbonSchoolYearID == '') { echo '
                 $URL .= '&return=error2';
                 header("Location: {$URL}");
             } else {
-                $name = $_POST['name'];
-                $active = $_POST['active'];
-                $description = $_POST['description'];
-                $invoiceIssueDate = $_POST['invoiceIssueDate'];
-                $invoiceDueDate = $_POST['invoiceDueDate'];
+                $name = $_POST['name'] ?? '';
+                $active = $_POST['active'] ?? '';
+                $description = $_POST['description'] ?? '';
+                $invoiceIssueDate = $_POST['invoiceIssueDate'] ?? '';
+                $invoiceDueDate = $_POST['invoiceDueDate'] ?? '';
 
                 if ($name == '' or $active == '' or $invoiceIssueDate == '' or $invoiceDueDate == '') {
                     $URL .= '&return=error1';
@@ -64,7 +66,7 @@ if ($gibbonFinanceBillingScheduleID == '' or $gibbonSchoolYearID == '') { echo '
                 } else {
                     //Write to database
                     try {
-                        $data = array('gibbonSchoolYearID' => $gibbonSchoolYearID, 'name' => $name, 'active' => $active, 'description' => $description, 'invoiceIssueDate' => dateConvert($guid, $invoiceIssueDate), 'invoiceDueDate' => dateConvert($guid, $invoiceDueDate), 'gibbonPersonIDUpdate' => $_SESSION[$guid]['gibbonPersonID'], 'gibbonFinanceBillingScheduleID' => $gibbonFinanceBillingScheduleID);
+                        $data = array('gibbonSchoolYearID' => $gibbonSchoolYearID, 'name' => $name, 'active' => $active, 'description' => $description, 'invoiceIssueDate' => Format::dateConvert($invoiceIssueDate), 'invoiceDueDate' => Format::dateConvert($invoiceDueDate), 'gibbonPersonIDUpdate' => $session->get('gibbonPersonID'), 'gibbonFinanceBillingScheduleID' => $gibbonFinanceBillingScheduleID);
                         $sql = "UPDATE gibbonFinanceBillingSchedule SET gibbonSchoolYearID=:gibbonSchoolYearID, name=:name, active=:active, description=:description, invoiceIssueDate=:invoiceIssueDate, invoiceDueDate=:invoiceDueDate, gibbonPersonIDUpdate=:gibbonPersonIDUpdate, timestampUpdate='".date('Y-m-d H:i:s')."' WHERE gibbonFinanceBillingScheduleID=:gibbonFinanceBillingScheduleID";
                         $result = $connection2->prepare($sql);
                         $result->execute($data);

@@ -19,14 +19,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$gibbonCourseClassID = $_GET['gibbonCourseClassID'];
-$gibbonCourseID = $_GET['gibbonCourseID'];
-$gibbonSchoolYearID = $_GET['gibbonSchoolYearID'];
-$gibbonCourseClassPersonID = $_POST['gibbonCourseClassPersonID'];
+$gibbonCourseClassID = $_GET['gibbonCourseClassID'] ?? '';
+$gibbonCourseID = $_GET['gibbonCourseID'] ?? '';
+$gibbonSchoolYearID = $_GET['gibbonSchoolYearID'] ?? '';
+$gibbonCourseClassPersonID = $_POST['gibbonCourseClassPersonID'] ?? '';
 
 if ($gibbonCourseClassID == '' or $gibbonCourseID == '' or $gibbonSchoolYearID == '' or $gibbonCourseClassPersonID == '') { echo 'Fatal error loading this page!';
 } else {
-    $URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/courseEnrolment_manage_class_edit_edit.php&gibbonCourseID=$gibbonCourseID&gibbonCourseClassPersonID=$gibbonCourseClassPersonID&gibbonSchoolYearID=$gibbonSchoolYearID&gibbonCourseClassID=$gibbonCourseClassID";
+    $URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/courseEnrolment_manage_class_edit_edit.php&gibbonCourseID=$gibbonCourseID&gibbonCourseClassPersonID=$gibbonCourseClassPersonID&gibbonSchoolYearID=$gibbonSchoolYearID&gibbonCourseClassID=$gibbonCourseClassID";
 
     if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/courseEnrolment_manage_class_edit_edit.php') == false) {
         $URL .= '&return=error0';
@@ -55,8 +55,8 @@ if ($gibbonCourseClassID == '' or $gibbonCourseID == '' or $gibbonSchoolYearID =
             } else {
                 //Validate Inputs
                 $values = $result->fetch();
-                $role = $_POST['role'];
-                $reportable = $_POST['reportable'];
+                $role = $_POST['role'] ?? '';
+                $reportable = $_POST['reportable'] ?? '';
 
                 if ($role == '') {
                     $URL .= '&return=error3';

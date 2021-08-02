@@ -36,12 +36,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_detail
         return;
     }
 
-    if (isset($_GET['return'])) {
-        ob_start();
-        returnProcess($guid, $_GET['return'], null, null);
-        $page->write(ob_get_clean());
-    }
-
     $gibbonStaffAbsenceID = $_GET['gibbonStaffAbsenceID'] ?? '';
 
     $staffAbsenceGateway = $container->get(StaffAbsenceGateway::class);
@@ -58,7 +52,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_detail
         return;
     }
 
-    if ($highestAction == 'View Absences_mine' && $absence['gibbonPersonID'] != $_SESSION[$guid]['gibbonPersonID']) {
+    if ($highestAction == 'View Absences_mine' && $absence['gibbonPersonID'] != $session->get('gibbonPersonID')) {
         $page->addError(__('You do not have access to this action.'));
         return;
     }
@@ -73,5 +67,5 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_view_detail
 
     // Absence View Composer
     $absenceView = $container->get(AbsenceView::class);
-    $absenceView->setAbsence($gibbonStaffAbsenceID, $_SESSION[$guid]['gibbonPersonID'])->compose($page);
+    $absenceView->setAbsence($gibbonStaffAbsenceID, $session->get('gibbonPersonID'))->compose($page);
 }

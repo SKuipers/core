@@ -29,10 +29,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/templates_manage.p
     // Proceed!
     $page->breadcrumbs->add(__('Template Builder'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     $templateGateway = $container->get(ReportTemplateGateway::class);
 
     // QUERY
@@ -74,6 +70,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/templates_manage.p
             $actions->addAction('edit', __('Edit'))
                     ->addParam('sidebar', 'false')
                     ->setURL('/modules/Reports/templates_manage_edit.php');
+
+            $actions->addAction('copy', __('Duplicate'))
+                    ->setIcon('copy')
+                    ->setURL('/modules/Reports/templates_manage_duplicate.php');
 
             $actions->addAction('delete', __('Delete'))
                     ->setURL('/modules/Reports/templates_manage_delete.php');

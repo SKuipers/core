@@ -22,14 +22,14 @@ include '../../gibbon.php';
 //Module includes
 include './moduleFunctions.php';
 
-$gibbonFinanceBudgetCycleID = $_POST['gibbonFinanceBudgetCycleID'];
-$gibbonFinanceExpenseID = $_POST['gibbonFinanceExpenseID'];
-$status2 = $_POST['status2'];
-$gibbonFinanceBudgetID2 = $_POST['gibbonFinanceBudgetID2'];
+$gibbonFinanceBudgetCycleID = $_POST['gibbonFinanceBudgetCycleID'] ?? '';
+$gibbonFinanceExpenseID = $_POST['gibbonFinanceExpenseID'] ?? '';
+$status2 = $_POST['status2'] ?? '';
+$gibbonFinanceBudgetID2 = $_POST['gibbonFinanceBudgetID2'] ?? '';
 
 if ($gibbonFinanceBudgetCycleID == '') { echo 'Fatal error loading this page!';
 } else {
-    $URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/expenseRequest_manage_view.php&gibbonFinanceExpenseID=$gibbonFinanceExpenseID&gibbonFinanceBudgetCycleID=$gibbonFinanceBudgetCycleID&gibbonFinanceBudgetID2=$gibbonFinanceBudgetID2&status2=$status2";
+    $URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/expenseRequest_manage_view.php&gibbonFinanceExpenseID=$gibbonFinanceExpenseID&gibbonFinanceBudgetCycleID=$gibbonFinanceBudgetCycleID&gibbonFinanceBudgetID2=$gibbonFinanceBudgetID2&status2=$status2";
 
     if (isActionAccessible($guid, $connection2, '/modules/Finance/expenseRequest_manage_view.php') == false) {
         $URL .= '&return=error0';
@@ -50,7 +50,7 @@ if ($gibbonFinanceBudgetCycleID == '') { echo 'Fatal error loading this page!';
                     $budgetsAccess = true;
                 } else {
                     //Check if have Full or Write in any budgets
-                    $budgets = getBudgetsByPerson($connection2, $_SESSION[$guid]['gibbonPersonID']);
+                    $budgets = getBudgetsByPerson($connection2, $session->get('gibbonPersonID'));
                     if (is_array($budgets) && count($budgets)>0) {
                         foreach ($budgets as $budget) {
                             if ($budget[2] == 'Full' or $budget[2] == 'Write') {
@@ -100,7 +100,7 @@ if ($gibbonFinanceBudgetCycleID == '') { echo 'Fatal error loading this page!';
 										JOIN gibbonPerson ON (gibbonFinanceExpense.gibbonPersonIDCreator=gibbonPerson.gibbonPersonID)
 										WHERE gibbonFinanceBudgetCycleID=:gibbonFinanceBudgetCycleID AND gibbonFinanceExpenseID=:gibbonFinanceExpenseID";
                                 } else { //Access only to own budgets
-                                    $data['gibbonPersonID'] = $_SESSION[$guid]['gibbonPersonID'];
+                                    $data['gibbonPersonID'] = $session->get('gibbonPersonID');
                                     $sql = "SELECT gibbonFinanceExpense.*, gibbonFinanceBudget.name AS budget, surname, preferredName, access
 										FROM gibbonFinanceExpense
 										JOIN gibbonFinanceBudget ON (gibbonFinanceExpense.gibbonFinanceBudgetID=gibbonFinanceBudget.gibbonFinanceBudgetID)
@@ -123,11 +123,11 @@ if ($gibbonFinanceBudgetCycleID == '') { echo 'Fatal error loading this page!';
                                 $row = $result->fetch();
 
                                 $gibbonFinanceBudgetID = $row['gibbonFinanceBudgetID'];
-                                $comment = $_POST['comment'];
+                                $comment = $_POST['comment'] ?? '';
 
                                 //Write comment to log
                                 try {
-                                    $data = array('gibbonFinanceExpenseID' => $gibbonFinanceExpenseID, 'gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID'], 'comment' => $comment);
+                                    $data = array('gibbonFinanceExpenseID' => $gibbonFinanceExpenseID, 'gibbonPersonID' => $session->get('gibbonPersonID'), 'comment' => $comment);
                                     $sql = "INSERT INTO gibbonFinanceExpenseLog SET gibbonFinanceExpenseID=:gibbonFinanceExpenseID, gibbonPersonID=:gibbonPersonID, timestamp='".date('Y-m-d H:i:s')."', action='Comment', comment=:comment";
                                     $result = $connection2->prepare($sql);
                                     $result->execute($data);
@@ -139,7 +139,7 @@ if ($gibbonFinanceBudgetCycleID == '') { echo 'Fatal error loading this page!';
 
                                 //Notify budget holders
                                 if ($budgetLevelExpenseApproval == 'Y') {
-                                    
+
                                         $dataHolder = array('gibbonFinanceBudgetID' => $gibbonFinanceBudgetID);
                                         $sqlHolder = "SELECT * FROM gibbonFinanceBudgetPerson WHERE access='Full' AND gibbonFinanceBudgetID=:gibbonFinanceBudgetID";
                                         $resultHolder = $connection2->prepare($sqlHolder);

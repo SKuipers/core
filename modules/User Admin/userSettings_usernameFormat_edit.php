@@ -28,10 +28,6 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/userSettings.ph
         ->add(__('User Settings'), 'userSettings.php')
         ->add(__('Edit Username Format'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return']);
-    }
-
     $gibbonUsernameFormatID = isset($_GET['gibbonUsernameFormatID'])? $_GET['gibbonUsernameFormatID'] : '';
 
     if (empty($gibbonUsernameFormatID)) {
@@ -54,9 +50,9 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/userSettings.ph
     $values['gibbonRoleIDList'] = explode(',', $values['gibbonRoleIDList']);
     $values['numericValue'] = str_pad($values['numericValue'], $values['numericSize'], '0', STR_PAD_LEFT);
 
-    $form = Form::create('usernameFormat', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/userSettings_usernameFormat_editProcess.php');
+    $form = Form::create('usernameFormat', $session->get('absoluteURL').'/modules/'.$session->get('module').'/userSettings_usernameFormat_editProcess.php');
 
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+    $form->addHiddenValue('address', $session->get('address'));
     $form->addHiddenValue('gibbonUsernameFormatID', $gibbonUsernameFormatID);
 
     $data = array('gibbonUsernameFormatID' => $gibbonUsernameFormatID);

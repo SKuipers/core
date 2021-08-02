@@ -21,11 +21,11 @@ use Gibbon\Domain\Timetable\CourseGateway;
 
 include '../../gibbon.php';
 
-$gibbonSchoolYearID = $_GET['gibbonSchoolYearID'];
-$gibbonCourseID = $_GET['gibbonCourseID'];
+$gibbonSchoolYearID = $_GET['gibbonSchoolYearID'] ?? '';
+$gibbonCourseID = $_GET['gibbonCourseID'] ?? '';
 $classCount = $_POST['classCount'] ?? null;
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['address'])."/units_add.php&gibbonSchoolYearID=$gibbonSchoolYearID&gibbonCourseID=$gibbonCourseID";
-$URLSuccess = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['address'])."/units_edit.php&gibbonSchoolYearID=$gibbonSchoolYearID&gibbonCourseID=$gibbonCourseID";
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_GET['address'])."/units_add.php&gibbonSchoolYearID=$gibbonSchoolYearID&gibbonCourseID=$gibbonCourseID";
+$URLSuccess = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_GET['address'])."/units_edit.php&gibbonSchoolYearID=$gibbonSchoolYearID&gibbonCourseID=$gibbonCourseID";
 
 if (isActionAccessible($guid, $connection2, '/modules/Planner/units_add.php') == false) {
     $URL .= '&return=error0';
@@ -42,18 +42,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_add.php') ==
         } else {
             //Proceed!
             //Validate Inputs
-            $name = $_POST['name'];
-            $description = $_POST['description'];
-            $tags = $_POST['tags'];
-            $active = $_POST['active'];
-            $map = $_POST['map'];
-            $ordering = $_POST['ordering'];
-            $details = $_POST['details'];
+            $name = $_POST['name'] ?? '';
+            $description = $_POST['description'] ?? '';
+            $tags = $_POST['tags'] ?? '';
+            $active = $_POST['active'] ?? '';
+            $map = $_POST['map'] ?? '';
+            $ordering = $_POST['ordering'] ?? '';
+            $details = $_POST['details'] ?? '';
             $license = $_POST['license'] ?? null;
-            $sharedPublic = null;
-            if (isset($_POST['sharedPublic'])) {
-                $sharedPublic = $_POST['sharedPublic'];
-            }
+            $sharedPublic = $_POST['sharedPublic'] ?? '';
+
 
             if ($gibbonSchoolYearID == '' or $gibbonCourseID == '' or $name == '' or $description == '' or $active == '' or $map == '' or $ordering == '') {
                 $URL .= '&return=error1';
@@ -87,10 +85,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_add.php') ==
                     } else {
                         $attachment = '';
                     }
-                    
+
                     //Write to database
                     try {
-                        $data = array('gibbonCourseID' => $gibbonCourseID, 'name' => $name, 'description' => $description, 'tags' => $tags, 'active' => $active, 'map' => $map, 'ordering' => $ordering, 'license' => $license, 'sharedPublic' => $sharedPublic, 'attachment' => $attachment, 'details' => $details, 'gibbonPersonIDCreator' => $_SESSION[$guid]['gibbonPersonID'], 'gibbonPersonIDLastEdit' => $_SESSION[$guid]['gibbonPersonID']);
+                        $data = array('gibbonCourseID' => $gibbonCourseID, 'name' => $name, 'description' => $description, 'tags' => $tags, 'active' => $active, 'map' => $map, 'ordering' => $ordering, 'license' => $license, 'sharedPublic' => $sharedPublic, 'attachment' => $attachment, 'details' => $details, 'gibbonPersonIDCreator' => $session->get('gibbonPersonID'), 'gibbonPersonIDLastEdit' => $session->get('gibbonPersonID'));
                         $sql = 'INSERT INTO gibbonUnit SET gibbonCourseID=:gibbonCourseID, name=:name, description=:description, tags=:tags, active=:active, map=:map, ordering=:ordering, license=:license, sharedPublic=:sharedPublic, attachment=:attachment, details=:details, gibbonPersonIDCreator=:gibbonPersonIDCreator, gibbonPersonIDLastEdit=:gibbonPersonIDLastEdit';
                         $result = $connection2->prepare($sql);
                         $result->execute($data);
@@ -125,7 +123,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_add.php') ==
                     }
 
                     //ADD BLOCKS
-                    $blockCount = ($_POST['blockCount'] - 1);
+                    $blockCount = ($_POST['blockCount'] ?? 0) - 1;
                     $sequenceNumber = 0;
                     if ($blockCount > 0) {
                         $order = array();

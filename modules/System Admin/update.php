@@ -33,13 +33,11 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/update.php') 
     //Proceed!
     $page->breadcrumbs->add(__('Update'));
 
-    $return = $_GET['return'] ?? null;
-    if ($return) {
-        returnProcess($guid, $return, null, [
-            'warning1' => __('Some aspects of your request failed, but others were successful. The elements that failed are shown below:'),
-            'error3' => __('Your request failed because your inputs were invalid, or no update was required.'),
-        ]);
-    }
+    $return = $_GET['return'] ?? '';
+    $page->return->addReturns([
+        'warning1' => __('Some aspects of your request failed, but others were successful. The elements that failed are shown below:'),
+        'error3' => __('Your request failed because your inputs were invalid, or no update was required.'),
+    ]);
 
     // Get and display SQL errors
     if ($gibbon->session->has('systemUpdateError')) {
@@ -110,6 +108,14 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/update.php') 
         $form->addHiddenValue('address', $gibbon->session->get('address'));
         $form->addHiddenValue('type', 'cuttingEdge');
 
+        if ($updater->isComposerUpdateRequired()) {
+            echo Format::alert('<b>'.__('Composer Update Required').'</b>: '.__('The updater has detected a change in the composer.lock file. In the command line, navigate to your Gibbon base path and run the {composer} command. Visit the {docsLink} page in the docs for more information about using composer.<br/><br/>Once you have updated composer, click {updateLink} to dismiss this message. ', [
+                'composer' => '<code class="bg-gray-800 text-white rounded px-1 py-px">composer install</code>',
+                'docsLink' => Format::link('https://docs.gibbonedu.org/developers/getting-started/developer-workflow/', __('Developer Workflow')),
+                'updateLink' => Format::link('./modules/System Admin/updateComposerProcess.php', __('Update')),
+            ]), 'error');
+        }
+
         if ($return == 'success0') {
             $form->addRow()->addContent(__('You seem to be all up to date, good work buddy!'))->addClass('py-16 text-center text-gray-600 text-lg');
         } elseif (!$updateRequired) {
@@ -166,7 +172,7 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/update.php') 
                     $output .= Format::alert(sprintf(__('Your current default database engine is: %1$s.'), $currentEngine).' '.__('It is advised that you change your server config so that your default storage engine is set to InnoDB.'), 'warning');
                 }
 
-                $output .= Format::alert(sprintf(__('%1$s of your tables are not set to InnoDB.'), $tablesTotal - $tablesInnoDB).' <b>'.__('Click "Submit" below to continue. This operation cannot be undone: backup your entire database prior to running the update!'), 'warning');
+                $output .= Format::alert(sprintf(__('%1$s of your tables are not set to InnoDB.'), $engineUpdate->tablesTotal - $engineUpdate->tablesInnoDB).' <b>'.__('Click "Submit" below to continue. This operation cannot be undone: backup your entire database prior to running the update!'), 'warning');
 
                 $form->addRow()->addSubmit();
             }

@@ -19,8 +19,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$gibbonHouseID = $_GET['gibbonHouseID'];
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/house_manage_edit.php&gibbonHouseID='.$gibbonHouseID;
+$gibbonHouseID = $_GET['gibbonHouseID'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/house_manage_edit.php&gibbonHouseID='.$gibbonHouseID;
 
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/house_manage_edit.php') == false) {
     $URL .= '&return=error0';
@@ -78,7 +78,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/house_manage_
                     $logo = $_POST['logo'];
                     if (!empty($_FILES['file1']['tmp_name'])) {
                         $fileUploader = new Gibbon\FileUploader($pdo, $gibbon->session);
-                        
+
                         $file = (isset($_FILES['file1']))? $_FILES['file1'] : null;
 
                         // Upload the file, return the /uploads relative path

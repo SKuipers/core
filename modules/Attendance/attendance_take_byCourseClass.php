@@ -36,16 +36,14 @@ if (isActionAccessible($guid, $connection2, "/modules/Attendance/attendance_take
     echo "</div>";
 } else {
     //Proceed!
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, array('error3' => __('Your request failed because the specified date is in the future, or is not a school day.')));
-    }
+    $page->return->addReturns(['error3' => __('Your request failed because the specified date is in the future, or is not a school day.')]);
 
     $attendance = new AttendanceView($gibbon, $pdo);
 
     $gibbonCourseClassID = isset($_GET['gibbonCourseClassID']) ? $_GET['gibbonCourseClassID'] : '';
     if (empty($gibbonCourseClassID)) {
         try {
-            $data = array('gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID'], 'gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID']);
+            $data = array('gibbonPersonID' => $session->get('gibbonPersonID'), 'gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'));
             $sql = "SELECT gibbonCourseClass.gibbonCourseClassID, gibbonSchoolYear.firstDay, gibbonSchoolYear.lastDay
                     FROM gibbonCourse
                     JOIN gibbonSchoolYear ON (gibbonCourse.gibbonSchoolYearID=gibbonSchoolYear.gibbonSchoolYearID)
@@ -68,24 +66,24 @@ if (isActionAccessible($guid, $connection2, "/modules/Attendance/attendance_take
     echo '<h2>' . __('Choose Class') . "</h2>";
 
     $today = date('Y-m-d');
-    $currentDate = isset($_GET['currentDate']) ? dateConvert($guid, $_GET['currentDate']) : $today;
+    $currentDate = isset($_GET['currentDate']) ? Format::dateConvert($_GET['currentDate']) : $today;
 
-    $form = Form::create('filter', $_SESSION[$guid]['absoluteURL'] . '/index.php', 'get');
+    $form = Form::create('filter', $session->get('absoluteURL') . '/index.php', 'get');
     $form->setFactory(DatabaseFormFactory::create($pdo));
     $form->setClass('noIntBorder fullWidth');
 
-    $form->addHiddenValue('q', '/modules/' . $_SESSION[$guid]['module'] . '/attendance_take_byCourseClass.php');
+    $form->addHiddenValue('q', '/modules/' . $session->get('module') . '/attendance_take_byCourseClass.php');
 
     $row = $form->addRow();
     $row->addLabel('gibbonCourseClassID', __('Class'));
-    $row->addSelectClass('gibbonCourseClassID', $_SESSION[$guid]['gibbonSchoolYearID'], $_SESSION[$guid]['gibbonPersonID'], array('attendance' => 'Y'))
+    $row->addSelectClass('gibbonCourseClassID', $session->get('gibbonSchoolYearID'), $session->get('gibbonPersonID'), array('attendance' => 'Y'))
         ->required()
         ->selected($gibbonCourseClassID)
         ->placeholder();
 
     $row = $form->addRow();
     $row->addLabel('currentDate', __('Date'));
-    $row->addDate('currentDate')->required()->setValue(dateConvertBack($guid, $currentDate));
+    $row->addDate('currentDate')->required()->setValue(Format::date($currentDate));
 
     $row = $form->addRow();
     $row->addSearchSubmit($gibbon->session);
@@ -108,7 +106,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Attendance/attendance_take
 
                 // Check class
                 try {
-                    $data = array("gibbonCourseClassID" => $gibbonCourseClassID, "gibbonSchoolYearID" => $_SESSION[$guid]["gibbonSchoolYearID"]);
+                    $data = array("gibbonCourseClassID" => $gibbonCourseClassID, "gibbonSchoolYearID" => $session->get('gibbonSchoolYearID'));
                     $sql = "SELECT gibbonCourseClass.*, gibbonCourse.gibbonSchoolYearID,firstDay, lastDay,
                     gibbonCourse.nameShort AS course, gibbonCourseClass.nameShort AS class FROM gibbonCourse
                     JOIN gibbonSchoolYear ON (gibbonCourse.gibbonSchoolYearID=gibbonSchoolYear.gibbonSchoolYearID)
@@ -176,13 +174,13 @@ if (isActionAccessible($guid, $connection2, "/modules/Attendance/attendance_take
                         echo __("Attendance has been taken at the following times for the specified date for this group:");
                         echo "<ul>";
                         while ($rowLog = $resultLog->fetch()) {
-                            echo "<li>" . sprintf(__('Recorded at %1$s on %2$s by %3$s.'), substr($rowLog["timestampTaken"], 11), dateConvertBack($guid, substr($rowLog["timestampTaken"], 0, 10)), Format::name("", $rowLog["preferredName"], $rowLog["surname"], "Staff", false, true)) . "</li>";
+                            echo "<li>" . sprintf(__('Recorded at %1$s on %2$s by %3$s.'), substr($rowLog["timestampTaken"], 11), Format::date(substr($rowLog["timestampTaken"], 0, 10)), Format::name("", $rowLog["preferredName"], $rowLog["surname"], "Staff", false, true)) . "</li>";
                         }
                         echo "</ul>";
                         echo "</div>";
                     }
 
-                    //Show roll group grid
+                    //Show form group grid
                     try {
                         $dataCourseClass = array("gibbonCourseClassID" => $gibbonCourseClassID, 'date' => $currentDate);
                         $sqlCourseClass = "SELECT gibbonPerson.surname, gibbonPerson.preferredName, gibbonPerson.gibbonPersonID, gibbonPerson.image_240 FROM gibbonCourseClassPerson
@@ -278,10 +276,10 @@ if (isActionAccessible($guid, $connection2, "/modules/Attendance/attendance_take
                             $students[$key]['log'] = $log;
                         }
 
-                        $form = Form::create('attendanceByClass', $_SESSION[$guid]['absoluteURL'] . '/modules/' . $_SESSION[$guid]['module'] . '/attendance_take_byCourseClassProcess.php');
+                        $form = Form::create('attendanceByClass', $session->get('absoluteURL') . '/modules/' . $session->get('module') . '/attendance_take_byCourseClassProcess.php');
                         $form->setAutocomplete('off');
 
-                        $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+                        $form->addHiddenValue('address', $session->get('address'));
                         $form->addHiddenValue('gibbonCourseClassID', $gibbonCourseClassID);
                         $form->addHiddenValue('currentDate', $currentDate);
                         $form->addHiddenValue('count', count($students));

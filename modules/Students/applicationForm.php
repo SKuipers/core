@@ -17,9 +17,13 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\View\View;
 use Gibbon\Forms\Form;
-use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Services\Format;
+use Gibbon\Forms\CustomFieldHandler;
+use Gibbon\Forms\PersonalDocumentHandler;
+use Gibbon\Forms\DatabaseFormFactory;
+use Gibbon\Domain\System\SettingGateway;
 
 //Module includes from User Admin (for custom fields)
 include './modules/User Admin/moduleFunctions.php';
@@ -27,7 +31,7 @@ include './modules/User Admin/moduleFunctions.php';
 $proceed = false;
 $public = false;
 
-if (isset($_SESSION[$guid]['username']) == false) {
+if (!$session->has('username')) {
     $public = true;
 
     //Get public access
@@ -43,8 +47,8 @@ if (isset($_SESSION[$guid]['username']) == false) {
 
 //Set gibbonPersonID of the person completing the application
 $gibbonPersonID = null;
-if (isset($_SESSION[$guid]['gibbonPersonID'])) {
-    $gibbonPersonID = $_SESSION[$guid]['gibbonPersonID'];
+if ($session->has('gibbonPersonID')) {
+    $gibbonPersonID = $session->get('gibbonPersonID');
 }
 
 if ($proceed == false) {
@@ -54,8 +58,8 @@ if ($proceed == false) {
     //Proceed!
     $page->breadcrumbs->add(__('Application Form'));
 
-    if (isset($_SESSION[$guid]['username']) == false) {
-        echo "<div class='warning' style='font-weight: bold'>".sprintf(__('If you already have an account for %1$s %2$s, please log in now to prevent creation of duplicate data about you! Once logged in, you can find the form under People > Students in the main menu.'), $_SESSION[$guid]['organisationNameShort'], $_SESSION[$guid]['systemName']).' '.sprintf(__('If you do not have an account for %1$s %2$s, please use the form below.'), $_SESSION[$guid]['organisationNameShort'], $_SESSION[$guid]['systemName']).'</div>';
+    if (!$session->has('username')) {
+        echo "<div class='warning' style='font-weight: bold'>".sprintf(__('If you already have an account for %1$s %2$s, please log in now to prevent creation of duplicate data about you! Once logged in, you can find the form under People > Students in the main menu.'), $session->get('organisationNameShort'), $session->get('systemName')).' '.sprintf(__('If you do not have an account for %1$s %2$s, please use the form below.'), $session->get('organisationNameShort'), $session->get('systemName')).'</div>';
     } else {
         // Application Manager
         if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_manage.php')) {
@@ -93,8 +97,8 @@ if ($proceed == false) {
 
         $returnExtra = '<br/><br/>'.__('If you need to contact the school in reference to this application, please quote the following number:').' <b><u>'.$gibbonApplicationFormID.'</b></u>.';
     }
-    if ($_SESSION[$guid]['organisationAdmissionsName'] != '' and $_SESSION[$guid]['organisationAdmissionsEmail'] != '') {
-        $returnExtra .= '<br/><br/>'.sprintf(__('Please contact %1$s if you have any questions, comments or complaints.'), "<a href='mailto:".$_SESSION[$guid]['organisationAdmissionsEmail']."'>".$_SESSION[$guid]['organisationAdmissionsName'].'</a>');
+    if ($session->get('organisationAdmissionsName') != '' and $session->get('organisationAdmissionsEmail') != '') {
+        $returnExtra .= '<br/><br/>'.sprintf(__('Please contact %1$s if you have any questions, comments or complaints.'), "<a href='mailto:".$session->get('organisationAdmissionsEmail')."'>".$session->get('organisationAdmissionsName').'</a>');
     }
 
     $returns = array();
@@ -103,9 +107,7 @@ if ($proceed == false) {
     $returns['success2'] = __('Your application was successfully submitted, but payment could not be made to your credit card. Our admissions team will review your application and be in touch in due course.').$returnExtra;
     $returns['success3'] = __('Your application was successfully submitted, payment has been made to your credit card, but there has been an error recording your payment. Please print this screen and contact the school ASAP. Our admissions team will review your application and be in touch in due course.').$returnExtra;
     $returns['success4'] = __("Your application was successfully submitted, but payment could not be made as the payment gateway does not support the system's currency. Our admissions team will review your application and be in touch in due course.").$returnExtra;
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, $returns);
-    }
+    $page->return->addReturns($returns);
 
     // JS success return addition
     $return = (isset($_GET['return']))? $_GET['return'] : '';
@@ -151,11 +153,14 @@ if ($proceed == false) {
 
     $siblingApplicationMode = !empty($gibbonApplicationFormID);
 
-    $form = Form::create('applicationForm', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/applicationFormProcess.php');
+    $customFieldHandler = $container->get(CustomFieldHandler::class);
+    $personalDocumentHandler = $container->get(PersonalDocumentHandler::class);
+
+    $form = Form::create('applicationForm', $session->get('absoluteURL').'/modules/'.$session->get('module').'/applicationFormProcess.php');
     $form->setAutocomplete('on');
     $form->setFactory(DatabaseFormFactory::create($pdo));
 
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+    $form->addHiddenValue('address', $session->get('address'));
 
     // SIBLING APPLICATIONS
     if ($siblingApplicationMode == true) {
@@ -224,7 +229,7 @@ if ($proceed == false) {
         $row->addSelectGender('gender')->required();
 
     $row = $form->addRow();
-        $row->addLabel('dob', __('Date of Birth'))->description($_SESSION[$guid]['i18n']['dateFormat'])->prepend(__('Format:'));
+        $row->addLabel('dob', __('Date of Birth'))->description($session->get('i18n')['dateFormat'])->prepend(__('Format:'));
         $row->addDate('dob')->required();
 
     // STUDENT BACKGROUND
@@ -254,40 +259,13 @@ if ($proceed == false) {
         $row->addLabel('countryOfBirth', __('Country of Birth'));
         $row->addSelectCountry('countryOfBirth')->required();
 
-    $row = $form->addRow();
-        $row->addLabel('citizenship1', __('Citizenship'));
-        $nationalityList = getSettingByScope($connection2, 'User Admin', 'nationality');
-        if (!empty($nationalityList)) {
-            $row->addSelect('citizenship1')->required()->fromString($nationalityList)->placeholder(__('Please select...'));
-        } else {
-            $row->addSelectCountry('citizenship1')->required();
-        }
+    $countryName = ($session->has('country')) ? __($session->get('country')).' ' : '';
+    $nationalityList = getSettingByScope($connection2, 'User Admin', 'nationality');
+    $residencyStatusList = getSettingByScope($connection2, 'User Admin', 'residencyStatus');
 
-    $countryName = (isset($_SESSION[$guid]['country']))? __($_SESSION[$guid]['country']).' ' : '';
-    $row = $form->addRow();
-        $row->addLabel('citizenship1Passport', __('Citizenship Passport Number'))->description('');
-        $row->addTextField('citizenship1Passport')->maxLength(30);
-
-    $row = $form->addRow();
-        $row->addLabel('citizenship1PassportExpiry', __('Citizenship 1 Passport Expiry Date'));
-        $row->addDate('citizenship1PassportExpiry');
-
-    $row = $form->addRow();
-        $row->addLabel('nationalIDCardNumber', $countryName.__('National ID Card Number'));
-        $row->addTextField('nationalIDCardNumber')->maxLength(30);
-
-    $row = $form->addRow();
-        $row->addLabel('residencyStatus', $countryName.__('Residency/Visa Type'));
-        $residencyStatusList = getSettingByScope($connection2, 'User Admin', 'residencyStatus');
-        if (!empty($residencyStatusList)) {
-            $row->addSelect('residencyStatus')->fromString($residencyStatusList)->placeholder();
-        } else {
-            $row->addTextField('residencyStatus')->maxLength(30);
-        }
-
-    $row = $form->addRow();
-        $row->addLabel('visaExpiryDate', $countryName.__('Visa Expiry Date'))->description($_SESSION[$guid]['i18n']['dateFormat'])->prepend(__('Format:'))->append(__('If relevant.'));
-        $row->addDate('visaExpiryDate');
+    // PERSONAL DOCUMENTS
+    $params = ['student' => true, 'applicationForm' => true];
+    $personalDocumentHandler->addPersonalDocumentsToForm($form, null, null, $params);
 
     // STUDENT CONTACT
     // $form->addRow()->addSubheading(__('Student Contact'));
@@ -314,7 +292,7 @@ if ($proceed == false) {
 
         $applicationFormSENText = getSettingByScope($connection2, 'Students', 'applicationFormSENText');
         if (!empty($applicationFormSENText)) {
-            $heading->append('<p>'.$applicationFormSENText.'<p>');
+            $heading->append($applicationFormSENText);
         }
 
         $row = $form->addRow();
@@ -360,7 +338,7 @@ if ($proceed == false) {
         $row->addSelect('gibbonSchoolYearIDEntry')->fromQuery($pdo, $sql, $data)->required()->placeholder(__('Please select...'));
 
     $row = $form->addRow();
-        $row->addLabel('dateStart', __('Intended Start Date'))->description(__('Student\'s intended first day at school.'))->append('<br/>'.__('Format:'))->append(' '.$_SESSION[$guid]['i18n']['dateFormat']);
+        $row->addLabel('dateStart', __('Intended Start Date'))->description(__('Student\'s intended first day at school.'))->append('<br/>'.__('Format:'))->append(' '.$session->get('i18n')['dateFormat']);
         $row->addDate('dateStart')->required();
 
     $row = $form->addRow();
@@ -401,7 +379,7 @@ if ($proceed == false) {
     $header->addContent(__('Address'));
     $header->addContent(sprintf(__('Grades%1$sAttended'), '<br/>'));
     $header->addContent(sprintf(__('Language of%1$sInstruction'), '<br/>'));
-    $header->addContent(__('Joining Date'))->append('<br/><small>'.$_SESSION[$guid]['i18n']['dateFormat'].'</small>');
+    $header->addContent(__('Joining Date'))->append('<br/><small>'.$session->get('i18n')['dateFormat'].'</small>');
 
     // Grab some languages, for auto-complete
     $results = $pdo->executeQuery(array(), "SELECT name FROM gibbonLanguage ORDER BY name");
@@ -417,17 +395,8 @@ if ($proceed == false) {
     }
 
     // CUSTOM FIELDS FOR STUDENT
-    $resultFields = getCustomFields($connection2, $guid, true, false, false, false, true, null);
-    if ($resultFields->rowCount() > 0) {
-        $heading = $form->addRow()->addSubheading(__('Other Information'));
-
-        while ($rowFields = $resultFields->fetch()) {
-            $name = 'custom'.$rowFields['gibbonPersonFieldID'];
-            $row = $form->addRow();
-                $row->addLabel($name, $rowFields['name'])->description($rowFields['description']);
-                $row->addCustomField($name, $rowFields);
-        }
-    }
+    $params = ['student' => 1, 'applicationForm' => 1, 'headingLevel' => 'h4'];
+    $customFieldHandler->addCustomFieldsToForm($form, 'User', $params);
 
     // FAMILY
     if (!empty($gibbonFamilyID)) {
@@ -510,21 +479,8 @@ if ($proceed == false) {
                 $row->addSelectRelationship('parent1relationship')->required();
 
             // CUSTOM FIELDS FOR PARENT 1 WITH FAMILY
-            $existingFields = (!empty($parent1fields))? json_decode($parent1fields, true) : null;
-            $resultFields = getCustomFields($connection2, $guid, false, false, true, false, true, null);
-            if ($resultFields->rowCount() > 0) {
-                $row = $form->addRow();
-                $row->addSubheading(__('Parent/Guardian').' 1 '.__('Other Information'));
-
-                while ($rowFields = $resultFields->fetch()) {
-                    $name = "parent1custom".$rowFields['gibbonPersonFieldID'];
-                    $value = (isset($existingFields[$rowFields['gibbonPersonFieldID']]))? $existingFields[$rowFields['gibbonPersonFieldID']] : '';
-
-                    $row = $form->addRow();
-                        $row->addLabel($name, $rowFields['name'])->description($rowFields['description']);
-                        $row->addCustomField($name, $rowFields)->setValue($value);
-                }
-            }
+            $params = ['parent' => 1, 'applicationForm' => 1, 'prefix' => 'parent1custom', 'headingPrefix' => __('Parent/Guardian').' 1', 'headingLevel' => 'h4'];
+            $customFieldHandler->addCustomFieldsToForm($form, 'User', $params, $parent1fields);
 
             $start = 2;
         } else {
@@ -596,29 +552,9 @@ if ($proceed == false) {
                 $row->addLabel("parent{$i}languageSecond", __('Second Language'));
                 $row->addSelectLanguage("parent{$i}languageSecond")->placeholder()->loadFrom($application);
 
-            $row = $form->addRow()->setClass("parentSection{$i}");
-                $row->addLabel("parent{$i}citizenship1", __('Citizenship'));
-                if (!empty($nationalityList)) {
-                    $row->addSelect("parent{$i}citizenship1")->fromString($nationalityList)->placeholder()->loadFrom($application);
-                } else {
-                    $row->addSelectCountry("parent{$i}citizenship1")->loadFrom($application);
-                }
-
-            $row = $form->addRow()->setClass("parentSection{$i}");
-                $row->addLabel("parent{$i}nationalIDCardNumber", $countryName.__('National ID Card Number'));
-                $row->addTextField("parent{$i}nationalIDCardNumber")->maxLength(30)->loadFrom($application);
-
-            $row = $form->addRow()->setClass("parentSection{$i}");
-                $row->addLabel("parent{$i}residencyStatus", $countryName.__('Residency/Visa Type'));
-                if (!empty($residencyStatusList)) {
-                    $row->addSelect("parent{$i}residencyStatus")->fromString($residencyStatusList)->placeholder()->loadFrom($application);
-                } else {
-                    $row->addTextField("parent{$i}residencyStatus")->maxLength(30)->loadFrom($application);
-                }
-
-            $row = $form->addRow()->setClass("parentSection{$i}");
-                $row->addLabel("parent{$i}visaExpiryDate", $countryName.__('Visa Expiry Date'))->description($_SESSION[$guid]['i18n']['dateFormat'])->prepend(__('Format:'))->append(__('If relevant.'));
-                $row->addDate("parent{$i}visaExpiryDate")->loadFrom($application);
+            // PERSONAL DOCUMENTS
+            $params = ['parent' => true, 'applicationForm' => true, 'prefix' => "parent{$i}", 'class' => "parentSection{$i}"];
+            $personalDocumentHandler->addPersonalDocumentsToForm($form, null, null, $params);
 
             // PARENT CONTACT
             $row = $form->addRow()->setClass("parentSection{$i}");
@@ -650,21 +586,8 @@ if ($proceed == false) {
                 $row->addTextField("parent{$i}employer")->required()->maxLength(90)->loadFrom($application);
 
             // CUSTOM FIELDS FOR PARENTS
-            $existingFields = (isset($application["parent{$i}fields"]))? json_decode($application["parent{$i}fields"], true) : null;
-            $resultFields = getCustomFields($connection2, $guid, false, false, true, false, true, null);
-            if ($resultFields->rowCount() > 0) {
-                $row = $form->addRow()->setClass("parentSection{$i}");
-                $row->addSubheading(__('Parent/Guardian')." $i ".__('Other Information'));
-
-                while ($rowFields = $resultFields->fetch()) {
-                    $name = "parent{$i}custom".$rowFields['gibbonPersonFieldID'];
-                    $value = (isset($existingFields[$rowFields['gibbonPersonFieldID']]))? $existingFields[$rowFields['gibbonPersonFieldID']] : '';
-
-                    $row = $form->addRow()->setClass("parentSection{$i}");
-                        $row->addLabel($name, $rowFields['name'])->description($rowFields['description']);
-                        $row->addCustomField($name, $rowFields)->setValue($value);
-                }
-            }
+            $params = ['parent' => 1, 'applicationForm' => 1, 'prefix' => "parent{$i}custom", 'headingPrefix' => __('Parent/Guardian')." $i", 'headingLevel' => 'h4', 'class' => "parentSection{$i}"];
+            $customFieldHandler->addCustomFieldsToForm($form, 'User', $params, $application["parent{$i}fields"] ?? '');
         }
     } else {
         // LOGGED IN PARENT WITH FAMILY
@@ -724,9 +647,9 @@ if ($proceed == false) {
 
     $header = $table->addHeaderRow();
     $header->addContent(__('Sibling Name'));
-    $header->addContent(__('Date of Birth'))->append('<br/><small>'.$_SESSION[$guid]['i18n']['dateFormat'].'</small>');
+    $header->addContent(__('Date of Birth'))->append('<br/><small>'.$session->get('i18n')['dateFormat'].'</small>');
     $header->addContent(__('School Attending'));
-    $header->addContent(__('Joining Date'))->append('<br/><small>'.$_SESSION[$guid]['i18n']['dateFormat'].'</small>');
+    $header->addContent(__('Joining Date'))->append('<br/><small>'.$session->get('i18n')['dateFormat'].'</small>');
 
     $rowCount = 1;
 
@@ -743,9 +666,9 @@ if ($proceed == false) {
 
             $row = $table->addRow();
             $row->addTextField('siblingName'.$rowCount)->maxLength(50)->setSize(26)->setValue($name);
-            $row->addDate('siblingDOB'.$rowCount)->setSize(10)->setValue(dateConvertBack($guid, $rowSibling['dob']));
-            $row->addTextField('siblingSchool'.$rowCount)->maxLength(50)->setSize(30)->setValue($_SESSION[$guid]['organisationName']);
-            $row->addDate('siblingSchoolJoiningDate'.$rowCount)->setSize(10)->setValue(dateConvertBack($guid, $rowSibling['dateStart']));
+            $row->addDate('siblingDOB'.$rowCount)->setSize(10)->setValue(Format::date($rowSibling['dob']));
+            $row->addTextField('siblingSchool'.$rowCount)->maxLength(50)->setSize(30)->setValue($session->get('organisationName'));
+            $row->addDate('siblingSchoolJoiningDate'.$rowCount)->setSize(10)->setValue(Format::date($rowSibling['dateStart']));
 
             $rowCount++;
         }
@@ -762,7 +685,7 @@ if ($proceed == false) {
         // Fill in some info from any sibling applications
         if (!empty($linkedApplications[$i-1])) {
             $nameField->setValue($linkedApplications[$i-1]['officialName']);
-            $dobField->setValue(dateConvertBack($guid, $linkedApplications[$i-1]['dob']));
+            $dobField->setValue(Format::date($linkedApplications[$i-1]['dob']));
         }
     }
 
@@ -776,7 +699,7 @@ if ($proceed == false) {
         $heading = $form->addRow()->addHeading(__('Language Selection'));
 
         if (!empty($languageOptionsBlurb)) {
-            $heading->append($languageOptionsBlurb)->wrap('<p>','</p>');
+            $heading->append($languageOptionsBlurb);
         }
 
         if ($languageOptionsLanguageList != '') {
@@ -801,7 +724,7 @@ if ($proceed == false) {
 
         $scholarship = getSettingByScope($connection2, 'Application Form', 'scholarships');
         if (!empty($scholarship)) {
-            $heading->append($scholarship)->wrap('<p>','</p>');
+            $heading->append($scholarship);
         }
 
         $row = $form->addRow();
@@ -901,7 +824,6 @@ if ($proceed == false) {
             } else {
                 $heading->append(__('These documents are all required, but can be submitted separately to this form if preferred. Please note, however, that your application will be processed faster if the documents are included here.'));
             }
-            $heading->wrap('<p>', '</p>');
         }
 
         $fileUploader = new Gibbon\FileUploader($pdo, $gibbon->session);
@@ -964,7 +886,7 @@ if ($proceed == false) {
     // AGREEMENT
     $agreement = getSettingByScope($connection2, 'Application Form', 'agreement');
     if (!empty($agreement)) {
-        $form->addRow()->addHeading(__('Agreement'))->append($agreement)->wrap('<p>','</p>');
+        $form->addRow()->addHeading(__('Agreement'))->append($agreement);
 
         $row = $form->addRow();
             $row->addLabel('agreement', '<b>'.__('Do you agree to the above?').'</b>');

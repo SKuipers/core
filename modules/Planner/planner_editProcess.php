@@ -17,21 +17,21 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-include '../../gibbon.php';
-
+use Gibbon\Services\Format;
 use Gibbon\Comms\NotificationSender;
 use Gibbon\Domain\System\NotificationGateway;
 
+include '../../gibbon.php';
 
-$gibbonPlannerEntryID = $_GET['gibbonPlannerEntryID'];
-$viewBy = $_GET['viewBy'];
-$subView = $_GET['subView'];
+$gibbonPlannerEntryID = $_GET['gibbonPlannerEntryID'] ?? '';
+$viewBy = $_GET['viewBy'] ?? '';
+$subView = $_GET['subView'] ?? '';
 if ($viewBy != 'date' and $viewBy != 'class') {
     $viewBy = 'date';
 }
-$gibbonCourseClassID = $_POST['gibbonCourseClassID'];
-$date = dateConvert($guid, $_POST['date']);
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['address'])."/planner_edit.php&gibbonPlannerEntryID=$gibbonPlannerEntryID";
+$gibbonCourseClassID = $_POST['gibbonCourseClassID'] ?? '';
+$date = !empty($_POST['date']) ? Format::dateConvert($_POST['date']) : null;
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_GET['address'])."/planner_edit.php&gibbonPlannerEntryID=$gibbonPlannerEntryID";
 
 //Params to pass back (viewBy + date or classID)
 if ($viewBy == 'date') {
@@ -64,7 +64,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_edit.php')
                         $data = array('gibbonPlannerEntryID' => $gibbonPlannerEntryID);
                         $sql = 'SELECT gibbonPlannerEntryID, gibbonUnitID, gibbonCourse.nameShort AS course, gibbonCourseClass.nameShort AS class, gibbonPlannerEntry.name, summary FROM gibbonPlannerEntry JOIN gibbonCourseClass ON (gibbonPlannerEntry.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) JOIN gibbonCourse ON (gibbonCourse.gibbonCourseID=gibbonCourseClass.gibbonCourseID) WHERE gibbonPlannerEntryID=:gibbonPlannerEntryID';
                     } else {
-                        $data = array('gibbonPlannerEntryID' => $gibbonPlannerEntryID, 'gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID']);
+                        $data = array('gibbonPlannerEntryID' => $gibbonPlannerEntryID, 'gibbonPersonID' => $session->get('gibbonPersonID'));
                         $sql = "SELECT gibbonPlannerEntryID, gibbonUnitID, gibbonCourse.nameShort AS course, gibbonCourseClass.nameShort AS class, gibbonPlannerEntry.name, summary, role FROM gibbonPlannerEntry JOIN gibbonCourseClass ON (gibbonPlannerEntry.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) JOIN gibbonCourseClassPerson ON (gibbonCourseClass.gibbonCourseClassID=gibbonCourseClassPerson.gibbonCourseClassID) JOIN gibbonCourse ON (gibbonCourse.gibbonCourseID=gibbonCourseClass.gibbonCourseID) WHERE gibbonCourseClassPerson.gibbonPersonID=:gibbonPersonID AND role='Teacher' AND gibbonPlannerEntryID=:gibbonPlannerEntryID";
                     }
                     $result = $connection2->prepare($sql);
@@ -82,20 +82,20 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_edit.php')
                     $row = $result->fetch();
 
                     //Validate Inputs
-                    $timeStart = $_POST['timeStart'];
-                    $timeEnd = $_POST['timeEnd'];
+                    $timeStart = $_POST['timeStart'] ?? '';
+                    $timeEnd = $_POST['timeEnd'] ?? '';
                     $gibbonUnitID = !empty($_POST['gibbonUnitID']) ? $_POST['gibbonUnitID'] : null;
-                    $name = $_POST['name'];
-                    $summary = $_POST['summary'];
-                    if ($summary == '') {
-                        $summary = trim(strip_tags($_POST['description'])) ;
-                        if (strlen($summary) > 252) {
-                            $summary = substr($summary, 0, 252).'...' ;
-                        }
+                    $name = $_POST['name'] ?? '';
+                    $summary = $_POST['summary'] ?? '';
+                    if (empty($summary)) {
+                        $summary = trim(strip_tags($_POST['description'] ?? '')) ;
+                        $summary = mb_substr($summary, 0, 252);
+                    } else {
+                        $summary = strip_tags($summary);
                     }
                     $summaryBlocks = '';
-                    $description = $_POST['description'];
-                    $teachersNotes = $_POST['teachersNotes'];
+                    $description = $_POST['description'] ?? '';
+                    $teachersNotes = $_POST['teachersNotes'] ?? '';
                     $homeworkSubmissionDateOpen = null;
                     $homeworkSubmissionDrafts = null;
                     $homeworkSubmissionType = null;
@@ -110,11 +110,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_edit.php')
                     $homeworkTimeCap = null;
                     $homeworkLocation = null;
 
-                    $homework = $_POST['homework'];
+                    $homework = $_POST['homework'] ?? '';
                     if ($_POST['homework'] == 'Y') {
                         $homework = 'Y';
-                        $homeworkDetails = $_POST['homeworkDetails'];
-                        $homeworkTimeCap = !empty($_POST['homeworkTimeCap'])? $_POST['homeworkTimeCap'] : null;
+                        $homeworkDetails = $_POST['homeworkDetails'] ?? '';
+                        $homeworkTimeCap = $_POST['homeworkTimeCap'] ?? null;
                         $homeworkLocation = $_POST['homeworkLocation'] ?? 'Out of Class';
                         if ($_POST['homeworkDueDateTime'] != '') {
                             $homeworkDueDateTime = $_POST['homeworkDueDateTime'].':59';
@@ -122,7 +122,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_edit.php')
                             $homeworkDueDateTime = '21:00:00';
                         }
                         if ($_POST['homeworkDueDate'] != '') {
-                            $homeworkDueDate = dateConvert($guid, $_POST['homeworkDueDate']).' '.$homeworkDueDateTime;
+                            $homeworkDueDate = Format::dateConvert($_POST['homeworkDueDate']).' '.$homeworkDueDateTime;
                         }
 
                         // Check if the homework due date is within this class
@@ -134,7 +134,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_edit.php')
                         if ($_POST['homeworkSubmission'] == 'Y') {
                             $homeworkSubmission = 'Y';
                             if ($_POST['homeworkSubmissionDateOpen'] != '') {
-                                $homeworkSubmissionDateOpen = dateConvert($guid, $_POST['homeworkSubmissionDateOpen']);
+                                $homeworkSubmissionDateOpen = Format::dateConvert($_POST['homeworkSubmissionDateOpen']);
                             } else {
                                 $homeworkSubmissionDateOpen = date('Y-m-d');
                             }
@@ -191,10 +191,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_edit.php')
                         $homeworkCrowdAssess = 'N';
                     }
 
-                    $viewableParents = $_POST['viewableParents'];
-                    $viewableStudents = $_POST['viewableStudents'];
-                    $gibbonPersonIDCreator = $_SESSION[$guid]['gibbonPersonID'];
-                    $gibbonPersonIDLastEdit = $_SESSION[$guid]['gibbonPersonID'];
+                    $viewableParents = $_POST['viewableParents'] ?? '';
+                    $viewableStudents = $_POST['viewableStudents'] ?? '';
+                    $gibbonPersonIDCreator = $session->get('gibbonPersonID');
+                    $gibbonPersonIDLastEdit = $session->get('gibbonPersonID');
 
                     if ($viewBy == '' or $gibbonCourseClassID == '' or $date == '' or $timeStart == '' or $timeEnd == '' or $name == '' or $homework == '' or $viewableParents == '' or $viewableStudents == '' or ($homework == 'Y' and ($homeworkDetails == '' or $homeworkDueDate == ''))) {
                         $URL .= "&return=error3$params";
@@ -241,24 +241,20 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_edit.php')
 
                         //Deal with smart unit
                         $partialFail = false;
-                        $order = null;
-                        if (isset($_POST['order'])) {
-                            $order = $_POST['order'];
-                        }
-                        $seq = null;
-                        if (isset($_POST['minSeq'])) {
-                            $seq = $_POST['minSeq'];
-                        }
+                        $order = $_POST['order'] ?? '';
+
+                        $seq = $_POST['minSeq'] ?? '';
+
 
                         if (is_array($order)) {
                             foreach ($order as $i) {
-                                $id = $_POST["gibbonUnitClassBlockID$i"];
-                                $title = $_POST["title$i"];
+                                $id = $_POST["gibbonUnitClassBlockID$i"] ?? '';
+                                $title = $_POST["title$i"] ?? '';
                                 $summaryBlocks .= $title.', ';
-                                $type = $_POST["type$i"];
-                                $length = $_POST["length$i"];
-                                $contents = $_POST["contents$i"];
-                                $teachersNotesBlock = $_POST["teachersNotes$i"];
+                                $type = $_POST["type$i"] ?? '';
+                                $length = $_POST["length$i"] ?? '';
+                                $contents = $_POST["contents$i"] ?? '';
+                                $teachersNotesBlock = $_POST["teachersNotes$i"] ?? '';
                                 $complete = 'N';
                                 if (isset($_POST["complete$i"])) {
                                     if ($_POST["complete$i"] == 'on') {
@@ -315,8 +311,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_edit.php')
                         if (strlen($summaryBlocks) > 75) {
                             $summaryBlocks = substr($summaryBlocks, 0, 72).'...';
                         }
-                        if ($summaryBlocks) {
-                            $summary = $summaryBlocks;
+                        if (empty($summary) && $summaryBlocks) {
+                            $summary = strip_tags($summaryBlocks);
                         }
 
                         //Write to database
@@ -356,7 +352,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_edit.php')
                             }
 
                             while ($rowClassGroup = $resultClassGroup->fetch()) {
-                                if ($rowClassGroup['gibbonPersonID'] != $_SESSION[$guid]['gibbonPersonID']) {
+                                if ($rowClassGroup['gibbonPersonID'] != $session->get('gibbonPersonID')) {
                                     $notificationSender->addNotification($rowClassGroup['gibbonPersonID'], sprintf(__('Lesson “%1$s” has been updated.'), $name), "Planner", "/index.php?q=/modules/Planner/planner_view_full.php&gibbonPlannerEntryID=$gibbonPlannerEntryID&viewBy=class&gibbonCourseClassID=$gibbonCourseClassID");
                                 }
                             }

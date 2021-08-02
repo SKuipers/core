@@ -29,16 +29,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/budgetCycles_manag
         ->add(__('Manage Budget Cycles'), 'budgetCycles_manage.php')
         ->add(__('Edit Budget Cycle'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return']);
-    }
-
     //Check if school year specified
     $gibbonFinanceBudgetCycleID = $_GET['gibbonFinanceBudgetCycleID'];
     if ($gibbonFinanceBudgetCycleID == '') {
         $page->addError(__('You have not specified one or more required parameters.'));
     } else {
-        
+
             $data = array('gibbonFinanceBudgetCycleID' => $gibbonFinanceBudgetCycleID);
             $sql = 'SELECT * FROM gibbonFinanceBudgetCycle WHERE gibbonFinanceBudgetCycleID=:gibbonFinanceBudgetCycleID';
             $result = $connection2->prepare($sql);
@@ -49,11 +45,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/budgetCycles_manag
         } else {
             //Let's go!
             $values = $result->fetch();
-            
-            $form = Form::create('budgetCycle', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/budgetCycles_manage_editProcess.php?gibbonFinanceBudgetCycleID='.$gibbonFinanceBudgetCycleID);
+
+            $form = Form::create('budgetCycle', $session->get('absoluteURL').'/modules/'.$session->get('module').'/budgetCycles_manage_editProcess.php?gibbonFinanceBudgetCycleID='.$gibbonFinanceBudgetCycleID);
             $form->setFactory(DatabaseFormFactory::create($pdo));
 
-            $form->addHiddenValue("address", $_SESSION[$guid]['address']);
+            $form->addHiddenValue("address", $session->get('address'));
 
             $row = $form->addRow();
                 $row->addHeading(__("Basic Information"));
@@ -67,7 +63,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/budgetCycles_manag
                 'Current' =>  __("Current"),
                 'Past' => __("Past")
             );
-            
+
             $row = $form->addRow();
                 $row->addLabel("status", __("Status"));
                 $row->addSelect("status")->fromArray($statusTypes);
@@ -77,17 +73,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/budgetCycles_manag
                 $row->addSequenceNumber('sequenceNumber', 'gibbonFinanceBudgetCycle', $values['sequenceNumber'])->required()->maxLength(3);
 
             $row = $form->addRow();
-                $row->addLabel("dateStart", __("Start Date"))->description(__('Format:').' ')->append($_SESSION[$guid]['i18n']['dateFormat']);
+                $row->addLabel("dateStart", __("Start Date"))->description(__('Format:').' ')->append($session->get('i18n')['dateFormat']);
                 $row->addDate("dateStart")->required();
 
             $row = $form->addRow();
-                $row->addLabel("dateEnd", __("End Date"))->description(__('Format:').' ')->append($_SESSION[$guid]['i18n']['dateFormat']);
+                $row->addLabel("dateEnd", __("End Date"))->description(__('Format:').' ')->append($session->get('i18n')['dateFormat']);
                 $row->addDate("dateEnd")->required();
-            
+
             $row = $form->addRow();
                 $row->addHeading(__("Budget Allocations"));
 
-            
+
                 $dataBudget = array('gibbonFinanceBudgetCycleID' => $gibbonFinanceBudgetCycleID);
                 $sqlBudget = 'SELECT gibbonFinanceBudget.*, value FROM gibbonFinanceBudget LEFT JOIN gibbonFinanceBudgetCycleAllocation ON (gibbonFinanceBudgetCycleAllocation.gibbonFinanceBudgetID=gibbonFinanceBudget.gibbonFinanceBudgetID AND gibbonFinanceBudgetCycleID=:gibbonFinanceBudgetCycleID) ORDER BY name';
                 $resultBudget = $connection2->prepare($sqlBudget);

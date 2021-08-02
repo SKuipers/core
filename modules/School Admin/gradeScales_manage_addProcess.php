@@ -19,13 +19,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$name = $_POST['name'];
-$nameShort = $_POST['nameShort'];
-$usage = $_POST['usage'];
-$active = $_POST['active'];
-$numeric = $_POST['numeric'];
+$name = $_POST['name'] ?? '';
+$nameShort = $_POST['nameShort'] ?? '';
+$usage = $_POST['usage'] ?? '';
+$active = $_POST['active'] ?? '';
+$numeric = $_POST['numeric'] ?? '';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/gradeScales_manage_add.php';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/gradeScales_manage_add.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/gradeScales_manage_add.php') == false) {
     $URL .= '&return=error0';

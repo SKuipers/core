@@ -19,13 +19,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$gibbonFamilyID = $_GET['gibbonFamilyID'];
-$gibbonPersonID = $_GET['gibbonPersonID'];
-$search = $_GET['search'];
+$gibbonFamilyID = $_GET['gibbonFamilyID'] ?? '';
+$gibbonPersonID = $_GET['gibbonPersonID'] ?? '';
+$search = $_GET['search'] ?? '';
 
 if ($gibbonFamilyID == '') { echo 'Fatal error loading this page!';
 } else {
-    $URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/family_manage_edit_editAdult.php&gibbonFamilyID=$gibbonFamilyID&gibbonPersonID=$gibbonPersonID&search=$search";
+    $URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/family_manage_edit_editAdult.php&gibbonFamilyID=$gibbonFamilyID&gibbonPersonID=$gibbonPersonID&search=$search";
 
     if (isActionAccessible($guid, $connection2, '/modules/User Admin/family_manage_edit_editAdult.php') == false) {
         $URL .= '&return=error0';
@@ -53,9 +53,9 @@ if ($gibbonFamilyID == '') { echo 'Fatal error loading this page!';
                 header("Location: {$URL}");
             } else {
                 //Validate Inputs
-                $comment = $_POST['comment'];
-                $childDataAccess = $_POST['childDataAccess'];
-                $contactPriority = $_POST['contactPriority'];
+                $comment = $_POST['comment'] ?? '';
+                $childDataAccess = $_POST['childDataAccess'] ?? '';
+                $contactPriority = $_POST['contactPriority'] ?? '';
                 if ($contactPriority == 1) {
                     $contactCall = 'Y';
                     $contactSMS = 'Y';
@@ -71,14 +71,14 @@ if ($gibbonFamilyID == '') { echo 'Fatal error loading this page!';
                 //Enforce one and only one contactPriority=1 parent
                 if ($contactPriority == 1) {
                     //Set all other parents in family who are set to 1, to 2
-                    
+
                         $dataCP = array('gibbonPersonID' => $gibbonPersonID, 'gibbonFamilyID' => $gibbonFamilyID);
                         $sqlCP = 'UPDATE gibbonFamilyAdult SET contactPriority=contactPriority+1 WHERE contactPriority < 3 AND gibbonFamilyID=:gibbonFamilyID AND NOT gibbonPersonID=:gibbonPersonID';
                         $resultCP = $connection2->prepare($sqlCP);
                         $resultCP->execute($dataCP);
                 } else {
                     //Check to see if there is a parent set to 1 already, and if not, change this one to 1
-                    
+
                         $dataCP = array('gibbonPersonID' => $gibbonPersonID, 'gibbonFamilyID' => $gibbonFamilyID);
                         $sqlCP = 'SELECT * FROM gibbonFamilyAdult WHERE contactPriority=1 AND gibbonFamilyID=:gibbonFamilyID AND NOT gibbonPersonID=:gibbonPersonID';
                         $resultCP = $connection2->prepare($sqlCP);
@@ -93,7 +93,7 @@ if ($gibbonFamilyID == '') { echo 'Fatal error loading this page!';
 
                     // Set any other contact priority 2 to 3
                     if ($contactPriority == 2) {
-                        
+
                         $dataCP = array('gibbonPersonID' => $gibbonPersonID, 'gibbonFamilyID' => $gibbonFamilyID);
                             $sqlCP = 'UPDATE gibbonFamilyAdult SET contactPriority=3 WHERE contactPriority=2 AND gibbonFamilyID=:gibbonFamilyID AND NOT gibbonPersonID=:gibbonPersonID';
                             $resultCP = $connection2->prepare($sqlCP);

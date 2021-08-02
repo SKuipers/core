@@ -30,8 +30,8 @@ $_POST = $validator->sanitize($_POST);
 
 $calendarFeedPersonal = $_POST['calendarFeedPersonal'] ?? '';
 $personalBackground = $_POST['personalBackground'] ?? '';
-$gibbonThemeIDPersonal = $_POST['gibbonThemeIDPersonal'] ?? null;
-$gibboni18nIDPersonal = $_POST['gibboni18nIDPersonal'] ?? null;
+$gibbonThemeIDPersonal = !empty($_POST['gibbonThemeIDPersonal']) ? $_POST['gibbonThemeIDPersonal'] : null;
+$gibboni18nIDPersonal = !empty($_POST['gibboni18nIDPersonal']) ? $_POST['gibboni18nIDPersonal'] : null;
 $receiveNotificationEmails = $_POST['receiveNotificationEmails'] ?? 'N';
 
 $URL = $gibbon->session->get('absoluteURL').'/index.php?q=preferences.php';
@@ -73,22 +73,20 @@ $gibbon->session->set('gibboni18nIDPersonal', $gibboni18nIDPersonal);
 $gibbon->session->set('receiveNotificationEmails', $receiveNotificationEmails);
 
 //Update language settings in session (to personal preference if set, or system default if not)
-if (!is_null($gibboni18nIDPersonal)) {
-    
-        $data = array('gibboni18nID' => $gibboni18nIDPersonal);
-        $sql = 'SELECT * FROM gibboni18n WHERE gibboni18nID=:gibboni18nID';
-        $result = $connection2->prepare($sql);
-        $result->execute($data);
+if (!empty($gibboni18nIDPersonal)) {
+    $data = array('gibboni18nID' => $gibboni18nIDPersonal);
+    $sql = 'SELECT * FROM gibboni18n WHERE gibboni18nID=:gibboni18nID';
+    $result = $connection2->prepare($sql);
+    $result->execute($data);
     if ($result->rowCount() == 1) {
         $row = $result->fetch();
         setLanguageSession($guid, $row);
     }
 } else {
-    
-        $data = array();
-        $sql = "SELECT * FROM gibboni18n WHERE systemDefault='Y'";
-        $result = $connection2->prepare($sql);
-        $result->execute($data);
+    $data = array();
+    $sql = "SELECT * FROM gibboni18n WHERE systemDefault='Y'";
+    $result = $connection2->prepare($sql);
+    $result->execute($data);
     if ($result->rowCount() == 1) {
         $row = $result->fetch();
         setLanguageSession($guid, $row);

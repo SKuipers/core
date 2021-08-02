@@ -31,23 +31,21 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/family_manage_a
 
     $editLink = '';
     if (isset($_GET['editID'])) {
-        $editLink = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/User Admin/family_manage_edit.php&gibbonFamilyID='.$_GET['editID'].'&search='.$_GET['search'];
+        $editLink = $session->get('absoluteURL').'/index.php?q=/modules/User Admin/family_manage_edit.php&gibbonFamilyID='.$_GET['editID'].'&search='.$_GET['search'];
     }
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], $editLink, null);
-    }
+    $page->return->setEditLink($editLink);
 
     $search = $_GET['search'];
     if ($search != '') {
         echo "<div class='linkTop'>";
-        echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/User Admin/family_manage.php&search=$search'>".__('Back to Search Results').'</a>';
+        echo "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/User Admin/family_manage.php&search=$search'>".__('Back to Search Results').'</a>';
         echo '</div>';
     }
 
-    $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/family_manage_addProcess.php?search=$search");
+    $form = Form::create('action', $session->get('absoluteURL').'/modules/'.$session->get('module')."/family_manage_addProcess.php?search=$search");
     $form->setFactory(DatabaseFormFactory::create($pdo));
     
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+    $form->addHiddenValue('address', $session->get('address'));
 
     $form->addRow()->addHeading(__('General Information'));
 

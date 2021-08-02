@@ -34,10 +34,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/ttColumn.p
     echo '</div>';
 } else {
     //Proceed!
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     $timetableColumnGateway = $container->get(TimetableColumnGateway::class);
 
     $criteria = $timetableColumnGateway->newQueryCriteria(true)
@@ -47,8 +43,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/ttColumn.p
     $columns = $timetableColumnGateway->queryTTColumns($criteria);
 
     // FORM
-    $form = BulkActionForm::create('bulkAction', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/ttColumnProcessBulk.php');
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+    $form = BulkActionForm::create('bulkAction', $session->get('absoluteURL').'/modules/'.$session->get('module').'/ttColumnProcessBulk.php');
+    $form->addHiddenValue('address', $session->get('address'));
 
     // BULK ACTIONS
     $bulkActions = array(

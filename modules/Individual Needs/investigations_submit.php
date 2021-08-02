@@ -30,10 +30,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/investiga
 } else {
     $page->breadcrumbs->add(__('Submit Contributions'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     $contributionsGateway = $container->get(INInvestigationContributionGateway::class);
 
     // CRITERIA
@@ -42,7 +38,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/investiga
         ->sortBy('date', 'DESC')
         ->fromPOST();
 
-    $records = $contributionsGateway->queryContributionsByPerson($criteria, $_SESSION[$guid]['gibbonPersonID']);
+    $records = $contributionsGateway->queryContributionsByPerson($criteria, $session->get('gibbonPersonID'));
 
     // DATA TABLE
     $table = DataTable::createPaginated('investigationsManage', $criteria);
@@ -60,13 +56,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/investiga
         });
 
     $table->addColumn('student', __('Student'))
-        ->description(__('Roll Group'))
+        ->description(__('Form Group'))
         ->sortable(['student.surname', 'student.preferredName'])
         ->width('25%')
-        ->format(function ($person) use ($guid) {
+        ->format(function ($person) {
             $url = './index.php?q=/modules/Students/student_view_details.php&gibbonPersonID='.$person['gibbonPersonIDStudent'].'&subpage=Individual Needs&search=&allStudents=&sort=surname,preferredName';
             return '<b>'.Format::link($url, Format::name('', $person['preferredName'], $person['surname'], 'Student', true)).'</b>'
-                  .'<br/><small><i>'.$person['rollGroup'].'</i></small>';
+                  .'<br/><small><i>'.$person['formGroup'].'</i></small>';
         });
 
     $table->addColumn('date', __('Date'))

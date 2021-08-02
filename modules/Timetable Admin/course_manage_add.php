@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
+use Gibbon\Forms\CustomFieldHandler;
 use Gibbon\Forms\DatabaseFormFactory;
 
 //Module includes
@@ -35,11 +36,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/course_man
 
     $editLink = '';
     if (isset($_GET['editID'])) {
-        $editLink = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Timetable Admin/course_manage_edit.php&gibbonCourseID='.$_GET['editID'].'&gibbonSchoolYearID='.$_GET['gibbonSchoolYearID'];
+        $editLink = $session->get('absoluteURL').'/index.php?q=/modules/Timetable Admin/course_manage_edit.php&gibbonCourseID='.$_GET['editID'].'&gibbonSchoolYearID='.$_GET['gibbonSchoolYearID'];
     }
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], $editLink, null);
-    }
+    $page->return->setEditLink($editLink);
 
     $gibbonSchoolYearID = $_GET['gibbonSchoolYearID'];
 
@@ -59,12 +58,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/course_man
         } else {
 			$schoolYear = $result->fetch(); 
 			
-			$form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/course_manage_addProcess.php');
+			$form = Form::create('action', $session->get('absoluteURL').'/modules/'.$session->get('module').'/course_manage_addProcess.php');
 			$form->setFactory(DatabaseFormFactory::create($pdo));
 
-			$form->addHiddenValue('address', $_SESSION[$guid]['address']);
+			$form->addHiddenValue('address', $session->get('address'));
 			$form->addHiddenValue('gibbonSchoolYearID', $gibbonSchoolYearID);
 			
+            $row = $form->addRow()->addHeading(__('Basic Details'));
+
 			$row = $form->addRow();
 				$row->addLabel('schoolYearName', __('School Year'));
 				$row->addTextField('schoolYearName')->required()->readonly()->setValue($schoolYear['name']);
@@ -100,6 +101,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/course_man
 				$row->addLabel('gibbonCourseIDParent', __('Parent Course'))->description(__('Is this course a module or sub-set of another course?'));
 				$row->addSelect('gibbonCourseIDParent')->fromQuery($pdo, $sql, $data)->placeholder();
 			
+            $row = $form->addRow()->addHeading(__('Display Information'));
+
 			$row = $form->addRow();
 				$column = $row->addColumn('blurb');
 				$column->addLabel('description', __('Blurb'));
@@ -109,10 +112,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/course_man
 				$row->addLabel('map', __('Include In Curriculum Map'));
 				$row->addYesNo('map')->required();
 			
+            $row = $form->addRow()->addHeading(__('Configure'));
+
 			$row = $form->addRow();
 				$row->addLabel('gibbonYearGroupIDList', __('Year Groups'))->description(__('Enrolable year groups.'));
 				$row->addCheckboxYearGroup('gibbonYearGroupIDList');
 			
+            // Custom Fields
+            $container->get(CustomFieldHandler::class)->addCustomFieldsToForm($form, 'Course', []);
+
 			$row = $form->addRow();
 				$row->addFooter();
 				$row->addSubmit();

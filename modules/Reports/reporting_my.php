@@ -32,22 +32,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_my.php')
     // Proceed!
     $page->breadcrumbs->add(__('My Reporting'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     $gibbonSchoolYearID = $gibbon->session->get('gibbonSchoolYearID');
 
     // Select Person, if able to
     if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_write.php', 'Write Reports_editAll')) {
         $gibbonPersonID = $_GET['gibbonPersonID'] ?? $gibbon->session->get('gibbonPersonID');
 
-        $form = Form::create('filter', $_SESSION[$guid]['absoluteURL'].'/index.php', 'get');
+        $form = Form::create('filter', $session->get('absoluteURL').'/index.php', 'get');
         $form->setFactory(DatabaseFormFactory::create($pdo));
         $form->setTitle(__('View As'));
         $form->setClass('noIntBorder fullWidth');
 
-        $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+        $form->addHiddenValue('address', $session->get('address'));
         $form->addHiddenValue('q', '/modules/Reports/reporting_my.php');
 
         $row = $form->addRow();
@@ -82,7 +78,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_my.php')
         $criteriaCount = 0;
         $criteria = $reportingAccessGateway->newQueryCriteria()
             ->sortBy('gibbonReportingScope.sequenceNumber');
-        
+
         // Get scopes and criteria groups for each scope
         $cycle['scopes'] = $reportingAccessGateway->queryActiveReportingScopesByPerson($criteria, $cycle['gibbonReportingCycleID'], $gibbonPersonID);
         $cycle['scopes']->transform(function (&$scope) use (&$reportingAccessGateway, &$gibbonPersonID, &$criteriaCount) {
@@ -107,7 +103,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_my.php')
         return $canProofRead == 'Y';
     }));
     $proofsTotal = $proofsDone = 0;
-    $proofReading = $reportingProofGateway->selectProofReadingByPerson($gibbonSchoolYearID, $gibbonPersonID)->fetchAll();
+    $proofCriteria = $reportingProofGateway->newQueryCriteria()->pageSize(0);
+    $proofReading = $reportingProofGateway->queryProofReadingByPerson($proofCriteria, $gibbonSchoolYearID, $gibbonPersonID)->toArray();
     if ($canProofRead && !empty($proofReading)) {
         $ids = array_column($proofReading, 'gibbonReportingValueID');
         $proofs = $reportingProofGateway->selectProofsByValueID($ids)->fetchGroupedUnique();

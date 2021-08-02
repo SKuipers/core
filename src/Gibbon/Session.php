@@ -119,7 +119,7 @@ class Session implements SessionInterface
         $exists = !empty($keys);
 
         foreach ($keys as $key) {
-            $exists &= array_key_exists($key, $_SESSION[$this->guid]);
+            $exists &= isset($_SESSION[$this->guid][$key]);
         }
 
         return $exists;
@@ -166,7 +166,7 @@ class Session implements SessionInterface
             return $retrieve($_SESSION[$this->guid], $key, $default);
         }
 
-        return (isset($_SESSION[$this->guid][$key]))? $_SESSION[$this->guid][$key] : $default;
+        return isset($_SESSION[$this->guid][$key])? $_SESSION[$this->guid][$key] : $default;
     }
 
     /**
@@ -256,13 +256,13 @@ class Session implements SessionInterface
         $this->set('gibbonRoleIDAll', getRoleList($userData['gibbonRoleIDAll'], $this->pdo->getConnection()) );
         $this->set('image_240', $userData['image_240']);
         $this->set('lastTimestamp', $userData['lastTimestamp']);
+        $this->set('messengerLastRead', $userData['messengerLastRead']);
         $this->set('calendarFeedPersonal', filter_var($userData['calendarFeedPersonal'], FILTER_VALIDATE_EMAIL));
         $this->set('viewCalendarSchool', $userData['viewCalendarSchool']);
         $this->set('viewCalendarPersonal', $userData['viewCalendarPersonal']);
         $this->set('viewCalendarSpaceBooking', $userData['viewCalendarSpaceBooking']);
         $this->set('dateStart', $userData['dateStart']);
         $this->set('personalBackground', $userData['personalBackground']);
-        $this->set('messengerLastBubble', $userData['messengerLastBubble']);
         $this->set('gibboni18nIDPersonal', $userData['gibboni18nIDPersonal']);
         $this->set('googleAPIRefreshToken', $userData['googleAPIRefreshToken']);
         $this->set('receiveNotificationEmails', $userData['receiveNotificationEmails']);
@@ -273,8 +273,8 @@ class Session implements SessionInterface
         $this->set('gibbonThemeIDPersonal', null);
         if (!empty($userData['gibbonThemeIDPersonal'])) {
             $data = array( 'gibbonThemeID' => $userData['gibbonThemeIDPersonal']);
-            $sql = "SELECT gibbonThemeID FROM gibbonTheme WHERE active='Y' AND gibbonThemeID=:gibbonThemeID";
-            $result = $this->pdo->executeQuery($data, $sql);
+            $sql = "SELECT gibbonThemeID FROM gibbonTheme WHERE gibbonThemeID=:gibbonThemeID";
+            $result = $this->pdo->select($sql, $data);
 
             if ($result->rowCount() > 0) {
                 $this->set('gibbonThemeIDPersonal', $userData['gibbonThemeIDPersonal']);

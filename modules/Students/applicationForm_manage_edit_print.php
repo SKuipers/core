@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Services\Format;
+use Gibbon\Domain\User\PersonalDocumentGateway;
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -120,9 +121,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
             echo '</td>';
             echo '</tr>';
             echo '<tr>';
-            echo "<td>";
-            echo "<span class='label'>".__('Start Date').'</span><br/>';
-            echo '<i>'.dateConvertBack($guid, $row['dateStart']).'</i>';
+            echo "<td style='padding-top: 15px; vertical-align: top'>";
+            echo "<span style='font-size: 115%; font-weight: bold'>".__('Start Date').'</span><br/>';
+            echo '<i>'.Format::date($row['dateStart']).'</i>';
             echo '</td>';
             echo "<td>";
             echo "<span class='label'>".__('Year of Entry').'</span><br/>';
@@ -155,12 +156,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
             echo '</td>';
             echo '</tr>';
             echo '<tr>';
-            echo "<td>";
-            echo "<span class='label'>".__('Roll Group at Entry').'</span><br/>';
-            $dataSelect = array('gibbonRollGroupID' => $row['gibbonRollGroupID']);
-            $sqlSelect = 'SELECT name FROM gibbonRollGroup WHERE gibbonRollGroupID=:gibbonRollGroupID';
-            $resultSelect = $connection2->prepare($sqlSelect);
-            $resultSelect->execute($dataSelect);
+            echo "<td style='padding-top: 15px; vertical-align: top'>";
+            echo "<span style='font-size: 115%; font-weight: bold'>".__('Form Group at Entry').'</span><br/>';
+            
+                $dataSelect = array('gibbonFormGroupID' => $row['gibbonFormGroupID']);
+                $sqlSelect = 'SELECT name FROM gibbonFormGroup WHERE gibbonFormGroupID=:gibbonFormGroupID';
+                $resultSelect = $connection2->prepare($sqlSelect);
+                $resultSelect->execute($dataSelect);
             if ($resultSelect->rowCount() == 1) {
                 $rowSelect = $resultSelect->fetch();
                 echo '<i>'.$rowSelect['name'].'</i>';
@@ -225,8 +227,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
             echo '<i>'.htmlPrep($row['gender']).'</i>';
             echo '</td>';
             echo "<td style='width: 33%;'>";
-            echo "<span class='label'>".__('Date of Birth').'</span><br/>';
-            echo '<i>'.dateConvertBack($guid, $row['dob']).'</i>';
+            echo "<span style='font-size: 115%; font-weight: bold'>".__('Date of Birth').'</span><br/>';
+            echo '<i>'.Format::date($row['dob']).'</i>';
             echo '</td>';
             echo "<td style='width: 33%;'>";
             echo "<span class='label'>".__('Current/Last School').'</span><br/>';
@@ -265,54 +267,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
             echo '</td>';
             echo '</tr>';
             echo '<tr>';
-            echo "<td style='width: 33%;'>";
-            echo "<span class='label'>".__('Country of Birth').'</span><br/>';
-            echo '<i>'.htmlPrep($row['countryOfBirth']).'</i>';
-            echo '</td>';
-            echo "<td style='width: 33%;'>";
-            echo "<span class='label'>".__('Citizenship').'</span><br/>';
-            echo '<i>'.htmlPrep($row['citizenship1']).'</i>';
-            echo '</td>';
-            echo "<td style='width: 33%;'>";
-            echo "<span class='label'>".__('Passport Number').'</span><br/>';
-            echo '<i>'.htmlPrep($row['citizenship1Passport']).'</i>';
-            echo '</td>';
-            echo '</tr>';
-            echo '<tr>';
-            echo "<td style='width: 33%;'>";
-            echo "<span class='label'>";
-            if ($_SESSION[$guid]['country'] == '') {
-                echo '<b>'.__('National ID Card Number').'</b>';
-            } else {
-                echo '<b>'.$_SESSION[$guid]['country'].' '.__('ID Card Number').'</b>';
-            }
-            echo '</span><br/>';
-            echo '<i>'.htmlPrep($row['nationalIDCardNumber']).'</i>';
-            echo '</td>';
-            echo "<td style='width: 33%;'>";
-            echo "<span class='label'>";
-            if ($_SESSION[$guid]['country'] == '') {
-                echo '<b>'.__('Residency/Visa Type').'</b>';
-            } else {
-                echo '<b>'.$_SESSION[$guid]['country'].' '.__('Residency/Visa Type').'</b>';
-            }
-            echo '</span><br/>';
-            echo '<i>'.htmlPrep($row['residencyStatus']).'</i>';
-            echo '</td>';
-            echo "<td style='width: 33%;'>";
-            echo "<span class='label'>";
-            if ($_SESSION[$guid]['country'] == '') {
-                echo '<b>'.__('Visa Expiry Date').'</b>';
-            } else {
-                echo '<b>'.$_SESSION[$guid]['country'].' '.__('Visa Expiry Date').'</b>';
-            }
-            echo '</span><br/>';
-            echo '<i>'.dateConvertBack($guid, $row['visaExpiryDate']).'</i>';
-            echo '</td>';
-            echo '</tr>';
-            echo '<tr>';
-            echo "<td style='width: 33%;'>";
-            echo "<span class='label'>".__('Email').'</span><br/>';
+            echo "<td style='width: 33%; padding-top: 15px; vertical-align: top'>";
+            echo "<span style='font-size: 115%; font-weight: bold'>".__('Email').'</span><br/>';
             echo '<i>'.htmlPrep($row['email']).'</i>';
             echo '</td>';
             echo "<td style='width: 33%;'>";
@@ -349,7 +305,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
             }
             echo '</table>';
 
-
+            // TIS: List previous schools on printable application form
             if (!empty($row['schoolName1']) || !empty($row['schoolName2'])) {
                 echo '<h4>'.__('Previous Schools').'</h4>';
                 echo "<table class='print-table' cellspacing='0' style='width: 100%'>";
@@ -388,6 +344,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
 
                 echo '</table>';
             }
+            $params = ['student' => true, 'notEmpty' => true];
+            $documents = $container->get(PersonalDocumentGateway::class)->selectPersonalDocuments('gibbonApplicationForm', $gibbonApplicationFormID, $params)->fetchAll();
+
+            echo $page->fetchFromTemplate('ui/personalDocuments.twig.html', ['documents' => $documents]);
 
             echo '<h4>'.__('Parents/Guardians').'</h4>';
             //No family in Gibbon
@@ -421,6 +381,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                         $resultMember->execute($dataMember);
 
                     while ($rowMember = $resultMember->fetch()) {
+                        echo '<h5 class="mt-4">'.__('Parent 1').'</h5>';
+
                         echo "<table class='print-table' cellspacing='0' style='width: 100%'>";
                         echo '<tr>';
                         echo "<td style='width: 33%;'>";
@@ -486,6 +448,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                         echo '</tr>';
                         echo '</table>';
                     }
+
+                    $params = ['parent' => true, 'notEmpty' => true];
+                    $documents = $container->get(PersonalDocumentGateway::class)->selectPersonalDocuments('gibbonPerson', $row['parent1gibbonPersonID'], $params)->fetchAll();
+
+                    echo $page->fetchFromTemplate('ui/personalDocuments.twig.html', ['documents' => $documents, 'noTitle' => true]);
                 }
                 //Parent 1 not in Gibbon
                 else {
@@ -493,6 +460,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                 }
                 for ($i = $start;$i < 3;++$i) {
                     //Spit out parent1/parent2 data from application, depending on parent1 status above.
+                    echo '<h5 class="mt-4">'.($i > 1 ? __('Parent 2') : __('Parent 1')).'</h5>';
+
                     echo "<table class='print-table' cellspacing='0' style='width: 100%'>";
                     echo '<tr>';
                     echo "<td style='width: 33%;'>";
@@ -554,6 +523,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                     echo '</td>';
                     echo '</tr>';
                     echo '</table>';
+
+                    $params = ['parent' => true, 'notEmpty' => true];
+                    $documents = $container->get(PersonalDocumentGateway::class)->selectPersonalDocuments('gibbonApplicationFormParent'.$i, $gibbonApplicationFormID, $params)->fetchAll();
+
+                    echo $page->fetchFromTemplate('ui/personalDocuments.twig.html', ['documents' => $documents, 'noTitle' => true]);
                 }
             }
             //Yes family
@@ -613,6 +587,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                             $resultMember->execute($dataMember);
 
                         while ($rowMember = $resultMember->fetch()) {
+                            echo '<h5 class="mt-4">'.($count > 1 ? __('Parent 2') : __('Parent 1')).'</h5>';
+
                             echo "<table class='print-table' cellspacing='0' style='width: 100%'>";
                             echo '<tr>';
                             echo "<td style='width: 33%;'>";
@@ -682,6 +658,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                             echo '</td>';
                             echo '</tr>';
                             echo '</table>';
+
+                            $params = ['parent' => true, 'notEmpty' => true];
+                            $documents = $container->get(PersonalDocumentGateway::class)->selectPersonalDocuments('gibbonPerson', $rowMember['gibbonPersonID'], $params)->fetchAll();
+
+                            echo $page->fetchFromTemplate('ui/personalDocuments.twig.html', ['documents' => $documents, 'noTitle' => true]);
+
                             ++$count;
                         }
                     }
@@ -701,8 +683,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                         echo '<i>'.htmlPrep($row["siblingName$i"]).'</i>';
                         echo '</td>';
                         echo "<td style='width: 33%;'>";
-                        echo "<span class='label'>".sprintf(__('Sibling %1$s Date of Birth'), $siblingCount).'</span><br/>';
-                        echo '<i>'.dateConvertBack($guid, $row["siblingDOB$i"]).'</i>';
+                        echo "<span style='font-size: 115%; font-weight: bold'>".sprintf(__('Sibling %1$s Date of Birth'), $siblingCount).'</span><br/>';
+                        echo '<i>'.Format::date($row["siblingDOB$i"]).'</i>';
                         echo '</td>';
                         echo "<td style='width: 33%;'>";
                         echo "<span class='label'>".sprintf(__('Sibling %1$s School'), $siblingCount).'</span><br/>';
@@ -728,12 +710,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                             echo Format::name($rowMember['title'], $rowMember['preferredName'], $rowMember['surname'], $rowMember['category']);
                             echo '</td>';
                             echo "<td style='width: 33%;'>";
-                            echo "<span class='label'>".sprintf(__('Sibling %1$s Date of Birth'), $siblingCount).'</span><br/>';
-                            echo '<i>'.dateConvertBack($guid, $rowMember['dob']).'</i>';
+                            echo "<span style='font-size: 115%; font-weight: bold'>".sprintf(__('Sibling %1$s Date of Birth'), $siblingCount).'</span><br/>';
+                            echo '<i>'.Format::date($rowMember['dob']).'</i>';
                             echo '</td>';
                             echo "<td style='width: 33%;'>";
-                            echo "<span class='label'>".sprintf(__('Sibling %1$s School'), $siblingCount).'</span><br/>';
-                            echo '<i>'.$_SESSION[$guid]['organisationName'].'</i>';
+                            echo "<span style='font-size: 115%; font-weight: bold'>".sprintf(__('Sibling %1$s School'), $siblingCount).'</span><br/>';
+                            echo '<i>'.$session->get('organisationName').'</i>';
                             echo '</td>';
                             echo '</tr>';
                         }

@@ -19,10 +19,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$gibbonStaffApplicationFormID = $_POST['gibbonStaffApplicationFormID'];
-$search = $_GET['search'];
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/applicationForm_manage_reject.php&gibbonStaffApplicationFormID=$gibbonStaffApplicationFormID&search=$search";
-$URLReject = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/applicationForm_manage.php&search=$search";
+$gibbonStaffApplicationFormID = $_POST['gibbonStaffApplicationFormID'] ?? '';
+$search = $_GET['search'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/applicationForm_manage_reject.php&gibbonStaffApplicationFormID=$gibbonStaffApplicationFormID&search=$search";
+$URLReject = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/applicationForm_manage.php&search=$search";
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_manage_reject.php') == false) {
     $URL .= '&return=error0';

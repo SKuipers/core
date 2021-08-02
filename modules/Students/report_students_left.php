@@ -43,12 +43,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_students_l
     if (empty($viewMode)) {
         $page->breadcrumbs->add(__('Left Students'));
 
-        $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/index.php','get');
+        $form = Form::create('action', $session->get('absoluteURL').'/index.php','get');
         $form->setTitle(__('Choose Options'));
         $form->setFactory(DatabaseFormFactory::create($pdo));
         $form->setClass('noIntBorder fullWidth');
 
-        $form->addHiddenValue('q', "/modules/".$_SESSION[$guid]['module']."/report_students_left.php");
+        $form->addHiddenValue('q', "/modules/".$session->get('module')."/report_students_left.php");
 
         $row = $form->addRow();
             $row->addLabel('type', __('Type'));
@@ -57,11 +57,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_students_l
         $form->toggleVisibilityByClass('dateRange')->onSelect('type')->when('Date Range');
 
         $row = $form->addRow()->addClass('dateRange');
-            $row->addLabel('endDateFrom', __('From Date'))->description('Earliest student end date to include.')->append('<br/>')->append(__('Format:').' ')->append($_SESSION[$guid]['i18n']['dateFormat']);
+            $row->addLabel('endDateFrom', __('From Date'))->description('Earliest student end date to include.');
             $row->addDate('endDateFrom')->setValue($endDateFrom)->required();
 
         $row = $form->addRow()->addClass('dateRange');
-            $row->addLabel('endDateTo', __('To Date'))->description('Latest student end date to include.')->append('<br/>')->append(__('Format:').' ')->append($_SESSION[$guid]['i18n']['dateFormat']);
+            $row->addLabel('endDateTo', __('To Date'))->description('Latest student end date to include.');
             $row->addDate('endDateTo')->setValue($endDateTo)->required();
 
         $row = $form->addRow()->addClass('dateRange');
@@ -84,7 +84,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_students_l
 
     // CRITERIA
     $criteria = $reportGateway->newQueryCriteria(true)
-        ->sortBy(['rollGroup', 'gibbonPerson.surname', 'gibbonPerson.preferredName'])
+        ->sortBy(['formGroup', 'gibbonPerson.surname', 'gibbonPerson.preferredName'])
         ->pageSize(!empty($viewMode) ? 0 : 50)
         ->fromPOST();
 
@@ -119,7 +119,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_students_l
             return Format::name('', $student['preferredName'], $student['surname'], 'Student', true, true)
                  . '<br/><small><i>'.Format::userStatusInfo($student).'</i></small>';
         });
-    $table->addColumn('rollGroup', __('Roll Group'));
+    $table->addColumn('formGroup', __('Form Group'));
     $table->addColumn('username', __('Username'));
     $table->addColumn('officialName', __('Official Name'));
     $table->addColumn('dateEnd', __('End Date'))->format(function ($student) {

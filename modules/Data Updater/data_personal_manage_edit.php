@@ -19,6 +19,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Form;
 use Gibbon\Services\Format;
+use Gibbon\Forms\CustomFieldHandler;
+use Gibbon\Forms\PersonalDocumentHandler;
 
 //Module includes
 include './modules/User Admin/moduleFunctions.php';
@@ -28,20 +30,20 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
     $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed!
-    $gibbonSchoolYearID = isset($_REQUEST['gibbonSchoolYearID'])? $_REQUEST['gibbonSchoolYearID'] : $_SESSION[$guid]['gibbonSchoolYearID'];
+    $gibbonSchoolYearID = isset($_REQUEST['gibbonSchoolYearID'])? $_REQUEST['gibbonSchoolYearID'] : $session->get('gibbonSchoolYearID');
 
     $urlParams = ['gibbonSchoolYearID' => $gibbonSchoolYearID];
-    
+
     $page->breadcrumbs
         ->add(__('Personal Data Updates'), 'data_personal_manage.php', $urlParams)
-        ->add(__('Edit Request'));    
+        ->add(__('Edit Request'));
 
     //Check if school year specified
     $gibbonPersonUpdateID = $_GET['gibbonPersonUpdateID'];
     if ($gibbonPersonUpdateID == 'Y') {
         $page->addError(__('You have not specified one or more required parameters.'));
     } else {
-        
+
             $data = array('gibbonPersonUpdateID' => $gibbonPersonUpdateID);
             $sql = 'SELECT gibbonPerson.* FROM gibbonPersonUpdate JOIN gibbonPerson ON (gibbonPersonUpdate.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonPersonUpdateID=:gibbonPersonUpdateID';
             $result = $connection2->prepare($sql);
@@ -52,14 +54,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
             echo __('The selected record does not exist, or you do not have access to it.');
             echo '</div>';
         } else {
-            if (isset($_GET['return'])) {
-                returnProcess($guid, $_GET['return'], null, null);
-            }
-
             $data = array('gibbonPersonUpdateID' => $gibbonPersonUpdateID);
             $sql = "SELECT gibbonPersonUpdate.* FROM gibbonPersonUpdate JOIN gibbonPerson ON (gibbonPersonUpdate.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonPersonUpdateID=:gibbonPersonUpdateID";
             $newResult = $pdo->executeQuery($data, $sql);
-            
+
             //Let's go!
             $oldValues = $result->fetch();
             $newValues = $newResult->fetch();
@@ -67,10 +65,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
             // Provide a link back to edit the associated record
             echo "<div class='linkTop'>";
             if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edit.php') == true) {
-                echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/User Admin/user_manage_edit.php&gibbonPersonID=".$oldValues['gibbonPersonID']."'>".__('Edit User')."<img style='margin: 0 0 -4px 5px' title='".__('Edit User')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/config.png'/></a> ";
+                echo "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/User Admin/user_manage_edit.php&gibbonPersonID=".$oldValues['gibbonPersonID']."'>".__('Edit User')."<img style='margin: 0 0 -4px 5px' title='".__('Edit User')."' src='./themes/".$session->get('gibbonThemeName')."/img/config.png'/></a> ";
             }
             if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_details.php') == true && getRoleCategory($oldValues['gibbonRoleIDPrimary'], $connection2) == 'Student') {
-                echo "&nbsp;&nbsp;&nbsp;<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Students/student_view_details.php&gibbonPersonID=".$oldValues['gibbonPersonID']."'>".__('View Student')."<img style='margin: 0 0 -4px 5px' title='".__('View Student')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/plus.png'/></a> ";
+                echo "&nbsp;&nbsp;&nbsp;<a href='".$session->get('absoluteURL')."/index.php?q=/modules/Students/student_view_details.php&gibbonPersonID=".$oldValues['gibbonPersonID']."'>".__('View Student')."<img style='margin: 0 0 -4px 5px' title='".__('View Student')."' src='./themes/".$session->get('gibbonThemeName')."/img/plus.png'/></a> ";
             }
             echo '</div>';
 
@@ -87,7 +85,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
                 $parent = $parent || ($roleCategory == 'Parent');
                 $other = $other || ($roleCategory == 'Other');
             }
-            
+
             // An array of common fields to compare in each data set, and the field label
             $compare = array(
                 'title'                  => __('Title'),
@@ -123,24 +121,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
                 'countryOfBirth'         => __('Country of Birth'),
                 'ethnicity'              => __('Ethnicity'),
                 'religion'               => __('Religion'),
-                'citizenship1'           => __('Citizenship 1'),
-                'citizenship1Passport'   => __('Citizenship 1 Passport Number'),
-                'citizenship1PassportExpiry'   => __('Citizenship 1 Passport Expiry Date'),
-                'citizenship2'           => __('Citizenship 2'),
-                'citizenship2Passport'   => __('Citizenship 2 Passport Number'),
-                'citizenship2PassportExpiry'   => __('Citizenship 2 Passport Expiry Date'),
-                'nationalIDCardNumber'   => __('National ID Card Number'),
-                'residencyStatus'        => __('Residency/Visa Type'),
-                'visaExpiryDate'         => __('Visa Expiry Date'),
                 'vehicleRegistration'    => __('Vehicle Registration'),
             );
-
-            //Adjust country in field label
-            if (!empty($_SESSION[$guid]['country'])) {
-                $compare['nationalIDCardNumber'] = $_SESSION[$guid]['country'].' '.__('ID Card Number');
-                $compare['residencyStatus'] = $_SESSION[$guid]['country'].' '.__('Residency/Visa Type');
-                $compare['visaExpiryDate'] = $_SESSION[$guid]['country'].' '.__('Visa Expiry Date');
-            }
 
             if ($student || $staff) {
                 $compare['emergency1Name']         = __('Emergency 1 Name');
@@ -163,10 +145,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
                 $compare['jobTitle']   = __('Job Title');
             }
 
-            $form = Form::createTable('updatePerson', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/data_personal_manage_editProcess.php?gibbonPersonUpdateID='.$gibbonPersonUpdateID);
+            $form = Form::createTable('updatePerson', $session->get('absoluteURL').'/modules/'.$session->get('module').'/data_personal_manage_editProcess.php?gibbonPersonUpdateID='.$gibbonPersonUpdateID);
             
             $form->setClass('fullWidth colorOddEven');
-            $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+            $form->addHiddenValue('address', $session->get('address'));
             $form->addHiddenValue('gibbonPersonID', $oldValues['gibbonPersonID']);
 
             $row = $form->addRow()->setClass('head heading');
@@ -175,13 +157,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
                 $row->addContent(__('New Value'));
                 $row->addContent(__('Accept'));
 
+            $changeCount = 0;
             foreach ($compare as $fieldName => $label) {
                 $oldValue = isset($oldValues[$fieldName])? $oldValues[$fieldName] : '';
                 $newValue = isset($newValues[$fieldName])? $newValues[$fieldName] : '';
-                $isMatching = ($oldValue != $newValue);
+                $isNotMatching = ($oldValue != $newValue);
                 $isNonUnique = false;
 
-                if ($fieldName == 'dob' || $fieldName == 'visaExpiryDate') {
+                if ($fieldName == 'dob') {
                     $oldValue = Format::date($oldValue);
                     $newValue = Format::date($newValue);
                 }
@@ -199,48 +182,31 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
                 $row = $form->addRow();
                 $row->addLabel('new'.$fieldName.'On', $label);
                 $row->addContent($oldValue);
-                $row->addContent($newValue)->addClass($isMatching ? 'matchHighlightText' : '');
-                
+                $row->addContent($newValue)->addClass($isNotMatching ? 'matchHighlightText' : '');
+
                 if ($isNonUnique) {
                     $row->addContent(__('Must be unique.'));
-                } else if ($isMatching) {
+                } else if ($isNotMatching) {
                     $row->addCheckbox('new'.$fieldName.'On')->checked(true)->setClass('textCenter');
                     $form->addHiddenValue('new'.$fieldName, $newValues[$fieldName]);
+                    $changeCount++;
                 } else {
                     $row->addContent();
                 }
             }
 
             // CUSTOM FIELDS
-			$oldFields = !empty($oldValues['fields'])? json_decode($oldValues['fields'], true) : [];
-            $newFields = !empty($newValues['fields'])? json_decode($newValues['fields'], true) : [];
-            $resultFields = getCustomFields($connection2, $guid, $student, $staff, $parent, $other, null, true);
-            if ($resultFields->rowCount() > 0) {
-                while ($rowFields = $resultFields->fetch()) {
-                    $fieldName = $rowFields['gibbonPersonFieldID'];
-                    $label = __($rowFields['name']);
+            $params = compact('student', 'staff', 'parent', 'other') + ['dataUpdater' => 1];
+            $changeCount += $container->get(CustomFieldHandler::class)->addCustomFieldsToDataUpdate($form, 'User', $params, $oldValues, $newValues);
 
-                    $oldValue = isset($oldFields[$fieldName])? $oldFields[$fieldName] : '';
-                    $newValue = isset($newFields[$fieldName])? $newFields[$fieldName] : '';
+            // PERSONAL DOCUMENTS
+            $params = compact('student', 'staff', 'parent', 'other') + ['dataUpdater' => 1];
+            $changeCount += $container->get(PersonalDocumentHandler::class)->addPersonalDocumentsToDataUpdate($form, $oldValues['gibbonPersonID'], $gibbonPersonUpdateID, $params);
 
-                    $isMatching = ($oldValue != $newValue);
-
-                    $row = $form->addRow();
-                    $row->addLabel('new'.$fieldName.'On', $label);
-                    $row->addContent($oldValue);
-                    $row->addContent($newValue)->addClass($isMatching ? 'matchHighlightText' : '');
-
-                    if ($isMatching) {
-                        $row->addCheckbox('newcustom'.$fieldName.'On')->checked(true)->setClass('textCenter');
-                        $form->addHiddenValue('newcustom'.$fieldName, $newValue);
-                    } else {
-                        $row->addContent();
-                    }
-                }
+            if ($changeCount > 0) { 
+                $row = $form->addRow();
+                    $row->addSubmit();
             }
-            
-            $row = $form->addRow();
-                $row->addSubmit();
 
             echo $form->getOutput();
         }

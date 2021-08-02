@@ -49,7 +49,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_privacy_st
 
     // CRITERIA
     $criteria = $reportGateway->newQueryCriteria()
-        ->sortBy(['gibbonYearGroup.sequenceNumber', 'gibbonRollGroup.nameShort'])
+        ->sortBy(['gibbonYearGroup.sequenceNumber', 'gibbonFormGroup.nameShort'])
         ->fromPOST();
 
     $privacyChoices = $reportGateway->queryStudentPrivacyChoices($criteria, $gibbonSchoolYearID);
@@ -59,17 +59,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_privacy_st
     $table->setTitle(__('Privacy Choices by Student'));
 
     $table->addRowCountColumn($privacyChoices->getPageFrom());
-    $table->addColumn('rollGroup', __('Roll Group'))
+    $table->addColumn('formGroup', __('Form Group'))
         ->context('secondary')
-        ->sortable(['gibbonYearGroup.sequenceNumber', 'rollGroup']);
+        ->sortable(['gibbonYearGroup.sequenceNumber', 'formGroup']);
 
     $table->addColumn('image_240', __('Student'))
         ->context('primary')
         ->width('10%')
         ->sortable(['surname', 'preferredName'])
-        ->format(function ($student) use ($guid) {
+        ->format(function ($student) use ($session) {
             $name = Format::name('', $student['preferredName'], $student['surname'], 'Student', true);
-            $url = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Students/student_view_details.php&gibbonPersonID='.$student['gibbonPersonID'];
+            $url = $session->get('absoluteURL').'/index.php?q=/modules/Students/student_view_details.php&gibbonPersonID='.$student['gibbonPersonID'];
 
             return Format::userPhoto($student['image_240']).'<br/>'.Format::link($url, $name);
         });
@@ -79,10 +79,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_privacy_st
         $privacyColumn->addColumn('privacy'.$index, $privacyOption)
             ->context('primary')
             ->notSortable()
-            ->format(function ($student) use ($privacyOption, $guid) {
+            ->format(function ($student) use ($privacyOption, $session) {
                 $studentPrivacy = array_map('trim', explode(',', $student['privacy']));
                 return in_array($privacyOption, $studentPrivacy) 
-                    ? "<img src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/iconTick.png'/> ".__('Required')
+                    ? "<img src='./themes/".$session->get('gibbonThemeName')."/img/iconTick.png'/> ".__('Required')
                     : '';
             });
     }

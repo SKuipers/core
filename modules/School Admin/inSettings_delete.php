@@ -24,10 +24,6 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/inSettings_de
     $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed!
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     //Check if school year specified
     $gibbonINDescriptorID = $_GET['gibbonINDescriptorID'];
     if ($gibbonINDescriptorID == '') {
@@ -42,7 +38,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/inSettings_de
         if ($result->rowCount() != 1) {
             $page->addError(__('The specified record cannot be found.'));
         } else {
-            $form = DeleteForm::createForm($_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/inSettings_deleteProcess.php?gibbonINDescriptorID=$gibbonINDescriptorID");
+            $form = DeleteForm::createForm($session->get('absoluteURL').'/modules/'.$session->get('module')."/inSettings_deleteProcess.php?gibbonINDescriptorID=$gibbonINDescriptorID");
             echo $form->getOutput();
         }
     }

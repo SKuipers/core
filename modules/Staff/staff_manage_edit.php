@@ -18,13 +18,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
-use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Services\Format;
 use Gibbon\Tables\DataTable;
+use Gibbon\Domain\User\RoleGateway;
+use Gibbon\Forms\CustomFieldHandler;
+use Gibbon\Domain\Staff\StaffGateway;
+use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Domain\Staff\StaffContractGateway;
 use Gibbon\Domain\Staff\StaffFacilityGateway;
-use Gibbon\Domain\Staff\StaffGateway;
-use Gibbon\Domain\User\RoleGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage_edit.php') == false) {
     // Access denied
@@ -44,10 +45,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage_edit.ph
         $page->breadcrumbs
             ->add(__('Manage Staff'), 'staff_manage.php', ['search' => $search, 'allStaff' => $allStaff])
             ->add(__('Edit Staff'), 'staff_manage_edit.php');
-
-        if (isset($_GET['return'])) {
-            returnProcess($guid, $_GET['return'], null, null);
-        }
 
         //Check if school year specified
         $gibbonStaffID = $_GET['gibbonStaffID'];
@@ -70,16 +67,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage_edit.ph
 
                 if ($search != '' or $allStaff != '') {
                     echo "<div class='linkTop'>";
-                    echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Staff/staff_manage.php&search=$search&allStaff=$allStaff'>".__('Back to Search Results').'</a>';
+                    echo "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/Staff/staff_manage.php&search=$search&allStaff=$allStaff'>".__('Back to Search Results').'</a>';
                     echo '</div>';
                 }
 
-                $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/staff_manage_editProcess.php?gibbonStaffID='.$values['gibbonStaffID']."&search=$search&allStaff=$allStaff");
+                $customFieldHandler = $container->get(CustomFieldHandler::class);
+
+                $form = Form::create('action', $session->get('absoluteURL').'/modules/'.$session->get('module').'/staff_manage_editProcess.php?gibbonStaffID='.$values['gibbonStaffID']."&search=$search&allStaff=$allStaff");
                 $form->setTitle(__('General Information'));
 
                 $form->setFactory(DatabaseFormFactory::create($pdo));
 
-                $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+                $form->addHiddenValue('address', $session->get('address'));
                 $form->addHiddenValue('gibbonPersonID', $values['gibbonPersonID']);
 
                 $form->addHeaderAction('view', __('View'))
@@ -155,6 +154,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage_edit.ph
                     $row->addLabel('biography', __('Biography'));
                     $row->addTextArea('biography')->setRows(10);
 
+                // Custom Fields
+                $customFieldHandler->addCustomFieldsToForm($form, 'Staff', [], $values['fields']);
+
                 $row = $form->addRow();
                     $row->addFooter();
                     $row->addSubmit();
@@ -168,6 +170,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage_edit.ph
                 $facilities = $staffFacilityGateway->queryFacilitiesByPerson($criteria, $gibbon->session->get('gibbonSchoolYearID'), $gibbonPersonID);
 
                 $table = DataTable::create('facilities');
+                
+                $table->setTitle(__('Facilities'));
 
                 $table->addHeaderAction('add', __('Add'))
                     ->setURL('/modules/Staff/staff_manage_edit_facility_add.php')
@@ -183,8 +187,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage_edit.ph
                     ->addParam('gibbonSpacePersonID')
                     ->addParam('gibbonStaffID', $gibbonStaffID)
                     ->addParam('search', $search)
-                    ->format(function ($room, $actions) use ($guid) {
-                        if ($room['usageType'] != 'Roll Group' and $room['usageType'] != 'Timetable') {
+                    ->format(function ($room, $actions) {
+                        if ($room['usageType'] != 'Form Group' and $room['usageType'] != 'Timetable') {
                             $actions->addAction('delete', __('Delete'))
                                     ->setURL('/modules/Staff/staff_manage_edit_facility_delete.php');
                         }
@@ -193,8 +197,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage_edit.ph
                 echo $table->render($facilities);
 
                 if ($highestAction == 'Manage Staff_confidential') {
-                    echo '<h3>'.__('Contracts').'</h3>';
-
                     $contractsGateway = $container->get(StaffContractGateway::class);
 
                     $criteria = $contractsGateway->newQueryCriteria()
@@ -203,6 +205,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage_edit.ph
                     $contracts = $contractsGateway->queryContractsByStaff($criteria, $gibbonStaffID);
 
                     $table = DataTable::create('contracts');
+                    
+                    $table->setTitle(__('Contracts'));
 
                     $table->addHeaderAction('add', __('Add'))
                         ->setURL('/modules/Staff/staff_manage_edit_contract_add.php')
@@ -225,7 +229,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage_edit.ph
                     ->addParam('gibbonStaffContractID')
                     ->addParam('gibbonStaffID', $gibbonStaffID)
                     ->addParam('search', $search)
-                    ->format(function ($staff, $actions) use ($guid) {
+                    ->format(function ($staff, $actions) {
                         $actions->addAction('edit', __('Edit'))
                             ->setURL('/modules/Staff/staff_manage_edit_contract_edit.php');
                     });

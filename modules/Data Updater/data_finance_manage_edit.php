@@ -27,20 +27,20 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_finance_
     $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed!
-    $gibbonSchoolYearID = isset($_REQUEST['gibbonSchoolYearID'])? $_REQUEST['gibbonSchoolYearID'] : $_SESSION[$guid]['gibbonSchoolYearID'];
+    $gibbonSchoolYearID = isset($_REQUEST['gibbonSchoolYearID'])? $_REQUEST['gibbonSchoolYearID'] : $session->get('gibbonSchoolYearID');
 
     $urlParams = ['gibbonSchoolYearID' => $gibbonSchoolYearID];
-    
+
     $page->breadcrumbs
         ->add(__('Finance Data Updates'), 'data_finance_manage.php', $urlParams)
-        ->add(__('Edit Request'));    
+        ->add(__('Edit Request'));
 
     //Check if school year specified
     $gibbonFinanceInvoiceeUpdateID = $_GET['gibbonFinanceInvoiceeUpdateID'];
     if ($gibbonFinanceInvoiceeUpdateID == 'Y') {
         $page->addError(__('You have not specified one or more required parameters.'));
     } else {
-        
+
             $data = array('gibbonFinanceInvoiceeUpdateID' => $gibbonFinanceInvoiceeUpdateID);
             $sql = "SELECT gibbonFinanceInvoicee.* FROM gibbonFinanceInvoiceeUpdate JOIN gibbonFinanceInvoicee ON (gibbonFinanceInvoiceeUpdate.gibbonFinanceInvoiceeID=gibbonFinanceInvoicee.gibbonFinanceInvoiceeID) WHERE gibbonFinanceInvoiceeUpdateID=:gibbonFinanceInvoiceeUpdateID";
             $result = $connection2->prepare($sql);
@@ -51,14 +51,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_finance_
             echo __('The selected record does not exist, or you do not have access to it.');
             echo '</div>';
         } else {
-            if (isset($_GET['return'])) {
-                returnProcess($guid, $_GET['return'], null, null);
-            }
-
             $data = array('gibbonFinanceInvoiceeUpdateID' => $gibbonFinanceInvoiceeUpdateID);
             $sql = "SELECT gibbonFinanceInvoiceeUpdate.* FROM gibbonFinanceInvoiceeUpdate JOIN gibbonFinanceInvoicee ON (gibbonFinanceInvoiceeUpdate.gibbonFinanceInvoiceeID=gibbonFinanceInvoicee.gibbonFinanceInvoiceeID) WHERE gibbonFinanceInvoiceeUpdateID=:gibbonFinanceInvoiceeUpdateID";
             $newResult = $pdo->executeQuery($data, $sql);
-            
+
             //Let's go!
             $oldValues = $result->fetch();
             $newValues = $newResult->fetch();
@@ -66,10 +62,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_finance_
             // Provide a link back to edit the associated record
             if (isActionAccessible($guid, $connection2, '/modules/Finance/invoicees_manage_edit.php') == true && !empty($oldValues['gibbonFinanceInvoiceeID'])) {
                 echo "<div class='linkTop'>";
-                echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Finance/invoicees_manage_edit.php&gibbonFinanceInvoiceeID=".$oldValues['gibbonFinanceInvoiceeID']."&search=&allUsers='>".__('Edit Invoicee')."<img style='margin: 0 0 -4px 5px' title='".__('Edit Invoicee')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/config.png'/></a> ";
+                echo "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/Finance/invoicees_manage_edit.php&gibbonFinanceInvoiceeID=".$oldValues['gibbonFinanceInvoiceeID']."&search=&allUsers='>".__('Edit Invoicee')."<img style='margin: 0 0 -4px 5px' title='".__('Edit Invoicee')."' src='./themes/".$session->get('gibbonThemeName')."/img/config.png'/></a> ";
                 echo '</div>';
             }
-            
+
             // An array of common fields to compare in each data set, and the field label
             $compare = array(
                 'invoiceTo'                      => __('Invoice To'),
@@ -83,10 +79,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_finance_
                 'gibbonFinanceFeeCategoryIDList' => __('Company Fee Categories'),
             );
 
-            $form = Form::createTable('updateFinance', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/data_finance_manage_editProcess.php?gibbonFinanceInvoiceeUpdateID='.$gibbonFinanceInvoiceeUpdateID);
-            
+            $form = Form::createTable('updateFinance', $session->get('absoluteURL').'/modules/'.$session->get('module').'/data_finance_manage_editProcess.php?gibbonFinanceInvoiceeUpdateID='.$gibbonFinanceInvoiceeUpdateID);
+
             $form->setClass('fullWidth colorOddEven');
-            $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+            $form->addHiddenValue('address', $session->get('address'));
             $form->addHiddenValue('gibbonFinanceInvoiceeID', $oldValues['gibbonFinanceInvoiceeID']);
 
             $row = $form->addRow()->setClass('head heading');
@@ -95,6 +91,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_finance_
                 $row->addContent(__('New Value'));
                 $row->addContent(__('Accept'));
 
+            $changeCount = 0;
             foreach ($compare as $fieldName => $label) {
                 $isMatching = ($oldValues[$fieldName] != $newValues[$fieldName]);
 
@@ -102,17 +99,20 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_finance_
                 $row->addLabel('new'.$fieldName.'On', $label);
                 $row->addContent($oldValues[$fieldName]);
                 $row->addContent($newValues[$fieldName])->addClass($isMatching ? 'matchHighlightText' : '');
-                
+
                 if ($isMatching) {
                     $row->addCheckbox('new'.$fieldName.'On')->checked(true)->setClass('textCenter');
                     $form->addHiddenValue('new'.$fieldName, $newValues[$fieldName]);
+                    $changeCount++;
                 } else {
                     $row->addContent();
                 }
             }
-            
-            $row = $form->addRow();
-                $row->addSubmit();
+
+            if ($changeCount > 0) {
+                $row = $form->addRow();
+                    $row->addSubmit();
+            }
 
             echo $form->getOutput();
         }

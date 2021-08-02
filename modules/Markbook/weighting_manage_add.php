@@ -43,10 +43,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/weighting_manage_
             echo '</div>';
         }
 
-        if (isset($_GET['return'])) {
-            returnProcess($guid, $_GET['return'], null, null);
-        }
-
         //Get class variable
         $gibbonCourseClassID = $_GET['gibbonCourseClassID'] ?? '';
 
@@ -66,7 +62,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/weighting_manage_
                     $data = array('gibbonCourseClassID' => $gibbonCourseClassID);
                     $sql = 'SELECT gibbonCourse.nameShort AS course, gibbonCourseClass.nameShort AS class, gibbonCourseClass.gibbonCourseClassID, gibbonCourse.gibbonDepartmentID, gibbonYearGroupIDList FROM gibbonCourse, gibbonCourseClass WHERE gibbonCourse.gibbonCourseID=gibbonCourseClass.gibbonCourseID AND gibbonCourseClass.gibbonCourseClassID=:gibbonCourseClassID ORDER BY course, class';
                 } else {
-                    $data = array('gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID'], 'gibbonCourseClassID' => $gibbonCourseClassID);
+                    $data = array('gibbonPersonID' => $session->get('gibbonPersonID'), 'gibbonCourseClassID' => $gibbonCourseClassID);
                     $sql = "SELECT gibbonCourse.nameShort AS course, gibbonCourseClass.nameShort AS class, gibbonCourseClass.gibbonCourseClassID, gibbonCourse.gibbonDepartmentID, gibbonYearGroupIDList FROM gibbonCourse, gibbonCourseClass, gibbonCourseClassPerson WHERE gibbonCourse.gibbonCourseID=gibbonCourseClass.gibbonCourseID AND gibbonCourseClass.gibbonCourseClassID=gibbonCourseClassPerson.gibbonCourseClassID AND gibbonCourseClassPerson.gibbonPersonID=:gibbonPersonID AND role='Teacher' AND gibbonCourseClass.gibbonCourseClassID=:gibbonCourseClassID ORDER BY course, class";
                 }
                 $result = $connection2->prepare($sql);
@@ -95,9 +91,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/weighting_manage_
                     )
                     ->add(__('Add Weighting'));
                 // Show add weighting form
-                $form = Form::create('manageWeighting', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/weighting_manage_addProcess.php?gibbonCourseClassID=$gibbonCourseClassID");
-                
-                $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+                $form = Form::create('manageWeighting', $session->get('absoluteURL').'/modules/'.$session->get('module')."/weighting_manage_addProcess.php?gibbonCourseClassID=$gibbonCourseClassID");
+
+                $form->addHiddenValue('address', $session->get('address'));
 
                 $form->addRow()->addHeading(__('Add Markbook Weighting'));
 
@@ -149,5 +145,5 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/weighting_manage_
     }
 
     // Print the sidebar
-    $_SESSION[$guid]['sidebarExtra'] = sidebarExtra($guid, $pdo, $_SESSION[$guid]['gibbonPersonID'], $gibbonCourseClassID, 'weighting_manage.php');
+    $session->set('sidebarExtra', sidebarExtra($guid, $pdo, $session->get('gibbonPersonID'), $gibbonCourseClassID, 'weighting_manage.php'));
 }

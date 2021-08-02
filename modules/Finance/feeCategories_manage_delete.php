@@ -27,16 +27,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/feeCategories_mana
     $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed!
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     //Check if school year specified
     $gibbonFinanceFeeCategoryID = $_GET['gibbonFinanceFeeCategoryID'];
     if ($gibbonFinanceFeeCategoryID == '') {
         $page->addError(__('You have not specified one or more required parameters.'));
     } else {
-        
+
             $data = array('gibbonFinanceFeeCategoryID' => $gibbonFinanceFeeCategoryID);
             $sql = 'SELECT * FROM gibbonFinanceFeeCategory WHERE gibbonFinanceFeeCategoryID=:gibbonFinanceFeeCategoryID';
             $result = $connection2->prepare($sql);
@@ -47,7 +43,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/feeCategories_mana
             echo __('The selected record does not exist, or you do not have access to it.');
             echo '</div>';
         } else {
-            $form = DeleteForm::createForm($_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/feeCategories_manage_deleteProcess.php?gibbonFinanceFeeCategoryID=$gibbonFinanceFeeCategoryID");
+            $form = DeleteForm::createForm($session->get('absoluteURL').'/modules/'.$session->get('module')."/feeCategories_manage_deleteProcess.php?gibbonFinanceFeeCategoryID=$gibbonFinanceFeeCategoryID");
             echo $form->getOutput();
         }
     }

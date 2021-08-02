@@ -30,24 +30,22 @@ if (isActionAccessible($guid, $connection2, '/modules/Messenger/groups_manage_ad
 } else {
     $editLink = '';
     if (isset($_GET['editID'])) {
-        $editLink = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Messenger/groups_manage_edit.php&gibbonGroupID='.$_GET['editID'];
+        $editLink = $session->get('absoluteURL').'/index.php?q=/modules/Messenger/groups_manage_edit.php&gibbonGroupID='.$_GET['editID'];
     }
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], $editLink, null);
-    }
+    $page->return->setEditLink($editLink);
     
-    $form = Form::create('groups', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/groups_manage_addProcess.php");
+    $form = Form::create('groups', $session->get('absoluteURL').'/modules/'.$session->get('module')."/groups_manage_addProcess.php");
     $form->setFactory(DatabaseFormFactory::create($pdo));
 
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+    $form->addHiddenValue('address', $session->get('address'));
 
     $row = $form->addRow();
         $row->addLabel('name', __('Name'));
-        $row->addTextField('name')->required()->setValue();
+        $row->addTextField('name')->required()->maxLength(60);
 
     $row = $form->addRow();
         $row->addLabel('members', __('Members'));
-        $row->addSelectUsers('members', $_SESSION[$guid]['gibbonSchoolYearID'], ['includeStudents' => true])
+        $row->addSelectUsers('members', $session->get('gibbonSchoolYearID'), ['includeStudents' => true])
             ->selectMultiple()
             ->required();
 

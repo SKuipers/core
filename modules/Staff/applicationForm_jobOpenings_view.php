@@ -22,7 +22,7 @@ include './modules/User Admin/moduleFunctions.php';
 
 $proceed = false;
 $public = false;
-if (isset($_SESSION[$guid]['username']) == false) {
+if (!$session->has('username')) {
     $public = true;
     //Get public access
     $access = getSettingByScope($connection2, 'Staff Application Form', 'staffApplicationFormPublicApplications');
@@ -41,7 +41,7 @@ if ($proceed == false) {
 } else {
     //Proceed!
     $page->breadcrumbs->add(__('{organisationName} Application Form', [
-        'organisationName' => $_SESSION[$guid]['organisationNameShort'],
+        'organisationName' => $session->get('organisationNameShort'),
     ]));
 
     //Check for job openings
@@ -64,13 +64,13 @@ if ($proceed == false) {
         $jobOpenings = $result->fetchAll();
 
         echo "<div class='linkTop'>";
-        echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.$_SESSION[$guid]['module']."/applicationForm.php'>".__('Submit Application Form')."<img style='margin-left: 5px' title='".__('Submit Application Form')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/plus.png'/></a>";
+        echo "<a href='".$session->get('absoluteURL').'/index.php?q=/modules/'.$session->get('module')."/applicationForm.php'>".__('Submit Application Form')."<img style='margin-left: 5px' title='".__('Submit Application Form')."' src='./themes/".$session->get('gibbonThemeName')."/img/plus.png'/></a>";
         echo '</div>';
 
-        foreach ($jobOpenings as $jobOpening) {
-            echo '<h3>'.$jobOpening['jobTitle'].'</h3>';
-            echo '<p><b>'.sprintf(__('Job Type: %1$s'), $jobOpening['type']).'</b></p>';
-            echo $jobOpening['description'].'<br/>';
-        }
+
+        echo $page->fetchFromTemplate('jobOpenings.twig.html', [
+            'jobOpenings' => $jobOpenings,
+        ]);
+
     }
 }

@@ -24,10 +24,6 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/house_manage_
     $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed!
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     //Check if school year specified
     $gibbonHouseID = $_GET['gibbonHouseID'];
     if ($gibbonHouseID == '') {
@@ -42,7 +38,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/house_manage_
         if ($result->rowCount() != 1) {
             $page->addError(__('The specified record cannot be found.'));
         } else {
-            $form = DeleteForm::createForm($_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/house_manage_deleteProcess.php?gibbonHouseID=$gibbonHouseID");
+            $form = DeleteForm::createForm($session->get('absoluteURL').'/modules/'.$session->get('module')."/house_manage_deleteProcess.php?gibbonHouseID=$gibbonHouseID");
             echo $form->getOutput();
         }
     }

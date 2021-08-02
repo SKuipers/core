@@ -22,18 +22,18 @@ include '../../gibbon.php';
 //Module includes
 include './moduleFunctions.php';
 
-$action = $_POST['action'];
-$gibbonFinanceBudgetCycleID = $_GET['gibbonFinanceBudgetCycleID'];
+$action = $_POST['action'] ?? '';
+$gibbonFinanceBudgetCycleID = $_GET['gibbonFinanceBudgetCycleID'] ?? '';
 
 if ($gibbonFinanceBudgetCycleID == '' or $action == '') { echo 'Fatal error loading this page!';
 } else {
-    $URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/expenses_manage.php&gibbonFinanceBudgetCycleID=$gibbonFinanceBudgetCycleID";
+    $URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/expenses_manage.php&gibbonFinanceBudgetCycleID=$gibbonFinanceBudgetCycleID";
 
     if (isActionAccessible($guid, $connection2, '/modules/Finance/expenses_manage.php') == false) {
         $URL .= '&return=error0';
         header("Location: {$URL}");
     } else {
-        $gibbonFinanceExpenseIDs = $_POST['gibbonFinanceExpenseIDs'];
+        $gibbonFinanceExpenseIDs = $_POST['gibbonFinanceExpenseIDs'] ?? '';
         if (count($gibbonFinanceExpenseIDs) < 1) {
             $URL .= '&return=error1';
             header("Location: {$URL}");
@@ -41,7 +41,7 @@ if ($gibbonFinanceBudgetCycleID == '' or $action == '') { echo 'Fatal error load
             $partialFail = false;
             //Export
             if ($action == 'export') {
-                $_SESSION[$guid]['financeExpenseExportIDs'] = $gibbonFinanceExpenseIDs;
+                $session->set('financeExpenseExportIDs', $gibbonFinanceExpenseIDs);
 
 				include './expenses_manage_processBulkExportContents.php';
 

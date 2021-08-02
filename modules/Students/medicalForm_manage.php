@@ -30,10 +30,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/medicalForm_manag
     //Proceed!
     $page->breadcrumbs->add(__('Manage Medical Forms'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     $search = isset($_GET['search'])? $_GET['search'] : '';
 
     $medicalGateway = $container->get(MedicalGateway::class);
@@ -48,10 +44,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/medicalForm_manag
     echo __('Search');
     echo '</h2>';
 
-    $form = Form::create('filter', $_SESSION[$guid]['absoluteURL'].'/index.php', 'get');
+    $form = Form::create('filter', $session->get('absoluteURL').'/index.php', 'get');
     $form->setClass('noIntBorder fullWidth');
 
-    $form->addHiddenValue('q', '/modules/'.$_SESSION[$guid]['module'].'/medicalForm_manage.php');
+    $form->addHiddenValue('q', '/modules/'.$session->get('module').'/medicalForm_manage.php');
 
     $row = $form->addRow();
         $row->addLabel('search', __('Search For'))->description(__('Preferred, surname, username.'));
@@ -66,7 +62,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/medicalForm_manag
     echo __('View');
     echo '</h2>';
 
-    $medicalForms = $medicalGateway->queryMedicalFormsBySchoolYear($criteria, $_SESSION[$guid]['gibbonSchoolYearID']);
+    $medicalForms = $medicalGateway->queryMedicalFormsBySchoolYear($criteria, $session->get('gibbonSchoolYearID'));
 
     // DATA TABLE
     $table = DataTable::createPaginated('medicalForms', $criteria);
@@ -85,17 +81,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/medicalForm_manag
         ->sortable(['surname', 'preferredName'])
         ->format(Format::using('name', ['', 'preferredName', 'surname', 'Student', true]));
 
-    $table->addColumn('rollGroup', __('Roll Group'));
-
-    $table->addColumn('bloodType', __('Blood Type'));
+    $table->addColumn('formGroup', __('Form Group'));
 
     $table->addColumn('longTermMedication', __('Medication'))
         ->format(function($person) {
             return !empty($person['longTermMedicationDetails'])? $person['longTermMedicationDetails'] : Format::yesNo($person['longTermMedication']);
         });
-
-    $table->addColumn('tetanusWithin10Years', __('Tetanus'))
-        ->format(Format::using('yesNo', 'tetanusWithin10Years'));
 
     $table->addColumn('conditionCount', __('Conditions'));
 

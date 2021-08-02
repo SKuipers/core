@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Comms\NotificationEvent;
+use Gibbon\Domain\System\LogGateway;
 use Gibbon\Services\Format;
 
 include '../../gibbon.php';
@@ -25,11 +26,12 @@ include '../../gibbon.php';
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
 
-$mode = $_POST['mode'];
-$gibbonActivityID = $_POST['gibbonActivityID'];
-$gibbonPersonID = $_POST['gibbonPersonID'];
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/activities_view_register.php&gibbonActivityID=$gibbonActivityID&gibbonPersonID=$gibbonPersonID&mode=$mode&search=".$_GET['search'];
-$URLSuccess = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/activities_view.php&gibbonPersonID=$gibbonPersonID&search=".$_GET['search'];
+$logGateway = $container->get(LogGateway::class);
+$mode = $_POST['mode'] ?? '';
+$gibbonActivityID = $_POST['gibbonActivityID'] ?? '';
+$gibbonPersonID = $_POST['gibbonPersonID'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/activities_view_register.php&gibbonActivityID=$gibbonActivityID&gibbonPersonID=$gibbonPersonID&mode=$mode&search=".$_GET['search'];
+$URLSuccess = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/activities_view.php&gibbonPersonID=$gibbonPersonID&search=".$_GET['search'];
 
 $gibbonModuleID = getModuleIDFromName($connection2, 'Activities') ;
 
@@ -45,7 +47,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
         exit;
     } else {
         //Get current role category
-        $roleCategory = getRoleCategory($_SESSION[$guid]['gibbonRoleIDCurrent'], $connection2);
+        $roleCategory = getRoleCategory($session->get('gibbonRoleIDCurrent'), $connection2);
 
         //Check access controls
         $access = getSettingByScope($connection2, 'Activities', 'access');
@@ -69,10 +71,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
 
                 try {
                     if ($dateType != 'Date') {
-                        $data = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'gibbonPersonID' => $gibbonPersonID, 'gibbonActivityID' => $gibbonActivityID);
+                        $data = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'gibbonPersonID' => $gibbonPersonID, 'gibbonActivityID' => $gibbonActivityID);
                         $sql = "SELECT DISTINCT gibbonActivity.*, gibbonStudentEnrolment.gibbonYearGroupID, gibbonPerson.surname, gibbonPerson.preferredName, gibbonActivityType.access, gibbonActivityType.maxPerStudent, gibbonActivityType.enrolmentType, gibbonActivityType.waitingList, gibbonActivityType.backupChoice FROM gibbonActivity JOIN gibbonStudentEnrolment ON (gibbonActivity.gibbonYearGroupIDList LIKE concat( '%', gibbonStudentEnrolment.gibbonYearGroupID, '%' )) JOIN gibbonPerson ON (gibbonPerson.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID) LEFT JOIN gibbonActivityType ON (gibbonActivity.type=gibbonActivityType.name) WHERE gibbonActivity.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonStudentEnrolment.gibbonPersonID=:gibbonPersonID AND gibbonActivityID=:gibbonActivityID AND NOT gibbonSchoolYearTermIDList='' AND active='Y' AND registration='Y'";
                     } else {
-                        $data = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'gibbonPersonID' => $gibbonPersonID, 'gibbonActivityID' => $gibbonActivityID, 'listingStart' => $today, 'listingEnd' => $today);
+                        $data = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'gibbonPersonID' => $gibbonPersonID, 'gibbonActivityID' => $gibbonActivityID, 'listingStart' => $today, 'listingEnd' => $today);
                         $sql = "SELECT DISTINCT gibbonActivity.*, gibbonStudentEnrolment.gibbonYearGroupID, gibbonPerson.surname, gibbonPerson.preferredName, gibbonActivityType.access, gibbonActivityType.maxPerStudent, gibbonActivityType.enrolmentType, gibbonActivityType.waitingList, gibbonActivityType.backupChoice FROM gibbonActivity JOIN gibbonStudentEnrolment ON (gibbonActivity.gibbonYearGroupIDList LIKE concat( '%', gibbonStudentEnrolment.gibbonYearGroupID, '%' )) JOIN gibbonPerson ON (gibbonPerson.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID) LEFT JOIN gibbonActivityType ON (gibbonActivity.type=gibbonActivityType.name) WHERE gibbonActivity.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonStudentEnrolment.gibbonPersonID=:gibbonPersonID AND gibbonActivityID=:gibbonActivityID AND listingStart<=:listingStart AND listingEnd>=:listingEnd AND active='Y' AND registration='Y'";
                     }
                     $result = $connection2->prepare($sql);
@@ -163,7 +165,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                                     $status = 'Pending';
                                 } else {
                                     //Check number of people registered for this activity (if we ignore status it stops people jumping the queue when someone unregisters)
-                                    
+                                    // TIS: removed start date check
                                     $dataNumberRegistered = array('gibbonActivityID' => $gibbonActivityID, 'date' => date('Y-m-d'));
                                     $sqlNumberRegistered = "SELECT * FROM gibbonActivityStudent JOIN gibbonPerson ON (gibbonActivityStudent.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonPerson.status='Full' AND (dateEnd IS NULL  OR dateEnd>=:date) AND gibbonActivityID=:gibbonActivityID";
                                     $resultNumberRegistered = $connection2->prepare($sqlNumberRegistered);
@@ -196,10 +198,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                                 }
 
                                 //Set log
-                                setLog($connection2, $_SESSION[$guid]['gibbonSchoolYearIDCurrent'], $gibbonModuleID, $_SESSION[$guid]['gibbonPersonID'], 'Activities - Student Registered', array('gibbonPersonIDStudent' => $gibbonPersonID));
+                                $logGateway->addLog($session->get('gibbonSchoolYearIDCurrent'), $gibbonModuleID, $session->get('gibbonPersonID'), 'Activities - Student Registered', array('gibbonPersonIDStudent' => $gibbonPersonID));
 
                                 //Unlock locked database tables
-                                
+
                                     $sql = 'UNLOCK TABLES';
                                     $result = $connection2->query($sql);
 
@@ -264,7 +266,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                             }
 
                             //Set log
-                            setLog($connection2, $_SESSION[$guid]['gibbonSchoolYearIDCurrent'], $gibbonModuleID, $_SESSION[$guid]['gibbonPersonID'], 'Activities - Student Withdrawn', array('gibbonPersonIDStudent' => $gibbonPersonID));
+                            $logGateway->addLog($session->get('gibbonSchoolYearIDCurrent'), $gibbonModuleID, $session->get('gibbonPersonID'), 'Activities - Student Withdrawn', array('gibbonPersonIDStudent' => $gibbonPersonID));
 
                             $reg = $resultReg->fetch();
 
@@ -300,7 +302,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                                 //Check to see who is registering in system
                                 $studentRegistration = false;
                                 $parentRegistration = false ;
-                                
+
                                     $dataAccess = array();
                                     $sqlAccess = "SELECT
                                             gibbonAction.name, gibbonRole.category
@@ -332,6 +334,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                                 }
 
                                 //Count spaces
+                                // TIS: removed start date check
                                 $dataNumberRegistered = array('gibbonActivityID' => $gibbonActivityID, 'today' => date('Y-m-d'));
                                 $sqlNumberRegistered = "SELECT * FROM gibbonActivityStudent JOIN gibbonPerson ON (gibbonActivityStudent.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonPerson.status='Full' AND (dateEnd IS NULL  OR dateEnd>=:today) AND gibbonActivityID=:gibbonActivityID AND gibbonActivityStudent.status='Accepted'";
                                 $resultNumberRegistered = $connection2->prepare($sqlNumberRegistered);
@@ -357,14 +360,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
 
                                     //Bump students up
                                     while ($rowBumps = $resultBumps->fetch()) {
-                                        
+
                                             $dataBump = array('gibbonActivityStudentID' => $rowBumps['gibbonActivityStudentID']);
                                             $sqlBump = "UPDATE gibbonActivityStudent SET status='Accepted' WHERE gibbonActivityStudentID=:gibbonActivityStudentID";
                                             $resultBump = $connection2->prepare($sqlBump);
                                             $resultBump->execute($dataBump);
 
                                         //Set log
-                                        setLog($connection2, $_SESSION[$guid]['gibbonSchoolYearIDCurrent'], $gibbonModuleID, $_SESSION[$guid]['gibbonPersonID'], 'Activities - Student Bump', array('gibbonPersonIDStudent' => $rowBumps['gibbonPersonID']));
+                                        $logGateway->addLog($session->get('gibbonSchoolYearIDCurrent'), $gibbonModuleID, $session->get('gibbonPersonID'), 'Activities - Student Bump', array('gibbonPersonIDStudent' => $rowBumps['gibbonPersonID']));
 
                                         //Raise notifications
                                         $event = new NotificationEvent('Activities', 'Student Bumped');
@@ -380,7 +383,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                                             $event->addRecipient($rowBumps['gibbonPersonID']);
                                         }
                                         if ($parentRegistration) { //Notify contact priority 1 parents in associated families
-                                            
+
                                                 $dataAdult = array('gibbonPersonID' => $rowBumps['gibbonPersonID']);
                                                 $sqlAdult = "
                                                     SELECT
@@ -405,7 +408,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                                     }
                                 }
                                 //Unlock locked database tables
-                                
+
                                     $sql = 'UNLOCK TABLES';
                                     $result = $connection2->query($sql);
                             }

@@ -26,13 +26,9 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/activitySetti
     //Proceed!
     $page->breadcrumbs->add(__('Library Settings'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
+    $form = Form::create('librarySettings', $session->get('absoluteURL').'/modules/'.$session->get('module').'/librarySettingsProcess.php');
 
-    $form = Form::create('librarySettings', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/librarySettingsProcess.php');
-
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+    $form->addHiddenValue('address', $session->get('address'));
 
     $row = $form->addRow()->addHeading(__('Descriptors'));
 

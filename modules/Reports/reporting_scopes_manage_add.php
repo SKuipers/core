@@ -42,9 +42,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_scopes_m
         $editLink = $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Reports/reporting_scopes_manage_edit.php&gibbonReportingCycleID='.$gibbonReportingCycleID.'&gibbonReportingScopeID='.$_GET['editID'];
     }
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], $editLink, null);
-    }
+    $page->return->setEditLink($editLink);
 
     $form = Form::create('archiveManage', $gibbon->session->get('absoluteURL').'/modules/Reports/reporting_scopes_manage_addProcess.php');
 
@@ -55,7 +53,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_scopes_m
         $row->addLabel('name', __('Name'))->description(__('Must be unique'));
         $row->addTextField('name')->maxLength(90)->required();
 
-    $types = ['Year Group' => __('Year Group'), 'Roll Group' => __('Roll Group'), 'Course' => __('Course')];
+    $types = ['Year Group' => __('Year Group'), 'Form Group' => __('Form Group'), 'Course' => __('Course')];
     $row = $form->addRow();
         $row->addLabel('scopeType', __('Type'));
         $row->addSelect('scopeType')->fromArray($types)->required()->placeholder();

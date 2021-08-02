@@ -23,7 +23,7 @@ use Gibbon\Forms\FormFactory;
 include '../../gibbon.php';
 
 //Module includes
-include $_SESSION[$guid]['absolutePath'].'/modules/Library/moduleFunctions.php';
+include $session->get('absolutePath').'/modules/Library/moduleFunctions.php';
 
 //Setup variables
 $gibbonLibraryTypeID = isset($_POST['gibbonLibraryTypeID'])? $_POST['gibbonLibraryTypeID'] : '';
@@ -54,7 +54,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
             $data = array('gibbonLibraryItemID' => $gibbonLibraryItemID);
             $sql = "SELECT fields FROM gibbonLibraryItem WHERE gibbonLibraryItemID=:gibbonLibraryItemID";
             $result = $pdo->executeQuery($data, $sql);
-            $fieldsValues = ($result->rowCount() == 1)? unserialize($result->fetchColumn(0)) : array();
+            $fieldsValues = ($result->rowCount() == 1)? json_decode($result->fetchColumn(0), true) : array();
         }
 
         // Transform the library field types to CustomField compatable types
@@ -65,14 +65,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
                 default:            $item['type'] = strtolower($item['type']); break;
             }
             return $item;
-        }, unserialize($values['fields']));
+        }, json_decode($values['fields'], true));
 
         foreach ($fields as $field) {
             $fieldName = 'field'.preg_replace('/ |\(|\)/', '', $field['name']);
             $fieldValue = isset($fieldsValues[$field['name']])? $fieldsValues[$field['name']] : '';
 
             $row = $table->addRow()->addClass('flex flex-col sm:flex-row justify-between content-center p-0');
-                $row->addLabel($fieldName, __($field['name']))->description(__($field['description']))->addClass('flex-grow sm:mb-0 border-transparent border-t-0 sm:border-gray-400');
+                $row->addLabel($fieldName, __($field['name']))->description(__($field['description']))->addClass('flex-grow sm:mb-0 border-transparent border-t-0 sm:border-gray-400 sm:max-w-full');
                 $row->addCustomField($fieldName, $field)->setValue($fieldValue)->addClass('w-full max-w-full sm:max-w-xs flex justify-end items-center border-0 sm:border-b');
         }
 

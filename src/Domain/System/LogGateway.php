@@ -74,6 +74,39 @@ class LogGateway extends QueryableGateway
                     ->where('gibbonLog.gibbonPersonID = :gibbonPersonID')
                     ->bindValue('gibbonPersonID', $gibbonPersonID);
             },
+            'module' => function ($query, $module) {
+                return $query
+                    ->where('gibbonModule.name = :module')
+                    ->bindValue('module', $module);
+            },
+            'startDate' => function ($query, $startDate) {
+                return $query
+                    ->where('timestamp >= :startDate')
+                    ->bindValue('startDate', $startDate);
+            },
+            'endDate' => function ($query, $endDate) {
+                return $query
+                    ->where('timestamp <= :endDate')
+                    ->bindValue('endDate', $endDate);
+            },
+            'array' => function ($query, $array) {
+                $array = unserialize($array);
+                if (is_array($array)) {
+                    $count = 0;
+                    foreach ($array as $key => $value) {
+                        $bindKey = 'key' . $count;
+                        $bindValue = 'value' . $count;
+
+                        $query
+                            ->where('serialisedArray LIKE CONCAT("%", :'.$bindKey.', "%;%", :'.$bindValue.', "%")')
+                            ->bindValue($bindKey, $key)
+                            ->bindValue($bindValue, $value);
+                        
+                        $count++;
+                    }
+                    return $query;
+                }
+            }
         ]);
 
         return $this->runQuery($query, $criteria);
@@ -112,5 +145,30 @@ class LogGateway extends QueryableGateway
         $sql = "DELETE FROM gibbonLog WHERE FIND_IN_SET(title, :titleList) AND timestamp <= :cutoffDate";
 
         return $this->db()->delete($sql, $data);
+    }
+
+    public function addLog($gibbonSchoolYearID, $module, $gibbonPersonID, $title, $array = null, $ip = null)
+    {
+        $serialisedArray = is_array($array) ? serialize($array) : null;
+        $ip = (empty($ip) ? getIPAddress() : $ip);
+
+        $data = [
+            'gibbonSchoolYearID' => $gibbonSchoolYearID,
+            'module' => $module,
+            'gibbonPersonID' => $gibbonPersonID,
+            'title' => $title,
+            'serialisedArray' => $serialisedArray,
+            'ip' => $ip
+        ];
+
+        $sql = "INSERT INTO gibbonLog SET
+                gibbonSchoolYearID = :gibbonSchoolYearID,
+                gibbonModuleID = (SELECT gibbonModuleID FROM gibbonModule WHERE gibbonModule.name = :module),
+                gibbonPersonID = :gibbonPersonID,
+                title = :title,
+                serialisedArray = :serialisedArray,
+                ip = :ip";
+
+        return $this->db()->insert($sql, $data);
     }
 }

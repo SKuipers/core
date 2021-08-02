@@ -20,6 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Forms\Form;
 use Gibbon\Services\Format;
 use Gibbon\Contracts\Comms\Mailer;
+use Gibbon\Domain\System\LogGateway;
 
 require_once dirname(__FILE__).'/gibbon.php';
 
@@ -59,9 +60,11 @@ function emailBodyConvert($body)
 /**
  * Custom translation function to allow custom string replacement
  *
- * @param string        $text    Text to Translate.
+ * @param string        $text    Text to Translate. See documentation for
+ *                               Gibbon\Locale::translate for more info.
  * @param array         $params  Assoc array of key value pairs for named
- *                               string replacement.
+ *                               string replacement. See documentation for
+ *                               Gibbon\Locale::translate for more info.
  * @param array|string  $options Options for translations (e.g. domain).
  *                               Or string of domain (for backward
  *                               compatibility, deprecated).
@@ -375,10 +378,12 @@ function getFastFinder($connection2, $guid)
         $row->addFinder('fastFinderSearch')
             ->fromAjax($_SESSION[$guid]['absoluteURL'].'/index_fastFinder_ajax.php')
             ->setClass('w-full text-white flex items-center')
+            ->setAria('label', __('Search'))
             ->setParameter('hintText', __('Start typing a name...'))
             ->setParameter('noResultsText', __('No results'))
             ->setParameter('searchingText', __('Searching...'))
             ->setParameter('tokenLimit', 1)
+            ->setParameter('arialabel', __('Fast Finder'))
             ->addValidation('Validate.Presence', 'failureMessage: " "')
             ->append('<input type="submit" style="height:34px;padding:0 1rem;" value="'.__('Go').'">');
 
@@ -768,8 +773,23 @@ function getHighestGroupedAction($guid, $address, $connection2)
     $moduleID = checkModuleReady($address, $connection2);
 
     try {
-        $data = array('actionName' => '%'.getActionName($address).'%', 'gibbonRoleID' => $_SESSION[$guid]['gibbonRoleIDCurrent'], 'moduleID' => $moduleID);
-        $sql = 'SELECT gibbonAction.name FROM gibbonAction, gibbonPermission, gibbonRole WHERE (gibbonAction.URLList LIKE :actionName) AND (gibbonAction.gibbonActionID=gibbonPermission.gibbonActionID) AND (gibbonPermission.gibbonRoleID=gibbonRole.gibbonRoleID) AND (gibbonPermission.gibbonRoleID=:gibbonRoleID) AND (gibbonAction.gibbonModuleID=:moduleID) ORDER BY precedence DESC';
+        $data = [
+            'actionName' => '%'.getActionName($address).'%',
+            'gibbonRoleID' => $_SESSION[$guid]['gibbonRoleIDCurrent'],
+            'moduleID' => $moduleID,
+        ];
+        $sql = 'SELECT
+        gibbonAction.name
+        FROM
+        gibbonAction
+        INNER JOIN gibbonPermission ON (gibbonAction.gibbonActionID=gibbonPermission.gibbonActionID)
+        INNER JOIN gibbonRole ON (gibbonPermission.gibbonRoleID=gibbonRole.gibbonRoleID)
+        WHERE
+        (gibbonAction.URLList LIKE :actionName) AND
+        (gibbonPermission.gibbonRoleID=:gibbonRoleID) AND
+        (gibbonAction.gibbonModuleID=:moduleID)
+        ORDER BY gibbonAction.precedence DESC, gibbonAction.gibbonActionID';
+
         $result = $connection2->prepare($sql);
         $result->execute($data);
         if ($result->rowCount() > 0) {
@@ -1615,19 +1635,19 @@ function getNextYearGroupID($gibbonYearGroupID, $connection2)
     return $output;
 }
 
-//Take a roll group, and return the next one, or false if none
-function getNextRollGroupID($gibbonRollGroupID, $connection2)
+//Take a form group, and return the next one, or false if none
+function getNextFormGroupID($gibbonFormGroupID, $connection2)
 {
     $output = false;
 
-        $data = array('gibbonRollGroupID' => $gibbonRollGroupID);
-        $sql = 'SELECT * FROM gibbonRollGroup WHERE gibbonRollGroupID=:gibbonRollGroupID';
+        $data = array('gibbonFormGroupID' => $gibbonFormGroupID);
+        $sql = 'SELECT * FROM gibbonFormGroup WHERE gibbonFormGroupID=:gibbonFormGroupID';
         $result = $connection2->prepare($sql);
         $result->execute($data);
     if ($result->rowCount() == 1) {
         $row = $result->fetch();
-        if (!is_null($row['gibbonRollGroupIDNext'])) {
-            $output = $row['gibbonRollGroupIDNext'];
+        if (!is_null($row['gibbonFormGroupIDNext'])) {
+            $output = $row['gibbonFormGroupIDNext'];
         }
     }
 
@@ -1678,119 +1698,26 @@ function formatPhone($num)
     return Format::phone($num);
 }
 
+/**
+ * @deprecated in v22.
+ *
+ * Use $container->get(\Gibbon\Domain\System\LogGateway::class)->addLog() instead.
+ * See \Gibbon\Domain\System\LogGateway::addLog() for details.
+ */
 function setLog($connection2, $gibbonSchoolYearID, $gibbonModuleID, $gibbonPersonID, $title, $array = null, $ip = null)
 {
-    if ((!is_array($array) && $array != null) || $title == null || $gibbonSchoolYearID == null) {
-        return;
-    }
-
-    $ip = (empty($ip) ? getIPAddress() : $ip);
-
-    if ($array != null) {
-        $serialisedArray = serialize($array);
-    } else {
-        $serialisedArray = null;
-    }
-    try {
-        $dataLog = array('gibbonSchoolYearID' => $gibbonSchoolYearID, 'gibbonModuleID' => $gibbonModuleID, 'gibbonPersonID' => $gibbonPersonID, 'title' => $title, 'serialisedArray' => $serialisedArray, 'ip' => $ip);
-        $sqlLog = 'INSERT INTO gibbonLog SET gibbonSchoolYearID=:gibbonSchoolYearID, gibbonModuleID=:gibbonModuleID, gibbonPersonID=:gibbonPersonID, title=:title, serialisedArray=:serialisedArray, ip=:ip';
-        $resultLog = $connection2->prepare($sqlLog);
-        $resultLog->execute($dataLog);
-    } catch (PDOException $e) {
-        return;
-    }
-    $gibbonLogID = $connection2->lastInsertId();
-
-    return $gibbonLogID;
-}
-
-function getLog($connection2, $gibbonSchoolYearID, $gibbonModuleID = null, $gibbonPersonID = null, $title = null, $startDate = null, $endDate = null, $ip = null, $array = null)
-{
-    if ($gibbonSchoolYearID == null || $gibbonSchoolYearID == '') {
-        return;
-    }
-    $dataLog = array('gibbonSchoolYearID' => $gibbonSchoolYearID);
-    $where = '';
-
-    if (is_array($array) && $array != null && $array != '' && !empty($array)) {
-        $valNum = 0;
-        foreach ($array as $key => $val) {
-            $keyName = 'key'.$valNum;
-            $dataLog[$keyName] = $key;
-            $valName = 'val'.$valNum;
-            $dataLog[$valName] = $val;
-            $where .= " AND serialisedArray LIKE CONCAT('%', :".$keyName.", '%;%', :".$valName.", '%')";
-            ++$valNum;
+    static $logGateway;
+    if (!isset($logGateway)) {
+        global $container;
+        if (!isset($container)) {
+            throw new \Exception('Unable to find $container object in global namespace.');
+        }
+        $logGateway = $container->get(LogGateway::class);
+        if (!$logGateway instanceof LogGateway) {
+            throw new \Exception('LogGateway not found in container.');
         }
     }
-
-    if ($gibbonModuleID != null && $gibbonModuleID != '') {
-        $dataLog['gibbonModuleID'] = $gibbonModuleID;
-        $where .= ' AND gibbonModuleID=:gibbonModuleID';
-    }
-
-    if ($gibbonPersonID != null && $gibbonPersonID != '') {
-        $dataLog['gibbonPersonID'] = $gibbonPersonID;
-        $where .= ' AND gibbonPersonID=:gibbonPersonID';
-    }
-
-    if ($title != null) {
-        $dataLog['title'] = $title;
-        $where .= ' AND title=:title';
-    }
-
-    if ($startDate != null && $endDate == null) {
-        $startDate = str_replace('/', '-', $startDate);
-        $startDate = date('Y-m-d', strtotime($startDate));
-        $dataLog['startDate'] = $startDate;
-        $where .= ' AND timestamp>=:startDate';
-    } elseif ($startDate == null && $endDate != null) {
-        $endDate = str_replace('/', '-', $endDate);
-        $endDate = date('Y-m-d 23:59:59', strtotime($endDate)) + date('H:i:s');
-        $dataLog['endDate'] = $endDate;
-        $where .= ' AND timestamp<=:endDate';
-    } elseif ($startDate != null && $endDate != null) {
-        $startDate = str_replace('/', '-', $startDate);
-        $startDate = date('Y-m-d', strtotime($startDate));
-        $dataLog['startDate'] = $startDate;
-        $endDate = str_replace('/', '-', $endDate);
-        $endDate = date('Y-m-d 23:59:59', strtotime($endDate));
-        $dataLog['endDate'] = $endDate;
-        $where .= ' AND timestamp>=:startDate AND timestamp<=:endDate';
-    }
-
-    if ($ip != null || $ip != '') {
-        $dataLog['ip'] = $ip;
-        $where .= ' AND ip=:ip';
-    }
-
-    try {
-        $sqlLog = 'SELECT * FROM gibbonLog WHERE gibbonSchoolYearID=:gibbonSchoolYearID '.$where.' ORDER BY timestamp DESC';
-        $resultLog = $connection2->prepare($sqlLog);
-        $resultLog->execute($dataLog);
-    } catch (PDOException $e) {
-        return;
-    }
-
-    return $resultLog;
-}
-
-function getLogByID($connection2, $gibbonLogID)
-{
-    if ($gibbonLogID == null) {
-        return;
-    }
-    try {
-        $dataLog = array('gibbonLogID' => $gibbonLogID);
-        $sqlLog = 'SELECT * FROM gibbonLog WHERE gibbonLogID=:gibbonLogID';
-        $resultLog = $connection2->prepare($sqlLog);
-        $resultLog->execute($dataLog);
-        $row = $resultLog->fetch();
-    } catch (PDOException $e) {
-        return;
-    }
-
-    return $row;
+    return $logGateway->addLog($gibbonSchoolYearID, $gibbonModuleID, $gibbonPersonID, $title, $array, $ip);
 }
 
 function getModuleID($connection2, $address)
@@ -1869,107 +1796,11 @@ function isCommandLineInterface()
 }
 
 /**
- * Easy Return Display Processing. Print out message as appropriate.
- * See returnProcessMessage() for more details.
- *
- * @param string $guid
- *      The guid of your Gibbon Install.
- * @param string $return
- *      The return value of the process.
- * @param string $editLink
- *      (Optional) This should be a link. The link will appended to the end of a success0 return.
- * @param array $customReturns
- *      (Optional) This should be an array. The array allows you to set custom return checks and
- *      messages. Set the array key to the return name and the value to the return message.
- *
- * @return void
+ * @deprecated in v22. Use Page's ReturnMessage.
  */
 function returnProcess($guid, $return, $editLink = null, $customReturns = null)
 {
-    $alert = returnProcessGetAlert($return, $editLink, $customReturns);
-
-    echo !empty($alert)
-        ? "<div class='{$alert['context']}'>{$alert['text']}</div>"
-        : '';
-}
-
-/**
- * Render HTML for easy return display process.
- *
- * Default returns:
- *   success0: This is a default success message for adding a new record.
- *   error0:   This is a default error message for invalid permission for an action.
- *   error1:   This is a default error message for invalid inputs.
- *   error2:   This is a defualt error message for a database error.
- *   warning0: This is a default warning message for a extra data failing to save.
- *   warning1: This is a default warning message for a successful request, where certain data was not save properly.
- *
- * @param string $guid
- *      The guid of your Gibbon Install.
- * @param string $return
- *      The return value of the process.
- * @param string $editLink
- *      (Optional) This should be a link. The link will appended to the end of a success0 return.
- * @param array $customReturns
- *      (Optional) This should be an array. The array allows you to set custom return checks and
- *      messages. Set the array key to the return name and the value to the return message.
- * @return string
- *      The HTML ouput of the easy return display.
- */
-function returnProcessGetAlert($return, $editLink = null, $customReturns = null) {
-    if (isset($return)) {
-        $class = 'error';
-        $returnMessage = 'Unknown Return';
-        $returns = array();
-        $returns['success0'] = __('Your request was completed successfully.');
-        $returns['successa'] = __('Your account has been successfully updated. You can now continue to use the system as per normal.');
-        $returns['success5'] = __('Your request has been successfully started as a background process. It will continue to run on the server until complete and you will be notified of any errors.');
-        $returns['error0'] = __('Your request failed because you do not have access to this action.');
-        $returns['error1'] = __('Your request failed because your inputs were invalid.');
-        $returns['error2'] = __('Your request failed due to a database error.');
-        $returns['error3'] = __('Your request failed because your inputs were invalid.');
-        $returns['error4'] = __('Your request failed because your passwords did not match.');
-        $returns['error5'] = __('Your request failed because there are no records to show.');
-        $returns['error6'] = __('Your request was completed successfully, but there was a problem saving some uploaded files.');
-        $returns['error7'] = __('Your request failed because some required values were not unique.');
-        $returns['error8'] = _('Your request failed because the link is invalid or has expired.');
-        $returns['warning0'] = __('Your optional extra data failed to save.');
-        $returns['warning1'] = __('Your request was successful, but some data was not properly saved.');
-        $returns['warning2'] = __('Your request was successful, but some data was not properly deleted.');
-
-        if (isset($customReturns)) {
-            if (is_array($customReturns)) {
-                $customReturnKeys = array_keys($customReturns);
-                foreach ($customReturnKeys as $customReturnKey) {
-                    $customReturn = __('Unknown Return');
-                    if (isset($customReturns[$customReturnKey])) {
-                        $customReturn = $customReturns[$customReturnKey];
-                    }
-                    $returns[$customReturnKey] = $customReturn;
-                }
-            }
-        }
-        $returnKeys = array_keys($returns);
-        foreach ($returnKeys as $returnKey) {
-            if ($return == $returnKey) {
-                $returnMessage = $returns[$returnKey];
-                if (stripos($return, 'error') !== false) {
-                    $class = 'error';
-                } elseif (stripos($return, 'warning') !== false) {
-                    $class = 'warning';
-                } elseif (stripos($return, 'success') !== false) {
-                    $class = 'success';
-                } elseif (stripos($return, 'message') !== false) {
-                    $class = 'message';
-                }
-                break;
-            }
-        }
-        if ($class == 'success' && $editLink != null) {
-            $returnMessage .= ' '.sprintf(__('You can edit your newly created record %1$shere%2$s.'), "<a href='$editLink'>", '</a>');
-        }
-
-        return ['context' => $class, 'text' => $returnMessage];
-    }
-    return null;
+    global $page;
+    $page->return->setEditLink($editLink ?? '');
+    $page->return->addReturns($customReturns ?? []);
 }

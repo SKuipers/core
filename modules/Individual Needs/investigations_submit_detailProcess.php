@@ -29,8 +29,8 @@ require_once '../../gibbon.php';
 $gibbonINInvestigationID = $_POST['gibbonINInvestigationID'] ?? '';
 $gibbonINInvestigationContributionID = $_POST['gibbonINInvestigationContributionID'] ?? '';
 
-$URL = $_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Individual Needs/investigations_submit_detail.php&gibbonINInvestigationID=$gibbonINInvestigationID&gibbonINInvestigationContributionID=$gibbonINInvestigationContributionID";
-$URLSuccess = $_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Individual Needs/investigations_submit.php&gibbonINInvestigationID=$gibbonINInvestigationID&gibbonINInvestigationContributionID=$gibbonINInvestigationContributionID";
+$URL = $session->get('absoluteURL')."/index.php?q=/modules/Individual Needs/investigations_submit_detail.php&gibbonINInvestigationID=$gibbonINInvestigationID&gibbonINInvestigationContributionID=$gibbonINInvestigationContributionID";
+$URLSuccess = $session->get('absoluteURL')."/index.php?q=/modules/Individual Needs/investigations_submit.php&gibbonINInvestigationID=$gibbonINInvestigationID&gibbonINInvestigationContributionID=$gibbonINInvestigationContributionID";
 
 if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/investigations_submit_detail.php') == false) {
     $URL .= '&return=error0';
@@ -59,13 +59,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/investiga
             'communication'     => (!empty($_POST['communication'])) ? serialize($_POST['communication']) : '',
             'comment'           => $_POST['comment'] ?? ''
         ];
-
-        // Validate the required values are present
-        if (empty($data['cognition'])) {
-            $URL .= '&return=error1';
-            header("Location: {$URL}");
-            exit;
-        }
 
         // Update the record
         $updated = $contributionsGateway->update($gibbonINInvestigationContributionID, $data);

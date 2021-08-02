@@ -27,10 +27,6 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYearSpe
     $gibbonSchoolYearSpecialDayID = $_GET['gibbonSchoolYearSpecialDayID'] ?? '';
     $gibbonSchoolYearID = $_GET['gibbonSchoolYearID'] ?? '';
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     //Check if school year specified
     if ($gibbonSchoolYearSpecialDayID == '') {
         $page->addError(__('You have not specified one or more required parameters.'));
@@ -44,7 +40,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYearSpe
         if ($result->rowCount() != 1) {
             $page->addError(__('The specified record cannot be found.'));
         } else {
-            $form = DeleteForm::createForm($_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/schoolYearSpecialDay_manage_deleteProcess.php?gibbonSchoolYearSpecialDayID=$gibbonSchoolYearSpecialDayID&gibbonSchoolYearID=".$_GET['gibbonSchoolYearID']);
+            $form = DeleteForm::createForm($session->get('absoluteURL').'/modules/'.$session->get('module')."/schoolYearSpecialDay_manage_deleteProcess.php?gibbonSchoolYearSpecialDayID=$gibbonSchoolYearSpecialDayID&gibbonSchoolYearID=".$_GET['gibbonSchoolYearID']);
             echo $form->getOutput();
         }
     }

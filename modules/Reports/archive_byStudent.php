@@ -36,7 +36,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/archive_byStudent.
 
     $gibbonSchoolYearID = $gibbon->session->get('gibbonSchoolYearID');
     $gibbonYearGroupID = $_GET['gibbonYearGroupID'] ?? '';
-    $gibbonRollGroupID = $_GET['gibbonRollGroupID'] ?? '';
+    $gibbonFormGroupID = $_GET['gibbonFormGroupID'] ?? '';
     $allStudents = $_GET['allStudents'] ?? '';
     $search = $_GET['search'] ?? '';
 
@@ -48,7 +48,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/archive_byStudent.
         ->fromPOST();
 
     // FORM
-    $form = Form::create('archiveByReport', $_SESSION[$guid]['absoluteURL'].'/index.php', 'get');
+    $form = Form::create('archiveByReport', $session->get('absoluteURL').'/index.php', 'get');
     $form->setTitle(__('Filter'));
     $form->setClass('noIntBorder fullWidth');
     $form->setFactory(DatabaseFormFactory::create($pdo));
@@ -64,8 +64,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/archive_byStudent.
         $row->addSelectYearGroup('gibbonYearGroupID')->placeholder()->selected($gibbonYearGroupID);
 
     $row = $form->addRow();
-        $row->addLabel('gibbonRollGroupID', __('Roll Group'));
-        $row->addSelectRollGroup('gibbonRollGroupID', $gibbonSchoolYearID)->selected($gibbonRollGroupID)->placeholder();
+        $row->addLabel('gibbonFormGroupID', __('Form Group'));
+        $row->addSelectFormGroup('gibbonFormGroupID', $gibbonSchoolYearID)->selected($gibbonFormGroupID)->placeholder();
 
     $row = $form->addRow();
         $row->addLabel('allStudents', __('All Students'))->description(__('Include all students, regardless of status and current enrolment. Some data may not display.'));
@@ -75,38 +75,38 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/archive_byStudent.
         $row->addSearchSubmit($gibbon->session, __('Clear Filters'));
 
     echo $form->getOutput();
-    
+
 
     // QUERY
     $canViewDraftReports = isActionAccessible($guid, $connection2, '/modules/Reports/archive_byStudent.php', 'View Draft Reports');
     $canViewPastReports = isActionAccessible($guid, $connection2, '/modules/Reports/archive_byStudent.php', 'View Past Reports');
     $roleCategory = getRoleCategory($gibbon->session->get('gibbonRoleIDCurrent'), $connection2);
 
-    $reports = $reportArchiveEntryGateway->queryArchiveBySchoolYear($criteria, $gibbonSchoolYearID, $gibbonYearGroupID, $gibbonRollGroupID, $roleCategory, $canViewDraftReports, $canViewPastReports);
+    $reports = $reportArchiveEntryGateway->queryArchiveBySchoolYear($criteria, $gibbonSchoolYearID, $gibbonYearGroupID, $gibbonFormGroupID, $roleCategory, $canViewDraftReports, $canViewPastReports);
 
     // Data TABLE
     $table = DataTable::createPaginated('reportsView', $criteria)->withData($reports);
     $table->setTitle(__('View'));
-    
+
     $table->modifyRows($container->get(StudentGateway::class)->getSharedUserRowHighlighter());
 
     $table->addColumn('student', __('Student'))
         ->sortable(['surname', 'preferredName'])
         ->width('25%')
-        ->format(function ($person) use ($guid, $allStudents) {
-            $url = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Students/student_view_details.php&gibbonPersonID='.$person['gibbonPersonID'].'&search=&allStudents='.$allStudents.'&sort=surname,preferredName';
+        ->format(function ($person) use ($session, $allStudents) {
+            $url = $session->get('absoluteURL').'/index.php?q=/modules/Students/student_view_details.php&gibbonPersonID='.$person['gibbonPersonID'].'&search=&allStudents='.$allStudents.'&sort=surname,preferredName';
             return Format::link($url, Format::name('', $person['preferredName'], $person['surname'], 'Student', true))
                    .'<br/>'.Format::small(Format::userStatusInfo($person));
         });
 
     $table->addColumn('yearGroup', __('Year Group'));
-    $table->addColumn('rollGroup', __('Roll Group'));
+    $table->addColumn('formGroup', __('Form Group'));
     $table->addColumn('count', __('Reports'));
 
     $table->addActionColumn()
         ->addParam('gibbonSchoolYearID', $gibbonSchoolYearID)
         ->addParam('gibbonYearGroupID', $gibbonYearGroupID)
-        ->addParam('gibbonRollGroupID', $gibbonRollGroupID)
+        ->addParam('gibbonFormGroupID', $gibbonFormGroupID)
         ->addParam('allStudents', $allStudents)
         ->addParam('search', $criteria->getSearchText())
         ->format(function ($report, $actions) {

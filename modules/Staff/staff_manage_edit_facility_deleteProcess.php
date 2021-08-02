@@ -19,8 +19,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$gibbonStaffID = $_GET['gibbonStaffID'];
-$gibbonSpacePersonID = $_GET['gibbonSpacePersonID'];
+$gibbonStaffID = $_GET['gibbonStaffID'] ?? '';
+$gibbonSpacePersonID = $_GET['gibbonSpacePersonID'] ?? '';
 $allStaff = '';
 if (isset($_GET['allStaff'])) {
     $allStaff = $_GET['allStaff'];
@@ -29,8 +29,8 @@ $search = '';
 if (isset($_GET['search'])) {
     $search = $_GET['search'];
 }
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/staff_manage_edit_facility_delete.php&gibbonSpacePersonID=$gibbonSpacePersonID&search=$search&allStaff=$allStaff";
-$URLDelete = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/staff_manage_edit.php&gibbonStaffID=$gibbonStaffID&search=$search&allStaff=$allStaff";
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/staff_manage_edit_facility_delete.php&gibbonSpacePersonID=$gibbonSpacePersonID&search=$search&allStaff=$allStaff";
+$URLDelete = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/staff_manage_edit.php&gibbonStaffID=$gibbonStaffID&search=$search&allStaff=$allStaff";
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage_edit_facility_delete.php') == false) {
     $URL .= '&return=error0';

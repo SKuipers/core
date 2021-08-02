@@ -59,19 +59,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                     ->add(Format::name('', $student['preferredName'], $student['surname'], 'Student'), 'student_view_details.php', ['gibbonPersonID' => $gibbonPersonID, 'subpage' => $subpage, 'allStudents' => $allStudents])
                     ->add(__('Add Student Note'));
 
-                if (isset($_GET['return'])) {
-                    returnProcess($guid, $_GET['return'], null, null);
-                }
-
                 if ($_GET['search'] != '') {
                     echo "<div class='linkTop'>";
-                    echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Students/student_view_details.php&gibbonPersonID=$gibbonPersonID&search=".$_GET['search']."&subpage=$subpage&category=".$_GET['category']."&allStudents=$allStudents'>".__('Back to Search Results').'</a>';
+                    echo "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/Students/student_view_details.php&gibbonPersonID=$gibbonPersonID&search=".$_GET['search']."&subpage=$subpage&category=".$_GET['category']."&allStudents=$allStudents'>".__('Back to Search Results').'</a>';
                     echo '</div>';
 				}
 				
-				$form = Form::create('notes', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/student_view_details_notes_addProcess.php?gibbonPersonID=$gibbonPersonID&search=".$_GET['search']."&subpage=$subpage&category=".$_GET['category']."&allStudents=$allStudents");
+				$form = Form::create('notes', $session->get('absoluteURL').'/modules/'.$session->get('module')."/student_view_details_notes_addProcess.php?gibbonPersonID=$gibbonPersonID&search=".$_GET['search']."&subpage=$subpage&category=".$_GET['category']."&allStudents=$allStudents");
 
-				$form->addHiddenValue('address', $_SESSION[$guid]['address']);
+				$form->addHiddenValue('address', $session->get('address'));
 
 				$row = $form->addRow();
 					$row->addLabel('title', __('Title'));
@@ -97,7 +93,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
 				<script type="text/javascript">
 				$("#gibbonStudentNoteCategoryID").change(function() {
 					if ($("#gibbonStudentNoteCategoryID").val() != "Please select...") {
-						$.get('<?php echo $_SESSION[$guid]['absoluteURL'].'/modules/Students/student_view_details_notes_addAjax.php?gibbonStudentNoteCategoryID=' ?>' + $("#gibbonStudentNoteCategoryID").val(), function(data){
+						$.get('<?php echo $session->get('absoluteURL').'/modules/Students/student_view_details_notes_addAjax.php?gibbonStudentNoteCategoryID=' ?>' + $("#gibbonStudentNoteCategoryID").val(), function(data){
 							if (tinyMCE.activeEditor==null) {
 								if ($("textarea#note").val()=="") {
 									$("textarea#note").val(data) ;

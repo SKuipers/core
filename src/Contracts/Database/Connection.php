@@ -49,7 +49,7 @@ interface Connection
      *
      * @param  string  $query
      * @param  array   $bindings
-     * @return array
+     * @return object
      */
     public function select($query, $bindings = []);
 
@@ -129,5 +129,5 @@ interface Connection
      * @param  array   $bindings
      * @return bool
      */
-    public function executeQuery($bindings = [], $query);
+    public function executeQuery($bindings = [], $query = "");
 }

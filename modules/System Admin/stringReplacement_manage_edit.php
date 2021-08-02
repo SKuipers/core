@@ -30,10 +30,6 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/stringReplace
 
     $search = $_GET['search'] ?? '';
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     //Check if StringID specified
     $gibbonStringID = $_GET['gibbonStringID'] ?? '';
     
@@ -54,13 +50,13 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/stringReplace
 
             if ($search != '') {
                 echo "<div class='linkTop'>";
-                echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/System Admin/stringReplacement_manage.php&search=$search'>".__('Back to Search Results').'</a>';
+                echo "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/System Admin/stringReplacement_manage.php&search=$search'>".__('Back to Search Results').'</a>';
                 echo '</div>';
             }
 
-            $form = Form::create('editString', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/stringReplacement_manage_editProcess.php?gibbonStringID='.$values['gibbonStringID'].'&search='.$search);
+            $form = Form::create('editString', $session->get('absoluteURL').'/modules/'.$session->get('module').'/stringReplacement_manage_editProcess.php?gibbonStringID='.$values['gibbonStringID'].'&search='.$search);
 
-            $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+            $form->addHiddenValue('address', $session->get('address'));
 
             $row = $form->addRow();
                 $row->addLabel('original', __('Original String'));

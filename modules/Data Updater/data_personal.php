@@ -17,9 +17,13 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\View\View;
 use Gibbon\Forms\Form;
-use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Services\Format;
+use Gibbon\Forms\CustomFieldHandler;
+use Gibbon\Forms\DatabaseFormFactory;
+use Gibbon\Domain\System\SettingGateway;
+use Gibbon\Domain\User\PersonalDocumentGateway;
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -51,20 +55,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
 
         $customResponces = array();
         $error3 = __('Your request was successful, but some data was not properly saved. An administrator will process your request as soon as possible. You will not see the updated data in the system until it has been processed.');
-        if ($_SESSION[$guid]['organisationDBAEmail'] != '' and $_SESSION[$guid]['organisationDBAName'] != '') {
-            $error3 .= ' '.sprintf(__('Please contact %1$s if you have any questions.'), "<a href='mailto:".$_SESSION[$guid]['organisationDBAEmail']."'>".$_SESSION[$guid]['organisationDBAName'].'</a>');
+        if ($session->get('organisationDBAEmail') != '' and $session->get('organisationDBAName') != '') {
+            $error3 .= ' '.sprintf(__('Please contact %1$s if you have any questions.'), "<a href='mailto:".$session->get('organisationDBAEmail')."'>".$session->get('organisationDBAName').'</a>');
         }
         $customResponces['error3'] = $error3;
 
         $success0 = __('Your request was completed successfully. An administrator will process your request as soon as possible. You will not see the updated data in the system until it has been processed.');
-        if ($_SESSION[$guid]['organisationDBAEmail'] != '' and $_SESSION[$guid]['organisationDBAName'] != '') {
-            $success0 .= ' '.sprintf(__('Please contact %1$s if you have any questions.'), "<a href='mailto:".$_SESSION[$guid]['organisationDBAEmail']."'>".$_SESSION[$guid]['organisationDBAName'].'</a>');
+        if ($session->get('organisationDBAEmail') != '' and $session->get('organisationDBAName') != '') {
+            $success0 .= ' '.sprintf(__('Please contact %1$s if you have any questions.'), "<a href='mailto:".$session->get('organisationDBAEmail')."'>".$session->get('organisationDBAName').'</a>');
         }
         $customResponces['success0'] = $success0;
 
-        if (isset($_GET['return'])) {
-            returnProcess($guid, $_GET['return'], null, $customResponces);
-        }
+        $page->return->addReturns($customResponces);
 
         echo '<h2>';
         echo __('Choose User');
@@ -72,14 +74,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
 
         $gibbonPersonID = isset($_GET['gibbonPersonID'])? $_GET['gibbonPersonID'] : null;
 
-        $form = Form::create('selectPerson', $_SESSION[$guid]['absoluteURL'].'/index.php', 'get');
-        $form->addHiddenValue('q', '/modules/'.$_SESSION[$guid]['module'].'/data_personal.php');
+        $form = Form::create('selectPerson', $session->get('absoluteURL').'/index.php', 'get');
+        $form->addHiddenValue('q', '/modules/'.$session->get('module').'/data_personal.php');
 
         if ($highestAction == 'Update Personal Data_any') {
             $data = array();
             $sql = "SELECT username, surname, preferredName, gibbonPerson.gibbonPersonID FROM gibbonPerson WHERE status='Full' ORDER BY surname, preferredName";
         } else {
-            $data = array('gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID']);
+            $data = array('gibbonPersonID' => $session->get('gibbonPersonID'));
             $sql = "(SELECT gibbonFamilyAdult.gibbonFamilyID, gibbonFamily.name as familyName, child.surname, child.preferredName, child.gibbonPersonID
                     FROM gibbonFamilyAdult
                     JOIN gibbonFamily ON (gibbonFamilyAdult.gibbonFamilyID=gibbonFamily.gibbonFamilyID)
@@ -109,8 +111,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
         }, array());
 
         // Add self to people if not in the list
-        if (array_key_exists($_SESSION[$guid]['gibbonPersonID'], $people) == false) {
-            $people[$_SESSION[$guid]['gibbonPersonID']] = Format::name('', htmlPrep($_SESSION[$guid]['preferredName']), htmlPrep($_SESSION[$guid]['surname']), 'Student', true);
+        if (array_key_exists($session->get('gibbonPersonID'), $people) == false) {
+            $people[$session->get('gibbonPersonID')] = Format::name('', htmlPrep($session->get('preferredName')), htmlPrep($session->get('surname')), 'Student', true);
         }
 
         $row = $form->addRow();
@@ -135,7 +137,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
             $checkCount = 0;
             $self = false;
             if ($highestAction == 'Update Personal Data_any') {
-                
+
                     $dataSelect = array();
                     $sqlSelect = "SELECT surname, preferredName, gibbonPerson.gibbonPersonID FROM gibbonPerson WHERE status='Full' ORDER BY surname, preferredName";
                     $resultSelect = $connection2->prepare($sqlSelect);
@@ -143,13 +145,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
                 $checkCount = $resultSelect->rowCount();
                 $self = true;
             } else {
-                
-                    $dataCheck = array('gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID']);
+
+                    $dataCheck = array('gibbonPersonID' => $session->get('gibbonPersonID'));
                     $sqlCheck = "SELECT gibbonFamilyAdult.gibbonFamilyID, name FROM gibbonFamilyAdult JOIN gibbonFamily ON (gibbonFamilyAdult.gibbonFamilyID=gibbonFamily.gibbonFamilyID) WHERE gibbonPersonID=:gibbonPersonID AND childDataAccess='Y' ORDER BY name";
                     $resultCheck = $connection2->prepare($sqlCheck);
                     $resultCheck->execute($dataCheck);
                 while ($rowCheck = $resultCheck->fetch()) {
-                    
+
                         $dataCheck2 = array('gibbonFamilyID1' => $rowCheck['gibbonFamilyID'], 'gibbonFamilyID2' => $rowCheck['gibbonFamilyID']);
                         $sqlCheck2 = "(SELECT surname, preferredName, gibbonPerson.gibbonPersonID, gibbonFamilyID FROM gibbonFamilyChild JOIN gibbonPerson ON (gibbonFamilyChild.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonPerson.status='Full' AND gibbonFamilyID=:gibbonFamilyID1) UNION (SELECT surname, preferredName, gibbonPerson.gibbonPersonID, gibbonFamilyID FROM gibbonFamilyAdult JOIN gibbonPerson ON (gibbonFamilyAdult.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonPerson.status='Full' AND gibbonFamilyID=:gibbonFamilyID2)";
                         $resultCheck2 = $connection2->prepare($sqlCheck2);
@@ -159,14 +161,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
                             ++$checkCount;
                         }
                         //Check for self
-                        if ($rowCheck2['gibbonPersonID'] == $_SESSION[$guid]['gibbonPersonID']) {
+                        if ($rowCheck2['gibbonPersonID'] == $session->get('gibbonPersonID')) {
                             $self = true;
                         }
                     }
                 }
             }
 
-            if ($self == false and $gibbonPersonID == $_SESSION[$guid]['gibbonPersonID']) {
+            if ($self == false and $gibbonPersonID == $session->get('gibbonPersonID')) {
                 ++$checkCount;
             }
 
@@ -176,7 +178,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
                 echo '</div>';
             } else {
                 //Get categories
-                
+
                     $dataSelect = array('gibbonPersonID' => $gibbonPersonID);
                     $sqlSelect = 'SELECT gibbonRoleIDAll, gibbonRoleIDPrimary FROM gibbonPerson WHERE gibbonPersonID=:gibbonPersonID ORDER BY surname, preferredName';
                     $resultSelect = $connection2->prepare($sqlSelect);
@@ -236,8 +238,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
                     }
                 }
 
-                
-                    $data = array('gibbonPersonID' => $gibbonPersonID, 'gibbonPersonIDUpdater' => $_SESSION[$guid]['gibbonPersonID']);
+
+                    $data = array('gibbonPersonID' => $gibbonPersonID, 'gibbonPersonIDUpdater' => $session->get('gibbonPersonID'));
                     $sql = "SELECT * FROM gibbonPersonUpdate WHERE gibbonPersonID=:gibbonPersonID AND gibbonPersonIDUpdater=:gibbonPersonIDUpdater AND status='Pending'";
                     $result = $connection2->prepare($sql);
                     $result->execute($data);
@@ -259,7 +261,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
                     }
                 } else {
                     //Get user's data
-                    
+
                         $data = array('gibbonPersonID' => $gibbonPersonID);
                         $sql = 'SELECT * FROM gibbonPerson WHERE gibbonPersonID=:gibbonPersonID';
                         $result = $connection2->prepare($sql);
@@ -298,10 +300,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
                         return count($visible) > 0;
                     };
 
-                    $form = Form::create('updateFinance', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/data_personalProcess.php?gibbonPersonID='.$gibbonPersonID);
+                    $form = Form::create('updateFinance', $session->get('absoluteURL').'/modules/'.$session->get('module').'/data_personalProcess.php?gibbonPersonID='.$gibbonPersonID);
                     $form->setFactory(DatabaseFormFactory::create($pdo));
 
-                    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+                    $form->addHiddenValue('address', $session->get('address'));
                     $form->addHiddenValue('existing', isset($values['gibbonPersonUpdateID'])? $values['gibbonPersonUpdateID'] : 'N');
 
                     // BASIC INFORMATION
@@ -424,7 +426,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
                         $row->addSelectCountry('address1Country');
 
                     if ($values['address1'] != '' && $isVisible('address1')) {
-                        
+
                             $dataAddress = array(
                                 'gibbonPersonID' => $values['gibbonPersonID'],
                                 'addressMatch' => '%'.strtolower(preg_replace('/ /', '%', preg_replace('/,/', '%', $values['address1']))).'%',
@@ -515,66 +517,21 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
                         }
 
                     $nationalityList = getSettingByScope($connection2, 'User Admin', 'nationality');
-                    $row = $form->addRow()->onlyIf($isVisible('citizenship1'));
-                        $row->addLabel('citizenship1', __('Citizenship 1'));
-                        if (!empty($nationalityList)) {
-                            $row->addSelect('citizenship1')->fromString($nationalityList)->placeholder();
-                        } else {
-                            $row->addSelectCountry('citizenship1');
-                        }
-
-                    $row = $form->addRow()->onlyIf($isVisible('citizenship1Passport'));
-                        $row->addLabel('citizenship1Passport', __('Citizenship 1 Passport Number'));
-                        $row->addTextField('citizenship1Passport')->maxLength(30);
-
-                    $row = $form->addRow()->onlyIf($isVisible('citizenship1PassportExpiry'));
-                        $row->addLabel('citizenship1PassportExpiry', __('Citizenship 1 Passport Expiry Date'));
-                        $row->addDate('citizenship1PassportExpiry');
-
-                    $row = $form->addRow()->onlyIf($isVisible('citizenship2'));
-                        $row->addLabel('citizenship2', __('Citizenship 2'));
-                        if (!empty($nationalityList)) {
-                            $row->addSelect('citizenship2')->fromString($nationalityList)->placeholder();
-                        } else {
-                            $row->addSelectCountry('citizenship2');
-                        }
-
-                    $row = $form->addRow()->onlyIf($isVisible('citizenship2Passport'));
-                        $row->addLabel('citizenship2Passport', __('Citizenship 2 Passport Number'));
-                        $row->addTextField('citizenship2Passport')->maxLength(30);
-
-                    $row = $form->addRow()->onlyIf($isVisible('citizenship2PassportExpiry'));
-                        $row->addLabel('citizenship2PassportExpiry', __('Citizenship 2 Passport Expiry Date'));
-                        $row->addDate('citizenship2PassportExpiry');
-
-                    if (!empty($_SESSION[$guid]['country'])) {
-                        $nationalIDCardNumberLabel = __($_SESSION[$guid]['country']).' '.__('ID Card Number');
-                        $nationalIDCardScanLabel = __($_SESSION[$guid]['country']).' '.__('ID Card Scan');
-                        $residencyStatusLabel = __($_SESSION[$guid]['country']).' '.__('Residency/Visa Type');
-                        $visaExpiryDateLabel = __($_SESSION[$guid]['country']).' '.__('Visa Expiry Date');
-                    } else {
-                        $nationalIDCardNumberLabel = __('National ID Card Number');
-                        $nationalIDCardScanLabel = __('National ID Card Scan');
-                        $residencyStatusLabel = __('Residency/Visa Type');
-                        $visaExpiryDateLabel = __('Visa Expiry Date');
-                    }
-
-                    $row = $form->addRow()->onlyIf($isVisible('nationalIDCardNumber'));
-                        $row->addLabel('nationalIDCardNumber', $nationalIDCardNumberLabel);
-                        $row->addTextField('nationalIDCardNumber')->maxLength(30);
-
                     $residencyStatusList = getSettingByScope($connection2, 'User Admin', 'residencyStatus');
-                    $row = $form->addRow()->onlyIf($isVisible('residencyStatus'));
-                        $row->addLabel('residencyStatus', $residencyStatusLabel);
-                        if (!empty($residencyStatusList)) {
-                            $row->addSelect('residencyStatus')->fromString($residencyStatusList)->placeholder();
-                        } else {
-                            $row->addTextField('residencyStatus')->maxLength(30);
-                        }
-
-                    $row = $form->addRow()->onlyIf($isVisible('visaExpiryDate'));
-                        $row->addLabel('visaExpiryDate', $visaExpiryDateLabel)->description(__('If relevant.'));
-                        $row->addDate('visaExpiryDate');
+                    
+                    // PERSONAL DOCUMENTS
+                    $params = compact('student', 'staff', 'parent', 'other') + ['dataUpdater' => true];
+                    if ($existing) {
+                        $documents = $container->get(PersonalDocumentGateway::class)->selectPersonalDocuments('gibbonPersonUpdate', $values['gibbonPersonUpdateID'], $params)->fetchAll();
+                    } else {
+                        $documents = $container->get(PersonalDocumentGateway::class)->selectPersonalDocuments('gibbonPerson', $gibbonPersonID, $params )->fetchAll();
+                    }
+                    
+                    if (!empty($documents)) {
+                        $col = $form->addRow()->addColumn();
+                            $col->addLabel('document', __('Personal Documents'));
+                            $col->addPersonalDocuments('document', $documents, $container->get(View::class), $container->get(SettingGateway::class));
+                    }
 
                     // EMPLOYMENT
                     if ($parent) {
@@ -623,20 +580,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_personal
                     }
 
                     // CUSTOM FIELDS
-                    $existingFields = (isset($values['fields']))? json_decode($values['fields'], true) : null;
-                    $resultFields = getCustomFields($connection2, $guid, $student, $staff, $parent, $other, false, true);
-                    if ($resultFields->rowCount() > 0) {
-                        $heading = $form->addRow()->addHeading(__('Custom Fields'));
-
-                        while ($rowFields = $resultFields->fetch()) {
-                            $name = 'custom'.$rowFields['gibbonPersonFieldID'];
-                            $value = (isset($existingFields[$rowFields['gibbonPersonFieldID']]))? $existingFields[$rowFields['gibbonPersonFieldID']] : '';
-
-                            $row = $form->addRow();
-                            $row->addLabel($name, $rowFields['name'])->description($rowFields['description']);
-                            $row->addCustomField($name, $rowFields)->setValue($value);
-                        }
-                    }
+                    $params = compact('student', 'staff', 'parent', 'other');
+                    $container->get(CustomFieldHandler::class)->addCustomFieldsToForm($form, 'User', $params + ['dataUpdater' => 1], $values['fields']);
 
                     $row = $form->addRow();
                         $row->addFooter();

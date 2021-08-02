@@ -23,7 +23,7 @@ use Gibbon\Domain\Library\LibraryReportGateway;
 use Gibbon\Services\Format;
 use Gibbon\Tables\DataTable;
 
-$_SESSION[$guid]['report_student_emergencySummary.php_choices'] = '';
+$session->set('report_student_emergencySummary.php_choices', '');
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -44,16 +44,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/report_studentBorr
         $gibbonPersonID = $_GET['gibbonPersonID'];
     }
 
-    $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/index.php', 'get');
+    $form = Form::create('action', $session->get('absoluteURL').'/index.php', 'get');
 
     $form->setFactory(DatabaseFormFactory::create($pdo));
     $form->setClass('noIntBorder fullWidth');
 
-    $form->addHiddenValue('q', "/modules/".$_SESSION[$guid]['module']."/report_studentBorrowingRecord.php");
+    $form->addHiddenValue('q', "/modules/".$session->get('module')."/report_studentBorrowingRecord.php");
 
     $row = $form->addRow();
         $row->addLabel('gibbonPersonID', __('Student'));
-        $row->addSelectStudent('gibbonPersonID', $_SESSION[$guid]['gibbonSchoolYearID'])->selected($gibbonPersonID)->placeholder()->required();
+        $row->addSelectStudent('gibbonPersonID', $session->get('gibbonSchoolYearID'))->selected($gibbonPersonID)->placeholder()->required();
 
     $row = $form->addRow();
         $row->addFooter();
@@ -81,8 +81,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/report_studentBorr
             ->addExpandableColumn('details')
             ->format(function ($item) {
                 $detailTable = "<table>";
-                $fields = unserialize($item['fields']);
-                foreach (unserialize($item['typeFields']) as $typeField) {
+                $fields = json_decode($item['fields'], true);
+                foreach (json_decode($item['typeFields'], true) as $typeField) {
                     $detailTable .= sprintf('<tr><td><b>%1$s</b></td><td>%2$s</td></tr>', __($typeField['name']), $fields[$typeField['name']]);
                 }
                 $detailTable .= '</table>';
@@ -114,7 +114,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/report_studentBorr
             ->addColumn('timestampOut', __('Return Date'))
             ->description(__('Borrow Date'))
             ->format(function ($item) {
-                return sprintf('<b>%1$s</b><br/>%2$s', $item['status'] == 'On Loan' ? Format::date($item['returnExpected']) : 'N/A', Format::small(Format::date($item['timestampOut'])));
+                return sprintf('<b>%1$s</b><br/>%2$s', $item['status'] == 'On Loan' ? Format::date($item['returnExpected']) : Format::date($item['timestampReturn']), Format::small(Format::date($item['timestampOut'])));
             });
         $table
             ->addColumn('status', __('Status'))->translatable();

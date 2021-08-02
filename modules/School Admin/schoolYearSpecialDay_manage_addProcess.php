@@ -17,17 +17,19 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+
 include '../../gibbon.php';
 
-$date = $_POST['date'];
-$type = $_POST['type'];
-$name = $_POST['name'];
-$description = $_POST['description'];
-$gibbonSchoolYearID = $_POST['gibbonSchoolYearID'];
-$dateStamp = $_POST['dateStamp'];
-$gibbonSchoolYearTermID = $_POST['gibbonSchoolYearTermID'];
-$firstDay = $_POST['firstDay'];
-$lastDay = $_POST['lastDay'];
+$date = $_POST['date'] ?? '';
+$type = $_POST['type'] ?? '';
+$name = $_POST['name'] ?? '';
+$description = $_POST['description'] ?? '';
+$gibbonSchoolYearID = $_POST['gibbonSchoolYearID'] ?? '';
+$dateStamp = $_POST['dateStamp'] ?? '';
+$gibbonSchoolYearTermID = $_POST['gibbonSchoolYearTermID'] ?? '';
+$firstDay = $_POST['firstDay'] ?? '';
+$lastDay = $_POST['lastDay'] ?? '';
 $schoolOpen = null;
 if (!empty($_POST['schoolOpenH']) && is_numeric($_POST['schoolOpenH']) && is_numeric($_POST['schoolOpenM'])) {
     $schoolOpen = $_POST['schoolOpenH'].':'.$_POST['schoolOpenM'].':00';
@@ -45,7 +47,7 @@ if (!empty($_POST['schoolCloseH']) && is_numeric($_POST['schoolCloseH']) && is_n
     $schoolClose = $_POST['schoolCloseH'].':'.$_POST['schoolCloseM'].':00';
 }
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/schoolYearSpecialDay_manage.php&gibbonSchoolYearID=$gibbonSchoolYearID";
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/schoolYearSpecialDay_manage.php&gibbonSchoolYearID=$gibbonSchoolYearID";
 
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYearSpecialDay_manage_add.php') == false) {
     $URL .= '&return=error0';
@@ -69,7 +71,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYearSpe
 
         //Check unique inputs for uniquness
         try {
-            $data = array('date' => dateConvert($guid, $date));
+            $data = array('date' => Format::dateConvert($date));
             $sql = 'SELECT * FROM gibbonSchoolYearSpecialDay WHERE date=:date';
             $result = $connection2->prepare($sql);
             $result->execute($data);
@@ -89,7 +91,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYearSpe
             } else {
                 //Write to database
                 try {
-                    $data = array('gibbonSchoolYearTermID' => $gibbonSchoolYearTermID, 'date' => dateConvert($guid, $date), 'type' => $type, 'name' => $name, 'description' => $description, 'schoolOpen' => $schoolOpen, 'schoolStart' => $schoolStart, 'schoolEnd' => $schoolEnd, 'schoolClose' => $schoolClose);
+                    $data = array('gibbonSchoolYearTermID' => $gibbonSchoolYearTermID, 'date' => Format::dateConvert($date), 'type' => $type, 'name' => $name, 'description' => $description, 'schoolOpen' => $schoolOpen, 'schoolStart' => $schoolStart, 'schoolEnd' => $schoolEnd, 'schoolClose' => $schoolClose);
                     $sql = 'INSERT INTO gibbonSchoolYearSpecialDay SET gibbonSchoolYearTermID=:gibbonSchoolYearTermID, date=:date, type=:type, name=:name, description=:description,schoolOpen=:schoolOpen, schoolStart=:schoolStart, schoolEnd=:schoolEnd, schoolClose=:schoolClose';
                     $result = $connection2->prepare($sql);
                     $result->execute($data);
@@ -100,7 +102,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYearSpe
                 }
 
                 //Unlock locked database tables
-                
+
                     $sql = 'UNLOCK TABLES';
                     $result = $connection2->query($sql);
 

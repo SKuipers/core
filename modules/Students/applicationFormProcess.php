@@ -20,11 +20,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Services\Format;
 use Gibbon\Contracts\Comms\Mailer;
 use Gibbon\Comms\NotificationEvent;
+use Gibbon\Forms\CustomFieldHandler;
+use Gibbon\Forms\PersonalDocumentHandler;
 
 include '../../gibbon.php';
 
 //Check to see if system settings are set from databases
-if (empty($_SESSION[$guid]['systemSettingsSet'])) {
+if (!$session->has('systemSettingsSet')) {
     getSystemSettings($guid, $connection2);
 }
 
@@ -34,12 +36,12 @@ include '../User Admin/moduleFunctions.php';
 //Module includes from Finance (for setting payment log)
 include '../Finance/moduleFunctions.php';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Students/applicationForm.php';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/Students/applicationForm.php';
 
 $proceed = false;
 $public = false;
 
-if (isset($_SESSION[$guid]['username']) == false) {
+if (!$session->has('username')) {
     $public = true;
     //Get public access
     $access = getSettingByScope($connection2, 'Application Form', 'publicApplications');
@@ -69,448 +71,155 @@ if ($proceed == false) {
         $_POST = $validator->sanitize($_POST);
 
         //GET STUDENT FIELDS
-        $surname = $_POST['surname'];
-        $firstName = trim($_POST['firstName']);
-        $preferredName = trim($_POST['preferredName']);
-        $officialName = trim($_POST['officialName']);
-        $nameInCharacters = $_POST['nameInCharacters'];
-        $gender = $_POST['gender'];
-        $dob = $_POST['dob'];
-        if ($dob == '') {
-            $dob = null;
-        } else {
-            $dob = dateConvert($guid, $dob);
-        }
-        $languageHomePrimary = $_POST['languageHomePrimary'];
-        $languageHomeSecondary = $_POST['languageHomeSecondary'];
-        $languageFirst = $_POST['languageFirst'];
-        $languageSecond = $_POST['languageSecond'];
-        $languageThird = $_POST['languageThird'];
-        $countryOfBirth = $_POST['countryOfBirth'];
-        $citizenship1 = $_POST['citizenship1'];
-        $citizenship1Passport = $_POST['citizenship1Passport'];
-        $citizenship1PassportExpiry = !empty($_POST['citizenship1PassportExpiry']) ? Format::dateConvert($_POST['citizenship1PassportExpiry']) : null;
-        $nationalIDCardNumber = $_POST['nationalIDCardNumber'];
-        $residencyStatus = $_POST['residencyStatus'];
-        $visaExpiryDate = $_POST['visaExpiryDate'];
-        if ($visaExpiryDate == '') {
-            $visaExpiryDate = null;
-        } else {
-            $visaExpiryDate = dateConvert($guid, $visaExpiryDate);
-        }
-        $email = (isset($_POST['email']))? trim($_POST['email']) : '';
-        $phone1Type = (isset($_POST['phone1Type']))? $_POST['phone1Type'] : '';
+        $surname = $_POST['surname'] ?? '';
+        $firstName = trim($_POST['firstName'] ?? '');
+        $preferredName = trim($_POST['preferredName'] ?? '');
+        $officialName = trim($_POST['officialName'] ?? '');
+        $nameInCharacters = $_POST['nameInCharacters'] ?? '';
+        $gender = $_POST['gender'] ?? '';
+        $dob = !empty($_POST['dob']) ? Format::dateConvert($_POST['dob']) : null;
+        $languageHomePrimary = $_POST['languageHomePrimary'] ?? '';
+        $languageHomeSecondary = $_POST['languageHomeSecondary'] ?? '';
+        $languageFirst = $_POST['languageFirst'] ?? '';
+        $languageSecond = $_POST['languageSecond'] ?? '';
+        $languageThird = $_POST['languageThird'] ?? '';
+        $countryOfBirth = $_POST['countryOfBirth'] ?? '';
+        $email = trim($_POST['email'] ?? '');
+        $phone1Type = $_POST['phone1Type'] ?? '';
         if (!empty($_POST['phone1']) and $phone1Type == '') {
             $phone1Type = 'Other';
         }
-        $phone1CountryCode = (isset($_POST['phone1CountryCode']))? $_POST['phone1CountryCode'] : '';
-        $phone1 = (isset($_POST['phone1']))? preg_replace('/[^0-9+]/', '', $_POST['phone1']) : '';
-        $phone2Type = (isset($_POST['phone2Type']))? $_POST['phone2Type'] : '';
+        $phone1CountryCode = $_POST['phone1CountryCode'] ?? '';
+        $phone1 = preg_replace('/[^0-9+]/', '', $_POST['phone1'] ?? '');
+        $phone2Type = $_POST['phone2Type'] ?? '';
         if (!empty($_POST['phone2']) and $phone2Type == '') {
             $phone2Type = 'Other';
         }
-        $phone2CountryCode = (isset($_POST['phone2CountryCode']))? $_POST['phone2CountryCode'] : '';
-        $phone2 = (isset($_POST['phone2']))? preg_replace('/[^0-9+]/', '', $_POST['phone2']) : '';
+        $phone2CountryCode = $_POST['phone2CountryCode'] ?? '';
+        $phone2 = preg_replace('/[^0-9+]/', '', $_POST['phone2'] ?? '');
 
-        $medicalInformation = (isset($_POST['medicalInformation']))? $_POST['medicalInformation'] : '';
-        $sen = (isset($_POST['sen']))? $_POST['sen'] : 'N';
+        $medicalInformation = $_POST['medicalInformation'] ?? '';
+        $sen = $_POST['sen'] ?? 'N';
         if ($sen == 'N') {
             $senDetails = '';
         } else {
-            $senDetails = (isset($_POST['senDetails']))? $_POST['senDetails'] : '';
+            $senDetails = $_POST['senDetails'] ?? '';
         }
-        $gibbonSchoolYearIDEntry = $_POST['gibbonSchoolYearIDEntry'];
-        $dayType = null;
-        if (isset($_POST['dayType'])) {
-            $dayType = $_POST['dayType'];
-        }
-        $dateStart = dateConvert($guid, $_POST['dateStart']);
-        $gibbonYearGroupIDEntry = $_POST['gibbonYearGroupIDEntry'];
-        $referenceEmail = null;
-        if (isset($_POST['referenceEmail'])) {
-            $referenceEmail = $_POST['referenceEmail'];
-        }
-        $schoolName1 = $_POST['schoolName1'];
-        $schoolAddress1 = $_POST['schoolAddress1'];
-        $schoolGrades1 = $_POST['schoolGrades1'];
-        $schoolLanguage1 = $_POST['schoolLanguage1'];
-        $schoolDate1 = $_POST['schoolDate1'];
-        if ($schoolDate1 == '') {
-            $schoolDate1 = null;
-        } else {
-            $schoolDate1 = dateConvert($guid, $schoolDate1);
-        }
-        $schoolName2 = $_POST['schoolName2'];
-        $schoolAddress2 = $_POST['schoolAddress2'];
-        $schoolGrades2 = $_POST['schoolGrades2'];
-        $schoolLanguage2 = $_POST['schoolLanguage2'];
-        $schoolDate2 = $_POST['schoolDate2'];
-        if ($schoolDate2 == '') {
-            $schoolDate2 = null;
-        } else {
-            $schoolDate2 = dateConvert($guid, $schoolDate2);
-        }
+        $gibbonSchoolYearIDEntry = $_POST['gibbonSchoolYearIDEntry'] ?? '';
+        $dayType = $_POST['dayType'] ?? null;
+        $dateStart = !empty($_POST['dateStart']) ? Format::dateConvert($_POST['dateStart']) : null;
+        $gibbonYearGroupIDEntry = $_POST['gibbonYearGroupIDEntry'] ?? '';
+        $referenceEmail = $_POST['referenceEmail'] ?? '';
+        $schoolName1 = $_POST['schoolName1'] ?? '';
+        $schoolAddress1 = $_POST['schoolAddress1'] ?? '';
+        $schoolGrades1 = $_POST['schoolGrades1'] ?? '';
+        $schoolLanguage1 = $_POST['schoolLanguage1'] ?? '';
+        $schoolDate1 = !empty($_POST['schoolDate1']) ? Format::dateConvert($_POST['schoolDate1']) : null;
+        $schoolName2 = $_POST['schoolName2'] ?? '';
+        $schoolAddress2 = $_POST['schoolAddress2'] ?? '';
+        $schoolGrades2 = $_POST['schoolGrades2'] ?? '';
+        $schoolLanguage2 = $_POST['schoolLanguage2'] ?? '';
+        $schoolDate2 = !empty($_POST['schoolDate2']) ? Format::dateConvert($_POST['schoolDate2']) : null;
 
         //GET FAMILY FEILDS
-        $gibbonFamily = $_POST['gibbonFamily'];
-        if ($gibbonFamily == 'TRUE') {
-            $gibbonFamilyID = $_POST['gibbonFamilyID'];
-        } else {
-            $gibbonFamilyID = null;
-        }
-        $homeAddress = null;
-        if (isset($_POST['homeAddress'])) {
-            $homeAddress = $_POST['homeAddress'];
-        }
-        $homeAddressDistrict = null;
-        if (isset($_POST['homeAddressDistrict'])) {
-            $homeAddressDistrict = $_POST['homeAddressDistrict'];
-        }
-        $homeAddressCountry = null;
-        if (isset($_POST['homeAddressCountry'])) {
-            $homeAddressCountry = $_POST['homeAddressCountry'];
-        }
+        $gibbonFamily = $_POST['gibbonFamily'] ?? '';
+        $gibbonFamilyID = $gibbonFamily == 'TRUE' && !empty($_POST['gibbonFamilyID']) ? $_POST['gibbonFamilyID'] : null;
+        $homeAddress = $_POST['homeAddress'] ?? null;
+        $homeAddressDistrict = $_POST['homeAddressDistrict'] ?? null;
+        $homeAddressCountry = $_POST['homeAddressCountry'] ?? null;
 
         //GET PARENT1 FEILDS
-        $parent1gibbonPersonID = null;
-        if (isset($_POST['parent1gibbonPersonID'])) {
-            $parent1gibbonPersonID = $_POST['parent1gibbonPersonID'];
-        }
-        $parent1title = null;
-        if (isset($_POST['parent1title'])) {
-            $parent1title = $_POST['parent1title'];
-        }
-        $parent1surname = null;
-        if (isset($_POST['parent1surname'])) {
-            $parent1surname = trim($_POST['parent1surname']);
-        }
-        $parent1firstName = null;
-        if (isset($_POST['parent1firstName'])) {
-            $parent1firstName = trim($_POST['parent1firstName']);
-        }
-        $parent1preferredName = null;
-        if (isset($_POST['parent1preferredName'])) {
-            $parent1preferredName = trim($_POST['parent1preferredName']);
-        }
-        $parent1officialName = null;
-        if (isset($_POST['parent1officialName'])) {
-            $parent1officialName = trim($_POST['parent1officialName']);
-        }
-        $parent1nameInCharacters = null;
-        if (isset($_POST['parent1nameInCharacters'])) {
-            $parent1nameInCharacters = $_POST['parent1nameInCharacters'];
-        }
-        $parent1gender = null;
-        if (isset($_POST['parent1gender'])) {
-            $parent1gender = $_POST['parent1gender'];
-        }
-        $parent1relationship = null;
-        if (isset($_POST['parent1relationship'])) {
-            $parent1relationship = $_POST['parent1relationship'];
-        }
-        $parent1languageFirst = null;
-        if (isset($_POST['parent1languageFirst'])) {
-            $parent1languageFirst = $_POST['parent1languageFirst'];
-        }
-        $parent1languageSecond = null;
-        if (isset($_POST['parent1languageSecond'])) {
-            $parent1languageSecond = $_POST['parent1languageSecond'];
-        }
-        $parent1citizenship1 = null;
-        if (isset($_POST['parent1citizenship1'])) {
-            $parent1citizenship1 = $_POST['parent1citizenship1'];
-        }
-        $parent1nationalIDCardNumber = null;
-        if (isset($_POST['parent1nationalIDCardNumber'])) {
-            $parent1nationalIDCardNumber = $_POST['parent1nationalIDCardNumber'];
-        }
-        $parent1residencyStatus = null;
-        if (isset($_POST['parent1residencyStatus'])) {
-            $parent1residencyStatus = $_POST['parent1residencyStatus'];
-        }
-        $parent1visaExpiryDate = null;
-        if (isset($_POST['parent1visaExpiryDate'])) {
-            if ($_POST['parent1visaExpiryDate'] != '') {
-                $parent1visaExpiryDate = dateConvert($guid, $_POST['parent1visaExpiryDate']);
-            }
-        }
-        $parent1email = null;
-        if (isset($_POST['parent1email'])) {
-            $parent1email = trim($_POST['parent1email']);
-        }
-        $parent1phone1Type = null;
-        if (isset($_POST['parent1phone1Type'])) {
-            $parent1phone1Type = $_POST['parent1phone1Type'];
-        }
+        $parent1gibbonPersonID = $_POST['parent1gibbonPersonID'] ?? null;
+        $parent1title = $_POST['parent1title'] ?? null;
+        $parent1surname = trim($_POST['parent1surname'] ?? '');
+        $parent1firstName = trim($_POST['parent1firstName'] ?? '');
+        $parent1preferredName = trim($_POST['parent1preferredName'] ?? '');
+        $parent1officialName = trim($_POST['parent1officialName'] ?? '');
+        $parent1nameInCharacters = $_POST['parent1nameInCharacters'] ?? null;
+        $parent1gender = $_POST['parent1gender'] ?? null;
+        $parent1relationship = $_POST['parent1relationship'] ?? null;
+        $parent1languageFirst = $_POST['parent1languageFirst'] ?? null;
+        $parent1languageSecond = $_POST['parent1languageSecond'] ?? null;
+        $parent1email = trim($_POST['parent1email'] ?? '');
+        $parent1phone1Type = $_POST['parent1phone1Type'] ?? null;
         if (isset($_POST['parent1phone1']) and $parent1phone1Type == '') {
             $parent1phone1Type = 'Other';
         }
-        $parent1phone1CountryCode = null;
-        if (isset($_POST['parent1phone1CountryCode'])) {
-            $parent1phone1CountryCode = $_POST['parent1phone1CountryCode'];
-        }
-        $parent1phone1 = null;
-        if (isset($_POST['parent1phone1'])) {
-            $parent1phone1 = $_POST['parent1phone1'];
-        }
-        $parent1phone2Type = null;
-        if (isset($_POST['parent1phone2Type'])) {
-            $parent1phone2Type = $_POST['parent1phone2Type'];
-        }
+        $parent1phone1CountryCode = $_POST['parent1phone1CountryCode'] ?? null;
+        $parent1phone1 = $_POST['parent1phone1'] ?? null;
+        $parent1phone2Type = $_POST['parent1phone2Type'] ?? null;
         if (isset($_POST['parent1phone2']) and $parent1phone2Type == '') {
             $parent1phone2Type = 'Other';
         }
-        $parent1phone2CountryCode = null;
-        if (isset($_POST['parent1phone2CountryCode'])) {
-            $parent1phone2CountryCode = $_POST['parent1phone2CountryCode'];
-        }
-        $parent1phone2 = null;
-        if (isset($_POST['parent1phone2'])) {
-            $parent1phone2 = $_POST['parent1phone2'];
-        }
-        $parent1profession = '';
-        if (isset($_POST['parent1profession'])) {
-            $parent1profession = $_POST['parent1profession'];
-        }
-        $parent1employer = '';
-        if (isset($_POST['parent1employer'])) {
-            $parent1employer = $_POST['parent1employer'];
-        }
+        $parent1phone2CountryCode = $_POST['parent1phone2CountryCode'] ?? null;
+        $parent1phone2 = $_POST['parent1phone2'] ?? null;
+        $parent1profession = $_POST['parent1profession'] ?? null;
+        $parent1employer = $_POST['parent1employer'] ?? null;
 
         //GET PARENT2 FEILDS
-        $parent2title = null;
-        if (isset($_POST['parent2title'])) {
-            $parent2title = $_POST['parent2title'];
-        }
-        $parent2surname = null;
-        if (isset($_POST['parent2surname'])) {
-            $parent2surname = trim($_POST['parent2surname']);
-        }
-        $parent2firstName = null;
-        if (isset($_POST['parent2firstName'])) {
-            $parent2firstName = trim($_POST['parent2firstName']);
-        }
-        $parent2preferredName = null;
-        if (isset($_POST['parent2preferredName'])) {
-            $parent2preferredName = trim($_POST['parent2preferredName']);
-        }
-        $parent2officialName = null;
-        if (isset($_POST['parent2officialName'])) {
-            $parent2officialName = trim($_POST['parent2officialName']);
-        }
-        $parent2nameInCharacters = null;
-        if (isset($_POST['parent2nameInCharacters'])) {
-            $parent2nameInCharacters = $_POST['parent2nameInCharacters'];
-        }
-        $parent2gender = null;
-        if (isset($_POST['parent2gender'])) {
-            $parent2gender = $_POST['parent2gender'];
-        }
-        $parent2relationship = null;
-        if (isset($_POST['parent2relationship'])) {
-            $parent2relationship = $_POST['parent2relationship'];
-        }
-        $parent2languageFirst = null;
-        if (isset($_POST['parent2languageFirst'])) {
-            $parent2languageFirst = $_POST['parent2languageFirst'];
-        }
-        $parent2languageSecond = null;
-        if (isset($_POST['parent2languageSecond'])) {
-            $parent2languageSecond = $_POST['parent2languageSecond'];
-        }
-        $parent2citizenship1 = null;
-        if (isset($_POST['parent2citizenship1'])) {
-            $parent2citizenship1 = $_POST['parent2citizenship1'];
-        }
-        $parent2nationalIDCardNumber = null;
-        if (isset($_POST['parent2nationalIDCardNumber'])) {
-            $parent2nationalIDCardNumber = $_POST['parent2nationalIDCardNumber'];
-        }
-        $parent2residencyStatus = null;
-        if (isset($_POST['parent2residencyStatus'])) {
-            $parent2residencyStatus = $_POST['parent2residencyStatus'];
-        }
-        $parent2visaExpiryDate = null;
-        if (isset($_POST['parent2visaExpiryDate'])) {
-            if ($_POST['parent2visaExpiryDate'] != '') {
-                $parent2visaExpiryDate = dateConvert($guid, $_POST['parent2visaExpiryDate']);
-            }
-        }
-        $parent2email = null;
-        if (isset($_POST['parent2email'])) {
-            $parent2email = trim($_POST['parent2email']);
-        }
-        $parent2phone1Type = null;
-        if (isset($_POST['parent2phone1Type'])) {
-            $parent2phone1Type = $_POST['parent2phone1Type'];
-        }
+        $parent2title = $_POST['parent2title'] ?? null;
+        $parent2surname = trim($_POST['parent2surname'] ?? '');
+        $parent2firstName = trim($_POST['parent2firstName'] ?? '');
+        $parent2preferredName = trim($_POST['parent2preferredName'] ?? '');
+        $parent2officialName = trim($_POST['parent2officialName'] ?? '');
+        $parent2nameInCharacters = $_POST['parent2nameInCharacters'] ?? null;
+        $parent2gender = $_POST['parent2gender'] ?? null;
+        $parent2relationship = $_POST['parent2relationship'] ?? null;
+        $parent2languageFirst = $_POST['parent2languageFirst'] ?? null;
+        $parent2languageSecond = $_POST['parent2languageSecond'] ?? null;
+        $parent2email = trim($_POST['parent2email'] ?? '');
+        $parent2phone1Type = $_POST['parent2phone1Type'] ?? null;
         if (isset($_POST['parent2phone1']) and $parent2phone1Type == '') {
             $parent2phone1Type = 'Other';
         }
-        $parent2phone1CountryCode = null;
-        if (isset($_POST['parent2phone1CountryCode'])) {
-            $parent2phone1CountryCode = $_POST['parent2phone1CountryCode'];
-        }
-        $parent2phone1 = null;
-        if (isset($_POST['parent2phone1'])) {
-            $parent2phone1 = $_POST['parent2phone1'];
-        }
-        $parent2phone2Type = null;
-        if (isset($_POST['parent2phone2Type'])) {
-            $parent2phone2Type = $_POST['parent2phone2Type'];
-        }
+        $parent2phone1CountryCode = $_POST['parent2phone1CountryCode'] ?? null;
+        $parent2phone1 = $_POST['parent2phone1'] ?? null;
+        $parent2phone2Type = $_POST['parent2phone2Type'] ?? null;
         if (isset($_POST['parent2phone2']) and $parent2phone2Type == '') {
             $parent2phone2Type = 'Other';
         }
-        $parent2phone2CountryCode = null;
-        if (isset($_POST['parent2phone2CountryCode'])) {
-            $parent2phone2CountryCode = $_POST['parent2phone2CountryCode'];
-        }
-        $parent2phone2 = null;
-        if (isset($_POST['parent2phone2'])) {
-            $parent2phone2 = $_POST['parent2phone2'];
-        }
-        $parent2profession = '';
-        if (isset($_POST['parent2profession'])) {
-            $parent2profession = $_POST['parent2profession'];
-        }
-        $parent2employer = '';
-        if (isset($_POST['parent2employer'])) {
-            $parent2employer = $_POST['parent2employer'];
-        }
+        $parent2phone2CountryCode = $_POST['parent2phone2CountryCode'] ?? null;
+        $parent2phone2 = $_POST['parent2phone2'] ?? null;
+        $parent2profession = $_POST['parent2profession'] ?? null;
+        $parent2employer = $_POST['parent2employer'] ?? null;
+
 
         //GET SIBLING FIELDS
         $siblingName1 = $_POST['siblingName1'] ?? '';
-        $siblingDOB1 = $_POST['siblingDOB1'] ?? '';
-        if ($siblingDOB1 == '') {
-            $siblingDOB1 = null;
-        } else {
-            $siblingDOB1 = dateConvert($guid, $siblingDOB1);
-        }
-        $siblingSchool1 = $_POST['siblingSchool1'];
-        $siblingSchoolJoiningDate1 = $_POST['siblingSchoolJoiningDate1'];
-        if ($siblingSchoolJoiningDate1 == '') {
-            $siblingSchoolJoiningDate1 = null;
-        } else {
-            $siblingSchoolJoiningDate1 = dateConvert($guid, $siblingSchoolJoiningDate1);
-        }
+        $siblingDOB1 = !empty($_POST['siblingDOB1']) ? Format::dateConvert($_POST['siblingDOB1']) : null;
+        $siblingSchool1 = $_POST['siblingSchool1'] ?? '';
+        $siblingSchoolJoiningDate1 = !empty($_POST['siblingSchoolJoiningDate1']) ? Format::dateConvert($_POST['siblingSchoolJoiningDate1']) : null;
         $siblingName2 = $_POST['siblingName2'] ?? '';
-        $siblingDOB2 = $_POST['siblingDOB2'] ?? '';
-        if ($siblingDOB2 == '') {
-            $siblingDOB2 = null;
-        } else {
-            $siblingDOB2 = dateConvert($guid, $siblingDOB2);
-        }
-        $siblingSchool2 = $_POST['siblingSchool2'];
-        $siblingSchoolJoiningDate2 = $_POST['siblingSchoolJoiningDate2'];
-        if ($siblingSchoolJoiningDate2 == '') {
-            $siblingSchoolJoiningDate2 = null;
-        } else {
-            $siblingSchoolJoiningDate2 = dateConvert($guid, $siblingSchoolJoiningDate2);
-        }
+        $siblingDOB2 = !empty($_POST['siblingDOB2']) ? Format::dateConvert($_POST['siblingDOB2']) : null;
+        $siblingSchool2 = $_POST['siblingSchool2'] ?? '';
+        $siblingSchoolJoiningDate2 = !empty($_POST['siblingSchoolJoiningDate2']) ? Format::dateConvert($_POST['siblingSchoolJoiningDate2']) : null;
         $siblingName3 = $_POST['siblingName3'] ?? '';
-        $siblingDOB3 = $_POST['siblingDOB3'] ?? '';
-        if ($siblingDOB3 == '') {
-            $siblingDOB3 = null;
-        } else {
-            $siblingDOB3 = dateConvert($guid, $siblingDOB3);
-        }
-        $siblingSchool3 = $_POST['siblingSchool3'];
-        $siblingSchoolJoiningDate3 = $_POST['siblingSchoolJoiningDate3'];
-        if ($siblingSchoolJoiningDate3 == '') {
-            $siblingSchoolJoiningDate3 = null;
-        } else {
-            $siblingSchoolJoiningDate3 = dateConvert($guid, $siblingSchoolJoiningDate3);
-        }
+        $siblingDOB3 = !empty($_POST['siblingDOB3']) ? Format::dateConvert($_POST['siblingDOB3']) : null;
+        $siblingSchool3 = $_POST['siblingSchool3'] ?? '';
+        $siblingSchoolJoiningDate3 = !empty($_POST['siblingSchoolJoiningDate3']) ? Format::dateConvert($_POST['siblingSchoolJoiningDate3']) : null;
 
         //GET PAYMENT FIELDS
-        $payment = (isset($_POST['payment']))? $_POST['payment'] : '';
-        $companyName = null;
-        if (isset($_POST['companyName'])) {
-            $companyName = $_POST['companyName'];
-        }
-        $companyContact = null;
-        if (isset($_POST['companyContact'])) {
-            $companyContact = $_POST['companyContact'];
-        }
-        $companyAddress = null;
-        if (isset($_POST['companyAddress'])) {
-            $companyAddress = $_POST['companyAddress'];
-        }
-        $companyEmail = null;
-        if (isset($_POST['companyEmail'])) {
-            $companyEmail = $_POST['companyEmail'];
-        }
-        $companyCCFamily = null;
-        if (isset($_POST['companyCCFamily'])) {
-            $companyCCFamily = $_POST['companyCCFamily'];
-        }
-        $companyPhone = null;
-        if (isset($_POST['companyPhone'])) {
-            $companyPhone = $_POST['companyPhone'];
-        }
-        $companyAll = null;
-        if (isset($_POST['companyAll'])) {
-            $companyAll = $_POST['companyAll'];
-        }
-        $gibbonFinanceFeeCategoryIDList = null;
-        if (isset($_POST['gibbonFinanceFeeCategoryIDList'])) {
-            $gibbonFinanceFeeCategoryIDArray = $_POST['gibbonFinanceFeeCategoryIDList'];
-            if (count($gibbonFinanceFeeCategoryIDArray) > 0) {
-                foreach ($gibbonFinanceFeeCategoryIDArray as $gibbonFinanceFeeCategoryID) {
-                    $gibbonFinanceFeeCategoryIDList .= $gibbonFinanceFeeCategoryID.',';
-                }
-                $gibbonFinanceFeeCategoryIDList = substr($gibbonFinanceFeeCategoryIDList, 0, -1);
-            }
-        }
+        $payment =  $_POST['payment'] ?? '';
+        $companyName = $_POST['companyName'] ?? null;
+        $companyContact = $_POST['companyContact'] ?? null;
+        $companyAddress = $_POST['companyAddress'] ?? null;
+        $companyEmail = $_POST['companyEmail'] ?? null;
+        $companyCCFamily = $_POST['companyCCFamily'] ?? null;
+        $companyPhone = $_POST['companyPhone'] ?? null;
+        $companyAll = $_POST['companyAll'] ?? null;
+
+        $gibbonFinanceFeeCategoryIDList = !empty($_POST['gibbonFinanceFeeCategoryIDList']) ? implode(',', $_POST['gibbonFinanceFeeCategoryIDList']) : null;
 
         //GET OTHER FIELDS
-        $languageChoice = null;
-        if (isset($_POST['languageChoice'])) {
-            $languageChoice = $_POST['languageChoice'];
-        }
-        $languageChoiceExperience = null;
-        if (isset($_POST['languageChoiceExperience'])) {
-            $languageChoiceExperience = $_POST['languageChoiceExperience'];
-        }
-        $scholarshipInterest = '';
-        if (isset($_POST['scholarshipInterest'])) {
-            $scholarshipInterest = $_POST['scholarshipInterest'];
-        }
-        $scholarshipRequired = '';
-        if (isset($_POST['scholarshipRequired'])) {
-            $scholarshipRequired = $_POST['scholarshipRequired'];
-        }
-        $howDidYouHear = null;
-        if (isset($_POST['howDidYouHear'])) {
-            $howDidYouHear = $_POST['howDidYouHear'];
-        }
-        $howDidYouHearMore = null;
-        if (isset($_POST['howDidYouHearMore'])) {
-            $howDidYouHearMore = $_POST['howDidYouHearMore'];
-        }
-        $agreement = null;
-        if (isset($_POST['agreement'])) {
-            if ($_POST['agreement'] == 'on') {
-                $agreement = 'Y';
-            } else {
-                $agreement = 'N';
-            }
-        }
-        $privacy = null;
-        if (isset($_POST['privacyOptions'])) {
-            $privacyOptions = $_POST['privacyOptions'];
-            foreach ($privacyOptions as $privacyOption) {
-                if ($privacyOption != '') {
-                    $privacy .= $privacyOption.', ';
-                }
-            }
-            if ($privacy != '') {
-                $privacy = substr($privacy, 0, -2);
-            } else {
-                $privacy = null;
-            }
-        }
+        $languageChoice = $_POST['languageChoice'] ?? null;
+        $languageChoiceExperience = $_POST['languageChoiceExperience'] ?? null;
+        $scholarshipInterest = $_POST['scholarshipInterest'] ?? 'N';
+        $scholarshipRequired = $_POST['scholarshipRequired'] ?? 'N';
+        $howDidYouHear = $_POST['howDidYouHear'] ?? null;
+        $howDidYouHearMore = $_POST['howDidYouHearMore'] ?? null;
+
+        $agreement = isset($_POST['agreement']) ? ($_POST['agreement'] == 'on' ? 'Y' : 'N') : null;
+        $privacy = isset($_POST['privacyOptions']) ? implode(',', $_POST['privacyOptions']) : null;
 
         //VALIDATE INPUTS
         $familyFail = false;
@@ -535,78 +244,25 @@ if ($proceed == false) {
                 }
             }
         }
-        if ($surname == '' or $firstName == '' or $preferredName == '' or $officialName == '' or $gender == '' or $dob == '' or $languageHomePrimary == '' or $languageFirst == '' or $countryOfBirth == '' or $citizenship1 == '' or $gibbonSchoolYearIDEntry == '' or $dateStart == '' or $gibbonYearGroupIDEntry == '' or $sen == '' or $howDidYouHear == '' or (isset($_POST['agreement']) and $agreement != 'Y') or $familyFail) {
+        if ($surname == '' or $firstName == '' or $preferredName == '' or $officialName == '' or $gender == '' or $dob == '' or $languageHomePrimary == '' or $languageFirst == '' or $countryOfBirth == '' or $gibbonSchoolYearIDEntry == '' or $dateStart == '' or $gibbonYearGroupIDEntry == '' or $sen == '' or $howDidYouHear == '' or (isset($_POST['agreement']) and $agreement != 'Y') or $familyFail) {
             $URL .= '&return=error1';
             header("Location: {$URL}");
         } else {
             //DEAL WITH CUSTOM FIELDS
             $customRequireFail = false;
-            //Prepare field values
-            //CHILD
-            $resultFields = getCustomFields($connection2, $guid, true, false, false, false, true, null);
-            $fields = array();
-            if ($resultFields->rowCount() > 0) {
-                while ($rowFields = $resultFields->fetch()) {
-                    if (isset($_POST['custom'.$rowFields['gibbonPersonFieldID']])) {
-                        if ($rowFields['type'] == 'date') {
-                            $fields[$rowFields['gibbonPersonFieldID']] = dateConvert($guid, $_POST['custom'.$rowFields['gibbonPersonFieldID']]);
-                        } else {
-                            $fields[$rowFields['gibbonPersonFieldID']] = $_POST['custom'.$rowFields['gibbonPersonFieldID']];
-                        }
-                    }
-                    if ($rowFields['required'] == 'Y') {
-                        if (isset($_POST['custom'.$rowFields['gibbonPersonFieldID']]) == false) {
-                            $customRequireFail = true;
-                        } elseif ($_POST['custom'.$rowFields['gibbonPersonFieldID']] == '') {
-                            $customRequireFail = true;
-                        }
-                    }
-                }
-            }
+            $customFieldHandler = $container->get(CustomFieldHandler::class);
+
+            $params = ['student' => 1, 'applicationForm' => 1];
+            $fields = $customFieldHandler->getFieldDataFromPOST('User', $params, $customRequireFail);
+
+            $parent1fields = $parent2fields = '';
             if ($gibbonFamily == 'FALSE') { //Only if there is no family
-                //PARENT 1
-                $resultFields = getCustomFields($connection2, $guid, false, false, true, false, true, null);
-                $parent1fields = array();
-                if ($resultFields->rowCount() > 0) {
-                    while ($rowFields = $resultFields->fetch()) {
-                        if (isset($_POST['parent1custom'.$rowFields['gibbonPersonFieldID']])) {
-                            if ($rowFields['type'] == 'date') {
-                                $parent1fields[$rowFields['gibbonPersonFieldID']] = dateConvert($guid, $_POST['parent1custom'.$rowFields['gibbonPersonFieldID']]);
-                            } else {
-                                $parent1fields[$rowFields['gibbonPersonFieldID']] = $_POST['parent1custom'.$rowFields['gibbonPersonFieldID']];
-                            }
-                        }
-                        if ($rowFields['required'] == 'Y') {
-                            if (isset($_POST['parent1custom'.$rowFields['gibbonPersonFieldID']]) == false) {
-                                $customRequireFail = true;
-                            } elseif ($_POST['parent1custom'.$rowFields['gibbonPersonFieldID']] == '') {
-                                $customRequireFail = true;
-                            }
-                        }
-                    }
-                }
-                if (isset($_POST['secondParent']) == false) {
-                    //PARENT 2
-                    $resultFields = getCustomFields($connection2, $guid, false, false, true, false, true, null);
-                    $parent2fields = array();
-                    if ($resultFields->rowCount() > 0) {
-                        while ($rowFields = $resultFields->fetch()) {
-                            if (isset($_POST['parent2custom'.$rowFields['gibbonPersonFieldID']])) {
-                                if ($rowFields['type'] == 'date') {
-                                    $parent2fields[$rowFields['gibbonPersonFieldID']] = dateConvert($guid, $_POST['parent2custom'.$rowFields['gibbonPersonFieldID']]);
-                                } else {
-                                    $parent2fields[$rowFields['gibbonPersonFieldID']] = $_POST['parent2custom'.$rowFields['gibbonPersonFieldID']];
-                                }
-                            }
-                            if ($rowFields['required'] == 'Y') {
-                                if (isset($_POST['parent2custom'.$rowFields['gibbonPersonFieldID']]) == false) {
-                                    $customRequireFail = true;
-                                } elseif ($_POST['parent2custom'.$rowFields['gibbonPersonFieldID']] == '') {
-                                    $customRequireFail = true;
-                                }
-                            }
-                        }
-                    }
+                $params = ['parent' => 1, 'applicationForm' => 1, 'prefix' => 'parent1custom'];
+                $parent1fields = $customFieldHandler->getFieldDataFromPOST('User', $params, $customRequireFail);
+
+                if (empty($_POST['secondParent'])) {
+                    $params = ['parent' => 1, 'applicationForm' => 1, 'prefix' => 'parent2custom'];
+                    $parent2fields = $customFieldHandler->getFieldDataFromPOST('User', $params, $customRequireFail);
                 }
             }
 
@@ -615,22 +271,10 @@ if ($proceed == false) {
                 header("Location: {$URL}");
                 exit();
             } else {
-                $fields = json_encode($fields);
-                if (isset($parent1fields)) {
-                    $parent1fields = json_encode($parent1fields);
-                } else {
-                    $parent1fields = '';
-                }
-                if (isset($parent2fields)) {
-                    $parent2fields = json_encode($parent2fields);
-                } else {
-                    $parent2fields = '';
-                }
-
                 //Write to database
                 try {
-                    $data = array('surname' => $surname, 'firstName' => $firstName, 'preferredName' => $preferredName, 'officialName' => $officialName, 'nameInCharacters' => $nameInCharacters, 'gender' => $gender, 'dob' => $dob, 'languageHomePrimary' => $languageHomePrimary, 'languageHomeSecondary' => $languageHomeSecondary, 'languageFirst' => $languageFirst, 'languageSecond' => $languageSecond, 'languageThird' => $languageThird, 'countryOfBirth' => $countryOfBirth, 'citizenship1' => $citizenship1, 'citizenship1Passport' => $citizenship1Passport, 'citizenship1PassportExpiry' => $citizenship1PassportExpiry, 'nationalIDCardNumber' => $nationalIDCardNumber, 'residencyStatus' => $residencyStatus, 'visaExpiryDate' => $visaExpiryDate, 'email' => $email, 'homeAddress' => $homeAddress, 'homeAddressDistrict' => $homeAddressDistrict, 'homeAddressCountry' => $homeAddressCountry, 'phone1Type' => $phone1Type, 'phone1CountryCode' => $phone1CountryCode, 'phone1' => $phone1, 'phone2Type' => $phone2Type, 'phone2CountryCode' => $phone2CountryCode, 'phone2' => $phone2, 'medicalInformation' => $medicalInformation, 'sen' => $sen, 'senDetails' => $senDetails, 'gibbonSchoolYearIDEntry' => $gibbonSchoolYearIDEntry, 'dayType' => $dayType, 'dateStart' => $dateStart, 'gibbonYearGroupIDEntry' => $gibbonYearGroupIDEntry, 'referenceEmail' => $referenceEmail, 'schoolName1' => $schoolName1, 'schoolAddress1' => $schoolAddress1, 'schoolGrades1' => $schoolGrades1, 'schoolLanguage1' => $schoolLanguage1, 'schoolDate1' => $schoolDate1, 'schoolName2' => $schoolName2, 'schoolAddress2' => $schoolAddress2, 'schoolGrades2' => $schoolGrades2, 'schoolLanguage2' => $schoolLanguage2, 'schoolDate2' => $schoolDate2, 'gibbonFamilyID' => $gibbonFamilyID, 'parent1gibbonPersonID' => $parent1gibbonPersonID, 'parent1title' => $parent1title, 'parent1surname' => $parent1surname, 'parent1firstName' => $parent1firstName, 'parent1preferredName' => $parent1preferredName, 'parent1officialName' => $parent1officialName, 'parent1nameInCharacters' => $parent1nameInCharacters, 'parent1gender' => $parent1gender, 'parent1relationship' => $parent1relationship, 'parent1languageFirst' => $parent1languageFirst, 'parent1languageSecond' => $parent1languageSecond, 'parent1citizenship1' => $parent1citizenship1, 'parent1nationalIDCardNumber' => $parent1nationalIDCardNumber, 'parent1residencyStatus' => $parent1residencyStatus, 'parent1visaExpiryDate' => $parent1visaExpiryDate, 'parent1email' => $parent1email, 'parent1phone1Type' => $parent1phone1Type, 'parent1phone1CountryCode' => $parent1phone1CountryCode, 'parent1phone1' => $parent1phone1, 'parent1phone2Type' => $parent1phone2Type, 'parent1phone2CountryCode' => $parent1phone2CountryCode, 'parent1phone2' => $parent1phone2, 'parent1profession' => $parent1profession, 'parent1employer' => $parent1employer, 'parent2title' => $parent2title, 'parent2surname' => $parent2surname, 'parent2firstName' => $parent2firstName, 'parent2preferredName' => $parent2preferredName, 'parent2officialName' => $parent2officialName, 'parent2nameInCharacters' => $parent2nameInCharacters, 'parent2gender' => $parent2gender, 'parent2relationship' => $parent2relationship, 'parent2languageFirst' => $parent2languageFirst, 'parent2languageSecond' => $parent2languageSecond, 'parent2citizenship1' => $parent2citizenship1, 'parent2nationalIDCardNumber' => $parent2nationalIDCardNumber, 'parent2residencyStatus' => $parent2residencyStatus, 'parent2visaExpiryDate' => $parent2visaExpiryDate, 'parent2email' => $parent2email, 'parent2phone1Type' => $parent2phone1Type, 'parent2phone1CountryCode' => $parent2phone1CountryCode, 'parent2phone1' => $parent2phone1, 'parent2phone2Type' => $parent2phone2Type, 'parent2phone2CountryCode' => $parent2phone2CountryCode, 'parent2phone2' => $parent2phone2, 'parent2profession' => $parent2profession, 'parent2employer' => $parent2employer, 'siblingName1' => $siblingName1, 'siblingDOB1' => $siblingDOB1, 'siblingSchool1' => $siblingSchool1, 'siblingSchoolJoiningDate1' => $siblingSchoolJoiningDate1, 'siblingName2' => $siblingName2, 'siblingDOB2' => $siblingDOB2, 'siblingSchool2' => $siblingSchool2, 'siblingSchoolJoiningDate2' => $siblingSchoolJoiningDate2, 'siblingName3' => $siblingName3, 'siblingDOB3' => $siblingDOB3, 'siblingSchool3' => $siblingSchool3, 'siblingSchoolJoiningDate3' => $siblingSchoolJoiningDate3, 'languageChoice' => $languageChoice, 'languageChoiceExperience' => $languageChoiceExperience, 'scholarshipInterest' => $scholarshipInterest, 'scholarshipRequired' => $scholarshipRequired, 'payment' => $payment, 'companyName' => $companyName, 'companyContact' => $companyContact, 'companyAddress' => $companyAddress, 'companyEmail' => $companyEmail, 'companyCCFamily' => $companyCCFamily, 'companyPhone' => $companyPhone, 'companyAll' => $companyAll, 'gibbonFinanceFeeCategoryIDList' => $gibbonFinanceFeeCategoryIDList, 'howDidYouHear' => $howDidYouHear, 'howDidYouHearMore' => $howDidYouHearMore, 'agreement' => $agreement, 'privacy' => $privacy, 'fields' => $fields, 'parent1fields' => $parent1fields, 'parent2fields' => $parent2fields, 'timestamp' => date('Y-m-d H:i:s'));
-                    $sql = 'INSERT INTO gibbonApplicationForm SET surname=:surname, firstName=:firstName, preferredName=:preferredName, officialName=:officialName, nameInCharacters=:nameInCharacters, gender=:gender, dob=:dob, languageHomePrimary=:languageHomePrimary, languageHomeSecondary=:languageHomeSecondary, languageFirst=:languageFirst, languageSecond=:languageSecond, languageThird=:languageThird, countryOfBirth=:countryOfBirth, citizenship1=:citizenship1, citizenship1Passport=:citizenship1Passport, citizenship1PassportExpiry=:citizenship1PassportExpiry, nationalIDCardNumber=:nationalIDCardNumber, residencyStatus=:residencyStatus, visaExpiryDate=:visaExpiryDate, email=:email, homeAddress=:homeAddress, homeAddressDistrict=:homeAddressDistrict, homeAddressCountry=:homeAddressCountry, phone1Type=:phone1Type, phone1CountryCode=:phone1CountryCode, phone1=:phone1, phone2Type=:phone2Type, phone2CountryCode=:phone2CountryCode, phone2=:phone2, medicalInformation=:medicalInformation, sen=:sen, senDetails=:senDetails, gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry, dateStart=:dateStart, gibbonYearGroupIDEntry=:gibbonYearGroupIDEntry, dayType=:dayType, referenceEmail=:referenceEmail, schoolName1=:schoolName1, schoolAddress1=:schoolAddress1, schoolGrades1=:schoolGrades1, schoolLanguage1=:schoolLanguage1, schoolDate1=:schoolDate1, schoolName2=:schoolName2, schoolAddress2=:schoolAddress2, schoolGrades2=:schoolGrades2, schoolLanguage2=:schoolLanguage2, schoolDate2=:schoolDate2, gibbonFamilyID=:gibbonFamilyID, parent1gibbonPersonID=:parent1gibbonPersonID, parent1title=:parent1title, parent1surname=:parent1surname, parent1firstName=:parent1firstName, parent1preferredName=:parent1preferredName, parent1officialName=:parent1officialName, parent1nameInCharacters=:parent1nameInCharacters, parent1gender=:parent1gender, parent1relationship=:parent1relationship, parent1languageFirst=:parent1languageFirst, parent1languageSecond=:parent1languageSecond, parent1citizenship1=:parent1citizenship1, parent1nationalIDCardNumber=:parent1nationalIDCardNumber, parent1residencyStatus=:parent1residencyStatus, parent1visaExpiryDate=:parent1visaExpiryDate, parent1email=:parent1email, parent1phone1Type=:parent1phone1Type, parent1phone1CountryCode=:parent1phone1CountryCode, parent1phone1=:parent1phone1, parent1phone2Type=:parent1phone2Type, parent1phone2CountryCode=:parent1phone2CountryCode, parent1phone2=:parent1phone2, parent1profession=:parent1profession, parent1employer=:parent1employer, parent2title=:parent2title, parent2surname=:parent2surname, parent2firstName=:parent2firstName, parent2preferredName=:parent2preferredName, parent2officialName=:parent2officialName, parent2nameInCharacters=:parent2nameInCharacters, parent2gender=:parent2gender, parent2relationship=:parent2relationship, parent2languageFirst=:parent2languageFirst, parent2languageSecond=:parent2languageSecond, parent2citizenship1=:parent2citizenship1, parent2nationalIDCardNumber=:parent2nationalIDCardNumber, parent2residencyStatus=:parent2residencyStatus, parent2visaExpiryDate=:parent2visaExpiryDate, parent2email=:parent2email, parent2phone1Type=:parent2phone1Type, parent2phone1CountryCode=:parent2phone1CountryCode, parent2phone1=:parent2phone1, parent2phone2Type=:parent2phone2Type, parent2phone2CountryCode=:parent2phone2CountryCode, parent2phone2=:parent2phone2, parent2profession=:parent2profession, parent2employer=:parent2employer, siblingName1=:siblingName1, siblingDOB1=:siblingDOB1, siblingSchool1=:siblingSchool1, siblingSchoolJoiningDate1=:siblingSchoolJoiningDate1, siblingName2=:siblingName2, siblingDOB2=:siblingDOB2, siblingSchool2=:siblingSchool2, siblingSchoolJoiningDate2=:siblingSchoolJoiningDate2, siblingName3=:siblingName3, siblingDOB3=:siblingDOB3, siblingSchool3=:siblingSchool3, siblingSchoolJoiningDate3=:siblingSchoolJoiningDate3, languageChoice=:languageChoice, languageChoiceExperience=:languageChoiceExperience, scholarshipInterest=:scholarshipInterest, scholarshipRequired=:scholarshipRequired, payment=:payment, companyName=:companyName, companyContact=:companyContact, companyAddress=:companyAddress, companyEmail=:companyEmail, companyCCFamily=:companyCCFamily, companyPhone=:companyPhone, companyAll=:companyAll, gibbonFinanceFeeCategoryIDList=:gibbonFinanceFeeCategoryIDList, howDidYouHear=:howDidYouHear, howDidYouHearMore=:howDidYouHearMore, agreement=:agreement, privacy=:privacy, fields=:fields, parent1fields=:parent1fields, parent2fields=:parent2fields, timestamp=:timestamp';
+                    $data = array('surname' => $surname, 'firstName' => $firstName, 'preferredName' => $preferredName, 'officialName' => $officialName, 'nameInCharacters' => $nameInCharacters, 'gender' => $gender, 'dob' => $dob, 'languageHomePrimary' => $languageHomePrimary, 'languageHomeSecondary' => $languageHomeSecondary, 'languageFirst' => $languageFirst, 'languageSecond' => $languageSecond, 'languageThird' => $languageThird, 'countryOfBirth' => $countryOfBirth, 'email' => $email, 'homeAddress' => $homeAddress, 'homeAddressDistrict' => $homeAddressDistrict, 'homeAddressCountry' => $homeAddressCountry, 'phone1Type' => $phone1Type, 'phone1CountryCode' => $phone1CountryCode, 'phone1' => $phone1, 'phone2Type' => $phone2Type, 'phone2CountryCode' => $phone2CountryCode, 'phone2' => $phone2, 'medicalInformation' => $medicalInformation, 'sen' => $sen, 'senDetails' => $senDetails, 'gibbonSchoolYearIDEntry' => $gibbonSchoolYearIDEntry, 'dayType' => $dayType, 'dateStart' => $dateStart, 'gibbonYearGroupIDEntry' => $gibbonYearGroupIDEntry, 'referenceEmail' => $referenceEmail, 'schoolName1' => $schoolName1, 'schoolAddress1' => $schoolAddress1, 'schoolGrades1' => $schoolGrades1, 'schoolLanguage1' => $schoolLanguage1, 'schoolDate1' => $schoolDate1, 'schoolName2' => $schoolName2, 'schoolAddress2' => $schoolAddress2, 'schoolGrades2' => $schoolGrades2, 'schoolLanguage2' => $schoolLanguage2, 'schoolDate2' => $schoolDate2, 'gibbonFamilyID' => $gibbonFamilyID, 'parent1gibbonPersonID' => $parent1gibbonPersonID, 'parent1title' => $parent1title, 'parent1surname' => $parent1surname, 'parent1firstName' => $parent1firstName, 'parent1preferredName' => $parent1preferredName, 'parent1officialName' => $parent1officialName, 'parent1nameInCharacters' => $parent1nameInCharacters, 'parent1gender' => $parent1gender, 'parent1relationship' => $parent1relationship, 'parent1languageFirst' => $parent1languageFirst, 'parent1languageSecond' => $parent1languageSecond,  'parent1email' => $parent1email, 'parent1phone1Type' => $parent1phone1Type, 'parent1phone1CountryCode' => $parent1phone1CountryCode, 'parent1phone1' => $parent1phone1, 'parent1phone2Type' => $parent1phone2Type, 'parent1phone2CountryCode' => $parent1phone2CountryCode, 'parent1phone2' => $parent1phone2, 'parent1profession' => $parent1profession, 'parent1employer' => $parent1employer, 'parent2title' => $parent2title, 'parent2surname' => $parent2surname, 'parent2firstName' => $parent2firstName, 'parent2preferredName' => $parent2preferredName, 'parent2officialName' => $parent2officialName, 'parent2nameInCharacters' => $parent2nameInCharacters, 'parent2gender' => $parent2gender, 'parent2relationship' => $parent2relationship, 'parent2languageFirst' => $parent2languageFirst, 'parent2languageSecond' => $parent2languageSecond, 'parent2email' => $parent2email, 'parent2phone1Type' => $parent2phone1Type, 'parent2phone1CountryCode' => $parent2phone1CountryCode, 'parent2phone1' => $parent2phone1, 'parent2phone2Type' => $parent2phone2Type, 'parent2phone2CountryCode' => $parent2phone2CountryCode, 'parent2phone2' => $parent2phone2, 'parent2profession' => $parent2profession, 'parent2employer' => $parent2employer, 'siblingName1' => $siblingName1, 'siblingDOB1' => $siblingDOB1, 'siblingSchool1' => $siblingSchool1, 'siblingSchoolJoiningDate1' => $siblingSchoolJoiningDate1, 'siblingName2' => $siblingName2, 'siblingDOB2' => $siblingDOB2, 'siblingSchool2' => $siblingSchool2, 'siblingSchoolJoiningDate2' => $siblingSchoolJoiningDate2, 'siblingName3' => $siblingName3, 'siblingDOB3' => $siblingDOB3, 'siblingSchool3' => $siblingSchool3, 'siblingSchoolJoiningDate3' => $siblingSchoolJoiningDate3, 'languageChoice' => $languageChoice, 'languageChoiceExperience' => $languageChoiceExperience, 'scholarshipInterest' => $scholarshipInterest, 'scholarshipRequired' => $scholarshipRequired, 'payment' => $payment, 'companyName' => $companyName, 'companyContact' => $companyContact, 'companyAddress' => $companyAddress, 'companyEmail' => $companyEmail, 'companyCCFamily' => $companyCCFamily, 'companyPhone' => $companyPhone, 'companyAll' => $companyAll, 'gibbonFinanceFeeCategoryIDList' => $gibbonFinanceFeeCategoryIDList, 'howDidYouHear' => $howDidYouHear, 'howDidYouHearMore' => $howDidYouHearMore, 'agreement' => $agreement, 'privacy' => $privacy, 'fields' => $fields, 'parent1fields' => $parent1fields, 'parent2fields' => $parent2fields, 'timestamp' => date('Y-m-d H:i:s'));
+                    $sql = 'INSERT INTO gibbonApplicationForm SET surname=:surname, firstName=:firstName, preferredName=:preferredName, officialName=:officialName, nameInCharacters=:nameInCharacters, gender=:gender, dob=:dob, languageHomePrimary=:languageHomePrimary, languageHomeSecondary=:languageHomeSecondary, languageFirst=:languageFirst, languageSecond=:languageSecond, languageThird=:languageThird, countryOfBirth=:countryOfBirth, email=:email, homeAddress=:homeAddress, homeAddressDistrict=:homeAddressDistrict, homeAddressCountry=:homeAddressCountry, phone1Type=:phone1Type, phone1CountryCode=:phone1CountryCode, phone1=:phone1, phone2Type=:phone2Type, phone2CountryCode=:phone2CountryCode, phone2=:phone2, medicalInformation=:medicalInformation, sen=:sen, senDetails=:senDetails, gibbonSchoolYearIDEntry=:gibbonSchoolYearIDEntry, dateStart=:dateStart, gibbonYearGroupIDEntry=:gibbonYearGroupIDEntry, dayType=:dayType, referenceEmail=:referenceEmail, schoolName1=:schoolName1, schoolAddress1=:schoolAddress1, schoolGrades1=:schoolGrades1, schoolLanguage1=:schoolLanguage1, schoolDate1=:schoolDate1, schoolName2=:schoolName2, schoolAddress2=:schoolAddress2, schoolGrades2=:schoolGrades2, schoolLanguage2=:schoolLanguage2, schoolDate2=:schoolDate2, gibbonFamilyID=:gibbonFamilyID, parent1gibbonPersonID=:parent1gibbonPersonID, parent1title=:parent1title, parent1surname=:parent1surname, parent1firstName=:parent1firstName, parent1preferredName=:parent1preferredName, parent1officialName=:parent1officialName, parent1nameInCharacters=:parent1nameInCharacters, parent1gender=:parent1gender, parent1relationship=:parent1relationship, parent1languageFirst=:parent1languageFirst, parent1languageSecond=:parent1languageSecond, parent1email=:parent1email, parent1phone1Type=:parent1phone1Type, parent1phone1CountryCode=:parent1phone1CountryCode, parent1phone1=:parent1phone1, parent1phone2Type=:parent1phone2Type, parent1phone2CountryCode=:parent1phone2CountryCode, parent1phone2=:parent1phone2, parent1profession=:parent1profession, parent1employer=:parent1employer, parent2title=:parent2title, parent2surname=:parent2surname, parent2firstName=:parent2firstName, parent2preferredName=:parent2preferredName, parent2officialName=:parent2officialName, parent2nameInCharacters=:parent2nameInCharacters, parent2gender=:parent2gender, parent2relationship=:parent2relationship, parent2languageFirst=:parent2languageFirst, parent2languageSecond=:parent2languageSecond, parent2email=:parent2email, parent2phone1Type=:parent2phone1Type, parent2phone1CountryCode=:parent2phone1CountryCode, parent2phone1=:parent2phone1, parent2phone2Type=:parent2phone2Type, parent2phone2CountryCode=:parent2phone2CountryCode, parent2phone2=:parent2phone2, parent2profession=:parent2profession, parent2employer=:parent2employer, siblingName1=:siblingName1, siblingDOB1=:siblingDOB1, siblingSchool1=:siblingSchool1, siblingSchoolJoiningDate1=:siblingSchoolJoiningDate1, siblingName2=:siblingName2, siblingDOB2=:siblingDOB2, siblingSchool2=:siblingSchool2, siblingSchoolJoiningDate2=:siblingSchoolJoiningDate2, siblingName3=:siblingName3, siblingDOB3=:siblingDOB3, siblingSchool3=:siblingSchool3, siblingSchoolJoiningDate3=:siblingSchoolJoiningDate3, languageChoice=:languageChoice, languageChoiceExperience=:languageChoiceExperience, scholarshipInterest=:scholarshipInterest, scholarshipRequired=:scholarshipRequired, payment=:payment, companyName=:companyName, companyContact=:companyContact, companyAddress=:companyAddress, companyEmail=:companyEmail, companyCCFamily=:companyCCFamily, companyPhone=:companyPhone, companyAll=:companyAll, gibbonFinanceFeeCategoryIDList=:gibbonFinanceFeeCategoryIDList, howDidYouHear=:howDidYouHear, howDidYouHearMore=:howDidYouHearMore, agreement=:agreement, privacy=:privacy, fields=:fields, parent1fields=:parent1fields, parent2fields=:parent2fields, timestamp=:timestamp';
                     $result = $connection2->prepare($sql);
                     $result->execute($data);
                 } catch (PDOException $e) {
@@ -643,12 +287,28 @@ if ($proceed == false) {
                 $AI = str_pad($connection2->lastInsertID(), 7, '0', STR_PAD_LEFT);
                 $secureAI = sha1($AI.'X2J53ZGy'.$guid.$gibbonSchoolYearIDEntry);
 
+                // PERSONAL DOCUMENTS
+                $personalDocumentHandler = $container->get(PersonalDocumentHandler::class);
+                $personalDocumentFail = false;
+
+                $params = ['student' => true, 'applicationForm' => true];
+                $personalDocumentHandler->updateDocumentsFromPOST('gibbonApplicationForm', $AI, $params, $personalDocumentFail);
+
+                if ($gibbonFamily == 'FALSE') { // Only if there is no family
+                    $params = ['parent' => true, 'applicationForm' => true, 'prefix' => 'parent1'];
+                    $personalDocumentHandler->updateDocumentsFromPOST('gibbonApplicationFormParent1', $AI, $params, $personalDocumentFail);
+    
+                    if (empty($_POST['secondParent'])) {
+                        $params = ['parent' => true, 'applicationForm' => true, 'prefix' => 'parent2'];
+                        $personalDocumentHandler->updateDocumentsFromPOST('gibbonApplicationFormParent2', $AI, $params, $personalDocumentFail);
+                    }
+                }
+
                 // Update the Application Form with a hash for looking up this record in the future
-                
-                    $data = array('gibbonApplicationFormID' => $AI, 'gibbonApplicationFormHash' => $secureAI );
-                    $sql = 'UPDATE gibbonApplicationForm SET gibbonApplicationFormHash=:gibbonApplicationFormHash WHERE gibbonApplicationFormID=:gibbonApplicationFormID';
-                    $result = $connection2->prepare($sql);
-                    $result->execute($data);
+                $data = array('gibbonApplicationFormID' => $AI, 'gibbonApplicationFormHash' => $secureAI );
+                $sql = 'UPDATE gibbonApplicationForm SET gibbonApplicationFormHash=:gibbonApplicationFormHash WHERE gibbonApplicationFormID=:gibbonApplicationFormID';
+                $result = $connection2->prepare($sql);
+                $result->execute($data);
 
                 //Deal with family relationships
                 if ($gibbonFamily == 'TRUE') {
@@ -656,7 +316,7 @@ if ($proceed == false) {
                     $relationshipsGibbonPersonIDs = $_POST[$gibbonFamilyID.'-relationshipsGibbonPersonID'];
                     $count = 0;
                     foreach ($relationships as $relationship) {
-                        
+
                             $data = array('gibbonApplicationFormID' => $AI, 'gibbonPersonID' => $relationshipsGibbonPersonIDs[$count], 'relationship' => $relationship);
                             $sql = 'INSERT INTO gibbonApplicationFormRelationship SET gibbonApplicationFormID=:gibbonApplicationFormID, gibbonPersonID=:gibbonPersonID, relationship=:relationship';
                             $result = $connection2->prepare($sql);
@@ -686,7 +346,7 @@ if ($proceed == false) {
 
                         // Write files to database, if there is one
                         if (!empty($attachment)) {
-                            
+
                                 $dataFile = array('gibbonApplicationFormID' => $AI, 'name' => $fileName, 'path' => $attachment);
                                 $sqlFile = 'INSERT INTO gibbonApplicationFormFile SET gibbonApplicationFormID=:gibbonApplicationFormID, name=:name, path=:path';
                                 $resultFile = $connection2->prepare($sqlFile);
@@ -698,7 +358,7 @@ if ($proceed == false) {
                 // Raise a new notification event
                 $event = new NotificationEvent('Students', 'New Application Form');
 
-                $event->addRecipient($_SESSION[$guid]['organisationAdmissions']);
+                $event->addRecipient($session->get('organisationAdmissions'));
                 $event->setNotificationText(sprintf(__('An application form has been submitted for %1$s.'), Format::name('', $preferredName, $surname, 'Student')));
                 $event->setActionLink("/index.php?q=/modules/Students/applicationForm_manage_edit.php&gibbonApplicationFormID=$AI&gibbonSchoolYearID=$gibbonSchoolYearIDEntry&search=");
 
@@ -707,15 +367,15 @@ if ($proceed == false) {
 
                 //Email reference form link to referee
                 $applicationFormRefereeLink = getSettingByScope($connection2, 'Students', 'applicationFormRefereeLink');
-                if ($applicationFormRefereeLink != '' and $referenceEmail != '' and $_SESSION[$guid]['organisationAdmissionsName'] != '' and $_SESSION[$guid]['organisationAdmissionsEmail'] != '') {
+                if ($applicationFormRefereeLink != '' and $referenceEmail != '' and $session->get('organisationAdmissionsName') != '' and $session->get('organisationAdmissionsEmail') != '') {
                     //Prep message
                     $subject = __('Request For Reference');
-                    $body = sprintf(__('To whom it may concern,%4$sThis email is being sent in relation to the application of a current or former student of your school: %1$s.%4$sIn assessing their application for our school, we would like to enlist your help in completing the following reference form: %2$s.<br/><br/>To complete this form please print, fill out and sign the reference form and reply to this e-mail with the attached filled form.<br/><br/>Please feel free to contact us, should you have any questions in regard to this matter.%4$sRegards,%4$s%3$s'), $officialName, "<a href='$applicationFormRefereeLink' target='_blank'>$applicationFormRefereeLink</a>", $_SESSION[$guid]['organisationAdmissionsName'], '<br/><br/>');
-                    
+                    $body = sprintf(__('To whom it may concern,%4$sThis email is being sent in relation to the application of a current or former student of your school: %1$s.%4$sIn assessing their application for our school, we would like to enlist your help in completing the following reference form: %2$s.<br/><br/>To complete this form please print, fill out and sign the reference form and reply to this e-mail with the attached filled form.<br/><br/>Please feel free to contact us, should you have any questions in regard to this matter.%4$sRegards,%4$s%3$s'), $officialName, "<a href='$applicationFormRefereeLink' target='_blank'>$applicationFormRefereeLink</a>", $session->get('organisationAdmissionsName'), '<br/><br/>');
+
                     $mail = $container->get(Mailer::class);
                     $mail->Subject = $subject;
-                    $mail->SetFrom($_SESSION[$guid]['organisationAdmissionsEmail'], $_SESSION[$guid]['organisationAdmissionsName']);
-                    $mail->AddReplyTo($_SESSION[$guid]['organisationAdmissionsEmail'], $_SESSION[$guid]['organisationAdmissionsName']);
+                    $mail->SetFrom($session->get('organisationAdmissionsEmail'), $session->get('organisationAdmissionsName'));
+                    $mail->AddReplyTo($session->get('organisationAdmissionsEmail'), $session->get('organisationAdmissionsName'));
                     $mail->AddAddress($referenceEmail);
                     $mail->renderBody('mail/email.twig.html', [
                         'title'  => $subject,
@@ -733,16 +393,24 @@ if ($proceed == false) {
 
                 //Notify parent 1 of application status
                 if (!empty($parent1email) && !$skipEmailNotification) {
-                    $subject =  sprintf(__('%1$s Application Form Confirmation'), $_SESSION[$guid]['organisationName']);
-                    $body = sprintf(__('Dear Parent%1$sThank you for applying for a student place at %2$s.'), '<br/><br/>', $_SESSION[$guid]['organisationName']).' ';
+                    $subject =  sprintf(__('%1$s Application Form Confirmation'), $session->get('organisationName'));
+                    $body = sprintf(__('Dear Parent%1$sThank you for applying for a student place at %2$s.'), '<br/><br/>', $session->get('organisationName')).' ';
                     $body .= __('Your application was successfully submitted. Our admissions team will review your application and be in touch in due course.').'<br/><br/>';
                     $body .= __('You may continue submitting applications for siblings with the form below and they will be linked to your family data.').'<br/><br/>';
                     $body .= "<a href='{$URL}&id={$secureAI}'>{$URL}&id={$secureAI}</a><br/><br/>";
+<<<<<<< HEAD
                     $body .= sprintf(__('In the meantime, should you have any questions please contact %1$s at %2$s.'), $_SESSION[$guid]['organisationAdmissionsName'], $_SESSION[$guid]['organisationAdmissionsEmail']).'<br/><br/>';
                     $mail = $container->get(Mailer::class);
                     $mail->Subject = $subject;
                     $mail->SetFrom($_SESSION[$guid]['organisationAdmissionsEmail'], $_SESSION[$guid]['organisationAdmissionsName']);
                     $mail->AddReplyTo($_SESSION[$guid]['organisationAdmissionsEmail'], $_SESSION[$guid]['organisationAdmissionsName']);
+=======
+                    $body .= sprintf(__('In the meantime, should you have any questions please contact %1$s at %2$s.'), $session->get('organisationAdmissionsName'), $session->get('organisationAdmissionsEmail')).'<br/><br/>';
+
+                    $mail = $container->get(Mailer::class);
+                    $mail->Subject = $subject;
+                    $mail->SetFrom($session->get('organisationAdmissionsEmail'), $session->get('organisationAdmissionsName'));
+>>>>>>> v22.0.00
                     $mail->AddAddress($parent1email);
                     $mail->renderBody('mail/email.twig.html', [
                         'title'  => $subject,
@@ -784,8 +452,8 @@ if ($proceed == false) {
                 $paypalAPISignature = getSettingByScope($connection2, 'System', 'paypalAPISignature');
 
                 if ($applicationFee > 0 and is_numeric($applicationFee) and $enablePayments == 'Y' and $paypalAPIUsername != '' and $paypalAPIPassword != '' and $paypalAPISignature != '') {
-                    $_SESSION[$guid]['gatewayCurrencyNoSupportReturnURL'] = $_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Students/applicationForm.php&return=success4&id=$secureAI";
-                    $URL = $_SESSION[$guid]['absoluteURL']."/lib/paypal/expresscheckout.php?Payment_Amount=$applicationFee&return=".urlencode("modules/Students/applicationFormProcess.php?return=success1&id=$secureAI&applicationFee=$applicationFee").'&fail='.urlencode("modules/Students/applicationFormProcess.php?return=success2&id=$secureAI&applicationFee=$applicationFee");
+                    $session->set('gatewayCurrencyNoSupportReturnURL', $session->get('absoluteURL')."/index.php?q=/modules/Students/applicationForm.php&return=success4&id=$secureAI");
+                    $URL = $session->get('absoluteURL')."/lib/paypal/expresscheckout.php?Payment_Amount=$applicationFee&return=".urlencode("modules/Students/applicationFormProcess.php?return=success1&id=$secureAI&applicationFee=$applicationFee").'&fail='.urlencode("modules/Students/applicationFormProcess.php?return=success2&id=$secureAI&applicationFee=$applicationFee");
                     header("Location: {$URL}");
                 } else {
                     $URL .= "&return=success0&id=$secureAI";
@@ -826,16 +494,16 @@ if ($proceed == false) {
         }
 
         //Get email parameters ready to send messages for to admissions for payment problems
-        $to = $_SESSION[$guid]['organisationAdmissionsEmail'];
-        $subject = $_SESSION[$guid]['organisationNameShort'].' Gibbon Application Form Payment Issue';
+        $to = $session->get('organisationAdmissionsEmail');
+        $subject = $session->get('organisationNameShort').' Gibbon Application Form Payment Issue';
 
         //Check return values to see if we can proceed
         if ($paymentToken == '' or $gibbonApplicationFormID == '' or $applicationFee == '') {
-            $body = __('Payment via PayPal may or may not have been successful, but has not been recorded either way due to a system error. Please check your PayPal account for details. The following may be useful:')."<br/><br/>Payment Token: $paymentToken<br/><br/>Payer ID: $paymentPayerID<br/><br/>Application Form ID: $gibbonApplicationFormID<br/><br/>Application Fee: $applicationFee<br/><br/>".$_SESSION[$guid]['systemName'].' '.__('Admissions Administrator');
+            $body = __('Payment via PayPal may or may not have been successful, but has not been recorded either way due to a system error. Please check your PayPal account for details. The following may be useful:')."<br/><br/>Payment Token: $paymentToken<br/><br/>Payer ID: $paymentPayerID<br/><br/>Application Form ID: $gibbonApplicationFormID<br/><br/>Application Fee: $applicationFee<br/><br/>".$session->get('systemName').' '.__('Admissions Administrator');
 
             $mail = $container->get(Mailer::class);
             $mail->Subject = $subject;
-            $mail->SetFrom($_SESSION[$guid]['organisationAdmissionsEmail'], $_SESSION[$guid]['organisationAdmissionsName']);
+            $mail->SetFrom($session->get('organisationAdmissionsEmail'), $session->get('organisationAdmissionsName'));
             $mail->AddAddress($to);
             $mail->renderBody('mail/email.twig.html', [
                 'title'  => $subject,
@@ -881,11 +549,11 @@ if ($proceed == false) {
                 }
 
                 if ($updateFail == true) {
-                    $body = __('Payment via PayPal was successful, but has not been recorded due to a system error. Please check your PayPal account for details. The following may be useful:')."<br/><br/>Payment Token: $paymentToken<br/><br/>Payer ID: $paymentPayerID<br/><br/>Application Form ID: $gibbonApplicationFormID<br/><br/>Application Fee: $applicationFee<br/><br/>".$_SESSION[$guid]['systemName'].' '.__('Admissions Administrator');
+                    $body = __('Payment via PayPal was successful, but has not been recorded due to a system error. Please check your PayPal account for details. The following may be useful:')."<br/><br/>Payment Token: $paymentToken<br/><br/>Payer ID: $paymentPayerID<br/><br/>Application Form ID: $gibbonApplicationFormID<br/><br/>Application Fee: $applicationFee<br/><br/>".$session->get('systemName').' '.__('Admissions Administrator');
 
                     $mail = $container->get(Mailer::class);
                     $mail->Subject = $subject;
-                    $mail->SetFrom($_SESSION[$guid]['organisationAdmissionsEmail'], $_SESSION[$guid]['organisationAdmissionsName']);
+                    $mail->SetFrom($session->get('organisationAdmissionsEmail'), $session->get('organisationAdmissionsName'));
                     $mail->AddAddress($to);
                     $mail->renderBody('mail/email.twig.html', [
                         'title'  => $subject,
@@ -922,11 +590,11 @@ if ($proceed == false) {
                 }
 
                 if ($updateFail == true) {
-                    $body = __('Payment via PayPal was unsuccessful, and has also not been recorded due to a system error. Please check your PayPal account for details. The following may be useful:')."<br/><br/>Payment Token: $paymentToken<br/><br/>Payer ID: $paymentPayerID<br/><br/>Application Form ID: $gibbonApplicationFormID<br/><br/>Application Fee: $applicationFee<br/><br/>".$_SESSION[$guid]['systemName'].' '.__('Admissions Administrator');
+                    $body = __('Payment via PayPal was unsuccessful, and has also not been recorded due to a system error. Please check your PayPal account for details. The following may be useful:')."<br/><br/>Payment Token: $paymentToken<br/><br/>Payer ID: $paymentPayerID<br/><br/>Application Form ID: $gibbonApplicationFormID<br/><br/>Application Fee: $applicationFee<br/><br/>".$session->get('systemName').' '.__('Admissions Administrator');
 
                     $mail = $container->get(Mailer::class);
                     $mail->Subject = $subject;
-                    $mail->SetFrom($_SESSION[$guid]['organisationAdmissionsEmail'], $_SESSION[$guid]['organisationAdmissionsName']);
+                    $mail->SetFrom($session->get('organisationAdmissionsEmail'), $session->get('organisationAdmissionsName'));
                     $mail->AddAddress($to);
                     $mail->renderBody('mail/email.twig.html', [
                         'title'  => $subject,

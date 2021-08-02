@@ -43,12 +43,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_students_n
     if (empty($viewMode)) {
         $page->breadcrumbs->add(__('New Students'));
 
-        $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/index.php','get');
+        $form = Form::create('action', $session->get('absoluteURL').'/index.php','get');
         $form->setTitle(__('Choose Options'));
         $form->setFactory(DatabaseFormFactory::create($pdo));
         $form->setClass('noIntBorder fullWidth');
 
-        $form->addHiddenValue('q', "/modules/".$_SESSION[$guid]['module']."/report_students_new.php");
+        $form->addHiddenValue('q', "/modules/".$session->get('module')."/report_students_new.php");
 
         $row = $form->addRow();
             $row->addLabel('type', __('Type'));
@@ -57,11 +57,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_students_n
         $form->toggleVisibilityByClass('dateRange')->onSelect('type')->when('Date Range');
 
         $row = $form->addRow()->addClass('dateRange');
-            $row->addLabel('startDateFrom', __('From Date'))->description('Earliest student start date to include.')->append('<br/>')->append(__('Format:').' ')->append($_SESSION[$guid]['i18n']['dateFormat']);
+            $row->addLabel('startDateFrom', __('From Date'))->description('Earliest student start date to include.')->append('<br/>');
             $row->addDate('startDateFrom')->setValue($startDateFrom)->required();
 
         $row = $form->addRow()->addClass('dateRange');
-            $row->addLabel('startDateTo', __('To Date'))->description('Latest student start date to include.')->append('<br/>')->append(__('Format:').' ')->append($_SESSION[$guid]['i18n']['dateFormat']);
+            $row->addLabel('startDateTo', __('To Date'))->description('Latest student start date to include.')->append('<br/>');
             $row->addDate('startDateTo')->setValue($startDateTo)->required();
 
         $row = $form->addRow()->addClass('dateRange');
@@ -84,7 +84,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_students_n
 
     // CRITERIA
     $criteria = $reportGateway->newQueryCriteria(true)
-        ->sortBy(['rollGroup', 'gibbonPerson.surname', 'gibbonPerson.preferredName'])
+        ->sortBy(['formGroup', 'gibbonPerson.surname', 'gibbonPerson.preferredName'])
         ->pageSize(!empty($viewMode) ? 0 : 50)
         ->fromPOST();
 
@@ -122,7 +122,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_students_n
             return Format::name('', $student['preferredName'], $student['surname'], 'Student', true, true)
                  . '<br/><small><i>'.Format::userStatusInfo($student).'</i></small>';
         });
-    $table->addColumn('rollGroup', __('Roll Group'))
+    $table->addColumn('formGroup', __('Form Group'))
         ->context('primary');
     $table->addColumn('username', __('Username'));
     $table->addColumn('officialName', __('Official Name'));

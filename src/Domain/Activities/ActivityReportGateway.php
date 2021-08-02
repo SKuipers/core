@@ -19,6 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 namespace Gibbon\Domain\Activities;
 
+use Gibbon\Services\Format;
 use Gibbon\Domain\Traits\TableAware;
 use Gibbon\Domain\QueryCriteria;
 use Gibbon\Domain\QueryableGateway;
@@ -99,11 +100,11 @@ class ActivityReportGateway extends QueryableGateway
         $query = $this
             ->newQuery()
             ->from($this->getTableName())
-            ->cols(['gibbonPerson.gibbonPersonID', 'gibbonPerson.surname', 'gibbonPerson.preferredName', 'gibbonActivityStudent.status', 'gibbonRollGroup.nameShort AS rollGroup'])
+            ->cols(['gibbonPerson.gibbonPersonID', 'gibbonPerson.surname', 'gibbonPerson.preferredName', 'gibbonActivityStudent.status', 'gibbonFormGroup.nameShort AS formGroup'])
             ->innerJoin('gibbonActivityStudent', 'gibbonActivity.gibbonActivityID=gibbonActivityStudent.gibbonActivityID')
             ->innerJoin('gibbonPerson', "gibbonActivityStudent.gibbonPersonID=gibbonPerson.gibbonPersonID")
             ->innerJoin('gibbonStudentEnrolment', 'gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID')
-            ->innerJoin('gibbonRollGroup', 'gibbonRollGroup.gibbonRollGroupID=gibbonStudentEnrolment.gibbonRollGroupID')
+            ->innerJoin('gibbonFormGroup', 'gibbonFormGroup.gibbonFormGroupID=gibbonStudentEnrolment.gibbonFormGroupID')
             ->where('gibbonActivity.gibbonActivityID = :gibbonActivityID')
             ->bindValue('gibbonActivityID', $gibbonActivityID)
             ->where("gibbonActivityStudent.status <> 'Not Accepted'")
@@ -122,7 +123,7 @@ class ActivityReportGateway extends QueryableGateway
             ->newQuery()
             ->from($this->getTableName())
             ->cols([
-                'gibbonActivity.gibbonActivityID', 'gibbonActivity.name as activity', 'gibbonActivity.provider', 'gibbonPerson.gibbonPersonID', 'gibbonPerson.surname', 'gibbonPerson.preferredName', 'gibbonActivityStudent.status', 'gibbonRollGroup.nameShort AS rollGroup',
+                'gibbonActivity.gibbonActivityID', 'gibbonActivity.name as activity', 'gibbonActivity.provider', 'gibbonPerson.gibbonPersonID', 'gibbonPerson.surname', 'gibbonPerson.preferredName', 'gibbonActivityStudent.status', 'gibbonFormGroup.nameShort AS formGroup',
                 "(CASE WHEN gibbonActivityAttendance.gibbonActivityAttendanceID IS NULL THEN 'Absent' ELSE 'Present' END) AS attendance"
             ])
             ->innerJoin('gibbonActivitySlot', 'gibbonActivitySlot.gibbonActivityID=gibbonActivity.gibbonActivityID')
@@ -130,7 +131,7 @@ class ActivityReportGateway extends QueryableGateway
             ->innerJoin('gibbonActivityStudent', 'gibbonActivity.gibbonActivityID=gibbonActivityStudent.gibbonActivityID')
             ->innerJoin('gibbonPerson', "gibbonActivityStudent.gibbonPersonID=gibbonPerson.gibbonPersonID")
             ->innerJoin('gibbonStudentEnrolment', 'gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID')
-            ->innerJoin('gibbonRollGroup', 'gibbonRollGroup.gibbonRollGroupID=gibbonStudentEnrolment.gibbonRollGroupID')
+            ->innerJoin('gibbonFormGroup', 'gibbonFormGroup.gibbonFormGroupID=gibbonStudentEnrolment.gibbonFormGroupID')
             ->leftJoin('gibbonActivityAttendance', "gibbonActivityAttendance.gibbonActivityID=gibbonActivity.gibbonActivityID
                 AND gibbonActivityAttendance.date = :date
                 AND (gibbonActivityAttendance.attendance LIKE CONCAT('%', gibbonPerson.gibbonPersonID, '%') )")
@@ -138,7 +139,7 @@ class ActivityReportGateway extends QueryableGateway
             ->bindValue('gibbonSchoolYearID', $gibbonSchoolYearID)
             ->where("gibbonActivity.active = 'Y'")
             ->where('gibbonDaysOfWeek.name=:dayOfWeek')
-            ->bindValue('dayOfWeek', date('l', dateConvertToTimestamp($date)))
+            ->bindValue('dayOfWeek', date('l', Format::timestamp($date)))
             ->where('gibbonStudentEnrolment.gibbonSchoolYearID=gibbonActivity.gibbonSchoolYearID')
             ->where("gibbonActivityStudent.status='Accepted'")
             ->where("gibbonPerson.status = 'Full'")
@@ -271,7 +272,7 @@ class ActivityReportGateway extends QueryableGateway
         ->innerJoin('gibbonActivityStudent', 'gibbonActivity.gibbonActivityID = gibbonActivityStudent.gibbonActivityID')
         ->innerJoin('gibbonPerson', 'gibbonActivityStudent.gibbonPersonID = gibbonPerson.gibbonPersonID')
         ->innerJoin('gibbonStudentEnrolment', 'gibbonPerson.gibbonPersonID = gibbonStudentEnrolment.gibbonPersonID')
-        ->innerJoin('gibbonRollGroup', 'gibbonStudentEnrolment.gibbonRollGroupID = gibbonRollGroup.gibbonRollGroupID')
+        ->innerJoin('gibbonFormGroup', 'gibbonStudentEnrolment.gibbonFormGroupID = gibbonFormGroup.gibbonFormGroupID')
         ->innerJoin('gibbonSchoolYear', 'gibbonStudentEnrolment.gibbonSchoolYearID = gibbonSchoolYear.gibbonSchoolYearID')
         ->leftJoin('gibbonSchoolYearTerm term', 'FIND_IN_SET(term.gibbonSchoolYearTermID, gibbonActivity.gibbonSchoolYearTermIDList) > 0')
         ->where("gibbonPerson.status = 'Full'")
@@ -280,7 +281,7 @@ class ActivityReportGateway extends QueryableGateway
         ->groupBy([
             'gibbonActivity.gibbonActivityID',
             'gibbonSchoolYear.name',
-            'gibbonRollGroup.name',
+            'gibbonFormGroup.name',
             'gibbonActivity.programStart',
             'gibbonActivity.programEnd',
             'gibbonActivityStudent.status',

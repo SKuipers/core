@@ -22,9 +22,9 @@ include '../../gibbon.php';
 //Module includes
 include './moduleFunctions.php';
 
-$gibbonDepartmentID = $_GET['gibbonDepartmentID'];
-$gibbonCourseID = $_GET['gibbonCourseID'];
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/department_course_edit.php&gibbonDepartmentID=$gibbonDepartmentID&gibbonCourseID=$gibbonCourseID";
+$gibbonDepartmentID = $_GET['gibbonDepartmentID'] ?? '';
+$gibbonCourseID = $_GET['gibbonCourseID'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/department_course_edit.php&gibbonDepartmentID=$gibbonDepartmentID&gibbonCourseID=$gibbonCourseID";
 
 if (isActionAccessible($guid, $connection2, '/modules/Departments/department_course_edit.php') == false) {
     $URL .= '&return=error0';
@@ -35,14 +35,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Departments/department_cou
     } else {
         //Proceed!
         //Validate Inputs
-        $description = $_POST['description'];
+        $description = $_POST['description'] ?? '';
 
         if ($gibbonDepartmentID == '' or $gibbonCourseID == '') {
             $URL .= '&return=error1';
             header("Location: {$URL}");
         } else {
             //Check access to specified course
-            
+
                 $data = array('gibbonCourseID' => $gibbonCourseID);
                 $sql = 'SELECT * FROM gibbonCourse WHERE gibbonCourseID=:gibbonCourseID';
                 $result = $connection2->prepare($sql);
@@ -53,7 +53,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Departments/department_cou
                 header("Location: {$URL}");
             } else {
                 //Get role within learning area
-                $role = getRole($_SESSION[$guid]['gibbonPersonID'], $gibbonDepartmentID, $connection2);
+                $role = getRole($session->get('gibbonPersonID'), $gibbonDepartmentID, $connection2);
 
                 if ($role != 'Coordinator' and $role != 'Assistant Coordinator' and $role != 'Teacher (Curriculum)') {
                     $URL .= '&return=error0';

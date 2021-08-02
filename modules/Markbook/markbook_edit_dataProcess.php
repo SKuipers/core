@@ -17,15 +17,19 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+use Gibbon\Domain\System\LogGateway;
+
 include '../../gibbon.php';
 
+$logGateway = $container->get(LogGateway::class);
 $enableEffort = getSettingByScope($connection2, 'Markbook', 'enableEffort');
 $enableRubrics = getSettingByScope($connection2, 'Markbook', 'enableRubrics');
 $enableModifiedAssessment = getSettingByScope($connection2, 'Markbook', 'enableModifiedAssessment');
 
-$gibbonCourseClassID = $_GET['gibbonCourseClassID'];
-$gibbonMarkbookColumnID = $_GET['gibbonMarkbookColumnID'];
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['address'])."/markbook_edit_data.php&gibbonMarkbookColumnID=$gibbonMarkbookColumnID&gibbonCourseClassID=$gibbonCourseClassID";
+$gibbonCourseClassID = $_GET['gibbonCourseClassID'] ?? '';
+$gibbonMarkbookColumnID = $_GET['gibbonMarkbookColumnID'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_GET['address'])."/markbook_edit_data.php&gibbonMarkbookColumnID=$gibbonMarkbookColumnID&gibbonCourseClassID=$gibbonCourseClassID";
 
 $personalisedWarnings = getSettingByScope($connection2, 'Markbook', 'personalisedWarnings');
 
@@ -60,7 +64,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_dat
             } else {
                 $row = $result->fetch();
                 $name = $row['name' ];
-                $count = $_POST['count'];
+                $count = $_POST['count'] ?? '';
                 $partialFail = false;
                 $attachmentFail = false;
                 $attainment = $row['attainment'];
@@ -95,7 +99,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_dat
                         }
                         else { //Checkbox does not exist
                             $modifiedAssessment = NULL;
-                        }                        
+                        }
                     }
                     //Attainment
                     if ($attainment == 'N') {
@@ -109,8 +113,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_dat
                         $attainmentDescriptor = '';
                         $attainmentConcern = '';
                     } else {
-                        $attainmentValue = (isset($_POST["$i-attainmentValue"]))? $_POST["$i-attainmentValue"] : null;
-                        $attainmentValueRaw = (isset($_POST["$i-attainmentValueRaw"]))? $_POST["$i-attainmentValueRaw"] : null;
+                        $attainmentValue = $_POST["$i-attainmentValue"] ?? null;
+                        $attainmentValueRaw = $_POST["$i-attainmentValueRaw"] ?? null;
                     }
                     //Effort
                     if ($effort == 'N') {
@@ -130,7 +134,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_dat
                     } else {
                         $commentValue = $_POST["comment$i"];
                     }
-                    $gibbonPersonIDLastEdit = $_SESSION[$guid]['gibbonPersonID'];
+                    $gibbonPersonIDLastEdit = $session->get('gibbonPersonID');
 
                     //SET AND CALCULATE FOR ATTAINMENT
                     if ($attainment == 'Y' and $gibbonScaleIDAttainment != '') {
@@ -151,7 +155,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_dat
                             $rowTarget = $resultTarget->fetch();
 
                             //Get details of attainment grade (sequenceNumber)
-                            $scaleAttainment = $_POST['scaleAttainment'];
+                            $scaleAttainment = $_POST['scaleAttainment'] ?? '';
                             try {
                                 $dataScale = array('attainmentValue' => $attainmentValue, 'scaleAttainment' => $scaleAttainment);
                                 $sqlScale = 'SELECT * FROM gibbonScaleGrade JOIN gibbonScale ON (gibbonScaleGrade.gibbonScaleID=gibbonScale.gibbonScaleID) WHERE value=:attainmentValue AND gibbonScaleGrade.gibbonScaleID=:scaleAttainment';
@@ -185,8 +189,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_dat
                             $attainmentConcern = 'N';
                             $attainmentDescriptor = '';
                             if ($attainmentValue != '') {
-                                $lowestAcceptableAttainment = $_POST['lowestAcceptableAttainment'];
-                                $scaleAttainment = $_POST['scaleAttainment'];
+                                $lowestAcceptableAttainment = $_POST['lowestAcceptableAttainment'] ?? '';
+                                $scaleAttainment = $_POST['scaleAttainment'] ?? '';
                                 try {
                                     $dataScale = array('attainmentValue' => $attainmentValue, 'scaleAttainment' => $scaleAttainment);
                                     $sqlScale = 'SELECT * FROM gibbonScaleGrade JOIN gibbonScale ON (gibbonScaleGrade.gibbonScaleID=gibbonScale.gibbonScaleID) WHERE value=:attainmentValue AND gibbonScaleGrade.gibbonScaleID=:scaleAttainment';
@@ -217,8 +221,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_dat
                         $effortConcern = 'N';
                         $effortDescriptor = '';
                         if ($effortValue != '') {
-                            $lowestAcceptableEffort = $_POST['lowestAcceptableEffort'];
-                            $scaleEffort = $_POST['scaleEffort'];
+                            $lowestAcceptableEffort = $_POST['lowestAcceptableEffort'] ?? '';
+                            $scaleEffort = $_POST['scaleEffort'] ?? '';
                             try {
                                 $dataScale = array('effortValue' => $effortValue, 'scaleEffort' => $scaleEffort);
                                 $sqlScale = 'SELECT * FROM gibbonScaleGrade JOIN gibbonScale ON (gibbonScaleGrade.gibbonScaleID=gibbonScale.gibbonScaleID) WHERE value=:effortValue AND gibbonScaleGrade.gibbonScaleID=:scaleEffort';
@@ -260,9 +264,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_dat
 
                             // Create a log of failed uploads
                             $errorMessage = $fileUploader->getLastError();
-                            if (!empty($errorMessage) || filesize($attachment) == 0) {
+                            if (!empty($errorMessage) || filesize($attachment) === 0) {
                                 $gibbonModuleID = getModuleIDFromName($connection2, 'Markbook');
-                                setLog($connection2, $gibbon->session->get('gibbonSchoolYearID'), $gibbonModuleID, $gibbon->session->get('gibbonPersonID'), 'Uploaded Response Failed', [
+                                $logGateway->addLog($gibbon->session->get('gibbonSchoolYearID'), $gibbonModuleID, $gibbon->session->get('gibbonPersonID'), 'Uploaded Response Failed', [
                                     'gibbonMarkbookColumnID' => $gibbonMarkbookColumnID,
                                     'gibbonPersonIDStudent' => $gibbonPersonIDStudent,
                                     'name' => $row['name'],
@@ -317,12 +321,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_dat
                 }
 
                 //Update column
-                $completeDate = $_POST['completeDate'];
+                $completeDate = $_POST['completeDate'] ?? '';
                 if ($completeDate == '') {
                     $completeDate = null;
                     $complete = 'N';
                 } else {
-                    $completeDate = dateConvert($guid, $completeDate);
+                    $completeDate = Format::dateConvert($completeDate);
                     $complete = 'Y';
                 }
                 try {

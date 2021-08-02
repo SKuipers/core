@@ -19,16 +19,16 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$action = isset($_POST['action'])? $_POST['action'] : '';
+$action = $_POST['action'] ?? '';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/activities_payment.php';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/activities_payment.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_payment.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
 } else {
     $gibbonActivityStudentIDList = isset($_POST['gibbonActivityStudentID'])? $_POST['gibbonActivityStudentID'] : array();
-    $payment = isset($_POST['payment'])? $_POST['payment'] : array();
+    $payment = $_POST['payment'] ?? array();
 
     $students = array();
     foreach ($gibbonActivityStudentIDList as $id => $gibbonActivityStudentID) {
@@ -127,7 +127,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_paym
                                     $count = 0;
                                     while ($continue == false and $count < 100) {
                                         $key = randomPassword(40);
-                                        
+
                                             $dataUnique = array('key' => $key);
                                             $sqlUnique = 'SELECT * FROM gibbonFinanceInvoice WHERE gibbonFinanceInvoice.`key`=:key';
                                             $resultUnique = $connection2->prepare($sqlUnique);
@@ -144,7 +144,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_paym
                                     } else {
                                         $invoiceFail = false;
                                         try {
-                                            $dataInvoice = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'gibbonFinanceInvoiceeID' => $rowCheck2['gibbonFinanceInvoiceeID'], 'gibbonFinanceBillingScheduleID' => $action, 'notes' => '', 'key' => $key, 'gibbonPersonIDCreator' => $_SESSION[$guid]['gibbonPersonID']);
+                                            $dataInvoice = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'gibbonFinanceInvoiceeID' => $rowCheck2['gibbonFinanceInvoiceeID'], 'gibbonFinanceBillingScheduleID' => $action, 'notes' => '', 'key' => $key, 'gibbonPersonIDCreator' => $session->get('gibbonPersonID'));
                                             $sqlInvoice = "INSERT INTO gibbonFinanceInvoice SET gibbonSchoolYearID=:gibbonSchoolYearID, gibbonFinanceInvoiceeID=:gibbonFinanceInvoiceeID, invoiceTo='Family', billingScheduleType='Scheduled', gibbonFinanceBillingScheduleID=:gibbonFinanceBillingScheduleID, notes=:notes, `key`=:key, status='Pending', separated='N', gibbonPersonIDCreator=:gibbonPersonIDCreator, timeStampCreator='".date('Y-m-d H:i:s')."'";
                                             $resultInvoice = $connection2->prepare($sqlInvoice);
                                             $resultInvoice->execute($dataInvoice);
@@ -229,7 +229,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_paym
         }
 
         //Unlock module table
-        
+
             $sql = 'UNLOCK TABLES';
             $result = $connection2->query($sql);
 
@@ -242,4 +242,3 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_paym
         }
     }
 }
-

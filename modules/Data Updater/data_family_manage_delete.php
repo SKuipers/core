@@ -27,16 +27,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_family_m
     $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed!
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     //Check if school year specified
     $gibbonFamilyUpdateID = $_GET['gibbonFamilyUpdateID'];
     if ($gibbonFamilyUpdateID == '') {
         $page->addError(__('You have not specified one or more required parameters.'));
     } else {
-        
+
             $data = array('gibbonFamilyUpdateID' => $gibbonFamilyUpdateID);
             $sql = 'SELECT * FROM gibbonFamilyUpdate WHERE gibbonFamilyUpdateID=:gibbonFamilyUpdateID';
             $result = $connection2->prepare($sql);
@@ -49,7 +45,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_family_m
         } else {
             //Let's go!
             
-            $form = DeleteForm::createForm($_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/data_family_manage_deleteProcess.php?gibbonFamilyUpdateID=".$gibbonFamilyUpdateID);
+            $form = DeleteForm::createForm($session->get('absoluteURL').'/modules/'.$session->get('module')."/data_family_manage_deleteProcess.php?gibbonFamilyUpdateID=".$gibbonFamilyUpdateID);
             echo $form->getOutput();
         }
     }

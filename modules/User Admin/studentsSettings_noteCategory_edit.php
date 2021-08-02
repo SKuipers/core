@@ -29,10 +29,6 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/studentsSetting
     $page->breadcrumbs
         ->add(__('Students Settings'), 'studentsSettings.php')
         ->add(__('Edit Note Category'));
-
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
     //Check if school year specified
     $gibbonStudentNoteCategoryID = $_GET['gibbonStudentNoteCategoryID'];
     if ($gibbonStudentNoteCategoryID == '') {
@@ -50,9 +46,9 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/studentsSetting
             //Let's go!
             $values = $result->fetch();
 
-            $form = Form::create('noteCategory', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/studentsSettings_noteCategory_editProcess.php?gibbonStudentNoteCategoryID='.$gibbonStudentNoteCategoryID);
+            $form = Form::create('noteCategory', $session->get('absoluteURL').'/modules/'.$session->get('module').'/studentsSettings_noteCategory_editProcess.php?gibbonStudentNoteCategoryID='.$gibbonStudentNoteCategoryID);
 
-            $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+            $form->addHiddenValue('address', $session->get('address'));
 
             $row = $form->addRow();
                 $row->addLabel('name', __('Name'))->description(__('Must be unique.'));

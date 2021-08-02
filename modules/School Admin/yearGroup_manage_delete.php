@@ -24,10 +24,6 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/yearGroup_man
     $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed!
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     //Check if school year specified
     $gibbonYearGroupID = $_GET['gibbonYearGroupID'];
     if ($gibbonYearGroupID == '') {
@@ -42,7 +38,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/yearGroup_man
         if ($result->rowCount() != 1) {
             $page->addError(__('The specified record cannot be found.'));
         } else {
-            $form = DeleteForm::createForm($_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/yearGroup_manage_deleteProcess.php?gibbonYearGroupID=$gibbonYearGroupID", true);
+            $form = DeleteForm::createForm($session->get('absoluteURL').'/modules/'.$session->get('module')."/yearGroup_manage_deleteProcess.php?gibbonYearGroupID=$gibbonYearGroupID", true);
             echo $form->getOutput();
         }
     }

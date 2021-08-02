@@ -17,10 +17,12 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+
 include '../../gibbon.php';
 
-$gibbonCourseClassID = $_GET['gibbonCourseClassID'];
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['address'])."/internalAssessment_manage_add.php&gibbonCourseClassID=$gibbonCourseClassID";
+$gibbonCourseClassID = $_GET['gibbonCourseClassID'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_GET['address'])."/internalAssessment_manage_add.php&gibbonCourseClassID=$gibbonCourseClassID";
 
 if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internalAssessment_manage_add.php') == false) {
     $URL .= '&return=error0';
@@ -32,15 +34,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internal
     } else {
         //Proceed!
         //Validate Inputs
-        $gibbonCourseClassIDMulti = null;
-        if (isset($_POST['gibbonCourseClassIDMulti'])) {
-            $gibbonCourseClassIDMulti = $_POST['gibbonCourseClassIDMulti'];
-        }
-        $name = $_POST['name'];
-        $description = $_POST['description'];
-        $type = $_POST['type'];
+        $gibbonCourseClassIDMulti = $_POST['gibbonCourseClassIDMulti'] ?? [];
+
+        $name = $_POST['name'] ?? '';
+        $description = $_POST['description'] ?? '';
+        $type = $_POST['type'] ?? '';
         //Sort out attainment
-        $attainment = $_POST['attainment'];
+        $attainment = $_POST['attainment'] ?? '';
         if ($attainment == 'N') {
             $gibbonScaleIDAttainment = null;
         } else {
@@ -61,24 +61,24 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internal
                 $gibbonScaleIDEffort = $_POST['gibbonScaleIDEffort'];
             }
         }
-        $comment = $_POST['comment'];
-        $uploadedResponse = $_POST['uploadedResponse'];
-        $completeDate = $_POST['completeDate'];
+        $comment = $_POST['comment'] ?? '';
+        $uploadedResponse = $_POST['uploadedResponse'] ?? '';
+        $completeDate = $_POST['completeDate'] ?? '';
         if ($completeDate == '') {
             $completeDate = null;
             $complete = 'N';
         } else {
-            $completeDate = dateConvert($guid, $completeDate);
+            $completeDate = Format::dateConvert($completeDate);
             $complete = 'Y';
         }
-        $viewableStudents = $_POST['viewableStudents'];
-        $viewableParents = $_POST['viewableParents'];
-        $gibbonPersonIDCreator = $_SESSION[$guid]['gibbonPersonID'];
-        $gibbonPersonIDLastEdit = $_SESSION[$guid]['gibbonPersonID'];
+        $viewableStudents = $_POST['viewableStudents'] ?? '';
+        $viewableParents = $_POST['viewableParents'] ?? '';
+        $gibbonPersonIDCreator = $session->get('gibbonPersonID');
+        $gibbonPersonIDLastEdit = $session->get('gibbonPersonID');
 
         $fileUploader = new Gibbon\FileUploader($pdo, $gibbon->session);
         $fileUploader->getFileExtensions();
-        
+
         //Lock markbook column table
         try {
             $sqlLock = 'LOCK TABLES gibbonInternalAssessmentColumn WRITE';
@@ -108,12 +108,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internal
 
         $time = time();
         //Move attached file, if there is one
-        if (!empty($_FILES['file']['tmp_name'])) {   
+        if (!empty($_FILES['file']['tmp_name'])) {
             $file = (isset($_FILES['file']))? $_FILES['file'] : null;
 
             // Upload the file, return the /uploads relative path
             $attachment = $fileUploader->uploadFromPost($file, $name);
-                    
+
             if (empty($attachment)) {
                 $partialFail = true;
             }
@@ -126,6 +126,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internal
             header("Location: {$URL}");
         } else {
             $partialFail = false;
+
+            // Prevent duplicate classes selected if courses span multiple year groups
+            $gibbonCourseClassIDMulti = array_unique($gibbonCourseClassIDMulti);
 
             foreach ($gibbonCourseClassIDMulti as $gibbonCourseClassIDSingle) {
                 //Write to database
@@ -142,7 +145,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internal
             }
 
             //Unlock module table
-            
+
                 $sql = 'UNLOCK TABLES';
                 $result = $connection2->query($sql);
 

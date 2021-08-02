@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
+use Gibbon\Forms\CustomFieldHandler;
 use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Services\Format;
 use Gibbon\Domain\Students\FirstAidGateway;
@@ -35,25 +36,21 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/firstAidRecord_ed
         ->add(__('First Aid Records'), 'firstAidRecord.php')
         ->add(__('Edit'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     $gibbonFirstAidID = $_GET['gibbonFirstAidID'] ?? '';
-    $gibbonRollGroupID = $_GET['gibbonRollGroupID'] ?? '';
+    $gibbonFormGroupID = $_GET['gibbonFormGroupID'] ?? '';
     $gibbonYearGroupID = $_GET['gibbonYearGroupID'] ?? '';
 
     if ($gibbonFirstAidID == '') {
         $page->addError(__('You have not specified one or more required parameters.'));
     } else {
         
-            $data = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'gibbonFirstAidID' => $gibbonFirstAidID);
+            $data = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'gibbonFirstAidID' => $gibbonFirstAidID);
             $sql = "SELECT gibbonFirstAid.*, patient.gibbonPersonID AS gibbonPersonIDPatient, patient.surname AS surnamePatient, patient.preferredName AS preferredNamePatient, firstAider.title, firstAider.surname AS surnameFirstAider, firstAider.preferredName AS preferredNameFirstAider
                 FROM gibbonFirstAid
                     JOIN gibbonPerson AS patient ON (gibbonFirstAid.gibbonPersonIDPatient=patient.gibbonPersonID)
                     JOIN gibbonPerson AS firstAider ON (gibbonFirstAid.gibbonPersonIDFirstAider=firstAider.gibbonPersonID)
                     JOIN gibbonStudentEnrolment ON (patient.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID)
-                    JOIN gibbonRollGroup ON (gibbonStudentEnrolment.gibbonRollGroupID=gibbonRollGroup.gibbonRollGroupID)
+                    JOIN gibbonFormGroup ON (gibbonStudentEnrolment.gibbonFormGroupID=gibbonFormGroup.gibbonFormGroupID)
                     JOIN gibbonYearGroup ON (gibbonStudentEnrolment.gibbonYearGroupID=gibbonYearGroup.gibbonYearGroupID)
                 WHERE gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonFirstAidID=:gibbonFirstAidID";
             $result = $connection2->prepare($sql);
@@ -67,10 +64,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/firstAidRecord_ed
             //Let's go!
             $values = $result->fetch();
 
-            $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/firstAidRecord_editProcess.php?gibbonFirstAidID=$gibbonFirstAidID&gibbonRollGroupID=".$gibbonRollGroupID.'&gibbonYearGroupID='.$gibbonYearGroupID);
+            $form = Form::create('action', $session->get('absoluteURL').'/modules/'.$session->get('module')."/firstAidRecord_editProcess.php?gibbonFirstAidID=$gibbonFirstAidID&gibbonFormGroupID=".$gibbonFormGroupID.'&gibbonYearGroupID='.$gibbonYearGroupID);
 
             $form->setFactory(DatabaseFormFactory::create($pdo));
-            $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+            $form->addHiddenValue('address', $session->get('address'));
             $form->addHiddenValue('gibbonPersonID', $values['gibbonPersonIDPatient']);
 
             $row = $form->addRow()->addHeading(__('Basic Information'));
@@ -85,7 +82,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/firstAidRecord_ed
 
             $row = $form->addRow();
                 $row->addLabel('date', __('Date'));
-                $row->addDate('date')->setValue(dateConvertBack($guid, $values['date']))->required()->readonly();
+                $row->addDate('date')->setValue(Format::date($values['date']))->required()->readonly();
 
             $row = $form->addRow();
                 $row->addLabel('timeIn', __('Time In'));
@@ -133,6 +130,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/firstAidRecord_ed
                 $column->addLabel('followUp', __('Further Follow Up'));
                 $column->addTextArea('followUp')->setRows(8)->setClass('fullWidth');
 
+
+            // CUSTOM FIELDS
+            $container->get(CustomFieldHandler::class)->addCustomFieldsToForm($form, 'First Aid', [], $values['fields']);
 
             $row = $form->addRow();
                 $row->addFooter();

@@ -23,14 +23,14 @@ use Gibbon\Domain\Students\StudentGateway;
 use Gibbon\Domain\Students\StudentNoteGateway;
 use Gibbon\Comms\NotificationEvent;
 use Gibbon\Domain\School\YearGroupGateway;
-use Gibbon\Domain\RollGroups\RollGroupGateway;
+use Gibbon\Domain\FormGroups\FormGroupGateway;
 use Gibbon\Domain\Timetable\CourseEnrolmentGateway;
 use Gibbon\Domain\IndividualNeeds\INAssistantGateway;
 
 require_once '../../gibbon.php';
 
 $gibbonPersonID = $_POST['gibbonPersonID'] ?? '';
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Students/student_withdraw.php';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/Students/student_withdraw.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/Students/student_withdraw.php') == false) {
     $URL .= '&return=error0';
@@ -45,6 +45,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_withdraw.
         'status'          => $_POST['status'] ?? '',
         'dateEnd'         => isset($_POST['dateEnd']) ? Format::dateConvert($_POST['dateEnd']) : null,
         'departureReason' => $_POST['departureReason'] ?? '',
+        'nextSchool'      => $_POST['nextSchool'] ?? '',
     ];
 
     // Validate the required values are present
@@ -90,9 +91,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_withdraw.
         if (!empty($notify) || !empty($notificationList)) {
             // Create the notification body
             $studentName = Format::name('', $student['preferredName'], $student['surname'], 'Student', false, true);
-            $notificationString = __('{student} {rollGroup} has withdrawn from {school} on {date}.', [
+            $notificationString = __('{student} {formGroup} has withdrawn from {school} on {date}.', [
                 'student'   => $studentName,
-                'rollGroup'   => $student['rollGroup'],
+                'formGroup'   => $student['formGroup'],
                 'school'    => $gibbon->session->get('organisationNameShort'),
                 'date'      => Format::date($data['dateEnd']),
             ]);
@@ -126,10 +127,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_withdraw.
 
             // Form Tutors
             if (in_array('tutors', $notify)) {
-                $rollGroup = $container->get(RollGroupGateway::class)->getByID($student['gibbonRollGroupID']);
-                $event->addRecipient($rollGroup['gibbonPersonIDTutor']);
-                $event->addRecipient($rollGroup['gibbonPersonIDTutor2']);
-                $event->addRecipient($rollGroup['gibbonPersonIDTutor3']);
+                $formGroup = $container->get(FormGroupGateway::class)->getByID($student['gibbonFormGroupID']);
+                $event->addRecipient($formGroup['gibbonPersonIDTutor']);
+                $event->addRecipient($formGroup['gibbonPersonIDTutor2']);
+                $event->addRecipient($formGroup['gibbonPersonIDTutor3']);
             }
 
             // Class Teachers

@@ -52,9 +52,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_criteria
         $editLink = $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Reports/reporting_criteria_manage_edit.php&gibbonReportingCycleID='.$gibbonReportingCycleID.'&gibbonReportingScopeID='.$gibbonReportingScopeID.'&gibbonReportingCriteriaID='.$_GET['editID'];
     }
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], $editLink, null);
-    }
+    $page->return->setEditLink($editLink);
 
     $form = Form::create('reportCriteriaManage', $gibbon->session->get('absoluteURL').'/modules/Reports/reporting_criteria_manage_addProcess.php');
     $form->setFactory(DatabaseFormFactory::create($pdo));
@@ -63,7 +61,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_criteria
     $form->addHiddenValue('gibbonReportingCycleID', $gibbonReportingCycleID);
     $form->addHiddenValue('gibbonReportingScopeID', $gibbonReportingScopeID);
     $form->addHiddenValue('gibbonYearGroupID', $_GET['gibbonYearGroupID'] ?? '');
-    $form->addHiddenValue('gibbonRollGroupID', $_GET['gibbonRollGroupID'] ?? '');
+    $form->addHiddenValue('gibbonFormGroupID', $_GET['gibbonFormGroupID'] ?? '');
     $form->addHiddenValue('gibbonCourseID', $_GET['gibbonCourseID'] ?? '');
     $form->addHiddenValue('scopeType', $reportingScope['scopeType']);
 

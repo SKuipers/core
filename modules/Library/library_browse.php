@@ -150,7 +150,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_browse.php
     $collections = $collectionsChained = array();
     $categories = array_reduce($categoryList, function ($group, $item) use (&$collections, &$collectionsChained) {
         $group[$item['value']] = __($item['name']);
-        foreach (unserialize($item['fields']) as $field) {
+        foreach (json_decode($item['fields'], true) as $field) {
             if ($field['name'] == 'Collection' and $field['type'] == 'Select') {
                 foreach (explode(',', $field['options']) as $collectionItem) {
                     $collectionItem = trim($collectionItem);
@@ -163,7 +163,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_browse.php
     }, array());
 
 
-    $form = Form::create('searchForm', $_SESSION[$guid]['absoluteURL'] . '/index.php', 'get');
+    $form = Form::create('searchForm', $session->get('absoluteURL') . '/index.php', 'get');
     $form->setClass('noIntBorder fullWidth borderGrey mb-6');
 
     $form->addHiddenValue('q', '/modules/Library/library_browse.php');
@@ -221,7 +221,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_browse.php
     $table = DataTable::createPaginated('books', $criteria);
 
     $table->addExpandableColumn('details')->format(function ($item) {
-        $typeFields = unserialize($item['fields']);
+        $typeFields = json_decode($item['fields'], true);
         $details = "<table class='smallIntBorder' style='width:100%;'>";
         foreach ($typeFields as $fieldName => $fieldValue) {
             $details .= sprintf('<tr><td><b>%1$s</b></td><td>%2$s</td></tr>', __($fieldName), $fieldValue);

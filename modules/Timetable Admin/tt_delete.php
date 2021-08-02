@@ -24,10 +24,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/tt_delete.
     $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed!
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     //Check if school year specified
     $gibbonTTID = $_GET['gibbonTTID'] ?? '';
     if ($gibbonTTID == '') {
@@ -43,7 +39,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/tt_delete.
             $page->addError(__('The specified record cannot be found.'));
         } else {
             //Let's go!
-            $form = DeleteForm::createForm($_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/tt_deleteProcess.php?gibbonTTID=$gibbonTTID&gibbonSchoolYearID=".$_GET['gibbonSchoolYearID'], true);
+            $form = DeleteForm::createForm($session->get('absoluteURL').'/modules/'.$session->get('module')."/tt_deleteProcess.php?gibbonTTID=$gibbonTTID&gibbonSchoolYearID=".$_GET['gibbonSchoolYearID'], true);
             echo $form->getOutput();
         }
     }

@@ -17,17 +17,19 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+
 //Gibbon system-wide includes
 include '../../gibbon.php';
 
 //Module includes
 include './moduleFunctions.php';
 
-$gibbonAttendanceLogPersonID = isset($_POST['gibbonAttendanceLogPersonID'])? $_POST['gibbonAttendanceLogPersonID'] : '';
-$gibbonPersonID = isset($_POST['gibbonPersonID'])? $_POST['gibbonPersonID'] : '';
-$currentDate = isset($_POST['currentDate'])? $_POST['currentDate'] : dateConvertBack($guid, date('Y-m-d'));
+$gibbonAttendanceLogPersonID = $_POST['gibbonAttendanceLogPersonID'] ?? '';
+$gibbonPersonID = $_POST['gibbonPersonID'] ?? '';
+$currentDate = $_POST['currentDate'] ?? Format::date(date('Y-m-d'));
 
-$URL = $_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Attendance/attendance_take_byPerson.php&gibbonPersonID=$gibbonPersonID&currentDate=$currentDate";
+$URL = $session->get('absoluteURL')."/index.php?q=/modules/Attendance/attendance_take_byPerson.php&gibbonPersonID=$gibbonPersonID&currentDate=$currentDate";
 
 if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_take_byPerson_edit.php') == false) {
     $URL .= '&return=error0';
@@ -38,13 +40,13 @@ else if ($gibbonAttendanceLogPersonID == '' or $gibbonPersonID == '' or $current
     header("Location: {$URL}");
 } else {
     //Proceed!
-    
-    $type = isset($_POST['type'])? $_POST['type'] : '';
-    $reason = isset($_POST['reason'])? $_POST['reason'] : '';
-    $comment = isset($_POST['comment'])? $_POST['comment'] : '';
+
+    $type = $_POST['type'] ?? '';
+    $reason = $_POST['reason'] ?? '';
+    $comment = $_POST['comment'] ?? '';
 
     // Get attendance codes
-    
+
         $dataCode = array( 'name' => $type );
         $sqlCode = "SELECT direction FROM gibbonAttendanceCode WHERE active = 'Y' AND name=:name LIMIT 1";
         $resultCode = $connection2->prepare($sqlCode);
@@ -67,7 +69,7 @@ else if ($gibbonAttendanceLogPersonID == '' or $gibbonPersonID == '' or $current
 
         //UPDATE
         try {
-            $data = array('gibbonPersonID' => $gibbonPersonID, 'gibbonAttendanceLogPersonID' => $gibbonAttendanceLogPersonID, 'type' => $type, 'reason' => $reason, 'comment' => $comment, 'direction' => $direction, 'gibbonPersonIDTaker' => $_SESSION[$guid]['gibbonPersonID'] );
+            $data = array('gibbonPersonID' => $gibbonPersonID, 'gibbonAttendanceLogPersonID' => $gibbonAttendanceLogPersonID, 'type' => $type, 'reason' => $reason, 'comment' => $comment, 'direction' => $direction, 'gibbonPersonIDTaker' => $session->get('gibbonPersonID') );
             $sql = 'UPDATE gibbonAttendanceLogPerson SET gibbonAttendanceCodeID=(SELECT gibbonAttendanceCodeID FROM gibbonAttendanceCode WHERE name=:type), type=:type, reason=:reason, comment=:comment, direction=:direction, gibbonPersonIDTaker=:gibbonPersonIDTaker, timestampTaken=NOW() WHERE gibbonPersonID=:gibbonPersonID AND gibbonAttendanceLogPersonID=:gibbonAttendanceLogPersonID';
             $result = $connection2->prepare($sql);
             $result->execute($data);

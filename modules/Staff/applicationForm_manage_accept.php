@@ -21,6 +21,7 @@ use Gibbon\Forms\Form;
 use Gibbon\Services\Format;
 use Gibbon\Contracts\Comms\Mailer;
 use Gibbon\Data\UsernameGenerator;
+use Gibbon\Domain\User\PersonalDocumentGateway;
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -51,10 +52,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
             echo __('The selected application does not exist or has already been processed.');
             echo '</div>';
         } else {
-            if (isset($_GET['return'])) {
-                returnProcess($guid, $_GET['return'], null, null);
-            }
-
             //Let's go!
             $values = $result->fetch();
             $step = '';
@@ -73,13 +70,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
 
                 echo "<div class='linkTop'>";
                 if ($search != '') {
-                    echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Staff/applicationForm_manage.php&search=$search'>".__('Back to Search Results').'</a>';
+                    echo "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/Staff/applicationForm_manage.php&search=$search'>".__('Back to Search Results').'</a>';
                 }
                 echo '</div>'; 
 
-                $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.$_SESSION[$guid]['module'].'/applicationForm_manage_accept.php&step=2&gibbonStaffApplicationFormID='.$gibbonStaffApplicationFormID.'&search='.$search);
+                $form = Form::create('action', $session->get('absoluteURL').'/index.php?q=/modules/'.$session->get('module').'/applicationForm_manage_accept.php&step=2&gibbonStaffApplicationFormID='.$gibbonStaffApplicationFormID.'&search='.$search);
                 
-                $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+                $form->addHiddenValue('address', $session->get('address'));
                 $form->addHiddenValue('gibbonStaffApplicationFormID', $gibbonStaffApplicationFormID);
 
                 $col = $form->addRow()->addColumn()->addClass('stacked');
@@ -125,7 +122,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
 
                 echo "<div class='linkTop'>";
                 if ($search != '') {
-                    echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Staff/applicationForm_manage.php&search=$search'>".__('Back to Search Results').'</a>';
+                    echo "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/Staff/applicationForm_manage.php&search=$search'>".__('Back to Search Results').'</a>';
                 }
                 echo '</div>';
 
@@ -178,8 +175,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
                         echo '<h4>';
                         echo __('New Staff Member Email & Website');
                         echo '</h4>';
-                        $to = $_SESSION[$guid]['organisationHREmail'];
-                        $subject = sprintf(__('Create applicant Email/Websites for %1$s at %2$s'), $_SESSION[$guid]['systemName'], $_SESSION[$guid]['organisationNameShort']);
+                        $to = $session->get('organisationHREmail');
+                        $subject = sprintf(__('Create applicant Email/Websites for %1$s at %2$s'), $session->get('systemName'), $session->get('organisationNameShort'));
                         $body = sprintf(__('Please create the following for new staff member %1$s.'), Format::name('', $values['preferredName'], $values['surname'], 'Student'))."<br/><br/>";
                         if ($applicantDefaultEmail != '') {
                             $body .= __('Email').': '.$email."<br/>";
@@ -188,14 +185,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
                             $body .= __('Website').': '.$website."<br/>";
                         }
                         if ($values['dateStart'] != '') {
-                            $body .= __('Start Date').': '.dateConvertBack($guid, $values['dateStart'])."<br/>";
+                            $body .= __('Start Date').': '.Format::date($values['dateStart'])."<br/>";
                         }
                         $body .= __('Job Type').': '.__($values['type'])."<br/>";
                         $body .= __('Job Title').': '.__($values['jobTitle'])."<br/>";
                         $bodyPlain = emailBodyConvert($body);
 
                         $mail = $container->get(Mailer::class);
-                        $mail->SetFrom($_SESSION[$guid]['organisationHREmail'], $_SESSION[$guid]['organisationHRName']);
+                        $mail->SetFrom($session->get('organisationHREmail'), $session->get('organisationHRName'));
                         $mail->AddAddress($to);
                         $mail->Subject = $subject;
                         $mail->renderBody('mail/email.twig.html', [
@@ -205,11 +202,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
 
                         if ($mail->Send()) {
                             echo "<div class='success'>";
-                            echo sprintf(__('A request to create a applicant email address and/or website address was successfully sent to %1$s.'), $_SESSION[$guid]['organisationHRName']);
+                            echo sprintf(__('A request to create a applicant email address and/or website address was successfully sent to %1$s.'), $session->get('organisationHRName'));
                             echo '</div>';
                         } else {
                             echo "<div class='error'>";
-                            echo sprintf(__('A request to create a applicant email address and/or website address failed. Please contact %1$s to request these manually.'), $_SESSION[$guid]['organisationHRName']);
+                            echo sprintf(__('A request to create a applicant email address and/or website address failed. Please contact %1$s to request these manually.'), $session->get('organisationHRName'));
                             echo '</div>';
                         }
                     }
@@ -217,8 +214,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
                     if ($continueLoop == false) {
                         $insertOK = true;
                         try {
-                            $data = array('username' => $username, 'passwordStrong' => $passwordStrong, 'passwordStrongSalt' => $salt, 'surname' => $values['surname'], 'firstName' => $values['firstName'], 'preferredName' => $values['preferredName'], 'officialName' => $values['officialName'], 'nameInCharacters' => $values['nameInCharacters'], 'gender' => $values['gender'], 'dob' => $values['dob'], 'languageFirst' => $values['languageFirst'], 'languageSecond' => $values['languageSecond'], 'languageThird' => $values['languageThird'], 'countryOfBirth' => $values['countryOfBirth'], 'citizenship1' => $values['citizenship1'], 'citizenship1Passport' => $values['citizenship1Passport'], 'nationalIDCardNumber' => $values['nationalIDCardNumber'], 'residencyStatus' => $values['residencyStatus'], 'visaExpiryDate' => $values['visaExpiryDate'], 'email' => $email, 'emailAlternate' => $emailAlternate, 'website' => $website, 'phone1Type' => $values['phone1Type'], 'phone1CountryCode' => $values['phone1CountryCode'], 'phone1' => $values['phone1'], 'dateStart' => $values['dateStart'], 'fields' => $values['fields']);
-                            $sql = "INSERT INTO gibbonPerson SET username=:username, password='', passwordStrong=:passwordStrong, passwordStrongSalt=:passwordStrongSalt, gibbonRoleIDPrimary='$gibbonRoleID', gibbonRoleIDAll='$gibbonRoleID', status='Full', surname=:surname, firstName=:firstName, preferredName=:preferredName, officialName=:officialName, nameInCharacters=:nameInCharacters, gender=:gender, dob=:dob, languageFirst=:languageFirst, languageSecond=:languageSecond, languageThird=:languageThird, countryOfBirth=:countryOfBirth, citizenship1=:citizenship1, citizenship1Passport=:citizenship1Passport, nationalIDCardNumber=:nationalIDCardNumber, residencyStatus=:residencyStatus, visaExpiryDate=:visaExpiryDate, email=:email, emailAlternate=:emailAlternate, website=:website, phone1Type=:phone1Type, phone1CountryCode=:phone1CountryCode, phone1=:phone1, dateStart=:dateStart, fields=:fields";
+                            $data = array('username' => $username, 'passwordStrong' => $passwordStrong, 'passwordStrongSalt' => $salt, 'surname' => $values['surname'], 'firstName' => $values['firstName'], 'preferredName' => $values['preferredName'], 'officialName' => $values['officialName'], 'nameInCharacters' => $values['nameInCharacters'], 'gender' => $values['gender'], 'dob' => $values['dob'], 'languageFirst' => $values['languageFirst'], 'languageSecond' => $values['languageSecond'], 'languageThird' => $values['languageThird'], 'countryOfBirth' => $values['countryOfBirth'], 'email' => $email, 'emailAlternate' => $emailAlternate, 'website' => $website, 'phone1Type' => $values['phone1Type'], 'phone1CountryCode' => $values['phone1CountryCode'], 'phone1' => $values['phone1'], 'dateStart' => $values['dateStart'], 'fields' => $values['fields']);
+                            $sql = "INSERT INTO gibbonPerson SET username=:username, password='', passwordStrong=:passwordStrong, passwordStrongSalt=:passwordStrongSalt, gibbonRoleIDPrimary='$gibbonRoleID', gibbonRoleIDAll='$gibbonRoleID', status='Full', surname=:surname, firstName=:firstName, preferredName=:preferredName, officialName=:officialName, nameInCharacters=:nameInCharacters, gender=:gender, dob=:dob, languageFirst=:languageFirst, languageSecond=:languageSecond, languageThird=:languageThird, countryOfBirth=:countryOfBirth,  email=:email, emailAlternate=:emailAlternate, website=:website, phone1Type=:phone1Type, phone1CountryCode=:phone1CountryCode, phone1=:phone1, dateStart=:dateStart, fields=:fields";
                             $result = $connection2->prepare($sql);
                             $result->execute($data);
                         } catch (PDOException $e) {
@@ -238,6 +235,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
                                 $informApplicantArray[0]['username'] = $username;
                                 $informApplicantArray[0]['password'] = $password;
                             }
+
+                            // Update personal document ownership
+                            $container->get(PersonalDocumentGateway::class)->updatePersonalDocumentOwnership('gibbonStaffApplicationForm', $gibbonStaffApplicationFormID, 'gibbonPerson', $gibbonPersonID);
                         }
                     }
 
@@ -261,8 +261,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
                         //Enrol applicant
                         $enrolmentOK = true;
                         try {
-                            $data = array('gibbonPersonID' => $gibbonPersonID, 'type' => $values['type'], 'jobTitle' => $values['jobTitle']);
-                            $sql = 'INSERT INTO gibbonStaff SET gibbonPersonID=:gibbonPersonID, type=:type, jobTitle=:jobTitle';
+                            $data = array('gibbonPersonID' => $gibbonPersonID, 'type' => $values['type'], 'jobTitle' => $values['jobTitle'], 'fields' => $values['staffFields']);
+                            $sql = 'INSERT INTO gibbonStaff SET gibbonPersonID=:gibbonPersonID, type=:type, jobTitle=:jobTitle, fields=:fields';
                             $result = $connection2->prepare($sql);
                             $result->execute($data);
                         } catch (PDOException $e) {
@@ -293,16 +293,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
                             foreach ($informApplicantArray as $informApplicantEntry) {
                                 if ($informApplicantEntry['email'] != '' and $informApplicantEntry['surname'] != '' and $informApplicantEntry['preferredName'] != '' and $informApplicantEntry['username'] != '' and $informApplicantEntry['password']) {
                                     $to = $informApplicantEntry['email'];
-                                    $subject = sprintf(__('Welcome to %1$s at %2$s'), $_SESSION[$guid]['systemName'], $_SESSION[$guid]['organisationNameShort']);
+                                    $subject = sprintf(__('Welcome to %1$s at %2$s'), $session->get('systemName'), $session->get('organisationNameShort'));
                                     if ($notificationApplicantMessage != '') {
-                                        $body = sprintf(__('Dear %1$s,<br/><br/>Welcome to %2$s, %3$s\'s system for managing school information. You can access the system by going to %4$s and logging in with your new username (%5$s) and password (%6$s).<br/><br/>In order to maintain the security of your data, we highly recommend you change your password to something easy to remember but hard to guess. This can be done by using the Preferences page after logging in (top-right of the screen).<br/><br/>'), Format::name('', $informApplicantEntry['preferredName'], $informApplicantEntry['surname'], 'Student'), $_SESSION[$guid]['systemName'], $_SESSION[$guid]['organisationNameShort'], $_SESSION[$guid]['absoluteURL'], $informApplicantEntry['username'], $informApplicantEntry['password']).$notificationApplicantMessage.' '.sprintf(__('Please feel free to reply to this email should you have any questions.<br/><br/>%1$s,<br/><br/>%2$s Administrator'), $_SESSION[$guid]['organisationHRName'], $_SESSION[$guid]['systemName']);
+                                        $body = sprintf(__('Dear %1$s,<br/><br/>Welcome to %2$s, %3$s\'s system for managing school information. You can access the system by going to %4$s and logging in with your new username (%5$s) and password (%6$s).<br/><br/>In order to maintain the security of your data, we highly recommend you change your password to something easy to remember but hard to guess. This can be done by using the Preferences page after logging in (top-right of the screen).<br/><br/>'), Format::name('', $informApplicantEntry['preferredName'], $informApplicantEntry['surname'], 'Student'), $session->get('systemName'), $session->get('organisationNameShort'), $session->get('absoluteURL'), $informApplicantEntry['username'], $informApplicantEntry['password']).$notificationApplicantMessage.' '.sprintf(__('Please feel free to reply to this email should you have any questions.<br/><br/>%1$s,<br/><br/>%2$s Administrator'), $session->get('organisationHRName'), $session->get('systemName'));
                                     } else {
-                                        $body = 'Dear '.Format::name('', $informApplicantEntry['preferredName'], $informApplicantEntry['surname'], 'Student').",<br/><br/>Welcome to ".$_SESSION[$guid]['systemName'].', '.$_SESSION[$guid]['organisationNameShort']."'s system for managing school information. You can access the system by going to ".$_SESSION[$guid]['absoluteURL'].' and logging in with your new username ('.$informApplicantEntry['username'].') and password ('.$informApplicantEntry['password'].").<br/><br/>In order to maintain the security of your data, we highly recommend you change your password to something easy to remember but hard to guess. This can be done by using the Preferences page after logging in (top-right of the screen).<br/><br/>Please feel free to reply to this email should you have any questions.<br/><br/>".$_SESSION[$guid]['organisationHRName'].",<br/><br/>".$_SESSION[$guid]['systemName'].' Administrator';
+                                        $body = 'Dear '.Format::name('', $informApplicantEntry['preferredName'], $informApplicantEntry['surname'], 'Student').",<br/><br/>Welcome to ".$session->get('systemName').', '.$session->get('organisationNameShort')."'s system for managing school information. You can access the system by going to ".$session->get('absoluteURL').' and logging in with your new username ('.$informApplicantEntry['username'].') and password ('.$informApplicantEntry['password'].").<br/><br/>In order to maintain the security of your data, we highly recommend you change your password to something easy to remember but hard to guess. This can be done by using the Preferences page after logging in (top-right of the screen).<br/><br/>Please feel free to reply to this email should you have any questions.<br/><br/>".$session->get('organisationHRName').",<br/><br/>".$session->get('systemName').' Administrator';
                                     }
                                     $bodyPlain = emailBodyConvert($body);
 
                                     $mail = $container->get(Mailer::class);
-                                    $mail->SetFrom($_SESSION[$guid]['organisationHREmail'], $_SESSION[$guid]['organisationHRName']);
+                                    $mail->SetFrom($session->get('organisationHREmail'), $session->get('organisationHRName'));
                                     $mail->AddAddress($to);
                                     $mail->Subject = $subject;
                                     $mail->renderBody('mail/email.twig.html', [
@@ -354,8 +354,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
                         $enrolmentOK = true;
 
                         try {
-                            $data = array('gibbonPersonID' => $values['gibbonPersonID'], 'type' => $values['type'], 'jobTitle' => $values['jobTitle']);
-                            $sql = 'INSERT INTO gibbonStaff SET gibbonPersonID=:gibbonPersonID, type=:type, jobTitle=:jobTitle';
+                            $data = array('gibbonPersonID' => $values['gibbonPersonID'], 'type' => $values['type'], 'jobTitle' => $values['jobTitle'], 'fields' => $values['staffFields']);
+                            $sql = 'INSERT INTO gibbonStaff SET gibbonPersonID=:gibbonPersonID, type=:type, jobTitle=:jobTitle, fields=:fields';
                             $result = $connection2->prepare($sql);
                             $result->execute($data);
                         } catch (PDOException $e) {
@@ -401,7 +401,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
                     echo '</ul>';
 
                     echo "<div class='success' style='margin-bottom: 20px'>";
-                    echo sprintf(__('Applicant has been successfully accepted into %1$s.'), $_SESSION[$guid]['organisationName']).' <i><u>'.__('You may wish to now do the following:').'</u></i><br/>';
+                    echo sprintf(__('Applicant has been successfully accepted into %1$s.'), $session->get('organisationName')).' <i><u>'.__('You may wish to now do the following:').'</u></i><br/>';
                     echo '<ol>';
                     echo '<li>'.__('Adjust the user\'s roles within the system.').'</li>';
                     echo '<li>'.__('Create a timetable for the applicant.').'</li>';

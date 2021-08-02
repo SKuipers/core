@@ -28,10 +28,6 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/space_manage_
         ->add(__('Manage Facilities'), 'space_manage.php')
         ->add(__('Edit Facility'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     //Check if school year specified
     $gibbonSpaceID = $_GET['gibbonSpaceID'];
     if ($gibbonSpaceID == '') {
@@ -49,9 +45,9 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/space_manage_
             //Let's go!
             $values = $result->fetch();
 
-            $form = Form::create('spaceEdit', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/space_manage_editProcess.php?gibbonSpaceID='.$gibbonSpaceID);
+            $form = Form::create('spaceEdit', $session->get('absoluteURL').'/modules/'.$session->get('module').'/space_manage_editProcess.php?gibbonSpaceID='.$gibbonSpaceID);
 
-            $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+            $form->addHiddenValue('address', $session->get('address'));
 
             $row = $form->addRow();
                 $row->addLabel('name', __('Name'))->description(__('Must be unique.'));

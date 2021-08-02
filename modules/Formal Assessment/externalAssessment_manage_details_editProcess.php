@@ -17,19 +17,19 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+
 include '../../gibbon.php';
 
-$gibbonPersonID = $_POST['gibbonPersonID'];
-$gibbonExternalAssessmentStudentID = $_POST['gibbonExternalAssessmentStudentID'];
-$search = $_GET['search'];
-$allStudents = '';
-if (isset($_GET['allStudents'])) {
-    $allStudents = $_GET['allStudents'];
-}
+$gibbonPersonID = $_POST['gibbonPersonID'] ?? '';
+$gibbonExternalAssessmentStudentID = $_POST['gibbonExternalAssessmentStudentID'] ?? '';
+$search = $_GET['search'] ?? '';
+$allStudents = $_GET['allStudents'] ?? '';
+
 
 if ($gibbonPersonID == '') { echo 'Fatal error loading this page!';
 } else {
-    $URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/externalAssessment_manage_details_edit.php&gibbonPersonID=$gibbonPersonID&gibbonExternalAssessmentStudentID=$gibbonExternalAssessmentStudentID&search=$search&allStudents=$allStudents";
+    $URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/externalAssessment_manage_details_edit.php&gibbonPersonID=$gibbonPersonID&gibbonExternalAssessmentStudentID=$gibbonExternalAssessmentStudentID&search=$search&allStudents=$allStudents";
 
     if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/externalAssessment_manage_details_edit.php') == false) {
         $URL .= '&return=error0';
@@ -62,9 +62,9 @@ if ($gibbonPersonID == '') { echo 'Fatal error loading this page!';
                 if (is_numeric($_POST['count'])) {
                     $count = $_POST['count'];
                 }
-                $date = dateConvert($guid, $_POST['date']);
+                $date = !empty($_POST['date']) ? Format::dateConvert($_POST['date']) : null;
 
-                $attachment = isset($_POST['attachment'])? $_POST['attachment'] : $row['attachment'];
+                $attachment = $_POST['attachment'] ?? $row['attachment'];
                 //Move attached image  file, if there is one
                 if (!empty($_FILES['file']['tmp_name'])) {
                     $fileUploader = new Gibbon\FileUploader($pdo, $gibbon->session);

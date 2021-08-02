@@ -35,7 +35,8 @@ class Row
     use BasicAttributesTrait;
 
     protected $factory;
-    protected $formElements = array();
+    protected $heading = '';
+    protected $formElements = [];
 
     /**
      * Construct a row with access to a specific factory.
@@ -69,21 +70,49 @@ class Row
             if ($element instanceof RowDependancyInterface) {
                 $element->setRow($this);
             }
+
+            if ($function == 'createSubmit') {
+                $this->setHeading('submit');
+            }
         } catch (\ReflectionException $e) {
-            $element = $this->factory->createContent(sprintf('Cannot %1$s. This form element does not exist in the current FormFactory', $function).': '.$e->getMessage());
+            $element = $this->factory->createContent(strtr('Cannot {function}. This form element does not exist in the current FormFactory: {message}', [
+                '{function}' => $function,
+                '{message}' => $e->getMessage(),
+            ]));
         } catch (\Exception $e) {
-            $element = $this->factory->createContent(sprintf('Cannot %1$s. Error creating form element.', $function).': '.$e->getMessage());
+            $element = $this->factory->createContent(strtr('Cannot {function}. Error creating form element: {message}', [
+                '{function}' => $function,
+                '{message}' => $e->getMessage(),
+            ]));
         } finally {
+            if (!($element instanceof OutputableInterface)) {
+                if (($element_type = gettype($element)) === 'object') $element_type = get_class($element);
+                $element = $this->factory->createContent(strtr('{function} returned {type} instead of an outputable form element.', [
+                    '{type}' => $element_type,
+                    '{function}' => $function,
+                ]));
+            }
             $this->addElement($element);
         }
 
         return $element;
     }
 
+    public function getHeading()
+    {
+        return $this->heading;
+    }
+
+    public function setHeading($heading)
+    {
+        $this->heading = $heading;
+        return $this;
+    }
+
     /**
      * Allows a conditional to be chained into the form row elements, rather than wrapping the whole section in an if statement.
      * @param bool $conditional
-     * @return object OutputableInterface   
+     * @return object OutputableInterface
      */
     public function onlyIf($conditional)
     {
@@ -188,11 +217,11 @@ class Row
         if (method_exists($element, 'getID') && !empty($element->getID())) {
             return $element->getID();
         }
-        
+
         if (method_exists($element, 'getName') && !empty($element->getName())) {
             return $element->getName();
         }
-        
+
         return 'element-'.$this->getElementCount();
     }
 }

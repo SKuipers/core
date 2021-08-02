@@ -24,7 +24,7 @@ use Gibbon\Services\Format;
 $page->breadcrumbs->add(__('View Markbook'));
 
 // Lock the file so other scripts cannot call it
-if (MARKBOOK_VIEW_LOCK !== sha1( $highestAction . $_SESSION[$guid]['gibbonPersonID'] ) . date('zWy') ) return;
+if (MARKBOOK_VIEW_LOCK !== sha1( $highestAction . $session->get('gibbonPersonID') ) . date('zWy') ) return;
 
     //Get settings
     $enableEffort = getSettingByScope($connection2, 'Markbook', 'enableEffort');
@@ -44,7 +44,7 @@ if (MARKBOOK_VIEW_LOCK !== sha1( $highestAction . $_SESSION[$guid]['gibbonPerson
     $dataList = array();
     $dataEntry = array();
 
-    $filter = isset($_REQUEST['filter'])? $_REQUEST['filter'] : $_SESSION[$guid]['gibbonSchoolYearID'];
+    $filter = isset($_REQUEST['filter'])? $_REQUEST['filter'] : $session->get('gibbonSchoolYearID');
     if ($filter != '*') {
         $dataList['filter'] = $filter;
         $and .= ' AND gibbonSchoolYearID=:filter';
@@ -62,10 +62,10 @@ if (MARKBOOK_VIEW_LOCK !== sha1( $highestAction . $_SESSION[$guid]['gibbonPerson
         $and2 .= ' AND type=:filter3';
     }
 
-    $form = Form::create('filter', $_SESSION[$guid]['absoluteURL'].'/index.php','get');
+    $form = Form::create('filter', $session->get('absoluteURL').'/index.php','get');
     $form->setClass('noIntBorder fullWidth');
 
-    $form->addHiddenValue('q', '/modules/'.$_SESSION[$guid]['module'].'/markbook_view.php');
+    $form->addHiddenValue('q', '/modules/'.$session->get('module').'/markbook_view.php');
 
     $sqlSelect = "SELECT gibbonDepartmentID as value, name FROM gibbonDepartment WHERE type='Learning Area' ORDER BY name";
     $rowFilter = $form->addRow();
@@ -75,7 +75,7 @@ if (MARKBOOK_VIEW_LOCK !== sha1( $highestAction . $_SESSION[$guid]['gibbonPerson
             ->fromQuery($pdo, $sqlSelect)
             ->selected($filter2);
 
-    $dataSelect = array('gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID']);
+    $dataSelect = array('gibbonPersonID' => $session->get('gibbonPersonID'));
     $sqlSelect = "SELECT gibbonSchoolYear.gibbonSchoolYearID as value, CONCAT(gibbonSchoolYear.name, ' (', gibbonYearGroup.name, ')') AS name FROM gibbonStudentEnrolment JOIN gibbonSchoolYear ON (gibbonStudentEnrolment.gibbonSchoolYearID=gibbonSchoolYear.gibbonSchoolYearID) JOIN gibbonYearGroup ON (gibbonStudentEnrolment.gibbonYearGroupID=gibbonYearGroup.gibbonYearGroupID) WHERE gibbonPersonID=:gibbonPersonID ORDER BY gibbonSchoolYear.sequenceNumber";
     $rowFilter = $form->addRow();
         $rowFilter->addLabel('filter', __('School Years'));
@@ -123,9 +123,9 @@ if (MARKBOOK_VIEW_LOCK !== sha1( $highestAction . $_SESSION[$guid]['gibbonPerson
     <?php
 
     //Get class list
-    
-        $dataList['gibbonPersonID'] = $_SESSION[$guid]['gibbonPersonID'];
-        $dataList['gibbonPersonID2'] = $_SESSION[$guid]['gibbonPersonID'];
+
+        $dataList['gibbonPersonID'] = $session->get('gibbonPersonID');
+        $dataList['gibbonPersonID2'] = $session->get('gibbonPersonID');
         $sqlList = "SELECT gibbonCourse.nameShort AS course, gibbonCourseClass.nameShort AS class, gibbonCourse.name, gibbonCourseClass.gibbonCourseClassID, gibbonScaleGrade.value AS target, gibbonPerson.dateStart
         FROM gibbonCourse
         JOIN gibbonCourseClass ON (gibbonCourseClass.gibbonCourseID=gibbonCourse.gibbonCourseID)
@@ -137,8 +137,8 @@ if (MARKBOOK_VIEW_LOCK !== sha1( $highestAction . $_SESSION[$guid]['gibbonPerson
         $resultList->execute($dataList);
     if ($resultList->rowCount() > 0) {
         while ($rowList = $resultList->fetch()) {
-            
-                $dataEntry['gibbonPersonIDStudent'] = $_SESSION[$guid]['gibbonPersonID'];
+
+                $dataEntry['gibbonPersonIDStudent'] = $session->get('gibbonPersonID');
                 $dataEntry['gibbonCourseClassID'] = $rowList['gibbonCourseClassID'];
                 $dataEntry['today'] = date('Y-m-d');
                 $sqlEntry = "SELECT *, gibbonMarkbookColumn.comment AS commentOn, gibbonMarkbookColumn.uploadedResponse AS uploadedResponseOn, gibbonMarkbookEntry.comment AS comment, (SELECT description FROM gibbonMarkbookWeight WHERE gibbonMarkbookWeight.gibbonCourseClassID=gibbonMarkbookColumn.gibbonCourseClassID AND gibbonMarkbookWeight.type=gibbonMarkbookColumn.type LIMIT 1) as typeName
@@ -154,7 +154,7 @@ if (MARKBOOK_VIEW_LOCK !== sha1( $highestAction . $_SESSION[$guid]['gibbonPerson
             if ($resultEntry->rowCount() > 0) {
                 echo '<h4>'.$rowList['course'].'.'.$rowList['class']." <span style='font-size:85%; font-style: italic'>(".$rowList['name'].')</span></h4>';
 
-                
+
                     $dataTeachers = array('gibbonCourseClassID' => $rowList['gibbonCourseClassID']);
                     $sqlTeachers = "SELECT title, surname, preferredName FROM gibbonPerson JOIN gibbonCourseClassPerson ON (gibbonCourseClassPerson.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE role='Teacher' AND gibbonCourseClassID=:gibbonCourseClassID ORDER BY surname, preferredName";
                     $resultTeachers = $connection2->prepare($sqlTeachers);
@@ -223,13 +223,13 @@ if (MARKBOOK_VIEW_LOCK !== sha1( $highestAction . $_SESSION[$guid]['gibbonPerson
                         }
                     }
                     if ($rowEntry['completeDate'] != '') {
-                        echo __('Marked on').' '.dateConvertBack($guid, $rowEntry['completeDate']).'<br/>';
+                        echo __('Marked on').' '.Format::date($rowEntry['completeDate']).'<br/>';
                     } else {
                         echo __('Unmarked').'<br/>';
                     }
-                    echo (!empty($rowEntry['typeName']))? ucfirst($rowEntry['typeName']) : ucfirst($rowEntry['type']);
-                    if ($rowEntry['attachment'] != '' and file_exists($_SESSION[$guid]['absolutePath'].'/'.$rowEntry['attachment'])) {
-                        echo " | <a 'title='".__('Download more information')."' href='".$_SESSION[$guid]['absoluteURL'].'/'.$rowEntry['attachment']."'>".__('More info').'</a>';
+                    echo !empty($rowEntry['typeName'])? ucfirst($rowEntry['typeName']) : ucfirst($rowEntry['type']);
+                    if ($rowEntry['attachment'] != '' and file_exists($session->get('absolutePath').'/'.$rowEntry['attachment'])) {
+                        echo " | <a 'title='".__('Download more information')."' href='".$session->get('absoluteURL').'/'.$rowEntry['attachment']."'>".__('More info').'</a>';
                     }
                     echo '</span><br/>';
                     echo '</td>';
@@ -252,7 +252,7 @@ if (MARKBOOK_VIEW_LOCK !== sha1( $highestAction . $_SESSION[$guid]['gibbonPerson
                     } else {
                         echo "<td style='text-align: center'>";
                         $attainmentExtra = '';
-                        
+
                             $dataAttainment = array('gibbonScaleID' => $rowEntry['gibbonScaleIDAttainment']);
                             $sqlAttainment = 'SELECT * FROM gibbonScale WHERE gibbonScaleID=:gibbonScaleID';
                             $resultAttainment = $connection2->prepare($sqlAttainment);
@@ -271,7 +271,7 @@ if (MARKBOOK_VIEW_LOCK !== sha1( $highestAction . $_SESSION[$guid]['gibbonPerson
                         }
                         echo "<div $styleAttainment>".$rowEntry['attainmentValue'];
                         if ($rowEntry['gibbonRubricIDAttainment'] != '' AND $enableRubrics =='Y') {
-                            echo "<a class='thickbox' href='".$_SESSION[$guid]['absoluteURL'].'/fullscreen.php?q=/modules/Markbook/markbook_view_rubric.php&gibbonRubricID='.$rowEntry['gibbonRubricIDAttainment'].'&gibbonCourseClassID='.$rowEntry['gibbonCourseClassID'].'&gibbonMarkbookColumnID='.$rowEntry['gibbonMarkbookColumnID'].'&gibbonPersonID='.$_SESSION[$guid]['gibbonPersonID']."&mark=FALSE&type=attainment&width=1100&height=550'><img style='margin-bottom: -3px; margin-left: 3px' title='".__('View Rubric')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/rubric.png'/></a>";
+                            echo "<a class='thickbox' href='".$session->get('absoluteURL').'/fullscreen.php?q=/modules/Markbook/markbook_view_rubric.php&gibbonRubricID='.$rowEntry['gibbonRubricIDAttainment'].'&gibbonCourseClassID='.$rowEntry['gibbonCourseClassID'].'&gibbonMarkbookColumnID='.$rowEntry['gibbonMarkbookColumnID'].'&gibbonPersonID='.$session->get('gibbonPersonID')."&mark=FALSE&type=attainment&width=1100&height=550'><img style='margin-bottom: -3px; margin-left: 3px' title='".__('View Rubric')."' src='./themes/".$session->get('gibbonThemeName')."/img/rubric.png'/></a>";
                         }
                         echo '</div>';
                         if ($rowEntry['attainmentValue'] != '') {
@@ -287,7 +287,7 @@ if (MARKBOOK_VIEW_LOCK !== sha1( $highestAction . $_SESSION[$guid]['gibbonPerson
 	                    } else {
 	                        echo "<td style='text-align: center'>";
 	                        $effortExtra = '';
-	                        
+
 	                            $dataEffort = array('gibbonScaleID' => $rowEntry['gibbonScaleIDEffort']);
 	                            $sqlEffort = 'SELECT * FROM gibbonScale WHERE gibbonScaleID=:gibbonScaleID';
 	                            $resultEffort = $connection2->prepare($sqlEffort);
@@ -302,7 +302,7 @@ if (MARKBOOK_VIEW_LOCK !== sha1( $highestAction . $_SESSION[$guid]['gibbonPerson
 	                        }
 	                        echo "<div $styleEffort>".$rowEntry['effortValue'];
 	                        if ($rowEntry['gibbonRubricIDEffort'] != '' AND $enableRubrics =='Y') {
-	                            echo "<a class='thickbox' href='".$_SESSION[$guid]['absoluteURL'].'/fullscreen.php?q=/modules/Markbook/markbook_view_rubric.php&gibbonRubricID='.$rowEntry['gibbonRubricIDEffort'].'&gibbonCourseClassID='.$rowEntry['gibbonCourseClassID'].'&gibbonMarkbookColumnID='.$rowEntry['gibbonMarkbookColumnID'].'&gibbonPersonID='.$_SESSION[$guid]['gibbonPersonID']."&mark=FALSE&type=effort&width=1100&height=550'><img style='margin-bottom: -3px; margin-left: 3px' title='".__('View Rubric')."' src='./themes/".$_SESSION[$guid]['gibbonThemeName']."/img/rubric.png'/></a>";
+	                            echo "<a class='thickbox' href='".$session->get('absoluteURL').'/fullscreen.php?q=/modules/Markbook/markbook_view_rubric.php&gibbonRubricID='.$rowEntry['gibbonRubricIDEffort'].'&gibbonCourseClassID='.$rowEntry['gibbonCourseClassID'].'&gibbonMarkbookColumnID='.$rowEntry['gibbonMarkbookColumnID'].'&gibbonPersonID='.$session->get('gibbonPersonID')."&mark=FALSE&type=effort&width=1100&height=550'><img style='margin-bottom: -3px; margin-left: 3px' title='".__('View Rubric')."' src='./themes/".$session->get('gibbonThemeName')."/img/rubric.png'/></a>";
 	                        }
 	                        echo '</div>';
 	                        if ($rowEntry['effortValue'] != '') {
@@ -341,7 +341,7 @@ if (MARKBOOK_VIEW_LOCK !== sha1( $highestAction . $_SESSION[$guid]['gibbonPerson
                             echo '<br/>';
                         }
                         if ($rowEntry['response'] != '') {
-                            echo "<a title='".__('Uploaded Response')."' href='".$_SESSION[$guid]['absoluteURL'].'/'.$rowEntry['response']."'>".__('Uploaded Response').'</a><br/>';
+                            echo "<a title='".__('Uploaded Response')."' href='".$session->get('absoluteURL').'/'.$rowEntry['response']."'>".__('Uploaded Response').'</a><br/>';
                         }
                         echo '</td>';
                     }
@@ -350,7 +350,7 @@ if (MARKBOOK_VIEW_LOCK !== sha1( $highestAction . $_SESSION[$guid]['gibbonPerson
                         echo __('N/A');
                         echo '</td>';
                     } else {
-                        
+
                             $dataSub = array('gibbonPlannerEntryID' => $rowEntry['gibbonPlannerEntryID']);
                             $sqlSub = "SELECT * FROM gibbonPlannerEntry WHERE gibbonPlannerEntryID=:gibbonPlannerEntryID AND homeworkSubmission='Y'";
                             $resultSub = $connection2->prepare($sqlSub);
@@ -363,8 +363,8 @@ if (MARKBOOK_VIEW_LOCK !== sha1( $highestAction . $_SESSION[$guid]['gibbonPerson
                             echo '<td>';
                             $rowSub = $resultSub->fetch();
 
-                            
-                                $dataWork = array('gibbonPlannerEntryID' => $rowEntry['gibbonPlannerEntryID'], 'gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID']);
+
+                                $dataWork = array('gibbonPlannerEntryID' => $rowEntry['gibbonPlannerEntryID'], 'gibbonPersonID' => $session->get('gibbonPersonID'));
                                 $sqlWork = 'SELECT * FROM gibbonPlannerEntryHomework WHERE gibbonPlannerEntryID=:gibbonPlannerEntryID AND gibbonPersonID=:gibbonPersonID ORDER BY count DESC';
                                 $resultWork = $connection2->prepare($sqlWork);
                                 $resultWork->execute($dataWork);
@@ -389,11 +389,11 @@ if (MARKBOOK_VIEW_LOCK !== sha1( $highestAction . $_SESSION[$guid]['gibbonPerson
                                 }
 
                                 if ($rowWork['type'] == 'File') {
-                                    echo "<span title='".$rowWork['version'].". $status. ".sprintf(__('Submitted at %1$s on %2$s'), substr($rowWork['timestamp'], 11, 5), dateConvertBack($guid, substr($rowWork['timestamp'], 0, 10)))."' $style><a href='".$_SESSION[$guid]['absoluteURL'].'/'.$rowWork['location']."'>$linkText</a></span>";
+                                    echo "<span title='".$rowWork['version'].". $status. ".sprintf(__('Submitted at %1$s on %2$s'), substr($rowWork['timestamp'], 11, 5), Format::date(substr($rowWork['timestamp'], 0, 10)))."' $style><a href='".$session->get('absoluteURL').'/'.$rowWork['location']."'>$linkText</a></span>";
                                 } elseif ($rowWork['type'] == 'Link') {
-                                    echo "<span title='".$rowWork['version'].". $status. ".sprintf(__('Submitted at %1$s on %2$s'), substr($rowWork['timestamp'], 11, 5), dateConvertBack($guid, substr($rowWork['timestamp'], 0, 10)))."' $style><a target='_blank' href='".$rowWork['location']."'>$linkText</a></span>";
+                                    echo "<span title='".$rowWork['version'].". $status. ".sprintf(__('Submitted at %1$s on %2$s'), substr($rowWork['timestamp'], 11, 5), Format::date(substr($rowWork['timestamp'], 0, 10)))."' $style><a target='_blank' href='".$rowWork['location']."'>$linkText</a></span>";
                                 } else {
-                                    echo "<span title='$status. ".sprintf(__('Recorded at %1$s on %2$s'), substr($rowWork['timestamp'], 11, 5), dateConvertBack($guid, substr($rowWork['timestamp'], 0, 10)))."' $style>$linkText</span>";
+                                    echo "<span title='$status. ".sprintf(__('Recorded at %1$s on %2$s'), substr($rowWork['timestamp'], 11, 5), Format::date(substr($rowWork['timestamp'], 0, 10)))."' $style>$linkText</span>";
                                 }
                             } else {
                                 if (date('Y-m-d H:i:s') < $rowSub['homeworkDueDateTime']) {
@@ -414,7 +414,7 @@ if (MARKBOOK_VIEW_LOCK !== sha1( $highestAction . $_SESSION[$guid]['gibbonPerson
                         }
                     }
                     echo '</tr>';
-                    if (mb_strlen($rowEntry['comment']) > 200) {
+                    if ($rowEntry['commentOn'] == 'Y' && mb_strlen($rowEntry['comment']) > 200) {
                         echo "<tr class='comment-$entryCount' id='comment-$entryCount'>";
                         echo '<td colspan=6>';
                         echo nl2br($rowEntry['comment']);
@@ -427,7 +427,7 @@ if (MARKBOOK_VIEW_LOCK !== sha1( $highestAction . $_SESSION[$guid]['gibbonPerson
                 $enableDisplayCumulativeMarks = getSettingByScope($connection2, 'Markbook', 'enableDisplayCumulativeMarks');
 
                 if ($enableColumnWeighting == 'Y' && $enableDisplayCumulativeMarks == 'Y') {
-                    renderStudentCumulativeMarks($gibbon, $pdo, $_SESSION[$guid]['gibbonPersonID'], $rowList['gibbonCourseClassID']);
+                    renderStudentCumulativeMarks($gibbon, $pdo, $session->get('gibbonPersonID'), $rowList['gibbonCourseClassID']);
                 }
 
                 echo '</table>';

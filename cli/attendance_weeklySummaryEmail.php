@@ -28,7 +28,7 @@ require getcwd().'/../gibbon.php';
 setCurrentSchoolYear($guid, $connection2);
 
 //Check for CLI, so this cannot be run through browser
-if (!isCommandLineInterface()) { 
+if (!isCommandLineInterface()) {
     echo __('This script cannot be run from a browser, only via CLI.');
 } else {
     setCurrentSchoolYear($guid, $connection2);
@@ -36,25 +36,25 @@ if (!isCommandLineInterface()) {
     require_once __DIR__ . '/../modules/Attendance/moduleFunctions.php';
     require_once __DIR__ . '/../modules/Attendance/src/AttendanceView.php';
     $attendance = new AttendanceView($gibbon, $pdo);
-    
+
     $countClassAsSchool = getSettingByScope($connection2, 'Attendance', 'countClassAsSchool');
     $firstDayOfTheWeek = $gibbon->session->get('firstDayOfTheWeek');
-    $dateFormat = $_SESSION[$guid]['i18n']['dateFormat'];
-    
+    $dateFormat = $session->get('i18n')['dateFormat'];
+
     $dateEnd = new DateTime();
     $dateStart = new DateTime();
     $dateStart->modify("$firstDayOfTheWeek this week");
 
     $data = array(
-        'dateStart' => $dateStart->format('Y-m-d'), 
-        'dateEnd' => $dateEnd->format('Y-m-d'), 
+        'dateStart' => $dateStart->format('Y-m-d'),
+        'dateEnd' => $dateEnd->format('Y-m-d'),
         'gibbonSchoolYearID' => $gibbon->session->get('gibbonSchoolYearID')
     );
-    $sql = "SELECT gibbonRollGroup.nameShort as rollGroupName, gibbonYearGroup.gibbonYearGroupID, gibbonAttendanceLogPerson.*, gibbonPerson.surname, gibbonPerson.preferredName, gibbonCourse.nameShort as courseName, gibbonCourseClass.nameShort as className, gibbonCourseClass.gibbonCourseClassID
+    $sql = "SELECT gibbonFormGroup.nameShort as formGroupName, gibbonYearGroup.gibbonYearGroupID, gibbonAttendanceLogPerson.*, gibbonPerson.surname, gibbonPerson.preferredName, gibbonCourse.nameShort as courseName, gibbonCourseClass.nameShort as className, gibbonCourseClass.gibbonCourseClassID
             FROM gibbonAttendanceLogPerson
             JOIN gibbonPerson ON (gibbonPerson.gibbonPersonID=gibbonAttendanceLogPerson.gibbonPersonID)
             JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID)
-            JOIN gibbonRollGroup ON (gibbonRollGroup.gibbonRollGroupID=gibbonStudentEnrolment.gibbonRollGroupID)
+            JOIN gibbonFormGroup ON (gibbonFormGroup.gibbonFormGroupID=gibbonStudentEnrolment.gibbonFormGroupID)
             JOIN gibbonYearGroup ON (gibbonYearGroup.gibbonYearGroupID=gibbonStudentEnrolment.gibbonYearGroupID)
             JOIN gibbonAttendanceCode ON (gibbonAttendanceCode.gibbonAttendanceCodeID=gibbonAttendanceLogPerson.gibbonAttendanceCodeID)
             LEFT JOIN gibbonCourseClass ON (gibbonAttendanceLogPerson.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID)
@@ -67,7 +67,7 @@ if (!isCommandLineInterface()) {
     // }
 
     $sql .= "AND gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID
-            ORDER BY gibbonYearGroup.sequenceNumber, gibbonRollGroup.nameShort, gibbonPerson.surname, gibbonPerson.preferredName, gibbonAttendanceLogPerson.date, gibbonAttendanceLogPerson.timestampTaken
+            ORDER BY gibbonYearGroup.sequenceNumber, gibbonFormGroup.nameShort, gibbonPerson.surname, gibbonPerson.preferredName, gibbonAttendanceLogPerson.date, gibbonAttendanceLogPerson.timestampTaken
     ";
 
     $reportByYearGroup = array();
@@ -75,20 +75,20 @@ if (!isCommandLineInterface()) {
 
     if ($results && $results->rowCount() > 0) {
         $attendanceLogs = $results->fetchAll(\PDO::FETCH_GROUP);
-        foreach ($attendanceLogs as $rollGroupName => $rollGroupLogs) {
-            $gibbonYearGroupID = current($rollGroupLogs)['gibbonYearGroupID'];
+        foreach ($attendanceLogs as $formGroupName => $formGroupLogs) {
+            $gibbonYearGroupID = current($formGroupLogs)['gibbonYearGroupID'];
 
             // Fields to group per-day for attendance logs
             $fields = array('context', 'date', 'type', 'reason', 'comment', 'timestampTaken', 'courseName', 'className', 'gibbonCourseClassID');
             $fields = array_flip($fields);
 
             // Build an attendance log set of days for each student
-            $logsByStudent = array_reduce($rollGroupLogs, function ($carry, &$item) use (&$fields) {
+            $logsByStudent = array_reduce($formGroupLogs, function ($carry, &$item) use (&$fields) {
                 $id = $item['gibbonPersonID'];
                 $carry[$id]['preferredName'] = $item['preferredName'];
                 $carry[$id]['surname'] = $item['surname'];
                 $carry[$id]['days'][$item['date']][] = array_intersect_key($item, $fields);
-                
+
                 return $carry;
             }, array());
 
@@ -109,7 +109,7 @@ if (!isCommandLineInterface()) {
                     $filtered = array_filter($filtered, function($log) use (&$attendance)  {
                         return $attendance->isTypeAbsent($log['type']) || $attendance->isTypeLate($log['type']);
                     });
-                    
+
                     return $filtered;
                 }, $item['days']);
 
@@ -127,12 +127,12 @@ if (!isCommandLineInterface()) {
             // Skip reports for empty data sets
             if (count($logsByStudent) == 0) continue;
 
-            $report = '<h4>'.$rollGroupName.'  &nbsp;<small>(Total '.count($logsByStudent).')</small></h4>';
+            $report = '<h4>'.$formGroupName.'  &nbsp;<small>(Total '.count($logsByStudent).')</small></h4>';
             $report .= '<ul>';
 
             foreach ($logsByStudent as $gibbonPersonID => $student) {
                 $report .= '<li>';
-                $report .= '<a href="'.$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Students/student_view_details.php&gibbonPersonID='.$gibbonPersonID.'&search=&allStudents=&subpage=Attendance" target="_blank">';
+                $report .= '<a href="'.$session->get('absoluteURL').'/index.php?q=/modules/Students/student_view_details.php&gibbonPersonID='.$gibbonPersonID.'&search=&allStudents=&subpage=Attendance" target="_blank">';
                 $report .= Format::name('', $student['preferredName'], $student['surname'], 'Student', true, true);
                 $report .= '</a>';
 
@@ -152,10 +152,10 @@ if (!isCommandLineInterface()) {
             }
             $report .= '</ul>';
 
-            $reportByYearGroup[$gibbonYearGroupID][$rollGroupName] = $report;
+            $reportByYearGroup[$gibbonYearGroupID][$formGroupName] = $report;
         }
     }
-    
+
     if (!empty($reportByYearGroup)) {
         // Initialize the notification sender & gateway objects
         $notificationGateway = new NotificationGateway($pdo);
@@ -163,13 +163,13 @@ if (!isCommandLineInterface()) {
 
         $reportHeading = '<h3>'.__('Weekly Attendance Summary').': '.$dateStart->format('M j').' - '.$dateEnd->format('M j').'</h3>';
 
-        foreach ($reportByYearGroup as $gibbonYearGroupID => $reportByRollGroup) {
+        foreach ($reportByYearGroup as $gibbonYearGroupID => $reportByFormGroup) {
             // Raise a new notification event
             $event = new NotificationEvent('Attendance', 'Weekly Attendance Summary');
 
             $event->addScope('gibbonYearGroupID', $gibbonYearGroupID);
-            $event->setNotificationText(__('An Attendance CLI script has run.').'<br/><br/>'.$reportHeading . implode(' ', $reportByRollGroup));
-            $event->setActionLink('/index.php?q=/modules/Attendance/report_summary_byDate.php&dateStart='.$dateStart->format($dateFormat).'dateEnd='.$dateEnd->format($dateFormat).'&group=all&sort=rollGroup');
+            $event->setNotificationText(__('An Attendance CLI script has run.').'<br/><br/>'.$reportHeading . implode(' ', $reportByFormGroup));
+            $event->setActionLink('/index.php?q=/modules/Attendance/report_summary_byDate.php&dateStart='.$dateStart->format($dateFormat).'dateEnd='.$dateEnd->format($dateFormat).'&group=all&sort=formGroup');
 
             // Push the event to the notification sender
             $event->pushNotifications($notificationGateway, $notificationSender);

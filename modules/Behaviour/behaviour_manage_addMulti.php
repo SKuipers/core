@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
+use Gibbon\Forms\CustomFieldHandler;
 use Gibbon\Forms\DatabaseFormFactory;
 
 //Module includes
@@ -35,25 +36,21 @@ if (isActionAccessible($guid, $connection2, '/modules/Behaviour/behaviour_manage
         ->add(__('Manage Behaviour Records'), 'behaviour_manage.php')
         ->add(__('Add Multiple'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     echo "<div class='linkTop'>";
     $policyLink = getSettingByScope($connection2, 'Behaviour', 'policyLink');
     if ($policyLink != '') {
         echo "<a target='_blank' href='$policyLink'>".__('View Behaviour Policy').'</a>';
     }
-    if ($_GET['gibbonPersonID'] != '' or $_GET['gibbonRollGroupID'] != '' or $_GET['gibbonYearGroupID'] != '' or $_GET['type'] != '') {
+    if ($_GET['gibbonPersonID'] != '' or $_GET['gibbonFormGroupID'] != '' or $_GET['gibbonYearGroupID'] != '' or $_GET['type'] != '') {
         if ($policyLink != '') {
             echo ' | ';
         }
-        echo "<a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Behaviour/behaviour_manage.php&gibbonPersonID='.$_GET['gibbonPersonID'].'&gibbonRollGroupID='.$_GET['gibbonRollGroupID'].'&gibbonYearGroupID='.$_GET['gibbonYearGroupID'].'&type='.$_GET['type']."'>".__('Back to Search Results').'</a>';
+        echo "<a href='".$session->get('absoluteURL').'/index.php?q=/modules/Behaviour/behaviour_manage.php&gibbonPersonID='.$_GET['gibbonPersonID'].'&gibbonFormGroupID='.$_GET['gibbonFormGroupID'].'&gibbonYearGroupID='.$_GET['gibbonYearGroupID'].'&type='.$_GET['type']."'>".__('Back to Search Results').'</a>';
     }
     echo '</div>';
 
 
-    $form = Form::create('addform', $_SESSION[$guid]['absoluteURL'].'/modules/Behaviour/behaviour_manage_addMultiProcess.php?gibbonPersonID='.$_GET['gibbonPersonID'].'&gibbonRollGroupID='.$_GET['gibbonRollGroupID'].'&gibbonYearGroupID='.$_GET['gibbonYearGroupID'].'&type='.$_GET['type']);
+    $form = Form::create('addform', $session->get('absoluteURL').'/modules/Behaviour/behaviour_manage_addMultiProcess.php?gibbonPersonID='.$_GET['gibbonPersonID'].'&gibbonFormGroupID='.$_GET['gibbonFormGroupID'].'&gibbonYearGroupID='.$_GET['gibbonYearGroupID'].'&type='.$_GET['type']);
     $form->setFactory(DatabaseFormFactory::create($pdo));
     $form->addHiddenValue('address', "/modules/Behaviour/behaviour_manage_addMulti.php");
     $form->addRow()->addHeading(__('Step 1'));
@@ -61,12 +58,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Behaviour/behaviour_manage
     //Student
     $row = $form->addRow();
         $row->addLabel('gibbonPersonIDMulti', __('Students'));
-        $row->addSelectStudent('gibbonPersonIDMulti', $_SESSION[$guid]['gibbonSchoolYearID'], array('byName' => true, 'byRoll' => true))->selectMultiple()->required();
+        $row->addSelectStudent('gibbonPersonIDMulti', $session->get('gibbonSchoolYearID'), array('byName' => true, 'byForm' => true))->selectMultiple()->required();
 
     //Date
     $row = $form->addRow();
-        $row->addLabel('date', __('Date'))->description($_SESSION[$guid]['i18n']['dateFormat'])->prepend(__('Format:'));
-        $row->addDate('date')->setValue(date($_SESSION[$guid]['i18n']['dateFormatPHP']))->required();
+        $row->addLabel('date', __('Date'))->description($session->get('i18n')['dateFormat'])->prepend(__('Format:'));
+        $row->addDate('date')->setValue(date($session->get('i18n')['dateFormatPHP']))->required();
 
     //Type
     $row = $form->addRow();
@@ -105,6 +102,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Behaviour/behaviour_manage
             $row->addSelect('level')->fromArray($optionsLevels)->placeholder();
     }
 
+    $form->addRow()->addHeading(__('Details'));
+    
     //Incident
     $row = $form->addRow();
         $column = $row->addColumn();
@@ -117,6 +116,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Behaviour/behaviour_manage
         $column->addLabel('followup', __('Follow Up'));
         $column->addTextArea('followup')->setRows(5)->setClass('fullWidth');
 
+    // CUSTOM FIELDS
+    $container->get(CustomFieldHandler::class)->addCustomFieldsToForm($form, 'Behaviour', []);
+    
     //Copy to Notes
     $row = $form->addRow();
         $row->addLabel('copyToNotes', __('Copy To Notes'));

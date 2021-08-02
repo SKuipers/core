@@ -37,10 +37,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/medicalForm_manag
         ->add(__('Edit Medical Form'), 'medicalForm_manage_edit.php', ['gibbonPersonMedicalID' => $gibbonPersonMedicalID])
         ->add(__('Edit Condition'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     if ($gibbonPersonMedicalID == '' or $gibbonPersonMedicalConditionID == '') {
         $page->addError(__('You have not specified one or more required parameters.'));
     } else {
@@ -53,15 +49,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/medicalForm_manag
             //Let's go!
             if ($search != '') {
                 echo "<div class='linkTop'>";
-                echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Students/medicalForm_manage_edit.php&search=$search&gibbonPersonMedicalID=$gibbonPersonMedicalID'>".__('Back').'</a>';
+                echo "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/Students/medicalForm_manage_edit.php&search=$search&gibbonPersonMedicalID=$gibbonPersonMedicalID'>".__('Back').'</a>';
                 echo '</div>';
             }
 
-            $form = Form::create('action', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/medicalForm_manage_condition_editProcess.php?gibbonPersonMedicalID=$gibbonPersonMedicalID&search=$search&gibbonPersonMedicalConditionID=$gibbonPersonMedicalConditionID");
+            $form = Form::create('action', $session->get('absoluteURL').'/modules/'.$session->get('module')."/medicalForm_manage_condition_editProcess.php?gibbonPersonMedicalID=$gibbonPersonMedicalID&search=$search&gibbonPersonMedicalConditionID=$gibbonPersonMedicalConditionID");
 
             $form->setFactory(DatabaseFormFactory::create($pdo));
 
-            $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+            $form->addHiddenValue('address', $session->get('address'));
             $form->addHiddenValue('gibbonPersonMedicalID', $gibbonPersonMedicalID);
 
             $form->addRow()->addHeading(__('General Information'));

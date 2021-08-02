@@ -17,9 +17,11 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+
 include '../../gibbon.php';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/schoolYear_manage_add.php';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/schoolYear_manage_add.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYear_manage_add.php') == false) {
     $URL .= '&return=error0';
@@ -27,11 +29,11 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYear_ma
 } else {
     //Proceed!
     //Validate Inputs
-    $name = $_POST['name'];
-    $status = $_POST['status'];
-    $sequenceNumber = $_POST['sequenceNumber'];
-    $firstDay = dateConvert($guid, $_POST['firstDay']);
-    $lastDay = dateConvert($guid, $_POST['lastDay']);
+    $name = $_POST['name'] ?? '';
+    $status = $_POST['status'] ?? '';
+    $sequenceNumber = $_POST['sequenceNumber'] ?? '';
+    $firstDay = !empty($_POST['firstDay']) ? Format::dateConvert($_POST['firstDay']) : null;
+    $lastDay = !empty($_POST['lastDay']) ? Format::dateConvert($_POST['lastDay']) : null;
 
     if ($name == '' or $status == '' or $sequenceNumber == '' or is_numeric($sequenceNumber) == false or $firstDay == '' or $lastDay == '') {
         $URL .= '&return=error1';
@@ -90,9 +92,9 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYear_ma
 
                 // Update session vars so the user is warned if they're logged into a different year
                 if ($status == 'Current') {
-                    $_SESSION[$guid]['gibbonSchoolYearIDCurrent'] = $AI;
-                    $_SESSION[$guid]['gibbonSchoolYearNameCurrent'] = $name;
-                    $_SESSION[$guid]['gibbonSchoolYearSequenceNumberCurrent'] = $sequenceNumber;
+                    $session->set('gibbonSchoolYearIDCurrent', $AI);
+                    $session->set('gibbonSchoolYearNameCurrent', $name);
+                    $session->set('gibbonSchoolYearSequenceNumberCurrent', $sequenceNumber);
                 }
 
                 $URL .= "&return=success0&editID=$AI";

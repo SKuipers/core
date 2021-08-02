@@ -24,6 +24,7 @@ use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Tables\Prefab\ReportTable;
 use Gibbon\Domain\Students\MedicalGateway;
 use Gibbon\Domain\Students\StudentReportGateway;
+use Gibbon\Domain\System\CustomFieldGateway;
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -36,8 +37,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_student_me
     $viewMode = $_REQUEST['format'] ?? '';
     $choices = $_POST['gibbonPersonID'] ?? [];
     //If $choices is blank, check to see if session is being used to inject gibbonPersonID list
-    if (count($choices) == 0 && !empty($_SESSION[$guid]['report_student_medicalSummary.php_choices'])) {
-        $choices = $_SESSION[$guid]['report_student_medicalSummary.php_choices'];
+    if (count($choices) == 0 && $session->has('report_student_medicalSummary.php_choices')) {
+        $choices = $session->get('report_student_medicalSummary.php_choices');
     }
     $gibbonSchoolYearID = $gibbon->session->get('gibbonSchoolYearID');
 
@@ -56,14 +57,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_student_me
 
         $choices = isset($_POST['gibbonPersonID'])? $_POST['gibbonPersonID'] : array();
 
-        $form = Form::create('action', $_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Students/report_student_medicalSummary.php");
+        $form = Form::create('action', $session->get('absoluteURL')."/index.php?q=/modules/Students/report_student_medicalSummary.php");
         $form->setTitle(__('Choose Students'));
         $form->setFactory(DatabaseFormFactory::create($pdo));
         $form->setClass('noIntBorder fullWidth');
 
         $row = $form->addRow();
             $row->addLabel('gibbonPersonID', __('Students'));
-            $row->addSelectStudent('gibbonPersonID', $_SESSION[$guid]['gibbonSchoolYearID'], array("allStudents" => false, "byName" => true, "byRoll" => true))
+            $row->addSelectStudent('gibbonPersonID', $session->get('gibbonSchoolYearID'), array("allStudents" => false, "byName" => true, "byForm" => true))
                 ->isRequired()
                 ->selectMultiple()
                 ->selected($choices);
@@ -119,16 +120,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_student_me
         });
 
     $view = new View($container->get('twig'));
+    $customFieldGateway = $container->get(CustomFieldGateway::class);
 
     $table->addColumn('medicalForm', __('Medical Form?'))
-        ->width('16%')
+        ->width('26%')
         ->sortable('gibbonPersonMedicalID')
-        ->format(function ($student) use ($view) {
+        ->format(function ($student) use ($view, $customFieldGateway) {
+            $student['customFields'] = $customFieldGateway->selectCustomFields('Medical Form')->fetchAll();
+            $student['fields'] = !empty($student['fields']) ? json_decode($student['fields'], true) : [];
             return $view->fetchFromTemplate('formats/medicalForm.twig.html', $student);
         });
 
     $table->addColumn('conditions', __('Medical Conditions'))
-        ->width('60%')
+        ->width('50%')
         ->notSortable()
         ->format(function ($student) use ($view) {
             return $view->fetchFromTemplate('formats/medicalConditions.twig.html', $student);

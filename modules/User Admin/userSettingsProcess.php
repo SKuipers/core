@@ -19,23 +19,22 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/userSettings.php';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/userSettings.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/User Admin/userSettings.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
 } else {
     //Proceed!
-    $ethnicity = $_POST['ethnicity'];
-    $religions = $_POST['religions'];
-    $nationality = $_POST['nationality'];
-    $residencyStatus = $_POST['residencyStatus'];
-    $departureReasons = $_POST['departureReasons'];
-    $privacy = $_POST['privacy'];
-    $privacyBlurb = (isset($_POST['privacyBlurb'])) ? $_POST['privacyBlurb'] : null;
-    $privacyOptions = (isset($_POST['privacyOptions'])) ? $_POST['privacyOptions'] : null;
-    $uniqueEmailAddress = (isset($_POST['uniqueEmailAddress'])) ? $_POST['uniqueEmailAddress'] : 'N';
-    $personalBackground = $_POST['personalBackground'];
+    $ethnicity = $_POST['ethnicity'] ?? '';
+    $religions = $_POST['religions'] ?? '';
+    $nationality = $_POST['nationality'] ?? '';
+    $departureReasons = $_POST['departureReasons'] ?? '';
+    $privacy = $_POST['privacy'] ?? '';
+    $privacyBlurb = $_POST['privacyBlurb'] ?? null;
+    $privacyOptions = $_POST['privacyOptions'] ?? null;
+    $uniqueEmailAddress = $_POST['uniqueEmailAddress'] ?? 'N';
+    $personalBackground = $_POST['personalBackground'] ?? '';
 
     //Write to database
     $fail = false;
@@ -70,15 +69,6 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/userSettings.ph
     try {
         $data = array('value' => $departureReasons);
         $sql = "UPDATE gibbonSetting SET value=:value WHERE scope='User Admin' AND name='departureReasons'";
-        $result = $connection2->prepare($sql);
-        $result->execute($data);
-    } catch (PDOException $e) {
-        $fail = true;
-    }
-
-    try {
-        $data = array('value' => $residencyStatus);
-        $sql = "UPDATE gibbonSetting SET value=:value WHERE scope='User Admin' AND name='residencyStatus'";
         $result = $connection2->prepare($sql);
         $result->execute($data);
     } catch (PDOException $e) {

@@ -34,19 +34,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/resources_manage_a
         exit();
     } else {
         //Proceed!
-        $id = $_POST['id'];
-        $type = $_POST[$id.'type'];
+        $id = $_POST['id'] ?? '';
+        $type = $_POST[$id.'type'] ?? '';
         if ($type == 'File') {
-            $content = $_FILES[$id.'file'];
+            $content = $_FILES[$id.'file'] ?? '';
         } elseif ($type == 'Link') {
-            $content = $_POST[$id.'link'];
+            $content = $_POST[$id.'link'] ?? '';
         }
-        $name = $_POST[$id.'name'];
-        $category = $_POST[$id.'category'];
-        $purpose = $_POST[$id.'purpose'];
-        $tags = strtolower($_POST[$id.'tags']);
-        $gibbonYearGroupIDList = (!empty($_POST[$id.'gibbonYearGroupID']))? implode(',', $_POST[$id.'gibbonYearGroupID']) : '';
-        $description = $_POST[$id.'description'];
+        $name = $_POST[$id.'name'] ?? '';
+        $category = $_POST[$id.'category'] ?? '';
+        $purpose = $_POST[$id.'purpose'] ?? '';
+        $tags = strtolower($_POST[$id.'tags'] ?? '');
+        $gibbonYearGroupIDList = implode(',', $_POST[$id.'gibbonYearGroupID'] ?? []);
+        $description = $_POST[$id.'description'] ?? '';
 
         if (($type != 'File' and $type != 'Link') or is_null($content) or $name == '' or $category == '' or $tags == '' or $id == '') {
             echo "<span style='font-weight: bold; color: #ff0000'>";
@@ -88,7 +88,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/resources_manage_a
 
             //Update tag counts
             $partialFail = false;
-            $tags = explode(',', $_POST[$id.'tags']);
+            $tags = explode(',', $_POST[$id.'tags'] ?? '');
             $tagList = '';
             foreach ($tags as $tag) {
                 if (trim($tag) != '') {
@@ -138,7 +138,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/resources_manage_a
 
             //Write to database
             try {
-                $data = array('type' => $type, 'content' => $content, 'name' => $name, 'category' => $category, 'purpose' => $purpose, 'tags' => substr($tagList, 0, -1), 'gibbonYearGroupIDList' => $gibbonYearGroupIDList, 'description' => $description, 'gibbonPersonID' => $_SESSION[$guid]['gibbonPersonID'], 'timestamp' => date('Y-m-d H:i:s', $time));
+                $data = array('type' => $type, 'content' => $content, 'name' => $name, 'category' => $category, 'purpose' => $purpose, 'tags' => substr($tagList, 0, -1), 'gibbonYearGroupIDList' => $gibbonYearGroupIDList, 'description' => $description, 'gibbonPersonID' => $session->get('gibbonPersonID'), 'timestamp' => date('Y-m-d H:i:s', $time));
                 $sql = 'INSERT INTO gibbonResource SET type=:type, content=:content, name=:name, category=:category, purpose=:purpose, tags=:tags, gibbonYearGroupIDList=:gibbonYearGroupIDList, description=:description, gibbonPersonID=:gibbonPersonID, timestamp=:timestamp';
                 $result = $connection2->prepare($sql);
                 $result->execute($data);
@@ -166,9 +166,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/resources_manage_a
                 } elseif ($type == 'File') {
                     $extension = strrchr($content, '.');
                     if (strcasecmp($extension, '.gif') == 0 or strcasecmp($extension, '.jpg') == 0 or strcasecmp($extension, '.jpeg') == 0 or strcasecmp($extension, '.png') == 0) {
-                        $html = "<a target='_blank' style='font-weight: bold' href='".$_SESSION[$guid]['absoluteURL'].'/'.$content."'><img class='resource' style='max-width: 500px' src='".$_SESSION[$guid]['absoluteURL'].'/'.$content."'></a>";
+                        $html = "<a target='_blank' style='font-weight: bold' href='".$session->get('absoluteURL').'/'.$content."'><img class='resource' style='max-width: 500px' src='".$session->get('absoluteURL').'/'.$content."'></a>";
                     } else {
-                        $html = "<a target='_blank' style='font-weight: bold' href='".$_SESSION[$guid]['absoluteURL'].'/'.$content."'>".$name.'</a>';
+                        $html = "<a target='_blank' style='font-weight: bold' href='".$session->get('absoluteURL').'/'.$content."'>".$name.'</a>';
                     }
                 }
                 echo $html;

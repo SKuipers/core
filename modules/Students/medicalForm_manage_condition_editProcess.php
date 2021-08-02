@@ -25,12 +25,12 @@ use Gibbon\Domain\Students\StudentGateway;
 
 include '../../gibbon.php';
 
-$gibbonPersonMedicalID = $_GET['gibbonPersonMedicalID'];
-$gibbonPersonMedicalConditionID = $_GET['gibbonPersonMedicalConditionID'];
-$search = $_GET['search'];
+$gibbonPersonMedicalID = $_GET['gibbonPersonMedicalID'] ?? '';
+$gibbonPersonMedicalConditionID = $_GET['gibbonPersonMedicalConditionID'] ?? '';
+$search = $_GET['search'] ?? '';
 if ($gibbonPersonMedicalID == '' or $gibbonPersonMedicalConditionID == '') { echo 'Fatal error loading this page!';
 } else {
-    $URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/medicalForm_manage_condition_edit.php&gibbonPersonMedicalID=$gibbonPersonMedicalID&gibbonPersonMedicalConditionID=$gibbonPersonMedicalConditionID&search=$search";
+    $URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/medicalForm_manage_condition_edit.php&gibbonPersonMedicalID=$gibbonPersonMedicalID&gibbonPersonMedicalConditionID=$gibbonPersonMedicalConditionID&search=$search";
 
     if (isActionAccessible($guid, $connection2, '/modules/Students/medicalForm_manage_condition_edit.php') == false) {
         $URL .= '&return=error0';
@@ -44,25 +44,25 @@ if ($gibbonPersonMedicalID == '' or $gibbonPersonMedicalConditionID == '') { ech
         } else {
             $medicalGateway = $container->get(MedicalGateway::class);
             $values = $medicalGateway->getMedicalConditionByID($gibbonPersonMedicalConditionID);
-            
+
             if (empty($values)) {
                 $URL .= '&return=error2';
                 header("Location: {$URL}");
             } else {
                 //Validate Inputs
-                $name = $_POST['name'];
-                $gibbonAlertLevelID = $_POST['gibbonAlertLevelID'];
-                $triggers = $_POST['triggers'];
-                $reaction = $_POST['reaction'];
-                $response = $_POST['response'];
-                $medication = $_POST['medication'];
+                $name = $_POST['name'] ?? '';
+                $gibbonAlertLevelID = $_POST['gibbonAlertLevelID'] ?? '';
+                $triggers = $_POST['triggers'] ?? '';
+                $reaction = $_POST['reaction'] ?? '';
+                $response = $_POST['response'] ?? '';
+                $medication = $_POST['medication'] ?? '';
                 if ($_POST['lastEpisode'] == '') {
                     $lastEpisode = null;
                 } else {
-                    $lastEpisode = dateConvert($guid, $_POST['lastEpisode']);
+                    $lastEpisode = !empty($_POST['lastEpisode']) ? Format::dateConvert($_POST['lastEpisode']) : null;
                 }
-                $lastEpisodeTreatment = $_POST['lastEpisodeTreatment'];
-                $comment = $_POST['comment'];
+                $lastEpisodeTreatment = $_POST['lastEpisodeTreatment'] ?? '';
+                $comment = $_POST['comment'] ?? '';
 
                 // File Upload
                 if (!empty($_FILES['attachment']['tmp_name'])) {

@@ -19,13 +19,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$gibbonSchoolYearID = $_GET['gibbonSchoolYearID'];
-$gibbonFinanceFeeID = $_POST['gibbonFinanceFeeID'];
-$search = $_GET['search'];
+$gibbonSchoolYearID = $_GET['gibbonSchoolYearID'] ?? '';
+$gibbonFinanceFeeID = $_POST['gibbonFinanceFeeID'] ?? '';
+$search = $_GET['search'] ?? '';
 
 if ($gibbonFinanceFeeID == '' or $gibbonSchoolYearID == '') { echo 'Fatal error loading this page!';
 } else {
-    $URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/fees_manage_edit.php&gibbonFinanceFeeID=$gibbonFinanceFeeID&gibbonSchoolYearID=$gibbonSchoolYearID&search=$search";
+    $URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/fees_manage_edit.php&gibbonFinanceFeeID=$gibbonFinanceFeeID&gibbonSchoolYearID=$gibbonSchoolYearID&search=$search";
 
     if (isActionAccessible($guid, $connection2, '/modules/Finance/fees_manage_edit.php') == false) {
         $URL .= '&return=error0';
@@ -52,12 +52,12 @@ if ($gibbonFinanceFeeID == '' or $gibbonSchoolYearID == '') { echo 'Fatal error 
                 $URL .= '&return=error2';
                 header("Location: {$URL}");
             } else {
-                $name = $_POST['name'];
-                $nameShort = $_POST['nameShort'];
-                $active = $_POST['active'];
-                $description = $_POST['description'];
-                $gibbonFinanceFeeCategoryID = $_POST['gibbonFinanceFeeCategoryID'];
-                $fee = $_POST['fee'];
+                $name = $_POST['name'] ?? '';
+                $nameShort = $_POST['nameShort'] ?? '';
+                $active = $_POST['active'] ?? '';
+                $description = $_POST['description'] ?? '';
+                $gibbonFinanceFeeCategoryID = $_POST['gibbonFinanceFeeCategoryID'] ?? '';
+                $fee = $_POST['fee'] ?? '';
 
                 if ($name == '' or $nameShort == '' or $active == '' or $gibbonFinanceFeeCategoryID == '' or $fee == '') {
                     $URL .= '&return=error1';
@@ -65,7 +65,7 @@ if ($gibbonFinanceFeeID == '' or $gibbonSchoolYearID == '') { echo 'Fatal error 
                 } else {
                     //Write to database
                     try {
-                        $data = array('gibbonSchoolYearID' => $gibbonSchoolYearID, 'name' => $name, 'nameShort' => $nameShort, 'active' => $active, 'description' => $description, 'gibbonFinanceFeeCategoryID' => $gibbonFinanceFeeCategoryID, 'fee' => $fee, 'gibbonPersonIDUpdate' => $_SESSION[$guid]['gibbonPersonID'], 'gibbonFinanceFeeID' => $gibbonFinanceFeeID);
+                        $data = array('gibbonSchoolYearID' => $gibbonSchoolYearID, 'name' => $name, 'nameShort' => $nameShort, 'active' => $active, 'description' => $description, 'gibbonFinanceFeeCategoryID' => $gibbonFinanceFeeCategoryID, 'fee' => $fee, 'gibbonPersonIDUpdate' => $session->get('gibbonPersonID'), 'gibbonFinanceFeeID' => $gibbonFinanceFeeID);
                         $sql = "UPDATE gibbonFinanceFee SET gibbonSchoolYearID=:gibbonSchoolYearID, name=:name, nameShort=:nameShort, active=:active, description=:description, gibbonFinanceFeeCategoryID=:gibbonFinanceFeeCategoryID, fee=:fee, gibbonPersonIDUpdate=:gibbonPersonIDUpdate, timestampUpdate='".date('Y-m-d H:i:s')."' WHERE gibbonFinanceFeeID=:gibbonFinanceFeeID";
                         $result = $connection2->prepare($sql);
                         $result->execute($data);

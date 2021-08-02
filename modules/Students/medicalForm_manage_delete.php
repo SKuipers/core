@@ -24,10 +24,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/medicalForm_manag
     $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed!
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     //Check if school year specified
     $gibbonPersonMedicalID = $_GET['gibbonPersonMedicalID'];
     $search = $_GET['search'];
@@ -43,7 +39,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/medicalForm_manag
         if ($result->rowCount() != 1) {
             $page->addError(__('The specified record cannot be found.'));
         } else {
-            $form = DeleteForm::createForm($_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/medicalForm_manage_deleteProcess.php?gibbonPersonMedicalID=$gibbonPersonMedicalID&search=$search");
+            $form = DeleteForm::createForm($session->get('absoluteURL').'/modules/'.$session->get('module')."/medicalForm_manage_deleteProcess.php?gibbonPersonMedicalID=$gibbonPersonMedicalID&search=$search");
             echo $form->getOutput();
         }
     }

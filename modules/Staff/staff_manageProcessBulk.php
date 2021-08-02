@@ -24,14 +24,14 @@ use Gibbon\Comms\NotificationEvent;
 
 include '../../gibbon.php';
 
-$action = isset($_POST['action']) ? $_POST['action'] : '';
-$gibbonStaffID = isset($_POST['gibbonStaffID']) ? $_POST['gibbonStaffID'] : array();
-$dateEnd = isset($_POST['dateEnd']) ? dateConvert($guid, $_POST['dateEnd']) : date('Y-m-d');
+$action =  $_POST['action'] ?? '';
+$gibbonStaffID =  $_POST['gibbonStaffID'] ?? array();
+$dateEnd = !empty($_POST['dateEnd']) ? Format::dateConvert($_POST['dateEnd']) : null;
 
-$allStaff = isset($_GET['allStaff']) ? $_GET['allStaff'] : '';
-$search = isset($_GET['search']) ? $_GET['search'] : '';
+$allStaff = $_GET['allStaff'] ?? '';
+$search = $_GET['search'] ?? '';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/staff_manage.php&search=$search&allStaff=$allStaff";
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/staff_manage.php&search=$search&allStaff=$allStaff";
 
 if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage.php') == false) {
     $URL .= '&return=error0';
@@ -48,8 +48,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_manage.php') =
 
         if ($action == 'Left') {
             $data = array('gibbonStaffIDList' => $gibbonStaffIDList, 'dateEnd' => $dateEnd);
-            $sql = "UPDATE gibbonStaff 
-                    JOIN gibbonPerson ON (gibbonPerson.gibbonPersonID=gibbonStaff.gibbonPersonID) 
+            $sql = "UPDATE gibbonStaff
+                    JOIN gibbonPerson ON (gibbonPerson.gibbonPersonID=gibbonStaff.gibbonPersonID)
                     SET gibbonPerson.status='Left', gibbonPerson.dateEnd=:dateEnd
                     WHERE FIND_IN_SET(gibbonStaffID, :gibbonStaffIDList)";
 

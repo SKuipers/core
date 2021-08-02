@@ -17,12 +17,14 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+
 include '../../gibbon.php';
 
 include './moduleFunctions.php';
 
-$gibbonLibraryItemID = $_POST['gibbonLibraryItemID'];
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/library_manage_catalog_edit.php&gibbonLibraryItemID=$gibbonLibraryItemID&name=".$_GET['name'].'&gibbonLibraryTypeID='.$_GET['gibbonLibraryTypeID'].'&gibbonSpaceID='.$_GET['gibbonSpaceID'].'&status='.$_GET['status'].'&gibbonPersonIDOwnership='.$_GET['gibbonPersonIDOwnership'].'&typeSpecificFields='.$_GET['typeSpecificFields'];
+$gibbonLibraryItemID = $_POST['gibbonLibraryItemID'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/library_manage_catalog_edit.php&gibbonLibraryItemID=$gibbonLibraryItemID&name=".$_GET['name'].'&gibbonLibraryTypeID='.$_GET['gibbonLibraryTypeID'].'&gibbonSpaceID='.$_GET['gibbonSpaceID'].'&status='.$_GET['status'].'&gibbonPersonIDOwnership='.$_GET['gibbonPersonIDOwnership'].'&typeSpecificFields='.$_GET['typeSpecificFields'];
 
 if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_catalog_edit.php') == false) {
     $URL .= '&return=error0';
@@ -52,25 +54,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
             $row = $result->fetch();
             //Proceed!
             //Get general fields
-            $gibbonLibraryTypeID = $_POST['gibbonLibraryTypeID'];
-            $id = $_POST['id'];
-            $name = $_POST['name'];
-            $producer = $_POST['producer'];
-            $vendor = $_POST['vendor'];
-            $purchaseDate = null;
-            if ($_POST['purchaseDate'] != '') {
-                $purchaseDate = dateConvert($guid, $_POST['purchaseDate']);
-            }
-            $invoiceNumber = $_POST['invoiceNumber'];
-            $imageType = $_POST['imageType'];
+            $gibbonLibraryTypeID = $_POST['gibbonLibraryTypeID'] ?? '';
+            $id = $_POST['id'] ?? '';
+            $name = $_POST['name'] ?? '';
+            $producer = $_POST['producer'] ?? '';
+            $vendor = $_POST['vendor'] ?? '';
+            $purchaseDate = !empty($_POST['purchaseDate']) ? Format::dateConvert($_POST['purchaseDate']) : null;
+
+            $invoiceNumber = $_POST['invoiceNumber'] ?? '';
+            $imageType = $_POST['imageType'] ?? '';
             if ($imageType == 'Link') {
-                $imageLocation = $_POST['imageLink'];
+                $imageLocation = $_POST['imageLink'] ?? '';
             } elseif ($imageType == 'File') {
                 $imageLocation = $row['imageLocation'];
             } else {
                 $imageLocation = '';
             }
-            $replacement = $_POST['replacement'];
+            $replacement = $_POST['replacement'] ?? '';
             $gibbonSchoolYearIDReplacement = null;
             $replacementCost = null;
             if ($replacement == 'Y') {
@@ -83,13 +83,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
             } else {
                 $replacement == 'N';
             }
-            $comment = $_POST['comment'];
-            $gibbonSpaceID = null;
-            if ($_POST['gibbonSpaceID'] != '') {
-                $gibbonSpaceID = $_POST['gibbonSpaceID'];
-            }
-            $locationDetail = $_POST['locationDetail'];
-            $ownershipType = $_POST['ownershipType'];
+            $comment = $_POST['comment'] ?? '';
+            $gibbonSpaceID = $_POST['gibbonSpaceID'] ?? null;
+            $locationDetail = $_POST['locationDetail'] ?? '';
+            $ownershipType = $_POST['ownershipType'] ?? '';
             $gibbonPersonIDOwnership = null;
             if ($ownershipType == 'School' and $_POST['gibbonPersonIDOwnershipSchool'] != '') {
                 $gibbonPersonIDOwnership = $_POST['gibbonPersonIDOwnershipSchool'];
@@ -100,17 +97,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
             if ($_POST['gibbonDepartmentID'] != '') {
                 $gibbonDepartmentID = $_POST['gibbonDepartmentID'];
             }
-            $bookable = $_POST['bookable'];
-            $borrowable = $_POST['borrowable'];
+            $bookable = $_POST['bookable'] ?? '';
+            $borrowable = $_POST['borrowable'] ?? '';
             if ($borrowable == 'Y') {
-                $status = $_POST['statusBorrowable'];
+                $status = $_POST['statusBorrowable'] ?? '';
             } else {
-                $status = $_POST['statusNotBorrowable'];
+                $status = $_POST['statusNotBorrowable'] ?? '';
             }
-            $physicalCondition = $_POST['physicalCondition'];
+            $physicalCondition = $_POST['physicalCondition'] ?? '';
 
             //Get type-specific fields
-            
+
                 $data = array('gibbonLibraryTypeID' => $gibbonLibraryTypeID);
                 $sql = "SELECT * FROM gibbonLibraryType WHERE gibbonLibraryTypeID=:gibbonLibraryTypeID AND active='Y' ORDER BY name";
                 $result = $connection2->prepare($sql);
@@ -118,14 +115,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
 
             if ($result->rowCount() == 1) {
                 $row = $result->fetch();
-                $fieldsIn = unserialize($row['fields']);
+                $fieldsIn = json_decode($row['fields'], true);
                 $fieldsOut = array();
                 foreach ($fieldsIn as $field) {
                     $fieldName = preg_replace('/ |\(|\)/', '', $field['name']);
                     if ($field['type'] == 'Date') {
-                        $fieldsOut[$field['name']] = dateConvert($guid, $_POST['field'.$fieldName]);
+                        $fieldsOut[$field['name']] = !empty($_POST['field'.$fieldName]) ? Format::dateConvert($_POST['field'.$fieldName]) : null;
                     } else {
-                        $fieldsOut[$field['name']] = $_POST['field'.$fieldName];
+                        $fieldsOut[$field['name']] = $_POST['field'.$fieldName] ?? null;
                     }
                 }
             }
@@ -169,7 +166,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
 
                     //Write to database
                     try {
-                        $data = array('id' => $id, 'name' => $name, 'producer' => $producer, 'fields' => serialize($fieldsOut), 'vendor' => $vendor, 'purchaseDate' => $purchaseDate, 'invoiceNumber' => $invoiceNumber, 'imageType' => $imageType, 'imageLocation' => $imageLocation, 'replacement' => $replacement, 'gibbonSchoolYearIDReplacement' => $gibbonSchoolYearIDReplacement, 'replacementCost' => $replacementCost, 'comment' => $comment, 'gibbonSpaceID' => $gibbonSpaceID, 'locationDetail' => $locationDetail, 'ownershipType' => $ownershipType, 'gibbonPersonIDOwnership' => $gibbonPersonIDOwnership, 'gibbonDepartmentID' => $gibbonDepartmentID, 'bookable' => $bookable, 'borrowable' => $borrowable, 'status' => $status, 'physicalCondition' => $physicalCondition, 'gibbonPersonIDUpdate' => $_SESSION[$guid]['gibbonPersonID'], 'timestampUpdate' => date('Y-m-d H:i:s', time()), 'gibbonLibraryItemID' => $gibbonLibraryItemID);
+                        $data = array('id' => $id, 'name' => $name, 'producer' => $producer, 'fields' => json_encode($fieldsOut), 'vendor' => $vendor, 'purchaseDate' => $purchaseDate, 'invoiceNumber' => $invoiceNumber, 'imageType' => $imageType, 'imageLocation' => $imageLocation, 'replacement' => $replacement, 'gibbonSchoolYearIDReplacement' => $gibbonSchoolYearIDReplacement, 'replacementCost' => $replacementCost, 'comment' => $comment, 'gibbonSpaceID' => $gibbonSpaceID, 'locationDetail' => $locationDetail, 'ownershipType' => $ownershipType, 'gibbonPersonIDOwnership' => $gibbonPersonIDOwnership, 'gibbonDepartmentID' => $gibbonDepartmentID, 'bookable' => $bookable, 'borrowable' => $borrowable, 'status' => $status, 'physicalCondition' => $physicalCondition, 'gibbonPersonIDUpdate' => $session->get('gibbonPersonID'), 'timestampUpdate' => date('Y-m-d H:i:s', time()), 'gibbonLibraryItemID' => $gibbonLibraryItemID);
                         $sql = 'UPDATE gibbonLibraryItem SET id=:id, name=:name, producer=:producer, fields=:fields, vendor=:vendor, purchaseDate=:purchaseDate, invoiceNumber=:invoiceNumber, imageType=:imageType, imageLocation=:imageLocation, replacement=:replacement, gibbonSchoolYearIDReplacement=:gibbonSchoolYearIDReplacement, replacementCost=:replacementCost, comment=:comment, gibbonSpaceID=:gibbonSpaceID, locationDetail=:locationDetail, ownershipType=:ownershipType, gibbonPersonIDOwnership=:gibbonPersonIDOwnership, gibbonDepartmentID=:gibbonDepartmentID, bookable=:bookable, borrowable=:borrowable, status=:status, physicalCondition=:physicalCondition, gibbonPersonIDUpdate=:gibbonPersonIDUpdate, timestampUpdate=:timestampUpdate WHERE gibbonLibraryItemID=:gibbonLibraryItemID';
                         $result = $connection2->prepare($sql);
                         $result->execute($data);

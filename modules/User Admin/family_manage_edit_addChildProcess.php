@@ -19,13 +19,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$gibbonFamilyID = $_GET['gibbonFamilyID'];
-$gibbonPersonID = $_POST['gibbonPersonID'];
-$search = $_GET['search'];
+$gibbonFamilyID = $_GET['gibbonFamilyID'] ?? '';
+$gibbonPersonID = $_POST['gibbonPersonID'] ?? '';
+$search = $_GET['search'] ?? '';
 
 if ($gibbonFamilyID == '') { echo 'Fatal error loading this page!';
 } else {
-    $URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/family_manage_edit.php&gibbonFamilyID=$gibbonFamilyID&search=$search";
+    $URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/family_manage_edit.php&gibbonFamilyID=$gibbonFamilyID&search=$search";
 
     if (isActionAccessible($guid, $connection2, '/modules/User Admin/family_manage_edit.php') == false) {
         $URL .= '&return=error0';

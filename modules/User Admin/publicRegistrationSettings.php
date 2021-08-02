@@ -26,13 +26,9 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/publicRegistrat
     //Proceed!
     $page->breadcrumbs->add(__('Public Registration Settings'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
+    $form = Form::create('publicRegistrationSettings', $session->get('absoluteURL').'/modules/'.$session->get('module').'/publicRegistrationSettingsProcess.php');
 
-    $form = Form::create('publicRegistrationSettings', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module'].'/publicRegistrationSettingsProcess.php');
-
-    $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+    $form->addHiddenValue('address', $session->get('address'));
 
     $row = $form->addRow()->addHeading(__('General Settings'));
 
@@ -60,6 +56,11 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/publicRegistrat
             ->selected($setting['value'])
             ->required();
 
+    $setting = getSettingByScope($connection2, 'User Admin', 'publicRegistrationAllowedDomains', true);
+    $row = $form->addRow();
+        $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
+        $row->addTextField($setting['name'])->setValue($setting['value']);
+
     $row = $form->addRow()->addHeading(__('Interface Options'));
 
     $setting = getSettingByScope($connection2, 'User Admin', 'publicRegistrationIntro', true);
@@ -82,10 +83,14 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/publicRegistrat
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addTextArea($setting['name'])->setValue($setting['value']);
 
+    $setting = getSettingByScope($connection2, 'User Admin', 'publicRegistrationAlternateEmail', true);
+    $row = $form->addRow();
+        $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
+        $row->addYesNo($setting['name'])->selected($setting['value'])->required();
+
     $row = $form->addRow();
         $row->addFooter();
         $row->addSubmit();
 
     echo $form->getOutput();
 }
-?>

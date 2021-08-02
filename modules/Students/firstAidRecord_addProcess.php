@@ -17,9 +17,12 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+use Gibbon\Forms\CustomFieldHandler;
+
 include '../../gibbon.php';
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/firstAidRecord_add.php&gibbonRollGroupID='.$_GET['gibbonRollGroupID'].'&gibbonYearGroupID='.$_GET['gibbonYearGroupID'];
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/firstAidRecord_add.php&gibbonFormGroupID='.$_GET['gibbonFormGroupID'].'&gibbonYearGroupID='.$_GET['gibbonYearGroupID'];
 
 if (isActionAccessible($guid, $connection2, '/modules/Students/firstAidRecord_add.php') == false) {
     $URL .= '&return=error0&step=1';
@@ -31,22 +34,31 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/firstAidRecord_ad
     }
 
     //Proceed!
-    $gibbonPersonID = $_POST['gibbonPersonID'];
-    $gibbonPersonIDFirstAider = $_SESSION[$guid]['gibbonPersonID'];
-    $date = $_POST['date'];
-    $timeIn = $_POST['timeIn'];
-    $description = $_POST['description'];
-    $actionTaken = $_POST['actionTaken'];
-    $followUp = $_POST['followUp'];
+    $gibbonPersonID = $_POST['gibbonPersonID'] ?? '';
+    $gibbonPersonIDFirstAider = $session->get('gibbonPersonID');
+    $date = $_POST['date'] ?? '';
+    $timeIn = $_POST['timeIn'] ?? '';
+    $description = $_POST['description'] ?? '';
+    $actionTaken = $_POST['actionTaken'] ?? '';
+    $followUp = $_POST['followUp'] ?? '';
 
     if ($gibbonPersonID == '' or $gibbonPersonIDFirstAider == '' or $date == '' or $timeIn == '') {
         $URL .= '&return=error1&step=1';
         header("Location: {$URL}");
     } else {
+        $customRequireFail = false;
+        $fields = $container->get(CustomFieldHandler::class)->getFieldDataFromPOST('First Aid', [], $customRequireFail);
+
+        if ($customRequireFail) {
+            $URL .= '&return=error1';
+            header("Location: {$URL}");
+            exit;
+        }
+
         //Write to database
         try {
-            $data = array('gibbonPersonIDPatient' => $gibbonPersonID, 'gibbonPersonIDFirstAider' => $gibbonPersonIDFirstAider, 'date' => dateConvert($guid, $date), 'timeIn' => $timeIn, 'description' => $description, 'actionTaken' => $actionTaken, 'followUp' => $followUp, 'gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID']);
-            $sql = 'INSERT INTO gibbonFirstAid SET gibbonPersonIDPatient=:gibbonPersonIDPatient, gibbonPersonIDFirstAider=:gibbonPersonIDFirstAider, date=:date, timeIn=:timeIn, description=:description, actionTaken=:actionTaken, followUp=:followUp, gibbonSchoolYearID=:gibbonSchoolYearID';
+            $data = array('gibbonPersonIDPatient' => $gibbonPersonID, 'gibbonPersonIDFirstAider' => $gibbonPersonIDFirstAider, 'date' => Format::dateConvert($date), 'timeIn' => $timeIn, 'description' => $description, 'actionTaken' => $actionTaken, 'followUp' => $followUp, 'gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'fields' => $fields);
+            $sql = 'INSERT INTO gibbonFirstAid SET gibbonPersonIDPatient=:gibbonPersonIDPatient, gibbonPersonIDFirstAider=:gibbonPersonIDFirstAider, date=:date, timeIn=:timeIn, description=:description, actionTaken=:actionTaken, followUp=:followUp, gibbonSchoolYearID=:gibbonSchoolYearID, fields=:fields';
             $result = $connection2->prepare($sql);
             $result->execute($data);
         } catch (PDOException $e) {

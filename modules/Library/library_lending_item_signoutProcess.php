@@ -17,10 +17,12 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+
 include '../../gibbon.php';
 
-$statusCurrent = $_POST['statusCurrent'];
-$status = $_POST['status'];
+$statusCurrent = $_POST['statusCurrent'] ?? '';
+$status = $_POST['status'] ?? '';
 $type = 'Other';
 if ($status == 'Decommissioned') {
     $type = 'Decommission';
@@ -33,20 +35,16 @@ if ($status == 'Decommissioned') {
 } elseif ($status == 'Reserved') {
     $type = 'Reserve';
 }
-$gibbonPersonIDStatusResponsible = $_POST['gibbonPersonIDStatusResponsible'];
-if ($_POST['returnExpected'] != '') {
-    $returnExpected = dateConvert($guid, $_POST['returnExpected']);
-}
-$returnAction = $_POST['returnAction'];
-$gibbonPersonIDReturnAction = null;
-if ($_POST['gibbonPersonIDReturnAction'] != '') {
-    $gibbonPersonIDReturnAction = $_POST['gibbonPersonIDReturnAction'];
-}
+$gibbonPersonIDStatusResponsible = $_POST['gibbonPersonIDStatusResponsible'] ?? null;
+$returnExpected = !empty($_POST['returnExpected']) ? Format::dateConvert($_POST['returnExpected']) : null;
+$returnAction = $_POST['returnAction'] ?? '';
+$gibbonPersonIDReturnAction = $_POST['gibbonPersonIDReturnAction'] ?? null;
 
-$gibbonLibraryItemID = $_POST['gibbonLibraryItemID'];
 
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/library_lending_item_signOut.php&gibbonLibraryItemID=$gibbonLibraryItemID&name=".$_GET['name'].'&gibbonLibraryTypeID='.$_GET['gibbonLibraryTypeID'].'&gibbonSpaceID='.$_GET['gibbonSpaceID'].'&status='.$_GET['status'];
-$URLSuccess = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/library_lending_item.php&gibbonLibraryItemID=$gibbonLibraryItemID&name=".$_GET['name'].'&gibbonLibraryTypeID='.$_GET['gibbonLibraryTypeID'].'&gibbonSpaceID='.$_GET['gibbonSpaceID'].'&status='.$_GET['status'];
+$gibbonLibraryItemID = $_POST['gibbonLibraryItemID'] ?? '';
+
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/library_lending_item_signOut.php&gibbonLibraryItemID=$gibbonLibraryItemID&name=".$_GET['name'].'&gibbonLibraryTypeID='.$_GET['gibbonLibraryTypeID'].'&gibbonSpaceID='.$_GET['gibbonSpaceID'].'&status='.$_GET['status'];
+$URLSuccess = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/library_lending_item.php&gibbonLibraryItemID=$gibbonLibraryItemID&name=".$_GET['name'].'&gibbonLibraryTypeID='.$_GET['gibbonLibraryTypeID'].'&gibbonSpaceID='.$_GET['gibbonSpaceID'].'&status='.$_GET['status'];
 
 if (isActionAccessible($guid, $connection2, '/modules/Library/library_lending_item_signOut.php') == false) {
     $URL .= '&return=error0';
@@ -54,7 +52,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_lending_it
 } else {
     //Proceed!
     //Validate Inputs
-    if ($gibbonLibraryItemID == '' or $status == '' or $gibbonPersonIDStatusResponsible == '' or $statusCurrent != 'Available') {
+    if ($gibbonLibraryItemID == '' or $status == '' or empty($gibbonPersonIDStatusResponsible) or $statusCurrent != 'Available') {
         $URL .= '&return=error1';
         header("Location: {$URL}");
     } else {
@@ -75,7 +73,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_lending_it
         } else {
             //Write to database
             try {
-                $data = array('gibbonLibraryItemID' => $gibbonLibraryItemID, 'type' => $type, 'status' => $status, 'gibbonPersonIDStatusResponsible' => $gibbonPersonIDStatusResponsible, 'gibbonPersonIDOut' => $_SESSION[$guid]['gibbonPersonID'], 'timestampOut' => date('Y-m-d H:i:s', time()), 'returnExpected' => $returnExpected, 'returnAction' => $returnAction, 'gibbonPersonIDReturnAction' => $gibbonPersonIDReturnAction);
+                $data = array('gibbonLibraryItemID' => $gibbonLibraryItemID, 'type' => $type, 'status' => $status, 'gibbonPersonIDStatusResponsible' => $gibbonPersonIDStatusResponsible, 'gibbonPersonIDOut' => $session->get('gibbonPersonID'), 'timestampOut' => date('Y-m-d H:i:s', time()), 'returnExpected' => $returnExpected, 'returnAction' => $returnAction, 'gibbonPersonIDReturnAction' => $gibbonPersonIDReturnAction);
                 $sql = 'INSERT INTO gibbonLibraryItemEvent SET gibbonLibraryItemID=:gibbonLibraryItemID, type=:type, status=:status, gibbonPersonIDStatusResponsible=:gibbonPersonIDStatusResponsible, gibbonPersonIDOut=:gibbonPersonIDOut, timestampOut=:timestampOut, returnExpected=:returnExpected, returnAction=:returnAction, gibbonPersonIDReturnAction=:gibbonPersonIDReturnAction';
                 $result = $connection2->prepare($sql);
                 $result->execute($data);
@@ -86,7 +84,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_lending_it
             }
 
             try {
-                $data = array('gibbonLibraryItemID' => $gibbonLibraryItemID, 'status' => $status, 'gibbonPersonIDStatusResponsible' => $gibbonPersonIDStatusResponsible, 'gibbonPersonIDStatusRecorder' => $_SESSION[$guid]['gibbonPersonID'], 'timestampStatus' => date('Y-m-d H:i:s', time()), 'returnExpected' => $returnExpected, 'returnAction' => $returnAction, 'gibbonPersonIDReturnAction' => $gibbonPersonIDReturnAction);
+                $data = array('gibbonLibraryItemID' => $gibbonLibraryItemID, 'status' => $status, 'gibbonPersonIDStatusResponsible' => $gibbonPersonIDStatusResponsible, 'gibbonPersonIDStatusRecorder' => $session->get('gibbonPersonID'), 'timestampStatus' => date('Y-m-d H:i:s', time()), 'returnExpected' => $returnExpected, 'returnAction' => $returnAction, 'gibbonPersonIDReturnAction' => $gibbonPersonIDReturnAction);
                 $sql = 'UPDATE gibbonLibraryItem SET status=:status, gibbonPersonIDStatusResponsible=:gibbonPersonIDStatusResponsible, gibbonPersonIDStatusRecorder=:gibbonPersonIDStatusRecorder, timestampStatus=:timestampStatus, returnExpected=:returnExpected, returnAction=:returnAction, gibbonPersonIDReturnAction=:gibbonPersonIDReturnAction WHERE gibbonLibraryItemID=:gibbonLibraryItemID';
                 $result = $connection2->prepare($sql);
                 $result->execute($data);

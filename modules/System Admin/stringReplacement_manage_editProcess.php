@@ -19,12 +19,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$gibbonStringID = $_GET['gibbonStringID'];
-$search = '';
-if (isset($_GET['search'])) {
-    $search = $_GET['search'];
-}
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address'])."/stringReplacement_manage_edit.php&gibbonStringID=$gibbonStringID&search=$search";
+$gibbonStringID = $_GET['gibbonStringID'] ?? '';
+$search = $_GET['search'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/stringReplacement_manage_edit.php&gibbonStringID=$gibbonStringID&search=$search";
 
 if (isActionAccessible($guid, $connection2, '/modules/System Admin/stringReplacement_manage_edit.php') == false) {
     $URL .= '&return=error0';
@@ -51,11 +48,11 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/stringReplace
             header("Location: {$URL}");
         } else {
             //Validate Inputs
-            $original = $_POST['original'];
-            $replacement = $_POST['replacement'];
-            $mode = $_POST['mode'];
-            $caseSensitive = $_POST['caseSensitive'];
-            $priority = $_POST['priority'];
+            $original = $_POST['original'] ?? '';
+            $replacement = $_POST['replacement'] ?? '';
+            $mode = $_POST['mode'] ?? '';
+            $caseSensitive = $_POST['caseSensitive'] ?? '';
+            $priority = $_POST['priority'] ?? '';
 
             if ($original == '' or $replacement == '' or $mode == '' or $caseSensitive == '' or $priority == '') {
                 $URL .= '&return=error3';
@@ -75,7 +72,7 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/stringReplace
 
                 //Update string list in session & clear cache to force reload
                 $gibbon->locale->setStringReplacementList($pdo, true);
-                $_SESSION[$guid]['pageLoads'] = null;
+                $session->set('pageLoads', null);
 
                 $URL .= '&return=success0';
                 header("Location: {$URL}");

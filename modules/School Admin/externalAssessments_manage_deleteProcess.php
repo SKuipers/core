@@ -19,9 +19,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-$gibbonExternalAssessmentID = $_GET['gibbonExternalAssessmentID'];
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/externalAssessments_manage_delete.php&gibbonExternalAssessmentID='.$gibbonExternalAssessmentID;
-$URLDelete = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/externalAssessments_manage.php';
+$gibbonExternalAssessmentID = $_GET['gibbonExternalAssessmentID'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/externalAssessments_manage_delete.php&gibbonExternalAssessmentID='.$gibbonExternalAssessmentID;
+$URLDelete = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/externalAssessments_manage.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/externalAssessments_manage_delete.php') == false) {
     $URL .= '&return=error0';
@@ -48,7 +48,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/externalAsses
             header("Location: {$URL}");
         } else {
             //Try to delete fields
-            
+
                 $data = array('gibbonExternalAssessmentID' => $gibbonExternalAssessmentID);
                 $sql = 'DELETE FROM gibbonExternalAssessmentField WHERE gibbonExternalAssessmentID=:gibbonExternalAssessmentID';
                 $result = $connection2->prepare($sql);

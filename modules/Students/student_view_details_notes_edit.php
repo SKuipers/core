@@ -66,10 +66,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                         ->add(Format::name('', $student['preferredName'], $student['surname'], 'Student'), 'student_view_details.php', ['gibbonPersonID' => $gibbonPersonID, 'subpage' => $subpage, 'allStudents' => $allStudents])
                         ->add(__('Edit Student Note'));
 
-                    if (isset($_GET['return'])) {
-                        returnProcess($guid, $_GET['return'], null, null);
-                    }
-
                     //Check if school year specified
                     $gibbonStudentNoteID = $_GET['gibbonStudentNoteID'];
                     if ($gibbonStudentNoteID == '') {
@@ -83,7 +79,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                                 $sql = 'SELECT * FROM gibbonStudentNote WHERE gibbonStudentNoteID=:gibbonStudentNoteID';
                             }
                             else {
-                                $data = array('gibbonStudentNoteID' => $gibbonStudentNoteID, 'gibbonPersonIDCreator' => $_SESSION[$guid]['gibbonPersonID']);
+                                $data = array('gibbonStudentNoteID' => $gibbonStudentNoteID, 'gibbonPersonIDCreator' => $session->get('gibbonPersonID'));
                                 $sql = 'SELECT * FROM gibbonStudentNote WHERE gibbonStudentNoteID=:gibbonStudentNoteID AND gibbonPersonIDCreator=:gibbonPersonIDCreator';
                             }
                             $result = $connection2->prepare($sql);
@@ -102,13 +98,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
 
                             if ($_GET['search'] != '') {
                                 echo "<div class='linkTop'>";
-                                echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Students/student_view_details.php&gibbonPersonID=$gibbonPersonID&search=".$_GET['search']."&subpage=$subpage&category=".$_GET['category']."&allStudents=$allStudents'>".__('Back to Search Results').'</a>';
+                                echo "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/Students/student_view_details.php&gibbonPersonID=$gibbonPersonID&search=".$_GET['search']."&subpage=$subpage&category=".$_GET['category']."&allStudents=$allStudents'>".__('Back to Search Results').'</a>';
                                 echo '</div>';
                             }
 
-                            $form = Form::create('notes', $_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/student_view_details_notes_editProcess.php?gibbonPersonID=$gibbonPersonID&search=".$_GET['search']."&subpage=$subpage&gibbonStudentNoteID=$gibbonStudentNoteID&category=".$_GET['category']."&allStudents=$allStudents");
+                            $form = Form::create('notes', $session->get('absoluteURL').'/modules/'.$session->get('module')."/student_view_details_notes_editProcess.php?gibbonPersonID=$gibbonPersonID&search=".$_GET['search']."&subpage=$subpage&gibbonStudentNoteID=$gibbonStudentNoteID&category=".$_GET['category']."&allStudents=$allStudents");
 
-                            $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+                            $form->addHiddenValue('address', $session->get('address'));
 
                             $row = $form->addRow();
                                 $row->addLabel('title', __('Title'));

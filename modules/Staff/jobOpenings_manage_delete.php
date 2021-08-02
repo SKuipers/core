@@ -24,10 +24,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/jobOpenings_manage_d
     $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed!
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     //Check if school year specified
     $gibbonStaffJobOpeningID = $_GET['gibbonStaffJobOpeningID'];
     if ($gibbonStaffJobOpeningID == '') {
@@ -42,7 +38,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/jobOpenings_manage_d
         if ($result->rowCount() != 1) {
             $page->addError(__('The specified record cannot be found.'));
         } else {
-            $form = DeleteForm::createForm($_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/jobOpenings_manage_deleteProcess.php?gibbonStaffJobOpeningID=$gibbonStaffJobOpeningID");
+            $form = DeleteForm::createForm($session->get('absoluteURL').'/modules/'.$session->get('module')."/jobOpenings_manage_deleteProcess.php?gibbonStaffJobOpeningID=$gibbonStaffJobOpeningID");
             echo $form->getOutput();
         }
     }

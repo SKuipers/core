@@ -21,15 +21,15 @@ use Gibbon\Domain\Timetable\CourseGateway;
 
 include '../../gibbon.php';
 
-$gibbonSchoolYearID = $_GET['gibbonSchoolYearID'];
-$gibbonCourseID = $_GET['gibbonCourseID'];
-$gibbonCourseClassID = $_GET['gibbonCourseClassID'];
-$gibbonUnitID = $_GET['gibbonUnitID'];
-$gibbonUnitBlockID = $_GET['gibbonUnitBlockID'];
-$gibbonUnitClassBlockID = $_GET['gibbonUnitClassBlockID'];
-$gibbonUnitClassID = $_GET['gibbonUnitClassID'];
+$gibbonSchoolYearID = $_GET['gibbonSchoolYearID'] ?? '';
+$gibbonCourseID = $_GET['gibbonCourseID'] ?? '';
+$gibbonCourseClassID = $_GET['gibbonCourseClassID'] ?? '';
+$gibbonUnitID = $_GET['gibbonUnitID'] ?? '';
+$gibbonUnitBlockID = $_GET['gibbonUnitBlockID'] ?? '';
+$gibbonUnitClassBlockID = $_GET['gibbonUnitClassBlockID'] ?? '';
+$gibbonUnitClassID = $_GET['gibbonUnitClassID'] ?? '';
 
-$URL = $_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Planner/units_edit_working_copyback.php&gibbonSchoolYearID=$gibbonSchoolYearID&gibbonCourseID=$gibbonCourseID&gibbonCourseClassID=$gibbonCourseClassID&gibbonUnitID=$gibbonUnitID&gibbonUnitBlockID=$gibbonUnitBlockID&gibbonUnitClassBlockID=$gibbonUnitClassBlockID&gibbonUnitClassID=$gibbonUnitClassID";
+$URL = $session->get('absoluteURL')."/index.php?q=/modules/Planner/units_edit_working_copyback.php&gibbonSchoolYearID=$gibbonSchoolYearID&gibbonCourseID=$gibbonCourseID&gibbonCourseClassID=$gibbonCourseClassID&gibbonUnitID=$gibbonUnitID&gibbonUnitBlockID=$gibbonUnitBlockID&gibbonUnitClassBlockID=$gibbonUnitClassBlockID&gibbonUnitClassID=$gibbonUnitClassID";
 
 if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit_working_copyback.php') == false) {
     $URL .= '&return=error0';
@@ -87,7 +87,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_edit_working
                         $partialFail = true;
                     }
 
-                    $working = $_POST['working'];
+                    $working = $_POST['working'] ?? '';
                     if ($working == 'Y') {
                         try {
                             $data = array('title' => $row['title'], 'type' => $row['type'], 'length' => $row['length'], 'contents' => $row['contents'], 'teachersNotes' => $row['teachersNotes'], 'gibbonUnitBlockID' => $gibbonUnitBlockID);

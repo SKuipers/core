@@ -24,10 +24,6 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/family_manage_e
     $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed!
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     //Check if school year specified
     $gibbonFamilyID = $_GET['gibbonFamilyID'];
     $gibbonPersonID = $_GET['gibbonPersonID'];
@@ -46,7 +42,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/family_manage_e
         } else {
             //Let's go!
             $row = $result->fetch();
-            $form = DeleteForm::createForm($_SESSION[$guid]['absoluteURL'].'/modules/'.$_SESSION[$guid]['module']."/family_manage_edit_deleteChildProcess.php?gibbonFamilyID=$gibbonFamilyID&gibbonPersonID=$gibbonPersonID&search=$search");
+            $form = DeleteForm::createForm($session->get('absoluteURL').'/modules/'.$session->get('module')."/family_manage_edit_deleteChildProcess.php?gibbonFamilyID=$gibbonFamilyID&gibbonPersonID=$gibbonPersonID&search=$search");
             echo $form->getOutput();
         }
     }
