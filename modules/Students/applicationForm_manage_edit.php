@@ -427,7 +427,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
         $schoolHistory = '';
 
         $dataSelect = array('gibbonPersonID' => $application['gibbonPersonIDStudent']);
-        $sqlSelect = 'SELECT gibbonRollGroup.name AS rollGroup, gibbonSchoolYear.name AS schoolYear FROM gibbonStudentEnrolment JOIN gibbonRollGroup ON (gibbonStudentEnrolment.gibbonRollGroupID=gibbonRollGroup.gibbonRollGroupID) JOIN gibbonSchoolYear ON (gibbonStudentEnrolment.gibbonSchoolYearID=gibbonSchoolYear.gibbonSchoolYearID) WHERE gibbonPersonID=:gibbonPersonID ORDER BY gibbonStudentEnrolment.gibbonSchoolYearID';
+        $sqlSelect = 'SELECT gibbonFormGroup.name AS rollGroup, gibbonSchoolYear.name AS schoolYear FROM gibbonStudentEnrolment JOIN gibbonFormGroup ON (gibbonStudentEnrolment.gibbonFormGroupID=gibbonFormGroup.gibbonFormGroupID) JOIN gibbonSchoolYear ON (gibbonStudentEnrolment.gibbonSchoolYearID=gibbonSchoolYear.gibbonSchoolYearID) WHERE gibbonPersonID=:gibbonPersonID ORDER BY gibbonStudentEnrolment.gibbonSchoolYearID';
         $resultSelect = $pdo->executeQuery($dataSelect, $sqlSelect);
 
         while ($resultSelect && $rowSelect = $resultSelect->fetch()) {
@@ -532,7 +532,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                 ->setParameter('minChars', 2);
 
         $row = $form->addRow()->addClass('existingFamily');
-            $row->addSubmit(__('Go'));
+            $row->addButton(__('Go'))->onClick('document.getElementById("applicationFormEdit").submit()')->addClass('w-24 float-right');
 
         // HOME ADDRESS
         $form->addRow()->addHeading(__('Home Address'))->append(__('This address will be used for all members of the family. If an individual within the family needs a different address, this can be set through Data Updater after admission.'));

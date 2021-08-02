@@ -398,19 +398,12 @@ if ($proceed == false) {
                     $body .= __('Your application was successfully submitted. Our admissions team will review your application and be in touch in due course.').'<br/><br/>';
                     $body .= __('You may continue submitting applications for siblings with the form below and they will be linked to your family data.').'<br/><br/>';
                     $body .= "<a href='{$URL}&id={$secureAI}'>{$URL}&id={$secureAI}</a><br/><br/>";
-<<<<<<< HEAD
-                    $body .= sprintf(__('In the meantime, should you have any questions please contact %1$s at %2$s.'), $_SESSION[$guid]['organisationAdmissionsName'], $_SESSION[$guid]['organisationAdmissionsEmail']).'<br/><br/>';
-                    $mail = $container->get(Mailer::class);
-                    $mail->Subject = $subject;
-                    $mail->SetFrom($_SESSION[$guid]['organisationAdmissionsEmail'], $_SESSION[$guid]['organisationAdmissionsName']);
-                    $mail->AddReplyTo($_SESSION[$guid]['organisationAdmissionsEmail'], $_SESSION[$guid]['organisationAdmissionsName']);
-=======
                     $body .= sprintf(__('In the meantime, should you have any questions please contact %1$s at %2$s.'), $session->get('organisationAdmissionsName'), $session->get('organisationAdmissionsEmail')).'<br/><br/>';
 
                     $mail = $container->get(Mailer::class);
                     $mail->Subject = $subject;
                     $mail->SetFrom($session->get('organisationAdmissionsEmail'), $session->get('organisationAdmissionsName'));
->>>>>>> v22.0.00
+                    $mail->AddReplyTo($session->get('organisationAdmissionsEmail'), $session->get('organisationAdmissionsName'));
                     $mail->AddAddress($parent1email);
                     $mail->renderBody('mail/email.twig.html', [
                         'title'  => $subject,

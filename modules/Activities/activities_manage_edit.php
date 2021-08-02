@@ -17,14 +17,12 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Domain\Activities\ActivityGateway;
-use Gibbon\Domain\Activities\ActivityStaffGateway;
-use Gibbon\Domain\Activities\ActivitySlotGateway;
-use Gibbon\Domain\System\SettingGateway;
+use Gibbon\Services\Format;
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
-use Gibbon\Services\Format;
+use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Domain\Activities\ActivityGateway;
+use Gibbon\Domain\Activities\ActivityStaffGateway;
 use Gibbon\Domain\Activities\ActivitySlotGateway;
 
 //Module includes
@@ -101,7 +99,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
                 $row = $form->addRow();
                     $row->addLabel('type', __('Type'));
                     $row->addSelect('type')
-                        ->fromString($activityTypes)
+                        ->fromArray($activityTypes)
                         ->placeholder();
             }
 

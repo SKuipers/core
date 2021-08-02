@@ -186,21 +186,21 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                     $resultChild->execute($dataChild);
                 if ($resultChild->rowCount() == 1) {
 
-                        $dataStudent = array('gibbonPersonID' => $gibbonPersonID, 'gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'));
-                        $sqlStudent = 'SELECT * FROM gibbonStudentEnrolment WHERE gibbonPersonID=:gibbonPersonID AND gibbonSchoolYearID=:gibbonSchoolYearID';
-                        $resultStudent = $connection2->prepare($sqlStudent);
-                        $resultStudent->execute($dataStudent);
+                    $dataStudent = array('gibbonPersonID' => $gibbonPersonID, 'gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'));
+                    $sqlStudent = 'SELECT * FROM gibbonStudentEnrolment WHERE gibbonPersonID=:gibbonPersonID AND gibbonSchoolYearID=:gibbonSchoolYearID';
+                    $resultStudent = $connection2->prepare($sqlStudent);
+                    $resultStudent->execute($dataStudent);
 
 
-                        if ($resultStudent->rowCount() == 1) {
-                            $rowStudent = $resultStudent->fetch();
-                            $gibbonYearGroupID = $rowStudent['gibbonYearGroupID'];
-                            if ($gibbonYearGroupID != '') {
-                                $continue = true;
-                                $and = " AND gibbonYearGroupIDList LIKE '%$gibbonYearGroupID%'";
-                            }
+                    if ($resultStudent->rowCount() == 1) {
+                        $rowStudent = $resultStudent->fetch();
+                        $gibbonYearGroupID = $rowStudent['gibbonYearGroupID'];
+                        if ($gibbonYearGroupID != '') {
+                            $continue = true;
+                            $and = " AND gibbonYearGroupIDList LIKE '%$gibbonYearGroupID%'";
                         }
                     }
+
                 } else {
                     echo '<div class="message" style="font-size:14px;padding: 16px;">';
                     echo __('Select a child in your family view their available activities.');
@@ -323,7 +323,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
 
                 $table->addColumn('provider', __('Provider'))
                     ->width('10%')
-                    ->format(function($activity) use ($guid) {
+                    ->format(function($activity) use ($session) {
                         return ($activity['provider'] == 'School')? $session->get('organisationNameShort') : __('External');
                     });
 

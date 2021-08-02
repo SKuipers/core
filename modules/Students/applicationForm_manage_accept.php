@@ -327,8 +327,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
             $yearGroupName = ($resultYearGroup->rowCount() == 1)? $resultYearGroup->fetchColumn(0) : '';
 
             // Get student's roll group info (if any)
-            $dataRollGroup = array('gibbonRollGroupID' => $values['gibbonRollGroupID']);
-            $sqlRollGroup = 'SELECT name FROM gibbonRollGroup WHERE gibbonRollGroupID=:gibbonRollGroupID';
+            $dataRollGroup = array('gibbonFormGroupID' => $values['gibbonFormGroupID']);
+            $sqlRollGroup = 'SELECT name FROM gibbonFormGroup WHERE gibbonFormGroupID=:gibbonFormGroupID';
             $resultRollGroup = $connection2->prepare($sqlRollGroup);
             $resultRollGroup->execute($dataRollGroup);
             $rollGroupName = ($resultRollGroup->rowCount() == 1)? $resultRollGroup->fetchColumn(0) : '';
@@ -353,7 +353,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                 if ($values['gibbonYearGroupIDEntry'] != '' && !empty($yearGroupName)) {
                     $body .= __('Year Group').': '.$yearGroupName."<br/>";
                 }
-                if ($values['gibbonRollGroupID'] != '' && !empty($rollGroupName)) {
+                if ($values['gibbonFormGroupID'] != '' && !empty($rollGroupName)) {
                     $body .= __('Roll Group').': '.$rollGroupName."<br/>";
                 }
                 if ($values['dateStart'] != '') {
@@ -438,8 +438,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                             $insertOK = !empty($updated);
                         } else {
 
-                            $data = array('username' => $username, 'passwordStrong' => $passwordStrong, 'passwordStrongSalt' => $salt, 'status' => $status, 'surname' => $values['surname'], 'firstName' => $values['firstName'], 'preferredName' => $values['preferredName'], 'officialName' => $values['officialName'], 'nameInCharacters' => $values['nameInCharacters'], 'gender' => $values['gender'], 'dob' => $values['dob'], 'languageFirst' => $values['languageFirst'], 'languageSecond' => $values['languageSecond'], 'languageThird' => $values['languageThird'], 'countryOfBirth' => $values['countryOfBirth'], 'citizenship1' => $values['citizenship1'], 'citizenship1Passport' => $values['citizenship1Passport'], 'nationalIDCardNumber' => $values['nationalIDCardNumber'], 'residencyStatus' => $values['residencyStatus'], 'visaExpiryDate' => $values['visaExpiryDate'], 'email' => $email, 'emailAlternate' => $emailAlternate, 'website' => $website, 'phone1Type' => $values['phone1Type'], 'phone1CountryCode' => $values['phone1CountryCode'], 'phone1' => $values['phone1'], 'phone2Type' => $values['phone2Type'], 'phone2CountryCode' => $values['phone2CountryCode'], 'phone2' => $values['phone2'], 'lastSchool' => $lastSchool, 'dateStart' => $values['dateStart'], 'privacy' => $values['privacy'], 'dayType' => $values['dayType'], 'gibbonHouseID' => $gibbonHouseID, 'studentID' => $values['studentID'], 'fields' => $values['fields']);
-                            $sql = "INSERT INTO gibbonPerson SET username=:username, password='', passwordStrong=:passwordStrong, passwordStrongSalt=:passwordStrongSalt, gibbonRoleIDPrimary='003', gibbonRoleIDAll='003', status=:status, surname=:surname, firstName=:firstName, preferredName=:preferredName, officialName=:officialName, nameInCharacters=:nameInCharacters, gender=:gender, dob=:dob, languageFirst=:languageFirst, languageSecond=:languageSecond, languageThird=:languageThird, countryOfBirth=:countryOfBirth, citizenship1=:citizenship1, citizenship1Passport=:citizenship1Passport, nationalIDCardNumber=:nationalIDCardNumber, residencyStatus=:residencyStatus, visaExpiryDate=:visaExpiryDate, email=:email, emailAlternate=:emailAlternate, website=:website, phone1Type=:phone1Type, phone1CountryCode=:phone1CountryCode, phone1=:phone1, phone2Type=:phone2Type, phone2CountryCode=:phone2CountryCode, phone2=:phone2, lastSchool=:lastSchool, dateStart=:dateStart, privacy=:privacy, dayType=:dayType, gibbonHouseID=:gibbonHouseID, studentID=:studentID, fields=:fields";
+                            $data = array('username' => $username, 'passwordStrong' => $passwordStrong, 'passwordStrongSalt' => $salt, 'status' => $status, 'surname' => $values['surname'], 'firstName' => $values['firstName'], 'preferredName' => $values['preferredName'], 'officialName' => $values['officialName'], 'nameInCharacters' => $values['nameInCharacters'], 'gender' => $values['gender'], 'dob' => $values['dob'], 'languageFirst' => $values['languageFirst'], 'languageSecond' => $values['languageSecond'], 'languageThird' => $values['languageThird'], 'countryOfBirth' => $values['countryOfBirth'],  'email' => $email, 'emailAlternate' => $emailAlternate, 'website' => $website, 'phone1Type' => $values['phone1Type'], 'phone1CountryCode' => $values['phone1CountryCode'], 'phone1' => $values['phone1'], 'phone2Type' => $values['phone2Type'], 'phone2CountryCode' => $values['phone2CountryCode'], 'phone2' => $values['phone2'], 'lastSchool' => $lastSchool, 'dateStart' => $values['dateStart'], 'privacy' => $values['privacy'], 'dayType' => $values['dayType'], 'gibbonHouseID' => $gibbonHouseID, 'studentID' => $values['studentID'], 'fields' => $values['fields']);
+                            $sql = "INSERT INTO gibbonPerson SET username=:username, password='', passwordStrong=:passwordStrong, passwordStrongSalt=:passwordStrongSalt, gibbonRoleIDPrimary='003', gibbonRoleIDAll='003', status=:status, surname=:surname, firstName=:firstName, preferredName=:preferredName, officialName=:officialName, nameInCharacters=:nameInCharacters, gender=:gender, dob=:dob, languageFirst=:languageFirst, languageSecond=:languageSecond, languageThird=:languageThird, countryOfBirth=:countryOfBirth, email=:email, emailAlternate=:emailAlternate, website=:website, phone1Type=:phone1Type, phone1CountryCode=:phone1CountryCode, phone1=:phone1, phone2Type=:phone2Type, phone2CountryCode=:phone2CountryCode, phone2=:phone2, lastSchool=:lastSchool, dateStart=:dateStart, privacy=:privacy, dayType=:dayType, gibbonHouseID=:gibbonHouseID, studentID=:studentID, fields=:fields";
                             
                             $gibbonPersonID = $pdo->insert($sql, $data);
                             $gibbonPersonID = str_pad($gibbonPersonID, 10, '0', STR_PAD_LEFT);
@@ -899,13 +899,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                         
                     } else {
                         $lock = true;
-                        try {
-                            $sql = 'LOCK TABLES gibbonPerson WRITE, gibbonUsernameFormat WRITE, gibbonRole WRITE';
-                            $result = $connection2->query($sql);
-                        } catch (PDOException $e) {
-                            $lock = false;
-                            echo "<div class='error'>".$e->getMessage().'</div>';
-                        }
+
                         if ($lock == true) {
                             $gotAI = true;
                             try {
@@ -964,13 +958,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                                 }
                             }
                         }
-                        try {
-                            $sql = 'UNLOCK TABLES';
-                            $result = $connection2->query($sql);
-                        } catch (PDOException $e) {
-                            echo "<div class='error'>".$e->getMessage().'</div>';
-                        }
-
+                        
                         if ($failParent1 == true) {
                             echo "<div class='error'>";
                             echo __('Parent 1 could not be created!');
@@ -1094,13 +1082,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                         // NEW PARENT 2
                         $failParent2 = true;
                         $lock = true;
-                        try {
-                            $sql = 'LOCK TABLES gibbonPerson WRITE, gibbonUsernameFormat WRITE, gibbonRole WRITE';
-                            $result = $connection2->query($sql);
-                        } catch (PDOException $e) {
-                            $lock = false;
-                            echo "<div class='error'>".$e->getMessage().'</div>';
-                        }
+
                         if ($lock == true) {
                             $gotAI = true;
                             try {
@@ -1159,12 +1141,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                                 }
                             }
                         }
-                        try {
-                            $sql = 'UNLOCK TABLES';
-                            $result = $connection2->query($sql);
-                        } catch (PDOException $e) {
-                            echo "<div class='error'>".$e->getMessage().'</div>';
-                        }
+
 
                         if ($failParent2 == true) {
                             echo "<div class='error'>";
@@ -1390,7 +1367,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                         echo str_replace('ICHK', $session->get('organisationNameShort'), __('Applicant has been successfully accepted into ICHK.') );
                         echo ' <i><u>'.__('You may wish to now do the following:').'</u></i><br/>';
                         echo '<ol>';
-                        if (empty($values['gibbonRollGroupID'])) {
+                        if (empty($values['gibbonFormGroupID'])) {
                             echo '<li>'.__('Enrol the student in the relevant academic year.').'</li>';
                         }
                         echo '<li>'.__('Create a medical record for the student.').'</li>';

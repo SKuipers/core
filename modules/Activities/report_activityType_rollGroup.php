@@ -33,7 +33,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/report_activity
     $page->addError(__('You do not have access to this action.'));
 } else {
     //Proceed!
-    $gibbonRollGroupID = isset($_GET['gibbonRollGroupID'])? $_GET['gibbonRollGroupID'] : null;
+    $gibbonFormGroupID = isset($_GET['gibbonFormGroupID'])? $_GET['gibbonFormGroupID'] : null;
     $status = isset($_GET['status'])? $_GET['status'] : null;
     $dateType = getSettingByScope($connection2, 'Activities', 'dateType');
 
@@ -51,8 +51,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/report_activity
         $form->addHiddenValue('q', "/modules/".$_SESSION[$guid]['module']."/report_activityType_rollGroup.php");
 
         $row = $form->addRow();
-            $row->addLabel('gibbonRollGroupID', __('Roll Group'));
-            $row->addSelectRollGroup('gibbonRollGroupID', $_SESSION[$guid]['gibbonSchoolYearID'])->selected($gibbonRollGroupID)->required();
+            $row->addLabel('gibbonFormGroupID', __('Roll Group'));
+            $row->addSelectRollGroup('gibbonFormGroupID', $_SESSION[$guid]['gibbonSchoolYearID'])->selected($gibbonFormGroupID)->required();
 
         $row = $form->addRow();
             $row->addLabel('status', __('Status'));
@@ -65,7 +65,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/report_activity
         echo $form->getOutput();
     }
 
-    if (empty($gibbonRollGroupID)) return;
+    if (empty($gibbonFormGroupID)) return;
 
     $activityGateway = $container->get(ActivityReportGateway::class);
     $studentGateway = $container->get(StudentGateway::class);
@@ -77,7 +77,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/report_activity
         ->pageSize(!empty($viewMode) ? 0 : 50)
         ->fromPOST();
 
-    $rollGroups = $studentGateway->queryStudentEnrolmentByRollGroup($criteria, $gibbonRollGroupID);
+    $rollGroups = $studentGateway->queryStudentEnrolmentByRollGroup($criteria, $gibbonFormGroupID);
 
     // Build a set of activity counts for each student
     $rollGroups->transform(function(&$student) use ($activityGateway,  $status) {

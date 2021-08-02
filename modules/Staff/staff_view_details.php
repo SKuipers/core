@@ -100,7 +100,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
 
                         try {
                             $dataDetail = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'gibbonPersonID' => $gibbonPersonID);
-                            $sqlDetail = "SELECT gibbonRollGroupID, name FROM gibbonRollGroup WHERE gibbonSchoolYearID=:gibbonSchoolYearID AND (gibbonPersonIDTutor=:gibbonPersonID OR gibbonPersonIDTutor2=:gibbonPersonID OR gibbonPersonIDTutor3=:gibbonPersonID )";
+                            $sqlDetail = "SELECT gibbonFormGroupID, name FROM gibbonFormGroup WHERE gibbonSchoolYearID=:gibbonSchoolYearID AND (gibbonPersonIDTutor=:gibbonPersonID OR gibbonPersonIDTutor2=:gibbonPersonID OR gibbonPersonIDTutor3=:gibbonPersonID )";
                             $resultDetail = $connection2->prepare($sqlDetail);
                             $resultDetail->execute($dataDetail);
                         } catch (PDOException $e) {
@@ -115,7 +115,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                             echo '<ul>';
                             while ($rowDetail = $resultDetail->fetch()) {
                                 echo '<li>';
-                                    echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Roll Groups/rollGroups_details.php&gibbonRollGroupID=".$rowDetail['gibbonRollGroupID']."'>";
+                                    echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Roll Groups/rollGroups_details.php&gibbonFormGroupID=".$rowDetail['gibbonFormGroupID']."'>";
                                     echo $rowDetail['name'].'</a>';
 
                                 echo '</li>';
@@ -303,7 +303,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
 
                             try {
                                 $dataDetail = array('gibbonSchoolYearID' => $_SESSION[$guid]['gibbonSchoolYearID'], 'gibbonPersonID' => $gibbonPersonID);
-                                $sqlDetail = "SELECT gibbonRollGroupID, name FROM gibbonRollGroup WHERE gibbonSchoolYearID=:gibbonSchoolYearID AND (gibbonPersonIDTutor=:gibbonPersonID OR gibbonPersonIDTutor2=:gibbonPersonID OR gibbonPersonIDTutor3=:gibbonPersonID )";
+                                $sqlDetail = "SELECT gibbonFormGroupID, name FROM gibbonFormGroup WHERE gibbonSchoolYearID=:gibbonSchoolYearID AND (gibbonPersonIDTutor=:gibbonPersonID OR gibbonPersonIDTutor2=:gibbonPersonID OR gibbonPersonIDTutor3=:gibbonPersonID )";
                                 $resultDetail = $connection2->prepare($sqlDetail);
                                 $resultDetail->execute($dataDetail);
                             } catch (PDOException $e) {
@@ -318,7 +318,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                                 echo '<ul>';
                                 while ($rowDetail = $resultDetail->fetch()) {
                                     echo '<li>';
-                                        echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Roll Groups/rollGroups_details.php&gibbonRollGroupID=".$rowDetail['gibbonRollGroupID']."'>";
+                                        echo "<a href='".$_SESSION[$guid]['absoluteURL']."/index.php?q=/modules/Roll Groups/rollGroups_details.php&gibbonFormGroupID=".$rowDetail['gibbonFormGroupID']."'>";
                                         echo $rowDetail['name'].'</a>';
 
                                     echo '</li>';

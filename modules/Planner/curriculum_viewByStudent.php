@@ -51,7 +51,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/curriculum_viewByS
                     JOIN gibbonFamilyChild ON (gibbonFamilyChild.gibbonFamilyID=gibbonFamilyAdult.gibbonFamilyID)
                     JOIN gibbonPerson ON (gibbonFamilyChild.gibbonPersonID=gibbonPerson.gibbonPersonID)
                     JOIN gibbonStudentEnrolment ON (gibbonPerson.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID)
-                    JOIN gibbonRollGroup ON (gibbonStudentEnrolment.gibbonRollGroupID=gibbonRollGroup.gibbonRollGroupID)
+                    JOIN gibbonFormGroup ON (gibbonStudentEnrolment.gibbonFormGroupID=gibbonFormGroup.gibbonFormGroupID)
                     WHERE gibbonFamilyAdult.gibbonPersonID=:gibbonPersonID
                     AND gibbonPerson.status='Full'
                     AND (dateStart IS NULL OR dateStart<=:date) AND (dateEnd IS NULL OR dateEnd>=:date)
@@ -65,10 +65,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/curriculum_viewByS
     } else if ($highestAction == 'Student Learning_all') {
         try {
             $data = array('date' => date('Y-m-d'));
-            $sql = "SELECT gibbonPerson.gibbonPersonID, title, surname, preferredName, gibbonRollGroup.nameShort as rollGroupName
+            $sql = "SELECT gibbonPerson.gibbonPersonID, title, surname, preferredName, gibbonFormGroup.nameShort as rollGroupName
                 FROM gibbonPerson
                 JOIN gibbonStudentEnrolment ON (gibbonPerson.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID)
-                JOIN gibbonRollGroup ON (gibbonRollGroup.gibbonRollGroupID=gibbonStudentEnrolment.gibbonRollGroupID)
+                JOIN gibbonFormGroup ON (gibbonFormGroup.gibbonFormGroupID=gibbonStudentEnrolment.gibbonFormGroupID)
                 WHERE status='Full'
                 AND (dateStart IS NULL OR dateStart<=:date) AND (dateEnd IS NULL OR dateEnd>=:date)
                 AND gibbonStudentEnrolment.gibbonSchoolYearID=(SELECT gibbonSchoolYearID FROM gibbonSchoolYear WHERE status='Current')
