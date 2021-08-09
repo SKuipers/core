@@ -898,66 +898,54 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
 
                         
                     } else {
-                        $lock = true;
+                        
+                        // Generate a unique username for parent 1
+                        $generator = new UsernameGenerator($pdo);
+                        $generator->addToken('preferredName', $values['parent1preferredName']);
+                        $generator->addToken('firstName', $values['parent1firstName']);
+                        $generator->addToken('surname', $values['parent1surname']);
 
-                        if ($lock == true) {
-                            $gotAI = true;
-                            try {
-                                $sqlAI = "SHOW TABLE STATUS LIKE 'gibbonPerson'";
-                                $resultAI = $connection2->query($sqlAI);
-                            } catch (PDOException $e) {
-                                $gotAI = false;
-                                echo "<div class='error'>".$e->getMessage().'</div>';
+                        $username = $generator->generateByRole('004');
+                        $status = $schoolYearEntry['status'] == 'Upcoming' && $informParents != 'Y' ? 'Full' : 'Full'; 
+
+                        // Generate a random password
+                        $password = randomPassword(8);
+                        $salt = getSalt();
+                        $passwordStrong = hash('sha256', $salt.$password);
+
+                        $continueLoop = !(!empty($username) && $username != 'usernamefailed' && !empty($password));
+
+                        if ($continueLoop == false) {
+                            $insertOK = true;
+
+                            $data = array('username' => $username, 'passwordStrong' => $passwordStrong, 'passwordStrongSalt' => $salt, 'title' => $values['parent1title'], 'status' => $status, 'surname' => $values['parent1surname'], 'firstName' => $values['parent1firstName'], 'preferredName' => $values['parent1preferredName'], 'officialName' => $values['parent1officialName'], 'nameInCharacters' => $values['parent1nameInCharacters'], 'gender' => $values['parent1gender'], 'parent1languageFirst' => $values['parent1languageFirst'], 'parent1languageSecond' => $values['parent1languageSecond'], 'email' => $values['parent1email'], 'phone1Type' => $values['parent1phone1Type'], 'phone1CountryCode' => $values['parent1phone1CountryCode'], 'phone1' => $values['parent1phone1'], 'phone2Type' => $values['parent1phone2Type'], 'phone2CountryCode' => $values['parent1phone2CountryCode'], 'phone2' => $values['parent1phone2'], 'profession' => $values['parent1profession'], 'employer' => $values['parent1employer'], 'parent1fields' => $values['parent1fields']);
+                            $sql = "INSERT INTO gibbonPerson SET username=:username, password='', passwordStrong=:passwordStrong, passwordStrongSalt=:passwordStrongSalt, gibbonRoleIDPrimary='004', gibbonRoleIDAll='004', status=:status, title=:title, surname=:surname, firstName=:firstName, preferredName=:preferredName, officialName=:officialName, nameInCharacters=:nameInCharacters, gender=:gender, languageFirst=:parent1languageFirst, languageSecond=:parent1languageSecond, email=:email, phone1Type=:phone1Type, phone1CountryCode=:phone1CountryCode, phone1=:phone1, phone2Type=:phone2Type, phone2CountryCode=:phone2CountryCode, phone2=:phone2, profession=:profession, employer=:employer, fields=:parent1fields";
+
+                            $gibbonPersonIDParent1 = $pdo->insert($sql, $data);
+                            $gibbonPersonIDParent1 = str_pad($gibbonPersonIDParent1, 10, '0', STR_PAD_LEFT);
+
+                            if (!$pdo->getQuerySuccess() || empty($gibbonPersonIDParent1)) {
+                                $insertOK = false;
+                                $partialFailures[] = 'insertOK Parent1';
                             }
+                            
+                            if ($insertOK == true) {
+                                $failParent1 = false;
 
-                            if ($gotAI == true) {
-                                $rowAI = $resultAI->fetch();
-                                $gibbonPersonIDParent1 = str_pad($rowAI['Auto_increment'], 10, '0', STR_PAD_LEFT);
-
-                                // Generate a unique username for parent 1
-                                $generator = new UsernameGenerator($pdo);
-                                $generator->addToken('preferredName', $values['parent1preferredName']);
-                                $generator->addToken('firstName', $values['parent1firstName']);
-                                $generator->addToken('surname', $values['parent1surname']);
-
-                                $username = $generator->generateByRole('004');
-                                $status = $schoolYearEntry['status'] == 'Upcoming' && $informParents != 'Y' ? 'Full' : 'Full'; 
-
-                                // Generate a random password
-                                $password = randomPassword(8);
-                                $salt = getSalt();
-                                $passwordStrong = hash('sha256', $salt.$password);
-
-                                $continueLoop = !(!empty($username) && $username != 'usernamefailed' && !empty($password));
-
-                                if ($continueLoop == false) {
-                                    $insertOK = true;
-                                    try {
-                                        $data = array('username' => $username, 'passwordStrong' => $passwordStrong, 'passwordStrongSalt' => $salt, 'title' => $values['parent1title'], 'status' => $status, 'surname' => $values['parent1surname'], 'firstName' => $values['parent1firstName'], 'preferredName' => $values['parent1preferredName'], 'officialName' => $values['parent1officialName'], 'nameInCharacters' => $values['parent1nameInCharacters'], 'gender' => $values['parent1gender'], 'parent1languageFirst' => $values['parent1languageFirst'], 'parent1languageSecond' => $values['parent1languageSecond'], 'email' => $values['parent1email'], 'phone1Type' => $values['parent1phone1Type'], 'phone1CountryCode' => $values['parent1phone1CountryCode'], 'phone1' => $values['parent1phone1'], 'phone2Type' => $values['parent1phone2Type'], 'phone2CountryCode' => $values['parent1phone2CountryCode'], 'phone2' => $values['parent1phone2'], 'profession' => $values['parent1profession'], 'employer' => $values['parent1employer'], 'parent1fields' => $values['parent1fields']);
-                                        $sql = "INSERT INTO gibbonPerson SET username=:username, password='', passwordStrong=:passwordStrong, passwordStrongSalt=:passwordStrongSalt, gibbonRoleIDPrimary='004', gibbonRoleIDAll='004', status=:status, title=:title, surname=:surname, firstName=:firstName, preferredName=:preferredName, officialName=:officialName, nameInCharacters=:nameInCharacters, gender=:gender, languageFirst=:parent1languageFirst, languageSecond=:parent1languageSecond, email=:email, phone1Type=:phone1Type, phone1CountryCode=:phone1CountryCode, phone1=:phone1, phone2Type=:phone2Type, phone2CountryCode=:phone2CountryCode, phone2=:phone2, profession=:profession, employer=:employer, fields=:parent1fields";
-                                        $result = $connection2->prepare($sql);
-                                        $result->execute($data);
-                                    } catch (PDOException $e) {
-                                        $insertOK = false;
-                                        echo "<div class='error'>".$e->getMessage().'</div>';
-                                    }
-                                    if ($insertOK == true) {
-                                        $failParent1 = false;
-
-                                        //Populate parent1 in informParent array
-                                        if ($informParents == 'Y') {
-                                            $informParentsArray[0]['email'] = $values['parent1email'];
-                                            $informParentsArray[0]['surname'] = $values['parent1surname'];
-                                            $informParentsArray[0]['preferredName'] = $values['parent1preferredName'];
-                                            $informParentsArray[0]['username'] = $username;
-                                            $informParentsArray[0]['password'] = $password;
-                                        }
-
-                                        $container->get(PersonalDocumentGateway::class)->updatePersonalDocumentOwnership('gibbonApplicationFormParent1', $gibbonApplicationFormID, 'gibbonPerson', $gibbonPersonIDParent1);
-                                    }
+                                //Populate parent1 in informParent array
+                                if ($informParents == 'Y') {
+                                    $informParentsArray[0]['email'] = $values['parent1email'];
+                                    $informParentsArray[0]['surname'] = $values['parent1surname'];
+                                    $informParentsArray[0]['preferredName'] = $values['parent1preferredName'];
+                                    $informParentsArray[0]['username'] = $username;
+                                    $informParentsArray[0]['password'] = $password;
                                 }
+
+                                $container->get(PersonalDocumentGateway::class)->updatePersonalDocumentOwnership('gibbonApplicationFormParent1', $gibbonApplicationFormID, 'gibbonPerson', $gibbonPersonIDParent1);
                             }
                         }
+                            
+                        
                         
                         if ($failParent1 == true) {
                             echo "<div class='error'>";
@@ -1081,66 +1069,54 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                     } else if ($values['parent2preferredName'] != '' and $values['parent2surname'] != '') {
                         // NEW PARENT 2
                         $failParent2 = true;
-                        $lock = true;
+                        
+                        // Generate a unique username for parent 2
+                        $generator = new UsernameGenerator($pdo);
+                        $generator->addToken('preferredName', $values['parent2preferredName']);
+                        $generator->addToken('firstName', $values['parent2firstName']);
+                        $generator->addToken('surname', $values['parent2surname']);
 
-                        if ($lock == true) {
-                            $gotAI = true;
-                            try {
-                                $sqlAI = "SHOW TABLE STATUS LIKE 'gibbonPerson'";
-                                $resultAI = $connection2->query($sqlAI);
-                            } catch (PDOException $e) {
-                                $gotAI = false;
-                                echo "<div class='error'>".$e->getMessage().'</div>';
+                        $username = $generator->generateByRole('004');
+                        $status = $schoolYearEntry['status'] == 'Upcoming' && $informParents != 'Y' ? 'Full' : 'Full'; 
+
+                        // Generate a random password
+                        $password = randomPassword(8);
+                        $salt = getSalt();
+                        $passwordStrong = hash('sha256', $salt.$password);
+
+                        $continueLoop = !(!empty($username) && $username != 'usernamefailed' && !empty($password));
+
+                        if ($continueLoop == false) {
+                            $insertOK = true;
+                            
+                            $data = array('username' => $username, 'passwordStrong' => $passwordStrong, 'passwordStrongSalt' => $salt, 'title' => $values['parent2title'], 'status' => $status, 'surname' => $values['parent2surname'], 'firstName' => $values['parent2firstName'], 'preferredName' => $values['parent2preferredName'], 'officialName' => $values['parent2officialName'], 'nameInCharacters' => $values['parent2nameInCharacters'], 'gender' => $values['parent2gender'], 'parent2languageFirst' => $values['parent2languageFirst'], 'parent2languageSecond' => $values['parent2languageSecond'], 'email' => $values['parent2email'], 'phone1Type' => $values['parent2phone1Type'], 'phone1CountryCode' => $values['parent2phone1CountryCode'], 'phone1' => $values['parent2phone1'], 'phone2Type' => $values['parent2phone2Type'], 'phone2CountryCode' => $values['parent2phone2CountryCode'], 'phone2' => $values['parent2phone2'], 'profession' => $values['parent2profession'], 'employer' => $values['parent2employer'], 'parent2fields' => $values['parent2fields']);
+                            $sql = "INSERT INTO gibbonPerson SET username=:username, password='', passwordStrong=:passwordStrong, passwordStrongSalt=:passwordStrongSalt, gibbonRoleIDPrimary='004', gibbonRoleIDAll='004', status=:status, title=:title, surname=:surname, firstName=:firstName, preferredName=:preferredName, officialName=:officialName, nameInCharacters=:nameInCharacters, gender=:gender, languageFirst=:parent2languageFirst, languageSecond=:parent2languageSecond, email=:email, phone1Type=:phone1Type, phone1CountryCode=:phone1CountryCode, phone1=:phone1, phone2Type=:phone2Type, phone2CountryCode=:phone2CountryCode, phone2=:phone2, profession=:profession, employer=:employer, fields=:parent2fields";
+
+                            $gibbonPersonIDParent2 = $pdo->insert($sql, $data);
+                            $gibbonPersonIDParent2 = str_pad($gibbonPersonIDParent2, 10, '0', STR_PAD_LEFT);
+
+                            if (!$pdo->getQuerySuccess() || empty($gibbonPersonIDParent2)) {
+                                $insertOK = false;
+                                $partialFailures[] = 'insertOK Parent2';
                             }
 
-                            if ($gotAI == true) {
-                                $rowAI = $resultAI->fetch();
-                                $gibbonPersonIDParent2 = str_pad($rowAI['Auto_increment'], 10, '0', STR_PAD_LEFT);
+                            if ($insertOK == true) {
+                                $failParent2 = false;
 
-                                // Generate a unique username for parent 2
-                                $generator = new UsernameGenerator($pdo);
-                                $generator->addToken('preferredName', $values['parent2preferredName']);
-                                $generator->addToken('firstName', $values['parent2firstName']);
-                                $generator->addToken('surname', $values['parent2surname']);
-
-                                $username = $generator->generateByRole('004');
-                                $status = $schoolYearEntry['status'] == 'Upcoming' && $informParents != 'Y' ? 'Full' : 'Full'; 
-
-                                // Generate a random password
-                                $password = randomPassword(8);
-                                $salt = getSalt();
-                                $passwordStrong = hash('sha256', $salt.$password);
-
-                                $continueLoop = !(!empty($username) && $username != 'usernamefailed' && !empty($password));
-
-                                if ($continueLoop == false) {
-                                    $insertOK = true;
-                                    try {
-                                        $data = array('username' => $username, 'passwordStrong' => $passwordStrong, 'passwordStrongSalt' => $salt, 'title' => $values['parent2title'], 'status' => $status, 'surname' => $values['parent2surname'], 'firstName' => $values['parent2firstName'], 'preferredName' => $values['parent2preferredName'], 'officialName' => $values['parent2officialName'], 'nameInCharacters' => $values['parent2nameInCharacters'], 'gender' => $values['parent2gender'], 'parent2languageFirst' => $values['parent2languageFirst'], 'parent2languageSecond' => $values['parent2languageSecond'], 'email' => $values['parent2email'], 'phone1Type' => $values['parent2phone1Type'], 'phone1CountryCode' => $values['parent2phone1CountryCode'], 'phone1' => $values['parent2phone1'], 'phone2Type' => $values['parent2phone2Type'], 'phone2CountryCode' => $values['parent2phone2CountryCode'], 'phone2' => $values['parent2phone2'], 'profession' => $values['parent2profession'], 'employer' => $values['parent2employer'], 'parent2fields' => $values['parent2fields']);
-                                        $sql = "INSERT INTO gibbonPerson SET username=:username, password='', passwordStrong=:passwordStrong, passwordStrongSalt=:passwordStrongSalt, gibbonRoleIDPrimary='004', gibbonRoleIDAll='004', status=:status, title=:title, surname=:surname, firstName=:firstName, preferredName=:preferredName, officialName=:officialName, nameInCharacters=:nameInCharacters, gender=:gender, languageFirst=:parent2languageFirst, languageSecond=:parent2languageSecond, email=:email, phone1Type=:phone1Type, phone1CountryCode=:phone1CountryCode, phone1=:phone1, phone2Type=:phone2Type, phone2CountryCode=:phone2CountryCode, phone2=:phone2, profession=:profession, employer=:employer, fields=:parent2fields";
-                                        $result = $connection2->prepare($sql);
-                                        $result->execute($data);
-                                    } catch (PDOException $e) {
-                                        $insertOK = false;
-                                        echo "<div class='error'>".$e->getMessage().'</div>';
-                                    }
-                                    if ($insertOK == true) {
-                                        $failParent2 = false;
-
-                                        //Populate parent2 in informParents array
-                                        if ($informParents == 'Y') {
-                                            $informParentsArray[1]['email'] = $values['parent2email'];
-                                            $informParentsArray[1]['surname'] = $values['parent2surname'];
-                                            $informParentsArray[1]['preferredName'] = $values['parent2preferredName'];
-                                            $informParentsArray[1]['username'] = $username;
-                                            $informParentsArray[1]['password'] = $password;
-                                        }
-
-                                        $container->get(PersonalDocumentGateway::class)->updatePersonalDocumentOwnership('gibbonApplicationFormParent2', $gibbonApplicationFormID, 'gibbonPerson', $gibbonPersonIDParent2);
-                                    }
+                                //Populate parent2 in informParents array
+                                if ($informParents == 'Y') {
+                                    $informParentsArray[1]['email'] = $values['parent2email'];
+                                    $informParentsArray[1]['surname'] = $values['parent2surname'];
+                                    $informParentsArray[1]['preferredName'] = $values['parent2preferredName'];
+                                    $informParentsArray[1]['username'] = $username;
+                                    $informParentsArray[1]['password'] = $password;
                                 }
+
+                                $container->get(PersonalDocumentGateway::class)->updatePersonalDocumentOwnership('gibbonApplicationFormParent2', $gibbonApplicationFormID, 'gibbonPerson', $gibbonPersonIDParent2);
                             }
                         }
+                    
+                        
 
 
                         if ($failParent2 == true) {
