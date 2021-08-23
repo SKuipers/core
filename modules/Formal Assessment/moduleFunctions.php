@@ -19,6 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Form;
 use Gibbon\Services\Format;
+use Gibbon\Tables\DataTable;
 
 //$role can be teacher, student or parent. If no role is specified, the default is teacher.
 function getInternalAssessmentRecord($guid, $connection2, $gibbonPersonID, $role = 'teacher')
@@ -267,13 +268,20 @@ function sidebarExtra($guid, $connection2, $gibbonCourseClassID, $mode = 'manage
     return $output;
 }
 
-function externalAssessmentDetails($guid, $gibbonPersonID, $connection2, $gibbonYearGroupID = null, $manage = false, $search = '', $allStudents = '')
+function externalAssessmentDetails($guid, $gibbonPersonID, $connection2, $gibbonYearGroupID = null, $manage = false, $search = '', $allStudents = '', $sort = '')
 {
 
-        $dataAssessments = array('gibbonPersonID' => $gibbonPersonID);
-        $sqlAssessments = 'SELECT * FROM gibbonExternalAssessmentStudent JOIN gibbonExternalAssessment ON (gibbonExternalAssessmentStudent.gibbonExternalAssessmentID=gibbonExternalAssessment.gibbonExternalAssessmentID) WHERE gibbonPersonID=:gibbonPersonID ORDER BY date';
-        $resultAssessments = $connection2->prepare($sqlAssessments);
-        $resultAssessments->execute($dataAssessments);
+    $dataAssessments = array('gibbonPersonID' => $gibbonPersonID);
+    $sqlAssessments = 'SELECT * FROM gibbonExternalAssessmentStudent JOIN gibbonExternalAssessment ON (gibbonExternalAssessmentStudent.gibbonExternalAssessmentID=gibbonExternalAssessment.gibbonExternalAssessmentID) WHERE gibbonPersonID=:gibbonPersonID ORDER BY ';
+
+    if ($sort == 'alpha') {
+        $sqlAssessments .= 'name, date';
+    } else {
+        $sqlAssessments .= 'date, name';
+    }
+
+    $resultAssessments = $connection2->prepare($sqlAssessments);
+    $resultAssessments->execute($dataAssessments);
 
     if ($resultAssessments->rowCount() < 1) {
         echo "<div class='error'>";
@@ -299,79 +307,50 @@ function externalAssessmentDetails($guid, $gibbonPersonID, $connection2, $gibbon
             }
 
             //Get results
+            $dataResults = array('gibbonPersonID' => $gibbonPersonID, 'gibbonExternalAssessmentStudentID' => $rowAssessments['gibbonExternalAssessmentStudentID']);
+            $sqlResults = "SELECT gibbonExternalAssessmentField.name, gibbonExternalAssessmentField.category, resultGrade.value, resultGrade.descriptor, result.usage, result.lowestAcceptable, resultGrade.sequenceNumber
+                FROM gibbonExternalAssessmentStudentEntry
+                    JOIN gibbonExternalAssessmentStudent ON (gibbonExternalAssessmentStudentEntry.gibbonExternalAssessmentStudentID=gibbonExternalAssessmentStudent.gibbonExternalAssessmentStudentID)
+                    JOIN gibbonExternalAssessmentField ON (gibbonExternalAssessmentStudentEntry.gibbonExternalAssessmentFieldID=gibbonExternalAssessmentField.gibbonExternalAssessmentFieldID)
+                    JOIN gibbonExternalAssessment ON (gibbonExternalAssessment.gibbonExternalAssessmentID=gibbonExternalAssessmentField.gibbonExternalAssessmentID)
+                    JOIN gibbonScaleGrade AS resultGrade ON (gibbonExternalAssessmentStudentEntry.gibbonScaleGradeID=resultGrade.gibbonScaleGradeID)
+                    JOIN gibbonScale AS result ON (result.gibbonScaleID=resultGrade.gibbonScaleID)
+                WHERE gibbonPersonID=:gibbonPersonID
+                    AND result.active='Y'
+                    AND gibbonExternalAssessment.active='Y'
+                    AND gibbonExternalAssessmentStudentEntry.gibbonExternalAssessmentStudentID=:gibbonExternalAssessmentStudentID
+                ORDER BY category, gibbonExternalAssessmentField.order";
+            $resultResults = $connection2->prepare($sqlResults);
+            $resultResults->execute($dataResults);
 
-                $dataResults = array('gibbonPersonID' => $gibbonPersonID, 'gibbonExternalAssessmentStudentID' => $rowAssessments['gibbonExternalAssessmentStudentID']);
-                $sqlResults = "SELECT gibbonExternalAssessmentField.name, gibbonExternalAssessmentField.category, resultGrade.value, resultGrade.descriptor, result.usage, result.lowestAcceptable, resultGrade.sequenceNumber
-                    FROM gibbonExternalAssessmentStudentEntry
-                        JOIN gibbonExternalAssessmentStudent ON (gibbonExternalAssessmentStudentEntry.gibbonExternalAssessmentStudentID=gibbonExternalAssessmentStudent.gibbonExternalAssessmentStudentID)
-                        JOIN gibbonExternalAssessmentField ON (gibbonExternalAssessmentStudentEntry.gibbonExternalAssessmentFieldID=gibbonExternalAssessmentField.gibbonExternalAssessmentFieldID)
-                        JOIN gibbonExternalAssessment ON (gibbonExternalAssessment.gibbonExternalAssessmentID=gibbonExternalAssessmentField.gibbonExternalAssessmentID)
-                        JOIN gibbonScaleGrade AS resultGrade ON (gibbonExternalAssessmentStudentEntry.gibbonScaleGradeID=resultGrade.gibbonScaleGradeID)
-                        JOIN gibbonScale AS result ON (result.gibbonScaleID=resultGrade.gibbonScaleID)
-                    WHERE gibbonPersonID=:gibbonPersonID
-                        AND result.active='Y'
-                        AND gibbonExternalAssessment.active='Y'
-                        AND gibbonExternalAssessmentStudentEntry.gibbonExternalAssessmentStudentID=:gibbonExternalAssessmentStudentID
-                    ORDER BY category, gibbonExternalAssessmentField.order";
-                $resultResults = $connection2->prepare($sqlResults);
-                $resultResults->execute($dataResults);
+            $results = array_reduce($resultResults->fetchAll(), function ($group, $result) {
+                $group[$result['category']][] = $result;
+                return $group;
+            }, []);
 
-            if ($resultResults->rowCount() < 1) {
-                echo "<div class='warning'>";
-                echo __('There are no records to display.');
-                echo '</div>';
-            } else {
-                $lastCategory = '';
-                $count = 0;
-                $rowNum = 'odd';
-                while ($rowResults = $resultResults->fetch()) {
-                    if ($rowResults['category'] != $lastCategory) {
-                        if ($count != 0) {
-                            echo '</table>';
-                        }
-                        echo "<p style='font-weight: bold; margin: 15px 0 5px;'>";
-                        if (strpos($rowResults['category'], '_') === false) {
-                            echo $rowResults['category'];
-                        } else {
-                            echo substr($rowResults['category'], (strpos($rowResults['category'], '_') + 1));
-                        }
-                        echo '</p>';
-
-                        echo "<table cellspacing='0' style='width: 100%'>";
-                        echo "<tr class='head'>";
-                        echo "<th style='width:40%'>";
-                        echo __('Item');
-                        echo '</th>';
-                        echo "<th style='width:15%'>";
-                        echo __('Result');
-                        echo '</th>';
-                        echo '</tr>';
-                    }
-
-                    if ($count % 2 == 0) {
-                        $rowNum = 'even';
-                    } else {
-                        $rowNum = 'odd';
-                    }
-
-                    //COLOR ROW BY STATUS!
-                    echo "<tr class=$rowNum>";
-                    echo '<td>';
-                    echo __($rowResults['name']);
-                    echo '</td>';
-                    echo '<td>';
-                    $style = '';
-                    if ($rowResults['lowestAcceptable'] != '' and $rowResults['sequenceNumber'] > $rowResults['lowestAcceptable']) {
-                        $style = "style='color: #ff0000; font-weight: bold; border: 2px solid #ff0000; padding: 2px 4px'";
-                    }
-                    echo "<span $style title='".__($rowResults['usage'])."'>".__($rowResults['value']).'</span>';
-                    echo '</td>';
-                    echo '</tr>';
-
-                    $lastCategory = $rowResults['category'];
-                    ++$count;
+            foreach ($results as $category => $categoryResults) {
+                echo "<p style='font-weight: bold; margin: 15px 0 5px;'>";
+                if (strpos($category, '_') === false) {
+                    echo $category;
+                } else {
+                    echo substr($category, (strpos($category, '_') + 1));
                 }
-                echo '</table>';
+                echo '</p>';
+
+                $table = DataTable::create($rowAssessments['gibbonExternalAssessmentID']);
+
+                $table->addColumn('name', __('Item'));
+
+                $table->addColumn('result', __('Result'))
+                    ->format(function ($row) {
+                        $style = '';
+                        if ($row['lowestAcceptable'] != '' and $row['sequenceNumber'] > $row['lowestAcceptable']) {
+                            $style = "style='color: #ff0000; font-weight: bold; border: 2px solid #ff0000; padding: 2px 4px'";
+                        }
+                        return "<span $style title='".__($row['usage'])."'>".__($row['value']).'</span>';
+                    });
+
+                echo $table->render($categoryResults);
             }
         }
     }

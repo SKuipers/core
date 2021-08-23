@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Forms\Form;
 use Gibbon\Services\Format;
 use Gibbon\Tables\DataTable;
 use Gibbon\Domain\DataSet;
@@ -90,7 +91,32 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/external
             if ($highestAction == 'External Assessment Data_manage') {
                 $manage = true;
             }
-            externalAssessmentDetails($guid, $gibbonPersonID, $connection2, '', $manage, $search, $allStudents);
+
+            $sort = $_GET['sort'] ?? 'chron';
+            $form = Form::create('assessmentSort', $gibbon->session->get('absoluteURL') . '/index.php', 'get');
+            $form->setTitle(__('Sorting'));
+
+            $form->addHiddenValue('q', $_GET['q']);
+            $form->addHiddenValue('gibbonPersonID', $gibbonPersonID);
+            $form->addHiddenValue('search', $search);
+            $form->addHiddenValue('allStudents', $allStudents);
+
+            $formRow = $form->addRow();
+                $formRow->addLabel('sort', 'Sort By');
+                $formRow->addSelect('sort')
+                    ->fromArray([
+                        'chron' => __('Chronological'),
+                        'alpha' => __('Alphabetical')
+                    ])
+                    ->selected($sort);
+
+            $formRow = $form->addRow();
+                $formRow->addFooter();
+                $formRow->addSubmit();
+
+            print $form->getOutput(); 
+
+            externalAssessmentDetails($guid, $gibbonPersonID, $connection2, '', $manage, $search, $allStudents, $sort);
 
             //Set sidebar
             $session->set('sidebarExtra', getUserPhoto($guid, $row['image_240'], 240));
