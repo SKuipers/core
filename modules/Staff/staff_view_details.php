@@ -408,8 +408,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
 
                         $col = $table->addColumn('Basic Information');
 
-                        $col->addColumn('preferredName', __('Name'))
+                        $col->addColumn('preferredName', __('Preferred Name'))
                             ->format(Format::using('name', ['title', 'preferredName', 'surname', 'Parent']));
+                        $col->addColumn('officialName', __('Official Name'));
                         $col->addColumn('type', __('Staff Type'))->translatable();
                         $col->addColumn('jobTitle', __('Job Title'));
                         $col->addColumn('initials', __('Initials'));
