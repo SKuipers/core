@@ -59,6 +59,7 @@ if (empty(intval($role))) {
 
         // Clear the main menu from session cache
         $gibbon->session->forget('menuMainItems');
+        $gibbon->session->forget('index_customSidebar.php');
 
         $URL .= '?return=success0';
         header("Location: {$URL}");
