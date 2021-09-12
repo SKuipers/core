@@ -69,8 +69,7 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
                 JOIN gibbonPerson ON (gibbonFormGroup.gibbonPersonIDTutor=gibbonPerson.gibbonPersonID)
                 WHERE gibbonSchoolYearID=:gibbonSchoolYearID
                 AND attendance = 'Y'
-                AND gibbonPerson.status='Full' 
-                ORDER BY LENGTH(gibbonFormGroup.name), gibbonFormGroup.name";
+                AND gibbonPerson.status='Full' ";
 
                 // Exclude Secondary on Wednesday
                 if (date('D') == 'Wed' && $_SESSION[$guid]['organisationNameShort'] == 'TIS') {
