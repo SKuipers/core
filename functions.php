@@ -920,25 +920,55 @@ function getAlertBar($guid, $connection2, $gibbonPersonID, $privacy = '', $divEx
     if ($highestAction == 'View Student Profile_full' or $highestAction == 'View Student Profile_fullNoNotes' or $highestAction == 'View Student Profile_fullEditAllNotes') {
 
         // Individual Needs
+        $dataAlert = array('gibbonPersonID' => $gibbonPersonID);
+        $sqlAlert = "SELECT gibbonIN.fields, gibbonAlertLevel.* 
+        FROM gibbonIN
+        LEFT JOIN gibbonINPersonDescriptor ON (gibbonINPersonDescriptor.gibbonPersonID=gibbonIN.gibbonPersonID)
+        LEFT JOIN gibbonAlertLevel ON (gibbonINPersonDescriptor.gibbonAlertLevelID=gibbonAlertLevel.gibbonAlertLevelID) WHERE gibbonIN.gibbonPersonID=:gibbonPersonID ORDER BY sequenceNumber DESC";
+        $resultAlert = $connection2->prepare($sqlAlert);
+        $resultAlert->execute($dataAlert);
+        $rowIN = $resultAlert->fetch();
 
-            $dataAlert = array('gibbonPersonID' => $gibbonPersonID);
-            $sqlAlert = "SELECT * FROM gibbonINPersonDescriptor JOIN gibbonAlertLevel ON (gibbonINPersonDescriptor.gibbonAlertLevelID=gibbonAlertLevel.gibbonAlertLevelID) WHERE gibbonPersonID=:gibbonPersonID ORDER BY sequenceNumber DESC";
-            $resultAlert = $connection2->prepare($sqlAlert);
-            $resultAlert->execute($dataAlert);
-
-        if ($alert = $resultAlert->fetch()) {
+        if (!empty($rowIN['gibbonAlertLevelID'])) {
             $title = $resultAlert->rowCount() == 1
-                ? $resultAlert->rowCount().' '.sprintf(__('Individual Needs alert is set, with an alert level of %1$s.'), $alert['name'])
-                : $resultAlert->rowCount().' '.sprintf(__('Individual Needs alerts are set, up to a maximum alert level of %1$s.'), $alert['name']);
+                ? $resultAlert->rowCount().' '.sprintf(__('Individual Needs alert is set, with an alert level of %1$s.'), $rowIN['name'])
+                : $resultAlert->rowCount().' '.sprintf(__('Individual Needs alerts are set, up to a maximum alert level of %1$s.'), $rowIN['name']);
 
             $alerts[] = [
-                'highestLevel'    => __($alert['name']),
-                'highestColour'   => $alert['color'],
-                'highestColourBG' => $alert['colorBG'],
+                'highestLevel'    => __($rowIN['name']),
+                'highestColour'   => $rowIN['color'],
+                'highestColourBG' => $rowIN['colorBG'],
                 'tag'             => __('IN'),
                 'title'           => $title,
                 'link'            => './index.php?q=/modules/Students/student_view_details.php&gibbonPersonID='.$gibbonPersonID.'&subpage=Individual Needs',
             ];
+        }
+
+        if (!empty($rowIN['fields'])) {
+            $studentINFields = json_decode($rowIN['fields'], true);
+
+            try {
+                $dataFields = array('name' => 'EAL Student');
+                $sqlFields = 'SELECT gibbonCustomFieldID FROM gibbonCustomField WHERE name=:name LIMIT 1';
+                $resultFields = $connection2->prepare($sqlFields);
+                $resultFields->execute($dataFields);
+            } catch (PDOException $e) {}
+
+            if ($resultFields->rowCount() > 0) {
+                $gibbonCustomFieldID = $resultFields->fetchColumn(0);
+                $userField = $studentINFields[$gibbonCustomFieldID] ?? [];
+                if (!empty($userField)) {
+                    $alerts[] = [
+                        'highestColour'   => "#0891B2", // "#3B73AF",
+                        'highestColourBG' => "#A5F3FC", // "#b3ceeb",
+                        'tag'             => __('L'),
+                        'title'           => __('{EAL} Student', ['EAL' => $userField]),
+                        'link'            => './index.php?q=/modules/Students/student_view_details.php&gibbonPersonID='.$gibbonPersonID.'&subpage=Individual Needs',
+                        // 'class'           => 'float-right ml-1',
+                    ];
+                }
+            }
+
         }
 
         // Academic
@@ -1085,14 +1115,14 @@ function getAlertBar($guid, $connection2, $gibbonPersonID, $privacy = '', $divEx
             if (!empty($userFields)) {
                 try {
                     $dataFields = array('name' => 'IB Personal Code');
-                    $sqlFields = 'SELECT gibbonPersonFieldID FROM gibbonPersonField WHERE name=:name LIMIT 1';
+                    $sqlFields = 'SELECT gibbonCustomFieldID FROM gibbonCustomField WHERE name=:name LIMIT 1';
                     $resultFields = $connection2->prepare($sqlFields);
                     $resultFields->execute($dataFields);
                 } catch (PDOException $e) {}
 
                 if ($resultFields->rowCount() > 0) {
-                    $gibbonPersonFieldID = $resultFields->fetchColumn(0);
-                    $userField = (isset($userFields[$gibbonPersonFieldID]))? $userFields[$gibbonPersonFieldID] : '';
+                    $gibbonCustomFieldID = $resultFields->fetchColumn(0);
+                    $userField = (isset($userFields[$gibbonCustomFieldID]))? $userFields[$gibbonCustomFieldID] : '';
                     if (!empty($userField)) {
                         $alerts[] = [
                             'highestColour'   => "#3B73AF",
@@ -1107,14 +1137,14 @@ function getAlertBar($guid, $connection2, $gibbonPersonID, $privacy = '', $divEx
 
                 try {
                     $dataFields = array('name' => 'Paid Lunch');
-                    $sqlFields = 'SELECT gibbonPersonFieldID FROM gibbonPersonField WHERE name=:name LIMIT 1';
+                    $sqlFields = 'SELECT gibbonCustomFieldID FROM gibbonCustomField WHERE name=:name LIMIT 1';
                     $resultFields = $connection2->prepare($sqlFields);
                     $resultFields->execute($dataFields);
                 } catch (PDOException $e) {}
 
                 if ($resultFields->rowCount() > 0) {
-                    $gibbonPersonFieldID = $resultFields->fetchColumn(0);
-                    $userField = (isset($userFields[$gibbonPersonFieldID]))? $userFields[$gibbonPersonFieldID] : '';
+                    $gibbonCustomFieldID = $resultFields->fetchColumn(0);
+                    $userField = (isset($userFields[$gibbonCustomFieldID]))? $userFields[$gibbonCustomFieldID] : '';
                     if (!empty($userField) && $userField == 'Y') {
                         $alerts[] = [
                             'highestColour'   => "#449045",
