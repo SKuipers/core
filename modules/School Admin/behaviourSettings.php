@@ -91,11 +91,25 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/behaviourSett
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addYesNo($setting['name'])->selected($setting['value'])->required();
 
-    $form->toggleVisibilityByClass('behaviourLetters')->onSelect($setting['name'])->when('Y');
+    $form->toggleVisibilityByClass('behaviourLettersNegative')->onSelect($setting['name'])->when('Y');
 
     for ($i = 1;$i < 4;++$i) {
         $setting = getSettingByScope($connection2, 'Behaviour', 'behaviourLettersNegativeLetter'.$i.'Count', true);
-        $row = $form->addRow()->addClass('behaviourLetters');
+        $row = $form->addRow()->addClass('behaviourLettersNegative');
+            $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
+            $row->addSelect($setting['name'])->fromArray(range(1,20))->selected($setting['value'])->required();
+    }
+
+    $setting = getSettingByScope($connection2, 'Behaviour', 'enablePositiveBehaviourLetters', true);
+    $row = $form->addRow();
+        $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
+        $row->addYesNo($setting['name'])->selected($setting['value'])->required();
+
+    $form->toggleVisibilityByClass('behaviourLettersPositive')->onSelect($setting['name'])->when('Y');
+
+    for ($i = 1;$i < 4;++$i) {
+        $setting = getSettingByScope($connection2, 'Behaviour', 'behaviourLettersPositiveLetter'.$i.'Count', true);
+        $row = $form->addRow()->addClass('behaviourLettersPositive');
             $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
             $row->addSelect($setting['name'])->fromArray(range(1,20))->selected($setting['value'])->required();
     }
