@@ -103,7 +103,7 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
                     if ($behaviourCount > 0) { //Only worry about students with more than zero negative records in the current year
                         //Get most recent letter entry
                         $dataLetters = array('gibbonPersonID' => $student['gibbonPersonID'], 'gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'));
-                        $sqlLetters = 'SELECT * FROM gibbonBehaviourLetter WHERE gibbonPersonID=:gibbonPersonID AND gibbonSchoolYearID=:gibbonSchoolYearID ORDER BY timestamp DESC LIMIT 0, 1';
+                        $sqlLetters = "SELECT * FROM gibbonBehaviourLetter WHERE gibbonPersonID=:gibbonPersonID AND gibbonSchoolYearID=:gibbonSchoolYearID AND type='Negative' ORDER BY timestamp DESC LIMIT 0, 1";
                         $resultLetters = $pdo->select($sqlLetters, $dataLetters);
 
                         $newLetterRequired = false;
@@ -231,6 +231,7 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
                             if ($newLetterRequiredStatus == 'Warning') { //It's a warning
                                 //Create new record
                                 $gibbonBehaviourLetterID = $behaviourLetterGateway->insert([
+                                    'type'                  => 'Negative',
                                     'status'                => 'Warning',
                                     'gibbonSchoolYearID'    => $session->get('gibbonSchoolYearID'),
                                     'gibbonPersonID'        => $student['gibbonPersonID'],
@@ -266,6 +267,7 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
                             } else { //It's being issued
                                 //Create new record
                                 $gibbonBehaviourLetterID = $behaviourLetterGateway->insert([
+                                    'type'                  => 'Negative',
                                     'status'                => 'Issued',
                                     'gibbonSchoolYearID'    => $session->get('gibbonSchoolYearID'),
                                     'gibbonPersonID'        => $student['gibbonPersonID'],
