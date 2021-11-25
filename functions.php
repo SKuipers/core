@@ -961,7 +961,7 @@ function getAlertBar($guid, $connection2, $gibbonPersonID, $privacy = '', $divEx
                     $alerts[] = [
                         'highestColour'   => "#0891B2", // "#3B73AF",
                         'highestColourBG' => "#A5F3FC", // "#b3ceeb",
-                        'tag'             => __('L'),
+                        'tag'             => __('E'),
                         'title'           => __('{EAL} Student', ['EAL' => $userField]),
                         'link'            => './index.php?q=/modules/Students/student_view_details.php&gibbonPersonID='.$gibbonPersonID.'&subpage=Individual Needs',
                         // 'class'           => 'float-right ml-1',
