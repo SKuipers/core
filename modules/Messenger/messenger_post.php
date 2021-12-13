@@ -661,9 +661,13 @@ else {
             }, array());
 
 			$row = $form->addRow()->addClass('individuals hiddenReveal');
-				$row->addLabel('individualList[]', __('Select Individuals'));
-				$row->addSelect('individualList[]')->fromArray($individuals)->selectMultiple()->setSize(6)->required();
-        }
+				$col = $row->addColumn();
+                    $col->addLabel('individualList', __('Select Individuals'));
+                    $col->addMultiSelect('individualList')
+                        ->required()
+                        ->source()
+                        ->fromArray($individuals);
+         }
 
 		$row = $form->addRow();
 			$row->addFooter();

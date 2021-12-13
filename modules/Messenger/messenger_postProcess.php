@@ -1886,47 +1886,45 @@ else {
 			if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php", "New Message_individuals")) {
 				if ($_POST["individuals"]=="Y") {
 					$choices=$_POST["individualList"] ;
-					if ($choices!="") {
-						foreach ($choices as $t) {
-							try {
-								$data=array("gibbonMessengerID"=>$AI, "id"=>$t);
-								$sql="INSERT INTO gibbonMessengerTarget SET gibbonMessengerID=:gibbonMessengerID, type='Individuals', id=:id" ;
-								$result=$connection2->prepare($sql);
-								$result->execute($data);
-							}
-							catch(PDOException $e) {
-								$partialFail=TRUE;
-							}
+					foreach ($choices as $t) {
+						try {
+							$data=array("gibbonMessengerID"=>$AI, "id"=>$t);
+							$sql="INSERT INTO gibbonMessengerTarget SET gibbonMessengerID=:gibbonMessengerID, type='Individuals', id=:id" ;
+							$result=$connection2->prepare($sql);
+							$result->execute($data);
+						}
+						catch(PDOException $e) {
+							$partialFail=TRUE;
+						}
 
-							if ($email=="Y") {
-								try {
-									$dataEmail=array("gibbonPersonID"=>$t);
-									$sqlEmail="SELECT DISTINCT email, gibbonPerson.gibbonPersonID FROM gibbonPerson WHERE NOT email='' AND gibbonPersonID=:gibbonPersonID AND status='Full'" ;
-									$resultEmail=$connection2->prepare($sqlEmail);
-									$resultEmail->execute($dataEmail);
-								}
-								catch(PDOException $e) { }
-								while ($rowEmail=$resultEmail->fetch()) {
-									$report = reportAdd($report, $emailReceipt, $rowEmail['gibbonPersonID'], 'Individuals', $t, 'Email', $rowEmail["email"]);
-								}
+						if ($email=="Y") {
+							try {
+								$dataEmail=array("gibbonPersonID"=>$t);
+								$sqlEmail="SELECT DISTINCT email, gibbonPerson.gibbonPersonID FROM gibbonPerson WHERE NOT email='' AND gibbonPersonID=:gibbonPersonID AND status='Full'" ;
+								$resultEmail=$connection2->prepare($sqlEmail);
+								$resultEmail->execute($dataEmail);
 							}
-							if ($sms=="Y" AND $countryCode!="") {
-								try {
-									$dataEmail=array("gibbonPersonID"=>$t);
-									$sqlEmail="(SELECT phone1 AS phone, phone1CountryCode AS countryCode, gibbonPerson.gibbonPersonID FROM gibbonPerson WHERE NOT phone1='' AND phone1Type='Mobile' AND gibbonPersonID=:gibbonPersonID AND status='Full')" ;
-									$sqlEmail.=" UNION (SELECT phone2 AS phone, phone2CountryCode AS countryCode, gibbonPerson.gibbonPersonID FROM gibbonPerson WHERE NOT phone2='' AND phone2Type='Mobile' AND gibbonPersonID=:gibbonPersonID AND status='Full')" ;
-									$sqlEmail.=" UNION (SELECT phone3 AS phone, phone3CountryCode AS countryCode, gibbonPerson.gibbonPersonID FROM gibbonPerson WHERE NOT phone3='' AND phone3Type='Mobile' AND gibbonPersonID=:gibbonPersonID AND status='Full')" ;
-									$sqlEmail.=" UNION (SELECT phone4 AS phone, phone4CountryCode AS countryCode, gibbonPerson.gibbonPersonID FROM gibbonPerson WHERE NOT phone4='' AND phone4Type='Mobile' AND gibbonPersonID=:gibbonPersonID AND status='Full')" ;
-									$resultEmail=$connection2->prepare($sqlEmail);
-									$resultEmail->execute($dataEmail);
-								}
-								catch(PDOException $e) { }
-								while ($rowEmail=$resultEmail->fetch()) {
-									$countryCodeTemp = $countryCode;
-									if ($rowEmail["countryCode"]=="")
-										$countryCodeTemp = $rowEmail["countryCode"];
-									$report = reportAdd($report, $emailReceipt, $rowEmail['gibbonPersonID'], 'Individuals', $t, 'SMS', $countryCodeTemp.$rowEmail["phone"]);
-								}
+							catch(PDOException $e) { }
+							while ($rowEmail=$resultEmail->fetch()) {
+								$report = reportAdd($report, $emailReceipt, $rowEmail['gibbonPersonID'], 'Individuals', $t, 'Email', $rowEmail["email"]);
+							}
+						}
+						if ($sms=="Y" AND $countryCode!="") {
+							try {
+								$dataEmail=array("gibbonPersonID"=>$t);
+								$sqlEmail="(SELECT phone1 AS phone, phone1CountryCode AS countryCode, gibbonPerson.gibbonPersonID FROM gibbonPerson WHERE NOT phone1='' AND phone1Type='Mobile' AND gibbonPersonID=:gibbonPersonID AND status='Full')" ;
+								$sqlEmail.=" UNION (SELECT phone2 AS phone, phone2CountryCode AS countryCode, gibbonPerson.gibbonPersonID FROM gibbonPerson WHERE NOT phone2='' AND phone2Type='Mobile' AND gibbonPersonID=:gibbonPersonID AND status='Full')" ;
+								$sqlEmail.=" UNION (SELECT phone3 AS phone, phone3CountryCode AS countryCode, gibbonPerson.gibbonPersonID FROM gibbonPerson WHERE NOT phone3='' AND phone3Type='Mobile' AND gibbonPersonID=:gibbonPersonID AND status='Full')" ;
+								$sqlEmail.=" UNION (SELECT phone4 AS phone, phone4CountryCode AS countryCode, gibbonPerson.gibbonPersonID FROM gibbonPerson WHERE NOT phone4='' AND phone4Type='Mobile' AND gibbonPersonID=:gibbonPersonID AND status='Full')" ;
+								$resultEmail=$connection2->prepare($sqlEmail);
+								$resultEmail->execute($dataEmail);
+							}
+							catch(PDOException $e) { }
+							while ($rowEmail=$resultEmail->fetch()) {
+								$countryCodeTemp = $countryCode;
+								if ($rowEmail["countryCode"]=="")
+									$countryCodeTemp = $rowEmail["countryCode"];
+								$report = reportAdd($report, $emailReceipt, $rowEmail['gibbonPersonID'], 'Individuals', $t, 'SMS', $countryCodeTemp.$rowEmail["phone"]);
 							}
 						}
 					}
@@ -2132,7 +2130,7 @@ else {
                 'emailCount'    => $emailCount ?? 0,
                 'emailErrors'   => $emailErrors ?? [],
                 'smsCount'      => $smsCount ?? 0,
-                'smsBatchCount' => $smsBatchCount ?? 0,
+                'smsBatchCount' => $smsBatchCount ?? 0
             ];
 		}
 	}
