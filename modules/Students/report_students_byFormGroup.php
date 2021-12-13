@@ -24,6 +24,8 @@ use Gibbon\Services\Format;
 use Gibbon\Domain\Students\StudentGateway;
 use Gibbon\Domain\Students\MedicalGateway;
 use Gibbon\Domain\FormGroups\FormGroupGateway;
+use Gibbon\Tables\DataTable;
+use Gibbon\Tables\View\GridView;
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -34,9 +36,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_students_b
 } else {
     //Proceed!
 
-    $gibbonFormGroupID = (isset($_GET['gibbonFormGroupID']) ? $_GET['gibbonFormGroupID'] : null);
-    $view = isset($_GET['view']) ? $_GET['view'] : 'basic';
-    $viewMode = isset($_REQUEST['format']) ? $_REQUEST['format'] : '';
+    $gibbonFormGroupID = $_GET['gibbonFormGroupID'] ?? '';
+    $view = $_GET['view'] ?? 'basic';
+    $viewMode = $_REQUEST['format'] ?? '';
 
     if (empty($viewMode)) {
         $page->breadcrumbs->add(__('Students by Form Group'));
@@ -50,15 +52,21 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_students_b
 
         $row = $form->addRow();
             $row->addLabel('gibbonFormGroupID', __('Form Group'));
-            $row->addSelectFormGroup('gibbonFormGroupID', $session->get('gibbonSchoolYearID'), true)->selected($gibbonFormGroupID)->placeholder()->required();
+            $row->addSelectFormGroup('gibbonFormGroupID', $session->get('gibbonSchoolYearID'), true)
+                ->selected($gibbonFormGroupID)
+                ->placeholder()
+                ->required();
 
         $row = $form->addRow();
             $row->addLabel('view', __('View'));
-            $row->addSelect('view')->fromArray(array('basic' => __('Basic'), 'extended' =>__('Extended')))->selected($view)->required();
+            $row->addSelect('view')
+                ->fromArray(array('basic' => __('Basic'), 'extended' =>__('Extended'), 'photo' =>__('Photo')))
+                ->selected($view)
+                ->required();
 
         $row = $form->addRow();
             $row->addFooter();
-            $row->addSearchSubmit($gibbon->session);
+            $row->addSearchSubmit($session);
 
         echo $form->getOutput();
     }
@@ -80,7 +88,34 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_students_b
     $students = $studentGateway->queryStudentEnrolmentByFormGroup($criteria, $gibbonFormGroupID != '*' ? $gibbonFormGroupID : null);
 
     // DATA TABLE
-    $table = ReportTable::createPaginated('studentsByFormGroup', $criteria)->setViewMode($viewMode, $gibbon->session);
+    if ($view == 'photo') {
+        $gridRenderer = new GridView($container->get('twig'));
+        $table = $container->get(DataTable::class)->setRenderer($gridRenderer);
+        
+        $table->addMetaData('gridClass', 'rounded-sm bg-blue-100 border py-2');
+        $table->addMetaData('gridItemClass', 'w-1/2 sm:w-1/4 md:w-1/5 my-2 text-center');
+
+        $table->addHeaderAction('print', __('Print'))
+            ->setURL('#')
+            ->onClick('javascript:window.print(); return false;')
+            ->displayLabel();
+
+        $table->addColumn('image_240')
+            ->format(Format::using('userPhoto', ['image_240', 'sm', '']));
+        $table->addColumn('name')
+                ->setClass('text-xs font-bold mt-1')
+                ->format(Format::using('name', ['title', 'preferredName', 'surname', 'Student', false, false]));
+    } else {
+        $table = ReportTable::createPaginated('studentsByFormGroup', $criteria)->setViewMode($viewMode, $session);
+        $table->addColumn('formGroup', __('Form Group'))->width('5%');
+        $table->addColumn('student', __('Student'))
+            ->sortable(['surname', 'preferredName'])
+            ->format(function ($person) {
+                return Format::name('', $person['preferredName'], $person['surname'], 'Student', true, true) . '<br/><small><i>'.Format::userStatusInfo($person).'</i></small>';
+            });
+    }
+
+
     $table->setTitle(__('Report Data'));
     $table->setDescription(function () use ($gibbonFormGroupID, $formGroupGateway) {
         $output = '';
@@ -88,10 +123,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_students_b
         if ($gibbonFormGroupID == '*') return $output;
         
         if ($formGroup = $formGroupGateway->getFormGroupByID($gibbonFormGroupID)) {
-            $output .= '<b>'.__('Form Group').'</b>: '.$formGroup['name'];
+            $output .= Format::bold(__('Form Group')).': '.$formGroup['name'];
         }
         if ($tutors = $formGroupGateway->selectTutorsByFormGroup($gibbonFormGroupID)->fetchAll()) {
-            $output .= '<br/><b>'.__('Tutors').'</b>: '.Format::nameList($tutors, 'Staff');
+            $output .= '<br/>'.Format::bold(__('Tutors')).': '.Format::nameList($tutors, 'Staff');
         }
 
         return $output;
@@ -100,14 +135,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_students_b
     $table->addMetaData('filterOptions', [
         'view:basic'    => __('View').': '.__('Basic'),
         'view:extended' => __('View').': '.__('Extended'),
+        'view:photo' => __('View').': '.__('Photo'),
     ]);
-
-    $table->addColumn('formGroup', __('Form Group'))->width('5%');
-    $table->addColumn('student', __('Student'))
-        ->sortable(['surname', 'preferredName'])
-        ->format(function ($person) {
-            return Format::name('', $person['preferredName'], $person['surname'], 'Student', true, true) . '<br/><small><i>'.Format::userStatusInfo($person).'</i></small>';
-        });
 
     if ($criteria->hasFilter('view', 'extended')) {
         $table->addColumn('gender', __('Gender'))

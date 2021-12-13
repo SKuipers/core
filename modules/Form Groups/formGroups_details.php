@@ -38,10 +38,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Form Groups/formGroups_det
             ->add(__('View Form Groups'), 'formGroups.php');
 
         $gibbonFormGroupID = $_GET['gibbonFormGroupID'] ?? '';
-        if ($gibbonFormGroupID == '') {
-            echo "<div class='error'>";
-            echo __('You have not specified one or more required parameters.');
-            echo '</div>';
+        if (empty($gibbonFormGroupID)) {
+            $page->addError(__('You have not specified one or more required parameters.'));
         } else {
             try {
                 $data = array('gibbonSchoolYearID' => $gibbon->session->get('gibbonSchoolYearID'), 'gibbonFormGroupID' => $gibbonFormGroupID);
@@ -76,14 +74,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Form Groups/formGroups_det
                 $result = $connection2->prepare($sql);
                 $result->execute($data);
             } catch (PDOException $e) {
-                echo "<div class='error'>".$e->getMessage().'</div>';
             }
 
             if ($result->rowCount() != 1) {
-                echo "<div class='error'>";
-                echo __('The selected record does not exist, or you do not have access to it.');
-                echo '</div>';
-                echo '</div>';
+                $page->addError(__('The selected record does not exist, or you do not have access to it.'));
             } else {
                 $row = $result->fetch();
 
@@ -166,6 +160,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Form Groups/formGroups_det
                 // Students
                 $table = $container->get(FormGroupTable::class);
                 $table->build($gibbonFormGroupID, true, true, $sortBy);
+
+                $table->addHeaderAction('photo', __('Print Photos'))
+                    ->setURL('/report.php')
+                    ->addParam('q', '/modules/Students/report_students_byFormGroup.php')
+                    ->addParam('gibbonFormGroupID', $gibbonFormGroupID)
+                    ->addParam('format', 'print')
+                    ->addParam('view', 'photo')
+                    ->setIcon('print')
+                    ->setTarget('_blank')
+                    ->directLink()
+                    ->displayLabel();
 
                 echo $table->getOutput();
 
