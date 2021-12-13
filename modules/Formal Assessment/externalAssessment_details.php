@@ -92,7 +92,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/external
                 $manage = true;
             }
 
-            $sort = $_GET['sort'] ?? 'chron';
+            $sort = $_GET['sort'] ?? 'alpha';
+            $reverse = $_GET['reverse'] ?? 'Y';
             $form = Form::create('assessmentSort', $gibbon->session->get('absoluteURL') . '/index.php', 'get');
             $form->setTitle(__('Sorting'));
 
@@ -111,12 +112,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/external
                     ->selected($sort);
 
             $formRow = $form->addRow();
+                $formRow->addLabel('reverse', 'Reverse Chronological?');
+                $formRow->addYesNo('reverse')->selected($reverse);
+
+            $formRow = $form->addRow();
                 $formRow->addFooter();
                 $formRow->addSubmit();
 
-            print $form->getOutput(); 
+            print $form->getOutput();
 
-            externalAssessmentDetails($guid, $gibbonPersonID, $connection2, '', $manage, $search, $allStudents, $sort);
+            externalAssessmentDetails($guid, $gibbonPersonID, $connection2, '', $manage, $search, $allStudents, $sort, $reverse);
 
             //Set sidebar
             $session->set('sidebarExtra', getUserPhoto($guid, $row['image_240'], 240));

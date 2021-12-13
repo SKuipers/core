@@ -268,25 +268,25 @@ function sidebarExtra($guid, $connection2, $gibbonCourseClassID, $mode = 'manage
     return $output;
 }
 
-function externalAssessmentDetails($guid, $gibbonPersonID, $connection2, $gibbonYearGroupID = null, $manage = false, $search = '', $allStudents = '', $sort = '')
+function externalAssessmentDetails($guid, $gibbonPersonID, $connection2, $gibbonYearGroupID = null, $manage = false, $search = '', $allStudents = '', $sort = 'alpha', $reverse = 'Y')
 {
 
     $dataAssessments = array('gibbonPersonID' => $gibbonPersonID);
     $sqlAssessments = 'SELECT * FROM gibbonExternalAssessmentStudent JOIN gibbonExternalAssessment ON (gibbonExternalAssessmentStudent.gibbonExternalAssessmentID=gibbonExternalAssessment.gibbonExternalAssessmentID) WHERE gibbonPersonID=:gibbonPersonID ORDER BY ';
 
+    $reverse = $reverse == 'N' ? 'ASC' : 'DESC';
+
     if ($sort == 'alpha') {
-        $sqlAssessments .= 'name, date';
+        $sqlAssessments .= "name, date $reverse";
     } else {
-        $sqlAssessments .= 'date, name';
+        $sqlAssessments .= "date $reverse, name";
     }
 
     $resultAssessments = $connection2->prepare($sqlAssessments);
     $resultAssessments->execute($dataAssessments);
 
     if ($resultAssessments->rowCount() < 1) {
-        echo "<div class='error'>";
-        echo __('There are no records to display.');
-        echo '</div>';
+        echo Format::alert(__('There are no records to display.'));
     } else {
         while ($rowAssessments = $resultAssessments->fetch()) {
             echo '<h2>';
