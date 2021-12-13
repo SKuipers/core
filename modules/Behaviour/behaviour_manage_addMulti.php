@@ -17,9 +17,11 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\Students\StudentGateway;
 use Gibbon\Forms\Form;
 use Gibbon\Forms\CustomFieldHandler;
 use Gibbon\Forms\DatabaseFormFactory;
+use Gibbon\Services\Format;
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -57,8 +59,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Behaviour/behaviour_manage
 
     //Student
     $row = $form->addRow();
-        $row->addLabel('gibbonPersonIDMulti', __('Students'));
-        $row->addSelectStudent('gibbonPersonIDMulti', $session->get('gibbonSchoolYearID'), array('byName' => true, 'byForm' => true))->selectMultiple()->required();
+        $col = $row->addColumn();
+            $col->addLabel('gibbonPersonIDMulti', __('Students'));
+
+            $studentGateway = $container->get(StudentGateway::class);
+            $studentCriteria = $studentGateway->newQueryCriteria()
+                ->sortBy(['surname', 'preferredName']);
+
+            $students = array_reduce($studentGateway->queryStudentsBySchoolYear($studentCriteria, $session->get('gibbonSchoolYearID'))->toArray(), function ($array, $student) {
+                $array['students'][$student['gibbonPersonID']] = Format::name($student['title'], $student['preferredName'], $student['surname'], 'Student', true) . ' - ' . $student['formGroup']; 
+                $array['form'][$student['gibbonPersonID']] = $student['formGroup'];
+                return $array;
+            });
+            
+            $multiSelect = $col->addMultiSelect('gibbonPersonIDMulti')
+                ->addSortableAttribute('Form', $students['form']);
+
+            $multiSelect->source()->fromArray($students['students']);
 
     //Date
     $row = $form->addRow();
