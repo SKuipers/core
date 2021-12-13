@@ -1940,7 +1940,38 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                             if (isset($row['gibbonYearGroupID'])) {
                                 $gibbonYearGroupID = $row['gibbonYearGroupID'];
                             }
-                            externalAssessmentDetails($guid, $gibbonPersonID, $connection2, $gibbonYearGroupID);
+
+                            $sort = $_GET['sort'] ?? 'alpha';
+                            $reverse = $_GET['reverse'] ?? 'Y';
+                            $form = Form::create('assessmentSort', $gibbon->session->get('absoluteURL') . '/index.php', 'get');
+                            $form->setTitle(__('Sorting'));
+
+                            $form->addHiddenValue('q', $_GET['q']);
+                            foreach ($_GET as $key => $value) {
+                                if ($key == 'sort' || $key == 'reverse') continue;
+                                $form->addHiddenValue($key, $value);
+                            }
+
+                            $formRow = $form->addRow();
+                                $formRow->addLabel('sort', 'Sort By');
+                                $formRow->addSelect('sort')
+                                    ->fromArray([
+                                        'chron' => __('Chronological'),
+                                        'alpha' => __('Alphabetical')
+                                    ])
+                                    ->selected($sort);
+
+                            $formRow = $form->addRow();
+                                $formRow->addLabel('reverse', 'Reverse Chronological?');
+                                $formRow->addYesNo('reverse')->selected($reverse);
+
+                            $formRow = $form->addRow();
+                                $formRow->addFooter();
+                                $formRow->addSubmit();
+
+                            print $form->getOutput();
+
+                            externalAssessmentDetails($guid, $gibbonPersonID, $connection2, $gibbonYearGroupID, '', '', '', $sort, $reverse);
                         }
                     } elseif ($subpage == 'Reports') {
                         if (isActionAccessible($guid, $connection2, '/modules/Reports/archive_byStudent_view.php') == false) {
