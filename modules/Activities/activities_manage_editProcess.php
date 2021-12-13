@@ -128,15 +128,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
             }
 
             $activityStaffGateway = $container->get(ActivityStaffGateway::class);
-            if (count($staff) > 0) {
-                foreach ($staff as $staffPersonID) {
-                    //Check to see if person is already registered in this activity
-                    $resultGuest = $activityStaffGateway->selectActivityStaffByID($gibbonActivityID, $staffPersonID);
+            foreach ($staff as $staffPersonID) {
+                //Check to see if person is already registered in this activity
+                $resultGuest = $activityStaffGateway->selectActivityStaffByID($gibbonActivityID, $staffPersonID);
 
-                    if ($resultGuest->isEmpty()) {
-                        if (!$activityStaffGateway->insertActivityStaff($gibbonActivityID, $staffPersonID, $role)) {
-                            $partialFail = true;
-                        }
+                if ($resultGuest->isEmpty()) {
+                    if (!$activityStaffGateway->insertActivityStaff($gibbonActivityID, $staffPersonID, $role)) {
+                        $partialFail = true;
                     }
                 }
             }
@@ -145,7 +143,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
             $type = $_POST['type'] ?? '';
 
             $data = [
-                'gibbonSchoolYearID'    => $gibbon->session->get('gibbonSchoolYearID'),
+                'gibbonSchoolYearID'    => $session->get('gibbonSchoolYearID'),
                 'name'                  => $name,
                 'provider'              => $provider,
                 'type'                  => $type,
