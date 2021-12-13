@@ -80,7 +80,7 @@ class Visualise
      * @param   $id optionally outputs the image path to the value of the given id
      * @return   void
      */
-    public function renderVisualise($legend = true, $image = false, $path = '', $id = '')
+    public function renderVisualise($legend = true, $image = false, $path = '', $id = '', $options = [])
     {
         //Filter out columns to ignore from visualisation
         $this->columns = array_filter($this->columns, function ($item) {
@@ -124,14 +124,27 @@ class Visualise
                 : 0;
             }, $means);
 
+
             $this->page->scripts->add('chart');
 
             $chart = Chart::create('visualisation'.$this->gibbonPersonID, 'polarArea')
                 ->setLegend(['display' => $legend, 'position' => 'right'])
-                ->setLabels(array_column($means, 'title'))
-                ->setColorOpacity(0.6);
+                ->setLabels(array_column($means, 'title'));
 
-            $options = [
+            if (!empty($this->rows[0]['backgroundColor'])) {
+                $colors = [];
+
+                foreach ($this->rows as $row) {
+                    $hex = $row['backgroundColor'];
+                    $colors[] = sprintf('rgba(%d, %d, %d, 1.0)', hexdec(substr($hex, 1, 2)), hexdec(substr($hex, 3, 2)), hexdec(substr($hex, 5, 2)));
+                }
+
+                $chart->setColors($colors);
+            }
+
+            $chart->setColorOpacity(0.6);
+
+            $options = array_replace([
                 'height' => '120%',
                 'scale'  => [
                     'ticks' => [
@@ -142,7 +155,8 @@ class Visualise
                         }'),
                     ],
                 ]
-            ];
+            ], $options);
+
             if ($image) {
                 $options['animation'] = [
                     'duration' => 0,
@@ -156,6 +170,7 @@ class Visualise
                     }'),
                 ];
             }
+
             $chart->setOptions($options);
 
             $chart->addDataset('rubric')->setData($data);
