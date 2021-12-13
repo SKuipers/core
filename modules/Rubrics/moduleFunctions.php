@@ -157,13 +157,12 @@ function rubricView($guid, $connection2, $gibbonRubricID, $mark, $gibbonPersonID
     global $pdo, $page, $gibbon;
 
     $output = false;
-    $hasContexts = $contextDBTable != '' and $contextDBTableIDField != '' and $contextDBTableID != '' and $contextDBTableGibbonRubricIDField != '' and $contextDBTableNameField != '' and $contextDBTableDateField != '';
+    $hasContexts = $contextDBTable != '' && $contextDBTableIDField != '' && $contextDBTableID != '' && $contextDBTableGibbonRubricIDField != '' && $contextDBTableNameField != '' && $contextDBTableDateField != '';
 
-    
-        $data = array('gibbonRubricID' => $gibbonRubricID);
-        $sql = 'SELECT * FROM gibbonRubric WHERE gibbonRubricID=:gibbonRubricID';
-        $result = $connection2->prepare($sql);
-        $result->execute($data);
+    $data = array('gibbonRubricID' => $gibbonRubricID);
+    $sql = 'SELECT * FROM gibbonRubric WHERE gibbonRubricID=:gibbonRubricID';
+    $result = $connection2->prepare($sql);
+    $result->execute($data);
 
     if ($result->rowCount() != 1) {
         echo "<div class='error'>";
@@ -270,7 +269,7 @@ function rubricView($guid, $connection2, $gibbonRubricID, $mark, $gibbonPersonID
             }
 
             //Controls for viewing mode
-            if ($gibbonPersonID != '') {
+            if ($gibbonPersonID != '' && $hasContexts) {
                 $output .= "<div class='linkTop'>";
                 $output .= "Viewing Mode: <select name='type' id='type' class='type' style='width: 152px; float: none'>";
                 $output .= "<option id='type' name='type' value='Current'>".__('Current').'</option>';
@@ -391,39 +390,39 @@ function rubricView($guid, $connection2, $gibbonRubricID, $mark, $gibbonPersonID
                         $output .= '</script>';
                     }
 
-
                 $output .= $form->getOutput();
 
             $output .= "</div>";
 
-            //Div to contain visualisation
-            $output .= "<div id='visualise' style='display: none'>";
-                $output .= "<p>";
-                    $output .= __("This view offers a visual representation of all rubric data for the current student, this year, in the current context:");
-                $output .= "</p>";
+            if ($hasContexts) {
+                //Div to contain visualisation
+                $output .= "<div id='visualise' style='display: none'>";
+                    $output .= "<p>";
+                        $output .= __("This view offers a visual representation of all rubric data for the current student, this year, in the current context:");
+                    $output .= "</p>";
 
-                require_once __DIR__ . '/src/Visualise.php';
-                $visualise = new Visualise($gibbon->session->get('absoluteURL'), $page, $gibbonPersonID, $columns, $rows, $cells, $contexts);
+                    require_once __DIR__ . '/src/Visualise.php';
+                    $visualise = new Visualise($gibbon->session->get('absoluteURL'), $page, $gibbonPersonID, $columns, $rows, $cells, $contexts);
 
-                $output .= $visualise->renderVisualise();
+                    $output .= $visualise->renderVisualise();
 
-            $output .= "</div>";
+                $output .= "</div>";
 
-            //Function to show/hide rubric/visualisation
-            $output .= "<script type='text/javascript'>
-                 $(document).ready(function(){
-                    $('#type').change(function () {
-                        if ($(this).val() == 'Current' || $(this).val() == 'Historical') {
-                            $('#rubric').slideDown('fast', $('#rubric').css('display','block'));
-                            $('#visualise').css('display','none');
-                        } else {
-                            $('#visualise').slideDown('fast', $('#visualise').css('display','block'));
-                            $('#rubric').css('display','none');
-                        }
+                //Function to show/hide rubric/visualisation
+                $output .= "<script type='text/javascript'>
+                     $(document).ready(function(){
+                        $('#type').change(function () {
+                            if ($(this).val() == 'Current' || $(this).val() == 'Historical') {
+                                $('#rubric').slideDown('fast', $('#rubric').css('display','block'));
+                                $('#visualise').css('display','none');
+                            } else {
+                                $('#visualise').slideDown('fast', $('#visualise').css('display','block'));
+                                $('#rubric').css('display','none');
+                            }
+                        });
                     });
-                });
-            </script>";
-
+                </script>";
+            }
             $output .= "<style>";
             for ($i = 0; $i < $rowCount; ++$i) {
                 $color = $rows[$i]['backgroundColor'] ?? '#666666';
