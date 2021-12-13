@@ -358,9 +358,9 @@ function renderTT($guid, $connection2, $gibbonPersonID, $gibbonTTID, $title = ''
             while ($row = $result->fetch()) {
                 $output .= "<form method='post' action='".$_SESSION[$guid]['absoluteURL']."/index.php?q=$q&gibbonTTID=".$row['gibbonTTID']."$params'>";
                 $output .= "<input name='ttDate' value='".date($_SESSION[$guid]['i18n']['dateFormatPHP'], $startDayStamp)."' type='hidden'>";
-                $output .= "<input name='schoolCalendar' value='".$_SESSION[$guid]['viewCalendarSchool']."' type='hidden'>";
-                $output .= "<input name='personalCalendar' value='".$_SESSION[$guid]['viewCalendarPersonal']."' type='hidden'>";
-                $output .= "<input name='spaceBookingCalendar' value='".$_SESSION[$guid]['viewCalendarSpaceBooking']."' type='hidden'>";
+                $output .= "<input name='schoolCalendar' value='".($_SESSION[$guid]['viewCalendarSchool'] == 'Y' ? 'Y' : 'N')."' type='hidden'>";
+                $output .= "<input name='personalCalendar' value='".($_SESSION[$guid]['viewCalendarPersonal'] == 'Y' ? 'Y' : 'N')."' type='hidden'>";
+                $output .= "<input name='spaceBookingCalendar' value='".($_SESSION[$guid]['viewCalendarSpaceBooking'] == 'Y' ? 'Y' : 'N')."' type='hidden'>";
                 $output .= "<input name='fromTT' value='Y' type='hidden'>";
                 $output .= "<input class='buttonLink' style='min-width: 30px; margin-top: 0px; float: left' type='submit' value='".$row['name']."'>";
                 $output .= '</form>';
@@ -1616,9 +1616,9 @@ function renderTTSpace($guid, $connection2, $gibbonSpaceID, $gibbonTTID, $title 
         while ($row = $result->fetch()) {
             $output .= "<form method='post' action='".$_SESSION[$guid]['absoluteURL']."/index.php?q=$q".$params.'&gibbonTTID='.$row['gibbonTTID']."'>";
             $output .= "<input name='ttDate' value='".date($_SESSION[$guid]['i18n']['dateFormatPHP'], $startDayStamp)."' type='hidden'>";
-            $output .= "<input name='schoolCalendar' value='".$_SESSION[$guid]['viewCalendarSchool']."' type='hidden'>";
-            $output .= "<input name='personalCalendar' value='".$_SESSION[$guid]['viewCalendarPersonal']."' type='hidden'>";
-            $output .= "<input name='spaceBookingCalendar' value='".$_SESSION[$guid]['viewCalendarSpaceBooking']."' type='hidden'>";
+            $output .= "<input name='schoolCalendar' value='".($_SESSION[$guid]['viewCalendarSchool'] == 'Y' ? 'Y' : 'N')."' type='hidden'>";
+            $output .= "<input name='personalCalendar' value='".($_SESSION[$guid]['viewCalendarPersonal'] == 'Y' ? 'Y' : 'N')."' type='hidden'>";
+            $output .= "<input name='spaceBookingCalendar' value='".($_SESSION[$guid]['viewCalendarSpaceBooking'] == 'Y' ? 'Y' : 'N')."' type='hidden'>";
             $output .= "<input name='fromTT' value='Y' type='hidden'>";
             $output .= "<input class='buttonLink' style='min-width: 30px; margin-top: 0px; float: left' type='submit' value='".$row['name']."'>";
             $output .= '</form>';
