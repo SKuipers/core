@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Forms\Form;
 use Gibbon\Services\Format;
 
@@ -35,14 +36,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
         $search = $_GET['search'] ?? '';
         $sort = $_GET['sort'] ?? '';
 
-        $enableStudentNotes = getSettingByScope($connection2, 'Students', 'enableStudentNotes');
+        $enableStudentNotes = $container->get(SettingGateway::class)->getSettingByScope('Students', 'enableStudentNotes');
         if ($enableStudentNotes != 'Y') {
             echo "<div class='error'>";
             echo __('You do not have access to this action.');
             echo '</div>';
         } else {
-            $gibbonPersonID = $_GET['gibbonPersonID'];
-            $subpage = $_GET['subpage'];
+            $gibbonPersonID = $_GET['gibbonPersonID'] ?? '';
+            $subpage = $_GET['subpage'] ?? '';
             if ($gibbonPersonID == '' or $subpage == '') {
                 echo "<div class='error'>";
                 echo __('You have not specified one or more required parameters.');
@@ -66,7 +67,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                         ->add(Format::name('', $student['preferredName'], $student['surname'], 'Student'), 'student_view_details.php', ['gibbonPersonID' => $gibbonPersonID, 'subpage' => $subpage, 'allStudents' => $allStudents])
                         ->add(__('Edit Student Note'));
 
-                    //Check if school year specified
+                    //Check if gibbonStudentNoteID specified
                     $gibbonStudentNoteID = $_GET['gibbonStudentNoteID'];
                     if ($gibbonStudentNoteID == '') {
                         echo "<div class='error'>";

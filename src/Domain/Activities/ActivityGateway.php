@@ -143,7 +143,7 @@ class ActivityGateway extends QueryableGateway
 
         return $this->runQuery($query, $criteria);
     }
-    
+
     public function selectActivityEnrolmentByStudent($gibbonSchoolYearID, $gibbonPersonID)
     {
         $data = array('gibbonSchoolYearID' => $gibbonSchoolYearID, 'gibbonPersonID' => $gibbonPersonID);
@@ -172,5 +172,13 @@ class ActivityGateway extends QueryableGateway
         $sql = "SELECT name as value, name FROM gibbonActivityType ORDER BY name";
 
         return $this->db()->select($sql);
+    }
+    
+    public function selectActivitiesBySchoolYear($gibbonSchoolYearID)
+    {
+        $data = ['gibbonSchoolYearID' => $gibbonSchoolYearID];
+        $sql = "SELECT gibbonActivity.gibbonActivityID AS value, name FROM gibbonActivity WHERE gibbonSchoolYearID=:gibbonSchoolYearID AND active='Y' ORDER BY name, programStart";
+
+        return $this->db()->select($sql, $data);
     }
 }

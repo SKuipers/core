@@ -19,6 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Comms\NotificationEvent;
 use Gibbon\Domain\System\LogGateway;
+use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Services\Format;
 
 include '../../gibbon.php';
@@ -49,8 +50,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
         //Get current role category
         $roleCategory = getRoleCategory($session->get('gibbonRoleIDCurrent'), $connection2);
 
+        $settingGateway = $container->get(SettingGateway::class);
+
         //Check access controls
-        $access = getSettingByScope($connection2, 'Activities', 'access');
+        $access = $settingGateway->getSettingByScope('Activities', 'access');
 
         if ($access != 'Register') {
             //Fail0
@@ -59,7 +62,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
             exit;
         } else {
             //Proceed!
-            //Check if school year specified
+            //Check if gibbonActivityID and gibbonPersonID specified
             if ($gibbonActivityID == '' or $gibbonPersonID == '') {
                 $URL .= '&return=error1';
                 header("Location: {$URL}");
@@ -67,7 +70,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
             } else {
                 $today = date('Y-m-d');
                 //Should we show date as term or date?
-                $dateType = getSettingByScope($connection2, 'Activities', 'dateType');
+                $dateType = $settingGateway->getSettingByScope('Activities', 'dateType');
 
                 try {
                     if ($dateType != 'Date') {
@@ -126,8 +129,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                             exit;
                         } else {
                             // Load the backupChoice system setting, optionally override with the Activity Type setting
-                            $backupChoice = getSettingByScope($connection2, 'Activities', 'backupChoice');
-                            $backupChoice = (!empty($row['backupChoice']))? $row['backupChoice'] : $backupChoice;
+                            $backupChoice = $settingGateway->getSettingByScope('Activities', 'backupChoice');
+                            $backupChoice = !empty($row['backupChoice'])? $row['backupChoice'] : $backupChoice;
 
                             $gibbonActivityIDBackup = ($backupChoice == 'Y')? $_POST['gibbonActivityIDBackup'] : '';
                             $activityCountByType = getStudentActivityCountByType($pdo, $row['type'], $gibbonPersonID);
@@ -148,8 +151,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                                 $status = 'Not Accepted';
 
                                 // Load the enrolmentType system setting, optionally override with the Activity Type setting
-                                $enrolment = getSettingByScope($connection2, 'Activities', 'enrolmentType');
-                                $enrolment = (!empty($row['enrolmentType']))? $row['enrolmentType'] : $enrolment;
+                                $enrolment = $settingGateway->getSettingByScope('Activities', 'enrolmentType');
+                                $enrolment = !empty($row['enrolmentType'])? $row['enrolmentType'] : $enrolment;
 
                                 //Lock the activityStudent database table
                                 try {
@@ -165,9 +168,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                                     $status = 'Pending';
                                 } else {
                                     //Check number of people registered for this activity (if we ignore status it stops people jumping the queue when someone unregisters)
-                                    // TIS: removed start date check
-                                    $dataNumberRegistered = array('gibbonActivityID' => $gibbonActivityID, 'date' => date('Y-m-d'));
-                                    $sqlNumberRegistered = "SELECT * FROM gibbonActivityStudent JOIN gibbonPerson ON (gibbonActivityStudent.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonPerson.status='Full' AND (dateEnd IS NULL  OR dateEnd>=:date) AND gibbonActivityID=:gibbonActivityID";
+                                    $dataNumberRegistered = array('gibbonActivityID' => $gibbonActivityID, 'today' => date('Y-m-d'));
+                                    $sqlNumberRegistered = "SELECT * FROM gibbonActivityStudent JOIN gibbonPerson ON (gibbonActivityStudent.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonPerson.status='Full' AND (dateStart IS NULL OR dateStart<=:today) AND (dateEnd IS NULL  OR dateEnd>=:today) AND gibbonActivityID=:gibbonActivityID";
                                     $resultNumberRegistered = $connection2->prepare($sqlNumberRegistered);
                                     $resultNumberRegistered->execute($dataNumberRegistered);
 
@@ -297,7 +299,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                             }
 
                             //Bump up any waiting in competitive selection, to fill spaces available
-                            $enrolment = getSettingByScope($connection2, 'Activities', 'enrolmentType');
+                            $enrolment = $settingGateway->getSettingByScope('Activities', 'enrolmentType');
                             if ($enrolment == 'Competitive') {
                                 //Check to see who is registering in system
                                 $studentRegistration = false;
@@ -334,9 +336,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                                 }
 
                                 //Count spaces
-                                // TIS: removed start date check
                                 $dataNumberRegistered = array('gibbonActivityID' => $gibbonActivityID, 'today' => date('Y-m-d'));
-                                $sqlNumberRegistered = "SELECT * FROM gibbonActivityStudent JOIN gibbonPerson ON (gibbonActivityStudent.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonPerson.status='Full' AND (dateEnd IS NULL  OR dateEnd>=:today) AND gibbonActivityID=:gibbonActivityID AND gibbonActivityStudent.status='Accepted'";
+                                $sqlNumberRegistered = "SELECT * FROM gibbonActivityStudent JOIN gibbonPerson ON (gibbonActivityStudent.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonPerson.status='Full' AND (dateStart IS NULL OR dateStart<=:today) AND (dateEnd IS NULL  OR dateEnd>=:today) AND gibbonActivityID=:gibbonActivityID AND gibbonActivityStudent.status='Accepted'";
                                 $resultNumberRegistered = $connection2->prepare($sqlNumberRegistered);
                                 $resultNumberRegistered->execute($dataNumberRegistered);
 
@@ -361,10 +362,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                                     //Bump students up
                                     while ($rowBumps = $resultBumps->fetch()) {
 
-                                            $dataBump = array('gibbonActivityStudentID' => $rowBumps['gibbonActivityStudentID']);
-                                            $sqlBump = "UPDATE gibbonActivityStudent SET status='Accepted' WHERE gibbonActivityStudentID=:gibbonActivityStudentID";
-                                            $resultBump = $connection2->prepare($sqlBump);
-                                            $resultBump->execute($dataBump);
+                                        $dataBump = array('gibbonActivityStudentID' => $rowBumps['gibbonActivityStudentID']);
+                                        $sqlBump = "UPDATE gibbonActivityStudent SET status='Accepted' WHERE gibbonActivityStudentID=:gibbonActivityStudentID";
+                                        $resultBump = $connection2->prepare($sqlBump);
+                                        $resultBump->execute($dataBump);
 
                                         //Set log
                                         $logGateway->addLog($session->get('gibbonSchoolYearIDCurrent'), $gibbonModuleID, $session->get('gibbonPersonID'), 'Activities - Student Bump', array('gibbonPersonIDStudent' => $rowBumps['gibbonPersonID']));

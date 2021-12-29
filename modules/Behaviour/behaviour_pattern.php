@@ -21,22 +21,23 @@ use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
+use Gibbon\Tables\Prefab\ReportTable;
 use Gibbon\Domain\Behaviour\BehaviourGateway;
 use Gibbon\Domain\Students\StudentGateway;
-use Gibbon\Tables\Prefab\ReportTable;
+use Gibbon\Domain\System\SettingGateway;
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
 
-$enableDescriptors = getSettingByScope($connection2, 'Behaviour', 'enableDescriptors');
-$enableLevels = getSettingByScope($connection2, 'Behaviour', 'enableLevels');
+$settingGateway = $container->get(SettingGateway::class);
+$enableDescriptors = $settingGateway->getSettingByScope('Behaviour', 'enableDescriptors');
+$enableLevels = $settingGateway->getSettingByScope('Behaviour', 'enableLevels');
 
 if (isActionAccessible($guid, $connection2, '/modules/Behaviour/behaviour_manage.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
-    $viewMode = isset($_REQUEST['format']) ? $_REQUEST['format'] : '';
-
+    $viewMode = $_REQUEST['format'] ?? '';
 
     $type = $_GET['type'] ?? 'Negative';
     $descriptor = $_GET['descriptor'] ?? '';
@@ -61,7 +62,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Behaviour/behaviour_manage
             $row->addSelect('type')->fromArray(['Negative' => __('Negative'), 'Positive' => __('Positive') ])->placeholder()->selected($type);
 
         if ($enableDescriptors == 'Y') {
-            $negativeDescriptors = getSettingByScope($connection2, 'Behaviour', 'negativeDescriptors');
+            $negativeDescriptors = $settingGateway->getSettingByScope('Behaviour', 'negativeDescriptors');
             $negativeDescriptors = array_map('trim', explode(',', $negativeDescriptors));
 
             $row = $form->addRow();
@@ -70,7 +71,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Behaviour/behaviour_manage
         }
 
         if ($enableLevels == 'Y') {
-            $optionsLevels = getSettingByScope($connection2, 'Behaviour', 'levels');
+            $optionsLevels = $settingGateway->getSettingByScope('Behaviour', 'levels');
             if ($optionsLevels != '') {
                 $optionsLevels = explode(',', $optionsLevels);
             }
@@ -80,7 +81,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Behaviour/behaviour_manage
         }
 
         $row = $form->addRow();
-            $row->addLabel('date', __('Date'))->description($session->get('i18n')['dateFormat'])->prepend(__('Format:'));
+            $row->addLabel('date', __('Date'));
             $row->addDate('fromDate')->setValue($fromDate);
 
         $row = $form->addRow();

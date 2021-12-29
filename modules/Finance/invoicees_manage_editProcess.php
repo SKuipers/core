@@ -22,14 +22,17 @@ include '../../gibbon.php';
 include './moduleFunctions.php';
 
 $gibbonFinanceInvoiceeID = $_GET['gibbonFinanceInvoiceeID'] ?? '';
-$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/invoicees_manage_edit.php&gibbonFinanceInvoiceeID=$gibbonFinanceInvoiceeID&search=".$_GET['search'].'&allUsers='.$_GET['allUsers'];
+$address = $_POST['address'] ?? '';
+$search = $_GET['search'] ?? '';
+$allUsers = $_GET['allUsers'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($address)."/invoicees_manage_edit.php&gibbonFinanceInvoiceeID=$gibbonFinanceInvoiceeID&search=$search&allUsers=$allUsers";
 
 if (isActionAccessible($guid, $connection2, '/modules/Finance/invoicees_manage_edit.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
 } else {
     //Proceed!
-    //Check if school year specified
+    //Check if gibbonFinanceInvoiceeID specified
     if ($gibbonFinanceInvoiceeID == '') {
         $URL .= '&return=error1';
         header("Location: {$URL}");

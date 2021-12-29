@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Forms\Form;
 use Gibbon\Services\Format;
 
@@ -51,7 +52,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
         ->add(__('Manage Activities'), 'activities_manage.php')
         ->add(__('Activity Enrolment'));    
 
-    //Check if school year specified
+    //Check if gibbonActivityID specified
     if ($gibbonActivityID == '') {
         $page->addError(__('You have not specified one or more required parameters.'));
     } else {
@@ -68,7 +69,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
         } else {
             //Let's go!
             $values = $result->fetch();
-            $dateType = getSettingByScope($connection2, 'Activities', 'dateType');
+            $settingGateway = $container->get(SettingGateway::class);
+            $dateType = $settingGateway->getSettingByScope('Activities', 'dateType');
             if ($_GET['search'] != '' || $_GET['gibbonSchoolYearTermID'] != '') {
                 echo "<div class='linkTop'>";
                 echo "<a href='".$gibbon->session->get('absoluteURL').'/index.php?q=/modules/Activities/activities_manage.php&search='.$_GET['search']."&gibbonSchoolYearTermID=".$_GET['gibbonSchoolYearTermID']."'>".__('Back to Search Results').'</a>';
@@ -104,22 +106,22 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
             echo $form->getOutput();
 
 
-            $enrolment = getSettingByScope($connection2, 'Activities', 'enrolmentType');
-            $enrolment = (!empty($values['enrolmentType']))? $values['enrolmentType'] : $enrolment;
-
-            $data = array('gibbonActivityID' => $gibbonActivityID, 'today' => date('Y-m-d'), 'statusCheck' => ($enrolment == 'Competitive'? 'Pending' : 'Waiting List'));
-            $sql = "SELECT gibbonActivityStudent.*, surname, preferredName, gibbonFormGroup.nameShort as formGroupNameShort
-                    FROM gibbonActivityStudent
-                    JOIN gibbonPerson ON (gibbonActivityStudent.gibbonPersonID=gibbonPerson.gibbonPersonID)
-                    LEFT JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID AND gibbonStudentEnrolment.gibbonSchoolYearID=(SELECT gibbonSchoolYearID FROM gibbonSchoolYear WHERE status='Current'))
-                    LEFT JOIN gibbonFormGroup ON (gibbonFormGroup.gibbonFormGroupID=gibbonStudentEnrolment.gibbonFormGroupID)
-                    WHERE gibbonActivityID=:gibbonActivityID
-                    AND NOT gibbonActivityStudent.status=:statusCheck
-                    AND gibbonPerson.status='Full'
-                    AND (dateStart IS NULL OR dateStart<=:today) AND (dateEnd IS NULL OR dateEnd>=:today)
-                    ORDER BY gibbonActivityStudent.status, timestamp";
-            $result = $connection2->prepare($sql);
-            $result->execute($data);
+            $enrolment = $settingGateway->getSettingByScope('Activities', 'enrolmentType');
+            $enrolment = !empty($values['enrolmentType'])? $values['enrolmentType'] : $enrolment;
+            
+                $data = array('gibbonActivityID' => $gibbonActivityID, 'today' => date('Y-m-d'), 'statusCheck' => ($enrolment == 'Competitive'? 'Pending' : 'Waiting List'));
+                $sql = "SELECT gibbonActivityStudent.*, surname, preferredName, gibbonFormGroup.nameShort as formGroupNameShort
+                        FROM gibbonActivityStudent
+                        JOIN gibbonPerson ON (gibbonActivityStudent.gibbonPersonID=gibbonPerson.gibbonPersonID)
+                        LEFT JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID AND gibbonStudentEnrolment.gibbonSchoolYearID=(SELECT gibbonSchoolYearID FROM gibbonSchoolYear WHERE status='Current'))
+                        LEFT JOIN gibbonFormGroup ON (gibbonFormGroup.gibbonFormGroupID=gibbonStudentEnrolment.gibbonFormGroupID)
+                        WHERE gibbonActivityID=:gibbonActivityID
+                        AND NOT gibbonActivityStudent.status=:statusCheck
+                        AND gibbonPerson.status='Full'
+                        AND (dateStart IS NULL OR dateStart<=:today) AND (dateEnd IS NULL OR dateEnd>=:today)
+                        ORDER BY gibbonActivityStudent.status, timestamp";
+                $result = $connection2->prepare($sql);
+                $result->execute($data);
 
             echo "<div class='linkTop'>";
             echo "<a href='".$gibbon->session->get('absoluteURL').'/index.php?q=/modules/'.$gibbon->session->get('module')."/activities_manage_enrolment_add.php&gibbonActivityID=$gibbonActivityID&search=".$_GET['search'].'&gibbonSchoolYearTermID='.$_GET['gibbonSchoolYearTermID']."'>".__('Add')."<img style='margin-left: 5px' title='".__('Add')."' src='./themes/".$gibbon->session->get('gibbonThemeName')."/img/page_new.png'/></a>";

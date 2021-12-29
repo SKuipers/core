@@ -21,21 +21,22 @@ use Gibbon\Comms\NotificationEvent;
 
 include '../../gibbon.php';
 
-$gibbonFinanceInvoiceeID = $_GET['gibbonFinanceInvoiceeID'];
-$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/data_finance.php&gibbonFinanceInvoiceeID=$gibbonFinanceInvoiceeID";
+$gibbonFinanceInvoiceeID = $_GET['gibbonFinanceInvoiceeID'] ?? '';
+$address = $_POST['address'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($address)."/data_finance.php&gibbonFinanceInvoiceeID=$gibbonFinanceInvoiceeID";
 
 if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_finance.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
 } else {
     //Proceed!
-    //Check if school year specified
+    //Check if gibbonFinanceInvoiceeID specified
     if ($gibbonFinanceInvoiceeID == '') {
         $URL .= '&return=error1';
         header("Location: {$URL}");
     } else {
         //Get action with highest precendence
-        $highestAction = getHighestGroupedAction($guid, $_POST['address'], $connection2);
+        $highestAction = getHighestGroupedAction($guid, $address, $connection2);
         if ($highestAction == false) {
             $URL .= "&return=error0$params";
             header("Location: {$URL}");

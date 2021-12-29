@@ -17,13 +17,15 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Data\Validator;
+use Gibbon\Services\Format;
 use Gibbon\Module\Messenger\MessageProcess;
 use Gibbon\Domain\Messenger\MessengerGateway;
-use Gibbon\Services\Format;
 
 include '../../gibbon.php';
 
-$URL = $session->get('absoluteURL') . "/index.php?q=/modules/" . getModuleName($_POST["address"]) . "/messenger_post.php";
+$address = $_POST['address'] ?? '';
+$URL = $session->get('absoluteURL') . "/index.php?q=/modules/" . getModuleName($address) . "/messenger_post.php";
 
 if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.php") == false) {
     $URL .= "&addReturn=fail0";
@@ -32,9 +34,12 @@ if (isActionAccessible($guid, $connection2, "/modules/Messenger/messenger_post.p
 } else {
     $messengerGateway = $container->get(MessengerGateway::class);
 
+    $validator = $container->get(Validator::class);
+    $_POST = $validator->sanitize($_POST, ['body' => 'HTML']);
+
     $from = $_POST['from'] ?? '';
     $data = [
-        'gibbonSchoolYearID'=> $gibbon->session->get('gibbonSchoolYearID'), 
+        'gibbonSchoolYearID'=> $gibbon->session->get('gibbonSchoolYearID'),
         'email'             => $_POST['email'] ?? 'N',
         'messageWall'       => $_POST['messageWall'] ?? 'N',
         'messageWallPin'    => $_POST['messageWallPin'] ?? 'N',

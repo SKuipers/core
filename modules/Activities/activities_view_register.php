@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
+use Gibbon\Domain\System\SettingGateway;
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -46,18 +47,20 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
             //Get current role category
             $roleCategory = getRoleCategory($session->get('gibbonRoleIDCurrent'), $connection2);
 
-            //Check access controls
-            $access = getSettingByScope($connection2, 'Activities', 'access');
+            $settingGateway = $container->get(SettingGateway::class);
 
-            $gibbonPersonID = $_GET['gibbonPersonID'];
-            $search = isset($_GET['search'])? $_GET['search'] : '';
+            //Check access controls
+            $access = $settingGateway->getSettingByScope('Activities', 'access');
+
+            $gibbonPersonID = $_GET['gibbonPersonID'] ?? '';
+            $search = $_GET['search'] ?? '';
 
             if ($access != 'Register') {
                 echo "<div class='error'>";
                 echo __('Registration is closed, or you do not have permission to register.');
                 echo '</div>';
             } else {
-                //Check if school year specified
+                //Check if gibbonActivityID specified
                 $gibbonActivityID = $_GET['gibbonActivityID'];
                 if ($gibbonActivityID == 'Y') {
                     echo "<div class='error'>";
@@ -105,12 +108,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                         } else {
                             $countChild = 0;
                             while ($values = $result->fetch()) {
-                                // TIS: Removed start date check
-                                $dataChild = array('gibbonFamilyID' => $values['gibbonFamilyID'], 'gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'gibbonPersonID' => $gibbonPersonID);
-                                $sqlChild = "SELECT * FROM gibbonFamilyChild JOIN gibbonPerson ON (gibbonFamilyChild.gibbonPersonID=gibbonPerson.gibbonPersonID) JOIN gibbonStudentEnrolment ON (gibbonPerson.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID) JOIN gibbonFormGroup ON (gibbonStudentEnrolment.gibbonFormGroupID=gibbonFormGroup.gibbonFormGroupID) WHERE gibbonFamilyID=:gibbonFamilyID AND gibbonPerson.status='Full' AND (dateEnd IS NULL  OR dateEnd>='".date('Y-m-d')."') AND gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonPerson.gibbonPersonID=:gibbonPersonID ORDER BY surname, preferredName ";
-                                $resultChild = $connection2->prepare($sqlChild);
-                                $resultChild->execute($dataChild);
 
+                                    $dataChild = array('gibbonFamilyID' => $values['gibbonFamilyID'], 'gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'gibbonPersonID' => $gibbonPersonID);
+                                    $sqlChild = "SELECT * FROM gibbonFamilyChild JOIN gibbonPerson ON (gibbonFamilyChild.gibbonPersonID=gibbonPerson.gibbonPersonID) JOIN gibbonStudentEnrolment ON (gibbonPerson.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID) JOIN gibbonFormGroup ON (gibbonStudentEnrolment.gibbonFormGroupID=gibbonFormGroup.gibbonFormGroupID) WHERE gibbonFamilyID=:gibbonFamilyID AND gibbonPerson.status='Full' AND (dateStart IS NULL OR dateStart<='".date('Y-m-d')."') AND (dateEnd IS NULL  OR dateEnd>='".date('Y-m-d')."') AND gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonPerson.gibbonPersonID=:gibbonPersonID ORDER BY surname, preferredName ";
+                                    $resultChild = $connection2->prepare($sqlChild);
+                                    $resultChild->execute($dataChild);
                                 while ($rowChild = $resultChild->fetch()) {
                                     ++$countChild;
                                     $gibbonYearGroupID = $rowChild['gibbonYearGroupID'];
@@ -135,9 +137,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                             $today = date('Y-m-d');
 
                             //Should we show date as term or date?
-                            $dateType = getSettingByScope($connection2, 'Activities', 'dateType');
+                            $dateType = $settingGateway->getSettingByScope('Activities', 'dateType');
                             if ($dateType == 'Term') {
-                                $maxPerTerm = getSettingByScope($connection2, 'Activities', 'maxPerTerm');
+                                $maxPerTerm = $settingGateway->getSettingByScope('Activities', 'maxPerTerm');
                             }
 
                             try {
@@ -170,7 +172,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
 
                                 if (!empty($values['access']) && $values['access'] != 'Register') {
                                     echo "<div class='error'>";
-                                    echo __($guid, 'Registration is closed, or you do not have permission to register.');
+                                    echo __('Registration is closed, or you do not have permission to register.');
                                     echo '</div>';
                                 } else if ($resultReg->rowCount() > 0) {
                                     echo "<div class='error'>";
@@ -197,17 +199,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
 
                                     $activityCountByType = getStudentActivityCountByType($pdo, $values['type'], $gibbonPersonID);
                                     if ($values['maxPerStudent'] > 0 && $activityCountByType >= $values['maxPerStudent']) {
-                                        $proceed = false;
-                                    }
-
-                                    if ($proceed == false) {
+                                        echo "<div class='error'>";
+                                        echo __('You have subscribed for the maximum number of activities of this type, and so cannot register for this activity.');
+                                        echo '</div>';
+                                    } elseif ($proceed == false) {
                                         echo "<div class='error'>";
                                         echo __('You have subscribed for the maximum number of activities in a term, and so cannot register for this activity.');
                                         echo '</div>';
                                     } else {
                                         // Load the enrolmentType system setting, optionally override with the Activity Type setting
-                                        $enrolment = getSettingByScope($connection2, 'Activities', 'enrolmentType');
-                                        $enrolment = (!empty($values['enrolmentType']))? $values['enrolmentType'] : $enrolment;
+                                        $enrolment = $settingGateway->getSettingByScope('Activities', 'enrolmentType');
+                                        $enrolment = !empty($values['enrolmentType'])? $values['enrolmentType'] : $enrolment;
 
                                         echo '<p>';
                                         if ($enrolment == 'Selection') {
@@ -249,7 +251,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                                                 $row->addDate('programEnd')->readonly();
                                         }
 
-                                        if (getSettingByScope($connection2, 'Activities', 'payment') != 'None' && getSettingByScope($connection2, 'Activities', 'payment') != 'Single') {
+                                        $paymentType = $settingGateway->getSettingByScope('Activities', 'payment');
+                                        if ($paymentType != 'None' && $paymentType != 'Single') {
                                             if ($values['payment'] > 0) {
                                                 $row = $form->addRow();
                                                 $row->addLabel('paymentLabel', __('Cost'))->description(__('For entire programme'));
@@ -258,8 +261,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                                         }
 
                                         // Load the backupChoice system setting, optionally override with the Activity Type setting
-                                        $backupChoice = getSettingByScope($connection2, 'Activities', 'backupChoice');
-                                        $backupChoice = (!empty($values['backupChoice']))? $values['backupChoice'] : $backupChoice;
+                                        $backupChoice = $settingGateway->getSettingByScope('Activities', 'backupChoice');
+                                        $backupChoice = !empty($values['backupChoice'])? $values['backupChoice'] : $backupChoice;
 
                                         if ($backupChoice == 'Y') {
                                             if ($dateType != 'Date') {
@@ -299,7 +302,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                             $today = date('Y-m-d');
 
                             //Should we show date as term or date?
-                            $dateType = getSettingByScope($connection2, 'Activities', 'dateType');
+                            $dateType = $settingGateway->getSettingByScope('Activities', 'dateType');
 
                             try {
                                 if ($dateType != 'Date') {
@@ -331,7 +334,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
 
                                 if (!empty($values['access']) && $values['access'] != 'Register') {
                                     echo "<div class='error'>";
-                                    echo __($guid, 'Registration is closed, or you do not have permission to register.');
+                                    echo __('Registration is closed, or you do not have permission to register.');
                                     echo '</div>';
                                 } elseif ($resultReg->rowCount() < 1) {
                                     echo "<div class='error'>";

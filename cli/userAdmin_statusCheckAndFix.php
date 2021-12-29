@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Comms\NotificationEvent;
+use Gibbon\Domain\System\SettingGateway;
 
 require getcwd().'/../gibbon.php';
 
@@ -34,7 +35,10 @@ if (!empty($session->get('i18n')['code'])) {
 }
 
 //Check for CLI, so this cannot be run through browser
-if (!isCommandLineInterface()) { echo __('This script cannot be run from a browser, only via CLI.');
+$remoteCLIKey = $container->get(SettingGateway::class)->getSettingByScope('System Admin', 'remoteCLIKey');
+$remoteCLIKeyInput = $_GET['remoteCLIKey'] ?? null;
+if (!(isCommandLineInterface() OR ($remoteCLIKey != '' AND $remoteCLIKey == $remoteCLIKeyInput))) {
+    echo __('This script cannot be run from a browser, only via CLI.');
 } else {
     $count = 0;
 
@@ -108,7 +112,7 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
     $event->addRecipient($session->get('organisationAdministrator'));
 
     // Send all notifications
-    $sendReport = $event->sendNotifications($pdo, $gibbon->session);
+    $sendReport = $event->sendNotifications($pdo, $session);
 
     // Output the result to terminal
     echo sprintf('Sent %1$s notifications: %2$s inserts, %3$s updates, %4$s emails sent, %5$s emails failed.', $sendReport['count'], $sendReport['inserts'], $sendReport['updates'], $sendReport['emailSent'], $sendReport['emailFailed'])."\n";

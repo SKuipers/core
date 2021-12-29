@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\System\SettingGateway;
+
 function num2alpha($n)
 {
     for ($r = ''; $n >= 0; $n = intval($n / 26) - 1) {
@@ -28,13 +30,11 @@ function num2alpha($n)
 
 function getActivityWeekDays($connection2, $gibbonActivityID)
 {
-
     // Get the time slots for this activity to determine weekdays
-    
-        $data = array('gibbonActivityID' => $gibbonActivityID);
-        $sql = 'SELECT nameShort FROM gibbonActivitySlot JOIN gibbonDaysOfWeek ON (gibbonActivitySlot.gibbonDaysOfWeekID=gibbonDaysOfWeek.gibbonDaysOfWeekID) WHERE gibbonActivityID=:gibbonActivityID ORDER BY gibbonDaysOfWeek.gibbonDaysOfWeekID';
-        $result = $connection2->prepare($sql);
-        $result->execute($data);
+    $data = array('gibbonActivityID' => $gibbonActivityID);
+    $sql = 'SELECT nameShort FROM gibbonActivitySlot JOIN gibbonDaysOfWeek ON (gibbonActivitySlot.gibbonDaysOfWeekID=gibbonDaysOfWeek.gibbonDaysOfWeekID) WHERE gibbonActivityID=:gibbonActivityID ORDER BY gibbonDaysOfWeek.gibbonDaysOfWeekID';
+    $result = $connection2->prepare($sql);
+    $result->execute($data);
 
     return $result->fetchAll(PDO::FETCH_COLUMN);
 }
@@ -68,46 +68,29 @@ function getActivitySessions($guid, $connection2, $weekDays, $timespan, $session
 
 function getActivityTimespan($connection2, $gibbonActivityID, $gibbonSchoolYearTermIDList)
 {
-    $timespan = array();
+    global $container;
 
     // Figure out what kind of dateType we're using
-    $dateType = getSettingByScope($connection2, 'Activities', 'dateType');
+    $dateType = $container->get(SettingGateway::class)->getSettingByScope('Activities', 'dateType');
     if ($dateType != 'Date') {
         if (empty($gibbonSchoolYearTermIDList)) {
             return array();
         }
 
-        
-            $data = array();
-            $sql = 'SELECT MIN(UNIX_TIMESTAMP(firstDay)) as start, MAX(UNIX_TIMESTAMP(lastDay)) as end FROM gibbonSchoolYearTerm WHERE gibbonSchoolYearTermID IN ('.$gibbonSchoolYearTermIDList.')';
-            $result = $connection2->prepare($sql);
-            $result->execute();
+        $data = array();
+        $sql = 'SELECT MIN(UNIX_TIMESTAMP(firstDay)) as start, MAX(UNIX_TIMESTAMP(lastDay)) as end FROM gibbonSchoolYearTerm WHERE gibbonSchoolYearTermID IN ('.$gibbonSchoolYearTermIDList.')';
+        $result = $connection2->prepare($sql);
+        $result->execute();
+
         $timespan = $result->fetch();
     } else {
-        
-            $data = array('gibbonActivityID' => $gibbonActivityID);
-            $sql = 'SELECT UNIX_TIMESTAMP(programStart) as start, UNIX_TIMESTAMP(programEnd) as end FROM gibbonActivity WHERE gibbonActivityID=:gibbonActivityID';
-            $result = $connection2->prepare($sql);
-            $result->execute($data);
+        $data = array('gibbonActivityID' => $gibbonActivityID);
+        $sql = 'SELECT UNIX_TIMESTAMP(programStart) as start, UNIX_TIMESTAMP(programEnd) as end FROM gibbonActivity WHERE gibbonActivityID=:gibbonActivityID';
+        $result = $connection2->prepare($sql);
+        $result->execute($data);
+
         $timespan = $result->fetch();
     }
 
     return $timespan;
-}
-
-function getStudentActivityCountByType($pdo, $type, $gibbonPersonID)
-{
-    $data = array('gibbonPersonID' => $gibbonPersonID, 'type' => $type, 'date' => date('Y-m-d'));
-    $sql = "SELECT COUNT(*) 
-            FROM gibbonActivity 
-            JOIN gibbonActivityStudent ON (gibbonActivity.gibbonActivityID=gibbonActivityStudent.gibbonActivityID) 
-            JOIN gibbonSchoolYear ON (gibbonSchoolYear.gibbonSchoolYearID=gibbonActivity.gibbonSchoolYearID)
-            WHERE gibbonActivityStudent.gibbonPersonID=:gibbonPersonID 
-            AND gibbonActivityStudent.status='Accepted' 
-            AND gibbonActivity.type=:type
-            AND gibbonActivity.active='Y'
-            AND :date BETWEEN gibbonSchoolYear.firstDay AND gibbonSchoolYear.lastDay";
-    $result = $pdo->executeQuery($data, $sql);
-
-    return ($result->rowCount() > 0)? $result->fetchColumn(0) : '0';
 }

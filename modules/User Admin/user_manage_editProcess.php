@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Services\Format;
 use Gibbon\Comms\NotificationEvent;
 use Gibbon\Comms\NotificationSender;
@@ -31,7 +32,7 @@ include '../../gibbon.php';
 include './moduleFunctions.php';
 
 $logGateway = $container->get(LogGateway::class);
-$gibbonPersonID = $_GET['gibbonPersonID'];
+$gibbonPersonID = $_GET['gibbonPersonID'] ?? '';
 $URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/user_manage_edit.php&gibbonPersonID=$gibbonPersonID&search=".$_GET['search'];
 
 if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edit.php') == false) {
@@ -39,7 +40,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
     header("Location: {$URL}");
 } else {
     //Proceed!
-    //Check if school year specified
+    //Check if gibbonPersonID specified
     if ($gibbonPersonID == '') {
         $URL .= '&return=error1';
         header("Location: {$URL}");
@@ -316,7 +317,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
                         }
 
                         //Deal with change to privacy settings
-                        if ($student and getSettingByScope($connection2, 'User Admin', 'privacy') == 'Y') {
+                        if ($student and $container->get(SettingGateway::class)->getSettingByScope('User Admin', 'privacy') == 'Y') {
                             if ($privacy_old != $privacy) {
 
                                 //Notify tutor
@@ -404,18 +405,17 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
                                 }
                             }
                         }
-                        if ($partialFail == true) {
+                        if ($partialFail || $personalDocumentFail) {
                             $URL .= '&return=warning1';
                             header("Location: {$URL}");
+                        } else if ($imageFail) {
+                            $URL .= '&return=warning3';
+                            header("Location: {$URL}");
                         } else {
-                            if ($personalDocumentFail) {
-                                $URL .= '&return=warning1';
-                                header("Location: {$URL}");
-                            } else {
-                                $URL .= '&return=success0';
-                                header("Location: {$URL}");
-                            }
+                            $URL .= '&return=success0';
+                            header("Location: {$URL}");
                         }
+                        
                     }
                 }
             }

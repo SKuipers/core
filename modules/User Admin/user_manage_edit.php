@@ -39,15 +39,15 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
          ->add(__('Edit User'));
 
     $returns = array();
-    $returns['warning1'] = __('Your request was completed successfully, but one or more images were the wrong size and so were not saved.');
+    $returns['warning3'] = __('Your request was completed successfully, but one or more images were the wrong size and so were not saved.');
     $page->return->addReturns($returns);
 
-    //Check if school year specified
+    //Check if gibbonPersonID specified
     $gibbonPersonID = $_GET['gibbonPersonID'] ?? '';
     if ($gibbonPersonID == '') {
         $page->addError(__('You have not specified one or more required parameters.'));
     } else {
-        
+
             $data = array('gibbonPersonID' => $gibbonPersonID);
             $sql = 'SELECT * FROM gibbonPerson WHERE gibbonPersonID=:gibbonPersonID';
             $result = $connection2->prepare($sql);
@@ -80,7 +80,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
                 echo "<a href='".$session->get('absoluteURL').'/index.php?q=/modules/User Admin/user_manage.php&search='.$search."'>".__('Back to Search Results').'</a>';
                 echo '</div>';
             }
-            
+
             $scrubbed = $container->get(DataRetentionGateway::class)->selectBy(['gibbonPersonID' => $gibbonPersonID])->fetch();
             if (!empty($scrubbed)) {
                 echo Format::alert(__("This user's personal data was cleared on {date} as part of a data retention action. The following database tables were cleared: {tables}", ['date' => Format::date($scrubbed['timestamp']), 'tables' => Format::list(json_decode($scrubbed['tables']), 'ul', 'text-xs mb-0')] ), 'warning');
@@ -232,7 +232,9 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
                 $emailLabel = $row->addLabel('email', __('Email'));
                 $email = $row->addEmail('email');
 
-			$uniqueEmailAddress = getSettingByScope($connection2, 'User Admin', 'uniqueEmailAddress');
+            $settingGateway = $container->get(SettingGateway::class);
+
+			$uniqueEmailAddress = $settingGateway->getSettingByScope('User Admin', 'uniqueEmailAddress');
 			if ($uniqueEmailAddress == 'Y') {
 				$email->uniqueField('./modules/User Admin/user_manage_emailAjax.php', array('gibbonPersonID' => $gibbonPersonID));
 			}
@@ -270,7 +272,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
 				$row->addSelectCountry('address1Country');
 
 			if ($values['address1'] != '') {
-				
+
 					$dataAddress = array('gibbonPersonID' => $values['gibbonPersonID'], 'addressMatch' => '%'.strtolower(preg_replace('/ /', '%', preg_replace('/,/', '%', $values['address1']))).'%');
 					$sqlAddress = "SELECT gibbonPersonID, title, preferredName, surname, category FROM gibbonPerson JOIN gibbonRole ON (gibbonPerson.gibbonRoleIDPrimary=gibbonRole.gibbonRoleID) WHERE status='Full' AND address1 LIKE :addressMatch AND NOT gibbonPersonID=:gibbonPersonID ORDER BY surname, preferredName";
 					$resultAddress = $connection2->prepare($sqlAddress);
@@ -323,9 +325,9 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
 			$form->addRow()->addHeading(__('School Information'));
 
             if ($student) {
-                $dayTypeOptions = getSettingByScope($connection2, 'User Admin', 'dayTypeOptions');
+                $dayTypeOptions = $settingGateway->getSettingByScope('User Admin', 'dayTypeOptions');
                 if (!empty($dayTypeOptions)) {
-                    $dayTypeText = getSettingByScope($connection2, 'User Admin', 'dayTypeText');
+                    $dayTypeText = $settingGateway->getSettingByScope('User Admin', 'dayTypeText');
                     $row = $form->addRow();
                     $row->addLabel('dayType', __('Day Type'))->description($dayTypeText);
                     $row->addSelect('dayType')->fromString($dayTypeOptions)->placeholder();
@@ -363,7 +365,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
                 $row->addLabel('nextSchool', __('Next School'));
                 $row->addTextField('nextSchool')->maxLength(100)->autocomplete($schools);
 
-				$departureReasonsList = getSettingByScope($connection2, 'User Admin', 'departureReasons');
+				$departureReasonsList = $settingGateway->getSettingByScope('User Admin', 'departureReasons');
 
 				$row = $form->addRow();
 				$row->addLabel('departureReason', __('Departure Reason'));
@@ -393,7 +395,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
 				$row->addLabel('countryOfBirth', __('Country of Birth'));
 				$row->addSelectCountry('countryOfBirth');
 
-			$ethnicities = getSettingByScope($connection2, 'User Admin', 'ethnicity');
+			$ethnicities = $settingGateway->getSettingByScope('User Admin', 'ethnicity');
 			$row = $form->addRow();
 				$row->addLabel('ethnicity', __('Ethnicity'));
 				if (!empty($ethnicities)) {
@@ -402,7 +404,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
 					$row->addTextField('ethnicity')->maxLength(255);
 				}
 
-			$religions = getSettingByScope($connection2, 'User Admin', 'religions');
+			$religions = $settingGateway->getSettingByScope('User Admin', 'religions');
 			$row = $form->addRow();
 				$row->addLabel('religion', __('Religion'));
 				if (!empty($religions)) {
@@ -420,8 +422,8 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
                     $col->addPersonalDocuments('document', $documents, $container->get(View::class), $container->get(SettingGateway::class));
             }
 
-            $nationalityList = getSettingByScope($connection2, 'User Admin', 'nationality');
-			$residencyStatusList = getSettingByScope($connection2, 'User Admin', 'residencyStatus');
+            $nationalityList = $settingGateway->getSettingByScope('User Admin', 'nationality');
+			$residencyStatusList = $settingGateway->getSettingByScope('User Admin', 'residencyStatus');
 
 			// EMPLOYMENT
 			if ($parent) {
@@ -523,19 +525,19 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
 				$row->addTextField('vehicleRegistration')->maxLength(20);
 
 			if ($student) {
-				$privacySetting = getSettingByScope($connection2, 'User Admin', 'privacy');
-				$privacyOptions = getSettingByScope($connection2, 'User Admin', 'privacyOptions');
+				$privacySetting = $settingGateway->getSettingByScope('User Admin', 'privacy');
+				$privacyOptions = $settingGateway->getSettingByScope('User Admin', 'privacyOptions');
 
 				if ($privacySetting == 'Y' && !empty($privacyOptions)) {
                     $options = array_map('trim', explode(',', $privacyOptions));
-                    $values['privacyOptions'] = array_map('trim', explode(',', $values['privacy']));
+                    $values['privacyOptions'] = isset($values['privacy']) ? array_map('trim', explode(',', $values['privacy'])) : [];
 
 					$row = $form->addRow();
 						$row->addLabel('privacyOptions[]', __('Privacy'))->description(__('Check to indicate which privacy options are required.'));
 						$row->addCheckbox('privacyOptions[]')->fromArray($options)->checked($values['privacyOptions'])->addClass('md:max-w-lg');
 				}
 
-				$studentAgreementOptions = getSettingByScope($connection2, 'School Admin', 'studentAgreementOptions');
+				$studentAgreementOptions = $settingGateway->getSettingByScope('School Admin', 'studentAgreementOptions');
 				if (!empty($studentAgreementOptions)) {
                     $options = array_map('trim', explode(',', $studentAgreementOptions));
                     $values['studentAgreements'] = array_map('trim', explode(',', $values['studentAgreements']));
