@@ -26,6 +26,7 @@ use Gibbon\Domain\Behaviour\BehaviourLetterGateway;
 use Gibbon\Domain\System\NotificationGateway;
 use Gibbon\Domain\System\EmailTemplateGateway;
 use Gibbon\Domain\User\UserGateway;
+use Gibbon\Domain\System\SettingGateway;
 
 require getcwd().'/../gibbon.php';
 

@@ -85,7 +85,6 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/behaviourSett
         $row->addYesNo($setting['name'])->selected($setting['value']);
 
     
-
     $row = $form->addRow()->addHeading(__('Behaviour Letters'))->append(__('By using a {linkCLIScript}, {systemName} can be configured to automatically generate and email behaviour letters to parents and tutors, once certain behaviour threshold levels have been reached. Visit the {linkEmailTemplates} page to customise the templates for each behaviour letter email.', ['systemName' => $session->get('systemName'), 'linkCLIScript' => Format::link('https://gibbonedu.org/support/administrators/command-line-tools/', __('CLI script')),'linkEmailTemplates' => Format::link('./index.php?q=/modules/System Admin/emailTemplates_manage.php', __('Email Templates'))]));
 
     $setting = $settingGateway->getSettingByScope('Behaviour', 'enableNegativeBehaviourLetters', true);
