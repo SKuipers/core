@@ -475,7 +475,7 @@ function renderStudentCumulativeMarks($gibbon, $pdo, $gibbonPersonIDStudent, $gi
         // $examMark = getCriteriaGrade($pdo, 1, $gibbonSchoolYearID, $gibbonPersonIDStudent, $gibbonCourseClassID);
     } else {
 
-        $enableColumnWeighting = getSettingByScope($pdo->getConnection(), 'Markbook', 'enableColumnWeighting');
+        $enableColumnWeighting = $container->get(SettingGateway::class)->getSettingByScope('Markbook', 'enableColumnWeighting');
         if ($enableColumnWeighting != 'Y') return;
 
         require_once __DIR__ . '/src/MarkbookView.php';

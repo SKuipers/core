@@ -993,7 +993,7 @@ function getAlertBar($guid, $connection2, $gibbonPersonID, $privacy = '', $divEx
 
 
         // Day-type Options
-        $dayTypeOptions = getSettingByScope($connection2, 'User Admin', 'dayTypeOptions');
+        $dayTypeOptions = $settingGateway->getSettingByScope('User Admin', 'dayTypeOptions');
         if (!empty($dayTypeOptions) && !empty($rowPersonField['dayType']) && $rowPersonField['dayType'] != 'Full') {
             $alerts[] = [
                 'highestLevel'    => __('Day Type'),

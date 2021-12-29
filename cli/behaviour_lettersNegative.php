@@ -57,17 +57,18 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
     $mail->SMTPKeepAlive = true;
 
     // Initialize the notification sender & gateway objects
+    $settingGateway = $container->get(SettingGateway::class);
     $notificationGateway = new NotificationGateway($pdo);
     $notificationSender = new NotificationSender($notificationGateway, $gibbon->session);
 
     //Get settings
-    $enableDescriptors = getSettingByScope($connection2, 'Behaviour', 'enableDescriptors');
-    $enableLevels = getSettingByScope($connection2, 'Behaviour', 'enableLevels');
-    $enableNegativeBehaviourLetters = getSettingByScope($connection2, 'Behaviour', 'enableNegativeBehaviourLetters');
+    $enableDescriptors = $settingGateway->getSettingByScope('Behaviour', 'enableDescriptors');
+    $enableLevels = $settingGateway->getSettingByScope('Behaviour', 'enableLevels');
+    $enableNegativeBehaviourLetters = $settingGateway->getSettingByScope('Behaviour', 'enableNegativeBehaviourLetters');
     if ($enableNegativeBehaviourLetters == 'Y') {
-        $behaviourLettersNegativeLetter1Count = getSettingByScope($connection2, 'Behaviour', 'behaviourLettersNegativeLetter1Count');
-        $behaviourLettersNegativeLetter2Count = getSettingByScope($connection2, 'Behaviour', 'behaviourLettersNegativeLetter2Count');
-        $behaviourLettersNegativeLetter3Count = getSettingByScope($connection2, 'Behaviour', 'behaviourLettersNegativeLetter3Count');
+        $behaviourLettersNegativeLetter1Count = $settingGateway->getSettingByScope('Behaviour', 'behaviourLettersNegativeLetter1Count');
+        $behaviourLettersNegativeLetter2Count = $settingGateway->getSettingByScope('Behaviour', 'behaviourLettersNegativeLetter2Count');
+        $behaviourLettersNegativeLetter3Count = $settingGateway->getSettingByScope('Behaviour', 'behaviourLettersNegativeLetter3Count');
 
         $behaviourLetterGateway = $container->get(BehaviourLetterGateway::class);
         $emailTemplateGateway = $container->get(EmailTemplateGateway::class);
