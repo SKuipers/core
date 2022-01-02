@@ -1620,3 +1620,12 @@ function returnProcess($guid, $return, $editLink = null, $customReturns = null)
     $page->return->setEditLink($editLink ?? '');
     $page->return->addReturns($customReturns ?? []);
 }
+
+/**
+ * @deprecated in v16. Use Format::name
+ */
+function formatName($title, $preferredName, $surname, $roleCategory, $reverse = false, $informal = false)
+{
+    return Format::name($title, $preferredName, $surname, $roleCategory, $reverse, $informal);
+}
+

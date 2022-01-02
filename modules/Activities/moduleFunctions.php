@@ -94,3 +94,24 @@ function getActivityTimespan($connection2, $gibbonActivityID, $gibbonSchoolYearT
 
     return $timespan;
 }
+
+/**
+ * @deprecated Should use gateway class.
+ */
+
+function getStudentActivityCountByType($pdo, $type, $gibbonPersonID)
+{
+    $data = array('gibbonPersonID' => $gibbonPersonID, 'type' => $type, 'date' => date('Y-m-d'));
+    $sql = "SELECT COUNT(*) 
+            FROM gibbonActivity 
+            JOIN gibbonActivityStudent ON (gibbonActivity.gibbonActivityID=gibbonActivityStudent.gibbonActivityID) 
+            JOIN gibbonSchoolYear ON (gibbonSchoolYear.gibbonSchoolYearID=gibbonActivity.gibbonSchoolYearID)
+            WHERE gibbonActivityStudent.gibbonPersonID=:gibbonPersonID 
+            AND gibbonActivityStudent.status='Accepted' 
+            AND gibbonActivity.type=:type
+            AND gibbonActivity.active='Y'
+            AND :date BETWEEN gibbonSchoolYear.firstDay AND gibbonSchoolYear.lastDay";
+    $result = $pdo->executeQuery($data, $sql);
+
+    return ($result->rowCount() > 0)? $result->fetchColumn(0) : '0';
+}
