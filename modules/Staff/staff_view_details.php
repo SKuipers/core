@@ -165,7 +165,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                         include './modules/Timetable/moduleFunctions.php';
                         $ttDate = '';
                         if (isset($_POST['ttDate'])) {
-                            $ttDate = dateConvertToTimestamp(dateConvert($guid, $_POST['ttDate']));
+                            $ttDate = Format::timestamp($_POST['ttDate']);
                         }
                         $gibbonTTID = null;
                         if (isset($_GET['gibbonTTID'])) {
