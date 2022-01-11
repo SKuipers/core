@@ -116,14 +116,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                 $applicantName = Format::name('', $values['preferredName'], $values['surname'], 'Student');
                 $col->addContent(sprintf(__('Are you sure you want to accept the application for %1$s?'), $applicantName))->wrap('<b>', '</b>');
 
-                $informStudent = ($settingGateway->$settingGateway->getSettingByScope(('Application Form', 'notificationStudentDefault') == 'Y');
+                $informStudent = ($settingGateway->$settingGateway->getSettingByScope('Application Form', 'notificationStudentDefault') == 'Y');
                 $col->addCheckbox('informStudent')
                     ->description(__('Automatically inform <u>student</u> of Gibbon login details by email?'))
                     ->inline(true)
                     ->checked($informStudent)
                     ->setClass('');
 
-                $informParents = ($settingGateway->$settingGateway->getSettingByScope(('Application Form', 'notificationParentsDefault') == 'Y');
+                $informParents = ($settingGateway->$settingGateway->getSettingByScope('Application Form', 'notificationParentsDefault') == 'Y');
                 $col->addCheckbox('informParents')
                     ->description(__('Automatically inform <u>parents</u> of their Gibbon login details by email?'))
                     ->inline(true)
@@ -1189,7 +1189,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                         echo __('Student Welcome Email');
                         echo '</h4>';
                         $emailCount = 0 ;
-                        $notificationStudentMessage = $settingGateway->$settingGateway->getSettingByScope(('Application Form', 'notificationStudentMessage');
+                        $notificationStudentMessage = $settingGateway->$settingGateway->getSettingByScope('Application Form', 'notificationStudentMessage');
                         foreach ($informStudentArray as $informStudentEntry) {
                             if ($informStudentEntry['email'] != '' and $informStudentEntry['surname'] != '' and $informStudentEntry['preferredName'] != '' and $informStudentEntry['username'] != '' and $informStudentEntry['password']) {
                                 $to = $informStudentEntry['email'];
@@ -1234,7 +1234,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                         echo 'Parent Welcome Email';
                         echo '</h4>';
                         $emailCount = 0 ;
-                        $notificationParentsMessage = $settingGateway->$settingGateway->getSettingByScope(('Application Form', 'notificationParentsMessage');
+                        $notificationParentsMessage = $settingGateway->$settingGateway->getSettingByScope('Application Form', 'notificationParentsMessage');
                         foreach ($informParentsArray as $informParentsEntry) {
                             if ($informParentsEntry['email'] != '' and $informParentsEntry['surname'] != '' and $informParentsEntry['preferredName'] != '' and $informParentsEntry['username'] != '' and $informParentsEntry['password']) {
                                 $to = $informParentsEntry['email'];
