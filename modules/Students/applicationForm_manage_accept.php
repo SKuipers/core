@@ -166,7 +166,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
 
                     // Student has a form group and mapped classes exist
                     if ($classMapCount > 0) {
-                        $autoEnrolStudent = ($settingGateway->$settingGateway->getSettingByScope(('Timetable Admin', 'autoEnrolCourses') == 'Y');
+                        $autoEnrolStudent = ($settingGateway->$settingGateway->getSettingByScope('Timetable Admin', 'autoEnrolCourses') == 'Y');
 
                         $col->addContent(__('The system can optionally perform the following actions:'))->wrap('<i><u>', '</u></i>');
                         $col->addCheckbox('autoEnrolStudent')
@@ -300,7 +300,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
             //Set default email address for student
             $email = $values['email'];
             $emailAlternate = '';
-            $studentDefaultEmail = $settingGateway->getSettingByScope(($connection2, 'Application Form', 'studentDefaultEmail');
+            $studentDefaultEmail = $settingGateway->getSettingByScope('Application Form', 'studentDefaultEmail');
             if ($studentDefaultEmail != '') {
                 $emailAlternate = $email;
                 $email = str_replace('[username]', $username, $studentDefaultEmail);
@@ -308,7 +308,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
 
             //Set default website address for student
             $website = '';
-            $studentDefaultWebsite = $settingGateway->getSettingByScope(($connection2, 'Application Form', 'studentDefaultWebsite');
+            $studentDefaultWebsite = $settingGateway->getSettingByScope('Application Form', 'studentDefaultWebsite');
             if ($studentDefaultWebsite != '') {
                 $website = str_replace('[username]', $username, $studentDefaultWebsite);
             }
@@ -386,7 +386,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
             //ATTEMPT AUTOMATIC HOUSE ASSIGNMENT
             $gibbonHouseID = null;
             $house = '';
-            if ($settingGateway->getSettingByScope(($connection2, 'Application Form', 'autoHouseAssign') == 'Y') {
+            if ($settingGateway->getSettingByScope('Application Form', 'autoHouseAssign') == 'Y') {
                 $houseFail = false;
                 if ($values['gibbonYearGroupIDEntry'] == '' or $values['gibbonSchoolYearIDEntry'] == '' and $values['gender'] == '') { //No year group or school year set, so return error
                     $houseFail = true;
