@@ -35,7 +35,7 @@ if (!$session->has('gibbonPersonID') || $session->get('gibbonRoleIDCurrentCatego
     if (empty($alarm)) return;
 
     $confirmed =  $alarmGateway->getAlarmConfirmationByPerson($alarm['gibbonAlarmID'], $session->get('gibbonPersonID'));
-    $canViewReport = isActionAccessible($guid, $connection2, '/modules/System Admin/alarm.php');
+    $canViewReport = isActionAccessible($guid, $connection2, '/modules/Staff/staff_view.php');
     $confirmationReport = $alarmGateway->selectAlarmConfirmation($alarm['gibbonAlarmID'])->fetchAll();
     
     echo $container->get(View::class)->fetchFromTemplate('ui/alarmOverlay.twig.html', [
