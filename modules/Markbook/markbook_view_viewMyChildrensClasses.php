@@ -278,8 +278,14 @@ if ($result->rowCount() < 1) {
                             ++$count;
                             ++$entryCount;
 
+                            if (!empty($rowEntry['attainmentType']) && $rowEntry['attainmentType'] == 'Formative') {
+                                $tdStyle = 'background: #e5f4ff !important';
+                            } else {
+                                $tdStyle = '';
+                            }
+
                             echo "<tr class=$rowNum>";
-                            echo '<td>';
+                            echo "<td style='$tdStyle'>";
                             echo "<span title='".htmlPrep($rowEntry['description'])."'><b><u>".$rowEntry['name'].'</u></b></span><br/>';
                             echo "<span style='font-size: 90%; font-style: italic; font-weight: normal'>";
                             $unit = getUnit($connection2, $rowEntry['gibbonUnitID'], $rowEntry['gibbonCourseClassID']);
@@ -302,22 +308,22 @@ if ($result->rowCount() < 1) {
                             echo '</td>';
                             if ($enableModifiedAssessment == 'Y') {
                                 if (!is_null($rowEntry['modifiedAssessment'])) {
-                                    echo "<td>";
+                                    echo "<td style='$tdStyle'>";
                                     echo Format::yesNo($rowEntry['modifiedAssessment']);
                                     echo '</td>';
                                 }
                                 else {
-                                    echo "<td class='dull' style='color: #bbb; text-align: center'>";
+                                    echo "<td class='dull' style='color: #bbb; text-align: center; $tdStyle'>";
                                     echo __('N/A');
                                     echo '</td>';
                                 }
                             }
                             if ($rowEntry['attainment'] == 'N' or ($rowEntry['gibbonScaleIDAttainment'] == '' and $rowEntry['gibbonRubricIDAttainment'] == '')) {
-                                echo "<td class='dull' style='color: #bbb; text-align: center'>";
+                                echo "<td class='dull' style='color: #bbb; text-align: center; $tdStyle'>";
                                 echo __('N/A');
                                 echo '</td>';
                             } else {
-                                echo "<td style='text-align: center'>";
+                                echo "<td style='text-align: center; $tdStyle'>";
                                 $attainmentExtra = '';
 
                                     $dataAttainment = array('gibbonScaleID' => $rowEntry['gibbonScaleIDAttainment']);
@@ -348,11 +354,11 @@ if ($result->rowCount() < 1) {
                             }
 							if ($enableEffort == 'Y') {
                                 if ($rowEntry['effort'] == 'N' or ($rowEntry['gibbonScaleIDEffort'] == '' and $rowEntry['gibbonRubricIDEffort'] == '')) {
-                                    echo "<td class='dull' style='color: #bbb; text-align: center'>";
+                                    echo "<td class='dull' style='color: #bbb; text-align: center; $tdStyle'>";
                                     echo __('N/A');
                                     echo '</td>';
                                 } else {
-                                    echo "<td style='text-align: center'>";
+                                    echo "<td style='text-align: center; $tdStyle'>";
                                     $effortExtra = '';
 
                                         $dataEffort = array('gibbonScaleID' => $rowEntry['gibbonScaleIDEffort']);
@@ -388,7 +394,7 @@ if ($result->rowCount() < 1) {
                                 echo __('N/A');
                                 echo '</td>';
                             } else {
-                                echo '<td>';
+                                echo "<td style='$tdStyle'>";
                                 if ($rowEntry['comment'] != '') {
                                     if (mb_strlen($rowEntry['comment']) > 200) {
                                         echo "<script type='text/javascript'>";
@@ -427,7 +433,7 @@ if ($result->rowCount() < 1) {
                                     echo __('N/A');
                                     echo '</td>';
                                 } else {
-                                    echo '<td>';
+                                    echo "<td style='$tdStyle'>";
                                     $rowSub = $resultSub->fetch();
 
 

@@ -1664,7 +1664,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                                                 ++$entryCount;
                                                 $style = '';
                                                 if (!empty($rowEntry['attainmentType']) && $rowEntry['attainmentType'] == 'Formative') {
-                                                    $style = 'background: #EDF7FFaa !important';
+                                                    $style = 'background: #e5f4ff !important';
                                                 }
 
                                                 echo "<tr class=$rowNum style='$style'>";
