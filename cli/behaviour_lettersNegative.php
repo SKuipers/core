@@ -353,7 +353,7 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
                                     $mail->Subject = $subject;
                                     $mail->renderBody('mail/message.twig.html', [
                                         'title'  => $subject,
-                                        'body'   => nl2br(trim($body, "\n")),
+                                        'body'   => trim($body, "\n"),
                                     ]);
 
                                     if ($mail->Send()) {
