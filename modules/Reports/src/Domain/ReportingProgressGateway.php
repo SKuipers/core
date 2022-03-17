@@ -62,6 +62,21 @@ class ReportingProgressGateway extends QueryableGateway
             ->bindValue('today', date('Y-m-d'))
             ->groupBy(['gibbonReportingScopeID']);
 
+        $query->unionAll()
+            ->cols(['gibbonReportingScope.gibbonReportingScopeID AS gibbonReportingScopeID', 'gibbonReportingScope.sequenceNumber AS sequenceNumber', 'gibbonReportingScope.name', "COUNT(DISTINCT gibbonReportingValue.gibbonReportingCriteriaID) as totalCount", "COUNT(DISTINCT CASE WHEN gibbonReportingValue.value <> '' OR gibbonReportingValue.comment <> '' THEN gibbonReportingValue.gibbonReportingCriteriaID END) as progressCount"])
+            ->from('gibbonReportingCycle')
+            ->innerJoin('gibbonReportingScope', 'gibbonReportingScope.gibbonReportingCycleID=gibbonReportingCycle.gibbonReportingCycleID')
+            ->innerJoin('gibbonReportingAccess', 'FIND_IN_SET(gibbonReportingScope.gibbonReportingScopeID, gibbonReportingAccess.gibbonReportingScopeIDList)')
+            ->innerJoin('gibbonReportingCriteria', 'gibbonReportingCriteria.gibbonReportingScopeID=gibbonReportingScope.gibbonReportingScopeID')
+            ->innerJoin('gibbonCourseClass', 'gibbonCourseClass.gibbonCourseID=gibbonReportingCriteria.gibbonCourseID')
+            ->leftJoin('gibbonReportingValue', 'gibbonReportingValue.gibbonReportingCriteriaID=gibbonReportingCriteria.gibbonReportingCriteriaID')
+            ->where('gibbonReportingCycle.gibbonReportingCycleID=:gibbonReportingCycleID')
+            ->bindValue('gibbonReportingCycleID', $gibbonReportingCycleID)
+            ->where("gibbonReportingScope.scopeType='Course'")
+            ->where("gibbonReportingCriteria.target='Per Group'")
+            ->where("gibbonCourseClass.reportable='Y'")
+            ->groupBy(['gibbonReportingScopeID']);
+
         // FORM GROUPS
         $query->unionAll()
             ->cols(['gibbonReportingScope.gibbonReportingScopeID AS gibbonReportingScopeID', 'gibbonReportingScope.sequenceNumber AS sequenceNumber', 'gibbonReportingScope.name', "COUNT(DISTINCT gibbonStudentEnrolment.gibbonStudentEnrolmentID) as totalCount", "COUNT(DISTINCT CASE WHEN gibbonReportingProgress.status='Complete' THEN gibbonReportingProgress.gibbonReportingProgressID END) as progressCount"])
@@ -83,6 +98,18 @@ class ReportingProgressGateway extends QueryableGateway
             ->bindValue('today', date('Y-m-d'))
             ->groupBy(['gibbonReportingScopeID']);
 
+        $query->unionAll()
+            ->cols(['gibbonReportingScope.gibbonReportingScopeID AS gibbonReportingScopeID', 'gibbonReportingScope.sequenceNumber AS sequenceNumber', 'gibbonReportingScope.name', "COUNT(DISTINCT gibbonReportingValue.gibbonReportingCriteriaID) as totalCount", "COUNT(DISTINCT CASE WHEN gibbonReportingValue.value <> '' OR gibbonReportingValue.comment <> '' THEN gibbonReportingValue.gibbonReportingCriteriaID END) as progressCount"])
+            ->from('gibbonReportingCycle')
+            ->innerJoin('gibbonReportingScope', 'gibbonReportingScope.gibbonReportingCycleID=gibbonReportingCycle.gibbonReportingCycleID')
+            ->innerJoin('gibbonReportingAccess', 'FIND_IN_SET(gibbonReportingScope.gibbonReportingScopeID, gibbonReportingAccess.gibbonReportingScopeIDList)')
+            ->innerJoin('gibbonReportingCriteria', 'gibbonReportingCriteria.gibbonReportingScopeID=gibbonReportingScope.gibbonReportingScopeID')
+            ->leftJoin('gibbonReportingValue', 'gibbonReportingValue.gibbonReportingCriteriaID=gibbonReportingCriteria.gibbonReportingCriteriaID')
+            ->where('gibbonReportingCycle.gibbonReportingCycleID=:gibbonReportingCycleID')
+            ->bindValue('gibbonReportingCycleID', $gibbonReportingCycleID)
+            ->where("gibbonReportingScope.scopeType='Form Group'")
+            ->where("gibbonReportingCriteria.target='Per Group'")
+            ->groupBy(['gibbonReportingScopeID']);
 
         // YEAR GROUPS
         $query->unionAll()
@@ -103,6 +130,19 @@ class ReportingProgressGateway extends QueryableGateway
             ->where("(gibbonPerson.dateStart IS NULL OR gibbonPerson.dateStart<=:today)")
             ->where("(gibbonPerson.dateEnd IS NULL OR gibbonPerson.dateEnd>=:today)")
             ->bindValue('today', date('Y-m-d'))
+            ->groupBy(['gibbonReportingScopeID']);
+
+        $query->unionAll()
+            ->cols(['gibbonReportingScope.gibbonReportingScopeID AS gibbonReportingScopeID', 'gibbonReportingScope.sequenceNumber AS sequenceNumber', 'gibbonReportingScope.name', "COUNT(DISTINCT gibbonReportingValue.gibbonReportingCriteriaID) as totalCount", "COUNT(DISTINCT CASE WHEN gibbonReportingValue.value <> '' OR gibbonReportingValue.comment <> '' THEN gibbonReportingValue.gibbonReportingCriteriaID END) as progressCount"])
+            ->from('gibbonReportingCycle')
+            ->innerJoin('gibbonReportingScope', 'gibbonReportingScope.gibbonReportingCycleID=gibbonReportingCycle.gibbonReportingCycleID')
+            ->innerJoin('gibbonReportingAccess', 'FIND_IN_SET(gibbonReportingScope.gibbonReportingScopeID, gibbonReportingAccess.gibbonReportingScopeIDList)')
+            ->innerJoin('gibbonReportingCriteria', 'gibbonReportingCriteria.gibbonReportingScopeID=gibbonReportingScope.gibbonReportingScopeID')
+            ->leftJoin('gibbonReportingValue', 'gibbonReportingValue.gibbonReportingCriteriaID=gibbonReportingCriteria.gibbonReportingCriteriaID')
+            ->where('gibbonReportingCycle.gibbonReportingCycleID=:gibbonReportingCycleID')
+            ->bindValue('gibbonReportingCycleID', $gibbonReportingCycleID)
+            ->where("gibbonReportingScope.scopeType='Year Group'")
+            ->where("gibbonReportingCriteria.target='Per Group'")
             ->groupBy(['gibbonReportingScopeID']);
 
         return $this->runQuery($query, $criteria);
@@ -148,6 +188,34 @@ class ReportingProgressGateway extends QueryableGateway
             $query->where(':today BETWEEN gibbonReportingCycle.dateStart AND gibbonReportingCycle.dateEnd', ['today' => date('Y-m-d')]);
         }
 
+        $query->unionAll()
+            ->cols(['teacher.gibbonPersonID AS gibbonPersonID', 'teacher.surname', 'teacher.preferredName', "COUNT(DISTINCT gibbonReportingValue.gibbonReportingCriteriaID) as totalCount", "COUNT(DISTINCT CASE WHEN gibbonReportingValue.value <> '' OR gibbonReportingValue.comment <> '' THEN gibbonReportingValue.gibbonReportingCriteriaID END) as progressCount"])
+            ->from('gibbonReportingCycle')
+            ->innerJoin('gibbonReportingScope', 'gibbonReportingScope.gibbonReportingCycleID=gibbonReportingCycle.gibbonReportingCycleID')
+            ->innerJoin('gibbonReportingAccess', 'FIND_IN_SET(gibbonReportingScope.gibbonReportingScopeID, gibbonReportingAccess.gibbonReportingScopeIDList)')
+            ->innerJoin('gibbonReportingCriteria', 'gibbonReportingCriteria.gibbonReportingScopeID=gibbonReportingScope.gibbonReportingScopeID')
+            ->innerJoin('gibbonCourseClass', 'gibbonCourseClass.gibbonCourseID=gibbonReportingCriteria.gibbonCourseID')
+            ->innerJoin('gibbonCourseClassPerson as teacherClass', "teacherClass.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID AND teacherClass.role='Teacher'")
+            ->innerJoin('gibbonPerson as teacher', 'teacher.gibbonPersonID=teacherClass.gibbonPersonID')
+            ->leftJoin('gibbonReportingValue', 'gibbonReportingValue.gibbonReportingCriteriaID=gibbonReportingCriteria.gibbonReportingCriteriaID')
+            ->where('gibbonReportingCycle.gibbonSchoolYearID=:gibbonSchoolYearID')
+            ->bindValue('gibbonSchoolYearID', $gibbonSchoolYearID)
+            ->where("gibbonReportingScope.scopeType='Course'")
+            ->where("gibbonReportingCriteria.target='Per Group'")
+            ->where("gibbonCourseClass.reportable='Y'")
+            ->where("teacherClass.reportable='Y'")
+            ->groupBy(['gibbonPersonID']);
+
+        if ($gibbonReportingCycleID) {
+            $query->where('gibbonReportingCycle.gibbonReportingCycleID=:gibbonReportingCycleID', ['gibbonReportingCycleID' => $gibbonReportingCycleID]);
+        }
+        if ($gibbonReportingScopeID) {
+            $query->where('gibbonReportingScope.gibbonReportingScopeID=:gibbonReportingScopeID', ['gibbonReportingScopeID' => $gibbonReportingScopeID]);
+        }
+        if (empty($gibbonReportingCycleID) && empty($gibbonReportingScopeID)) {
+            $query->where(':today BETWEEN gibbonReportingCycle.dateStart AND gibbonReportingCycle.dateEnd', ['today' => date('Y-m-d')]);
+        }
+
         // FORM GROUPS
         $query->unionAll()
             ->cols(['teacher.gibbonPersonID AS gibbonPersonID', 'teacher.surname', 'teacher.preferredName', "COUNT(DISTINCT student.gibbonPersonID) as totalCount", "COUNT(DISTINCT CASE WHEN gibbonReportingProgress.status='Complete' THEN gibbonReportingProgress.gibbonReportingProgressID END) as progressCount"])
@@ -181,6 +249,31 @@ class ReportingProgressGateway extends QueryableGateway
             $query->where(':today BETWEEN gibbonReportingCycle.dateStart AND gibbonReportingCycle.dateEnd', ['today' => date('Y-m-d')]);
         }
 
+        $query->unionAll()
+            ->cols(['teacher.gibbonPersonID AS gibbonPersonID', 'teacher.surname', 'teacher.preferredName', "COUNT(DISTINCT gibbonReportingValue.gibbonReportingCriteriaID) as totalCount", "COUNT(DISTINCT CASE WHEN gibbonReportingValue.value <> '' OR gibbonReportingValue.comment <> '' THEN gibbonReportingValue.gibbonReportingCriteriaID END) as progressCount"])
+            ->from('gibbonReportingCycle')
+            ->innerJoin('gibbonReportingScope', 'gibbonReportingScope.gibbonReportingCycleID=gibbonReportingCycle.gibbonReportingCycleID')
+            ->innerJoin('gibbonReportingAccess', 'FIND_IN_SET(gibbonReportingScope.gibbonReportingScopeID, gibbonReportingAccess.gibbonReportingScopeIDList)')
+            ->innerJoin('gibbonReportingCriteria', 'gibbonReportingCriteria.gibbonReportingScopeID=gibbonReportingScope.gibbonReportingScopeID')
+            ->innerJoin('gibbonFormGroup', 'gibbonFormGroup.gibbonFormGroupID=gibbonReportingCriteria.gibbonFormGroupID')
+            ->innerJoin('gibbonPerson as teacher', '(teacher.gibbonPersonID=gibbonFormGroup.gibbonPersonIDTutor OR teacher.gibbonPersonID=gibbonFormGroup.gibbonPersonIDTutor2 OR teacher.gibbonPersonID=gibbonFormGroup.gibbonPersonIDTutor3)')
+            ->leftJoin('gibbonReportingValue', 'gibbonReportingValue.gibbonReportingCriteriaID=gibbonReportingCriteria.gibbonReportingCriteriaID')
+            ->where('gibbonReportingCycle.gibbonSchoolYearID=:gibbonSchoolYearID')
+            ->bindValue('gibbonSchoolYearID', $gibbonSchoolYearID)
+            ->where("gibbonReportingScope.scopeType='Form Group'")
+            ->where("gibbonReportingCriteria.target='Per Group'")
+            ->groupBy(['gibbonPersonID']);
+
+        if ($gibbonReportingCycleID) {
+            $query->where('gibbonReportingCycle.gibbonReportingCycleID=:gibbonReportingCycleID', ['gibbonReportingCycleID' => $gibbonReportingCycleID]);
+        }
+        if ($gibbonReportingScopeID) {
+            $query->where('gibbonReportingScope.gibbonReportingScopeID=:gibbonReportingScopeID', ['gibbonReportingScopeID' => $gibbonReportingScopeID]);
+        }
+        if (empty($gibbonReportingCycleID) && empty($gibbonReportingScopeID)) {
+            $query->where(':today BETWEEN gibbonReportingCycle.dateStart AND gibbonReportingCycle.dateEnd', ['today' => date('Y-m-d')]);
+        }
+
         // YEAR GROUPS
         $query->unionAll()
             ->cols(['teacher.gibbonPersonID AS gibbonPersonID', 'teacher.surname', 'teacher.preferredName', "COUNT(DISTINCT student.gibbonPersonID) as totalCount", "COUNT(DISTINCT CASE WHEN gibbonReportingProgress.status='Complete' THEN gibbonReportingProgress.gibbonReportingProgressID END) as progressCount"])
@@ -202,6 +295,32 @@ class ReportingProgressGateway extends QueryableGateway
             ->where("(student.dateEnd IS NULL OR student.dateEnd>=:today)")
             ->bindValue('today', date('Y-m-d'))
             // ->where('FIND_IN_SET(teacher.gibbonRoleIDPrimary, gibbonReportingAccess.gibbonRoleIDList)')
+            ->groupBy(['gibbonPersonID']);
+
+        if ($gibbonReportingCycleID) {
+            $query->where('gibbonReportingCycle.gibbonReportingCycleID=:gibbonReportingCycleID', ['gibbonReportingCycleID' => $gibbonReportingCycleID]);
+        }
+        if ($gibbonReportingScopeID) {
+            $query->where('gibbonReportingScope.gibbonReportingScopeID=:gibbonReportingScopeID', ['gibbonReportingScopeID' => $gibbonReportingScopeID]);
+        }
+        if (empty($gibbonReportingCycleID) && empty($gibbonReportingScopeID)) {
+            $query->where(':today BETWEEN gibbonReportingCycle.dateStart AND gibbonReportingCycle.dateEnd', ['today' => date('Y-m-d')]);
+        }
+
+        $query->unionAll()
+            ->cols(['teacher.gibbonPersonID AS gibbonPersonID', 'teacher.surname', 'teacher.preferredName', "COUNT(DISTINCT gibbonReportingValue.gibbonReportingCriteriaID) as totalCount", "COUNT(DISTINCT CASE WHEN gibbonReportingValue.value <> '' OR gibbonReportingValue.comment <> '' THEN gibbonReportingValue.gibbonReportingCriteriaID END) as progressCount"])
+            ->from('gibbonReportingCycle')
+            ->innerJoin('gibbonReportingScope', 'gibbonReportingScope.gibbonReportingCycleID=gibbonReportingCycle.gibbonReportingCycleID')
+            ->innerJoin('gibbonReportingAccess', 'FIND_IN_SET(gibbonReportingScope.gibbonReportingScopeID, gibbonReportingAccess.gibbonReportingScopeIDList)')
+            ->innerJoin('gibbonReportingCriteria', 'gibbonReportingCriteria.gibbonReportingScopeID=gibbonReportingScope.gibbonReportingScopeID')
+            ->innerJoin('gibbonYearGroup', 'gibbonYearGroup.gibbonYearGroupID=gibbonReportingCriteria.gibbonYearGroupID')
+            ->innerJoin('gibbonPerson as teacher', 'teacher.gibbonPersonID=gibbonYearGroup.gibbonPersonIDHOY')
+            ->leftJoin('gibbonReportingValue', 'gibbonReportingValue.gibbonReportingCriteriaID=gibbonReportingCriteria.gibbonReportingCriteriaID')
+            ->where('gibbonReportingCycle.gibbonSchoolYearID=:gibbonSchoolYearID')
+            ->bindValue('gibbonSchoolYearID', $gibbonSchoolYearID)
+            ->where("gibbonReportingScope.scopeType='Year Group'")
+            ->where("gibbonReportingCriteria.target='Per Group'")
+            ->bindValue('today', date('Y-m-d'))
             ->groupBy(['gibbonPersonID']);
 
         if ($gibbonReportingCycleID) {
