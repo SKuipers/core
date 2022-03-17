@@ -17,6 +17,10 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Data\Validator;
+use Gibbon\Comms\NotificationSender;
+use Gibbon\Domain\System\SettingGateway;
+
 include '../../gibbon.php';
 
 //Module includes
@@ -33,7 +37,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Crowd Assessment/crowdAsse
     header("Location: {$URL}");
 } else {
     //Proceed!
-    //Check if school year specified
+    //Check if gibbonPlannerEntryID, gibbonPlannerEntryHomeworkID, and gibbonPersonID specified
     if ($gibbonPlannerEntryID == '' or $gibbonPlannerEntryHomeworkID == '' or $gibbonPersonID == '') {
         $URL .= '&return=error1';
         header("Location: {$URL}");
@@ -81,9 +85,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Crowd Assessment/crowdAsse
                         $replyTo = !empty($_GET['replyTo']) ? $_GET['replyTo'] : null;
 
                         //Attempt to prevent XSS attack
-                        $comment = $_POST['comment'] ?? '';
-                        $comment = trim(preg_replace('/^<p>|<\/p>$/i', '', $comment));
-                        $comment = tinymceStyleStripTags($comment, $connection2);
+                        $validator = $container->get(Validator::class);
+                        $comment = $validator->sanitizeRichText($_POST['comment'] ?? '');
 
                         try {
                             $data = array('gibbonPlannerEntryHomeworkID' => $gibbonPlannerEntryHomeworkID, 'gibbonPersonID' => $session->get('gibbonPersonID'), 'comment' => $comment, 'replyTo' => $replyTo);
@@ -119,19 +122,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Crowd Assessment/crowdAsse
                             $name = $rowLesson['name'];
                         }
 
-                        $homeworkNameSingular = getSettingByScope($connection2, 'Planner', 'homeworkNameSingular');
+                        $homeworkNameSingular = $container->get(SettingGateway::class)->getSettingByScope('Planner', 'homeworkNameSingular');
+
+                        $notificationSender = $container->get(NotificationSender::class);
 
                         //Create notification for homework owner, as long as it is not me.
                         if ($gibbonPersonID != $session->get('gibbonPersonID') and $gibbonPersonID != $replyToID) {
                             $notificationText = __('Someone has commented on your {homeworkName} for lesson plan "{lessonName}".', ['lessonName' => $name, 'homeworkName' => mb_strtolower(__($homeworkNameSingular))]);
-                            setNotification($connection2, $guid, $gibbonPersonID, $notificationText, 'Crowd Assessment', "/index.php?q=/modules/Crowd Assessment/crowdAssess_view_discuss.php&gibbonPlannerEntryID=$gibbonPlannerEntryID&gibbonPlannerEntryHomeworkID=$gibbonPlannerEntryHomeworkID&gibbonPersonID=$gibbonPersonID");
+                            $notificationSender->addNotification($gibbonPersonID, $notificationText, 'Crowd Assessment', "/index.php?q=/modules/Crowd Assessment/crowdAssess_view_discuss.php&gibbonPlannerEntryID=$gibbonPlannerEntryID&gibbonPlannerEntryHomeworkID=$gibbonPlannerEntryHomeworkID&gibbonPersonID=$gibbonPersonID");
                         }
 
                         //Create notification to person I am replying to
                         if (is_null($replyToID) == false) {
                             $notificationText = sprintf(__('Someone has replied to a comment on the {homeworkName} for lesson plan "{lessonName}".', ['lessonName' => $name, 'homeworkName' => mb_strtolower(__($homeworkNameSingular))]), $name);
-                            setNotification($connection2, $guid, $replyToID, $notificationText, 'Crowd Assessment', "/index.php?q=/modules/Crowd Assessment/crowdAssess_view_discuss.php&gibbonPlannerEntryID=$gibbonPlannerEntryID&gibbonPlannerEntryHomeworkID=$gibbonPlannerEntryHomeworkID&gibbonPersonID=$gibbonPersonID");
+                            $notificationSender->addNotification($replyToID, $notificationText, 'Crowd Assessment', "/index.php?q=/modules/Crowd Assessment/crowdAssess_view_discuss.php&gibbonPlannerEntryID=$gibbonPlannerEntryID&gibbonPlannerEntryHomeworkID=$gibbonPlannerEntryHomeworkID&gibbonPersonID=$gibbonPersonID");
                         }
+
+                        $notificationSender->sendNotifications();
 
                         $URL .= "&return=success0$hash";
                         header("Location: {$URL}");

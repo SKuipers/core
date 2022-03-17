@@ -17,51 +17,38 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\Activities\ActivityTypeGateway;
+
 include '../../gibbon.php';
 
-$gibbonActivityTypeID = (isset($_GET['gibbonActivityTypeID']))? $_GET['gibbonActivityTypeID'] : NULL;
-$URL = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_POST['address']).'/activitySettings.php';
+$gibbonActivityTypeID = $_GET['gibbonActivityTypeID'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/School Admin/activitySettings.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/activitySettings_type_delete.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
 } else {
-    //Proceed!
-    if ($gibbonActivityTypeID == '') {
+    // Proceed!
+    $activityTypeGateway = $container->get(ActivityTypeGateway::class);
+    
+    if (empty($gibbonActivityTypeID)) {
         $URL .= '&return=error1';
         header("Location: {$URL}");
-    } else {
-        try {
-            $data = array('gibbonActivityTypeID' => $gibbonActivityTypeID);
-            $sql = 'SELECT name FROM gibbonActivityType WHERE gibbonActivityTypeID=:gibbonActivityTypeID';
-            $result = $connection2->prepare($sql);
-            $result->execute($data);
-        } catch (PDOException $e) {
-            $URL .= '&return=error2';
-            header("Location: {$URL}");
-            exit();
-        }
-
-        $row = $result->fetch();
-
-        if ($result->rowCount() == 0) {
-            $URL .= '&return=error2';
-            header("Location: {$URL}");
-        } else {
-            //Write to database
-            try {
-                $data = array('gibbonActivityTypeID' => $gibbonActivityTypeID);
-                $sql = 'DELETE FROM gibbonActivityType WHERE gibbonActivityTypeID=:gibbonActivityTypeID';
-                $result = $connection2->prepare($sql);
-                $result->execute($data);
-            } catch (PDOException $e) {
-                $URL .= '&return=error2';
-                header("Location: {$URL}");
-                exit();
-            }
-
-            $URL = $URL.'&return=success0';
-            header("Location: {$URL}");
-        }
+        exit;
     }
+
+    $values = $activityTypeGateway->getByID($gibbonActivityTypeID);
+    if (empty($values)) {
+        $URL .= '&return=error2';
+        header("Location: {$URL}");
+        exit;
+    }
+
+    $deleted = $activityTypeGateway->delete($gibbonActivityTypeID);
+
+    $URL .= !$deleted
+        ? '&return=error2'
+        : '&return=success0';
+
+    header("Location: {$URL}");
 }

@@ -26,6 +26,7 @@ use Gibbon\Domain\Behaviour\BehaviourLetterGateway;
 use Gibbon\Domain\System\NotificationGateway;
 use Gibbon\Domain\System\EmailTemplateGateway;
 use Gibbon\Domain\User\UserGateway;
+use Gibbon\Domain\System\SettingGateway;
 
 require getcwd().'/../gibbon.php';
 
@@ -57,17 +58,18 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
     $mail->SMTPKeepAlive = true;
 
     // Initialize the notification sender & gateway objects
+    $settingGateway = $container->get(SettingGateway::class);
     $notificationGateway = new NotificationGateway($pdo);
     $notificationSender = new NotificationSender($notificationGateway, $gibbon->session);
 
     //Get settings
-    $enableDescriptors = getSettingByScope($connection2, 'Behaviour', 'enableDescriptors');
-    $enableLevels = getSettingByScope($connection2, 'Behaviour', 'enableLevels');
-    $enablePositiveBehaviourLetters = getSettingByScope($connection2, 'Behaviour', 'enablePositiveBehaviourLetters');
+    $enableDescriptors = $settingGateway->getSettingByScope('Behaviour', 'enableDescriptors');
+    $enableLevels = $settingGateway->getSettingByScope('Behaviour', 'enableLevels');
+    $enablePositiveBehaviourLetters = $settingGateway->getSettingByScope('Behaviour', 'enablePositiveBehaviourLetters');
     if ($enablePositiveBehaviourLetters == 'Y') {
-        $behaviourLettersPositiveLetter1Count = getSettingByScope($connection2, 'Behaviour', 'behaviourLettersPositiveLetter1Count');
-        $behaviourLettersPositiveLetter2Count = getSettingByScope($connection2, 'Behaviour', 'behaviourLettersPositiveLetter2Count');
-        $behaviourLettersPositiveLetter3Count = getSettingByScope($connection2, 'Behaviour', 'behaviourLettersPositiveLetter3Count');
+        $behaviourLettersPositiveLetter1Count = $settingGateway->getSettingByScope('Behaviour', 'behaviourLettersPositiveLetter1Count');
+        $behaviourLettersPositiveLetter2Count = $settingGateway->getSettingByScope('Behaviour', 'behaviourLettersPositiveLetter2Count');
+        $behaviourLettersPositiveLetter3Count = $settingGateway->getSettingByScope('Behaviour', 'behaviourLettersPositiveLetter3Count');
 
         $behaviourLetterGateway = $container->get(BehaviourLetterGateway::class);
         $emailTemplateGateway = $container->get(EmailTemplateGateway::class);
@@ -197,9 +199,6 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
                                 if ($enableDescriptors == 'Y' and $rowBehaviourRecord['descriptor'] != '') {
                                     $behaviourRecord .= ' - '.$rowBehaviourRecord['descriptor'];
                                 }
-                                if ($enableLevels == 'Y' and $rowBehaviourRecord['level'] != '') {
-                                    $behaviourRecord .= ' - '.$rowBehaviourRecord['level'];
-                                }
                                 $behaviourRecord .= '</li>';
                             }
                             $behaviourRecord .= '</ul>';
@@ -237,6 +236,9 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
                                     'recordCountAtCreation' => $behaviourCount,
                                 ]);
 
+                                if (!empty($gibbonBehaviourLetterID)) {
+                                    $email = true;
+                                }
                             }
                         }
 
@@ -297,7 +299,7 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
                                     $mail->Subject = $subject;
                                     $mail->renderBody('mail/message.twig.html', [
                                         'title'  => $subject,
-                                        'body'   => nl2br(trim($body, "\n")),
+                                        'body'   => trim($body, "\n"),
                                     ]);
 
                                     if ($mail->Send()) {

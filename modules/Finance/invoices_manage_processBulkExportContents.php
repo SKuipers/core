@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Services\Format;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -77,7 +78,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/invoices_manage.ph
 		}
 
 		$excel = new Gibbon\Excel('invoices.xlsx');
-		if ($excel->estimateCellCount($pdo) > 8000)    //  If too big, then render csv instead.
+		if ($excel->estimateCellCount($result) > 8000)    //  If too big, then render csv instead.
 			return Gibbon\csv::generate($pdo, 'Invoices');
 		$excel->setActiveSheetIndex(0);
 		$excel->getProperties()->setTitle('Invoices');
@@ -133,7 +134,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/invoices_manage.ph
 		while ($row=$result->fetch()) {
 			$count++ ;
 			//Column A
-			$invoiceNumber=getSettingByScope( $connection2, "Finance", "invoiceNumber" ) ;
+			$invoiceNumber = $container->get(SettingGateway::class)->getSettingByScope("Finance", "invoiceNumber" ) ;
 			if ($invoiceNumber=="Person ID + Invoice ID") {
 				$excel->getActiveSheet()->setCellValueByColumnAndRow(0, $r, ltrim($row["gibbonPersonID"],"0") . "-" . ltrim($row["gibbonFinanceInvoiceID"], "0"));
 			}

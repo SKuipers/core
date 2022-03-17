@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Services\Format;
@@ -47,9 +48,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenses_manage_ed
             ->add(__('Edit Expense'));
 
         //Check if params are specified
-        $gibbonFinanceExpenseID = isset($_GET['gibbonFinanceExpenseID'])? $_GET['gibbonFinanceExpenseID'] : '';
-        $status2 = isset($_GET['status2'])? $_GET['status2'] : '';
-        $gibbonFinanceBudgetID2 = isset($_GET['gibbonFinanceBudgetID2'])? $_GET['gibbonFinanceBudgetID2'] : '';
+        $gibbonFinanceExpenseID = $_GET['gibbonFinanceExpenseID'] ?? '';
+        $status2 = $_GET['status2'] ?? '';
+        $gibbonFinanceBudgetID2 = $_GET['gibbonFinanceBudgetID2'] ?? '';
         $gibbonFinanceBudgetID = '';
         if ($gibbonFinanceExpenseID == '' or $gibbonFinanceBudgetCycleID == '') {
             echo "<div class='error'>";
@@ -77,9 +78,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenses_manage_ed
                 echo '</div>';
             } else {
                 //Get and check settings
-                $expenseApprovalType = getSettingByScope($connection2, 'Finance', 'expenseApprovalType');
-                $budgetLevelExpenseApproval = getSettingByScope($connection2, 'Finance', 'budgetLevelExpenseApproval');
-                $expenseRequestTemplate = getSettingByScope($connection2, 'Finance', 'expenseRequestTemplate');
+                $settingGateway = $container->get(SettingGateway::class);
+                $expenseApprovalType = $settingGateway->getSettingByScope('Finance', 'expenseApprovalType');
+                $budgetLevelExpenseApproval = $settingGateway->getSettingByScope('Finance', 'budgetLevelExpenseApproval');
+                $expenseRequestTemplate = $settingGateway->getSettingByScope('Finance', 'expenseRequestTemplate');
                 if ($expenseApprovalType == '' or $budgetLevelExpenseApproval == '') {
                     echo "<div class='error'>";
                     echo __('An error has occurred with your expense and budget settings.');

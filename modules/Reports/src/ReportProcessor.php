@@ -29,11 +29,13 @@ class ReportProcessor
     {
         $total = 0;
         $cumulative = 0;
+        $atRisk = 0;
 
         foreach ($data->getField('termGrades', 'classGrades') as $class) {
 
             // Grab the course weight and grade
             $weight = isset($class[$reportNum]['weight'])? floatval($class[$reportNum]['weight']) : 0;
+            
 
             if (!empty($class[$reportNum]['final percent'])) {
                 $grade = intval($class[$reportNum]['final percent']['value']);
@@ -43,6 +45,12 @@ class ReportProcessor
 
             // Skip any empty or incomplete marks
             if ($weight == 0 || $grade == '' || $grade == '-' || $grade == 'INC') continue;
+
+            // Check core courses for At Risk (< 60%)
+            $core = $class[$reportNum]['core'] ?? 'N';
+            if ($core == 'Y' && $grade < 60.0) {
+                $atRisk++;
+            }
 
             // Sum the cumulative weight & grades
             $total += $weight;
@@ -55,7 +63,9 @@ class ReportProcessor
         $gpa = ( $cumulative / $total );
         $gpa = round( min(100.0, max(0.0, $gpa)), 1);
 
-        if ($gpa >= 94.5) {
+        if ($atRisk > 0) {
+            $status = 'At Risk';
+        } elseif ($gpa >= 94.5) {
             $status = 'Scholars';
         } else if ($gpa >= 89.5) {
             $status = 'Distinction';
@@ -65,13 +75,6 @@ class ReportProcessor
             $status = 'Good Standing';
         } else {
             $status = 'At Risk';
-        }
-
-        // HACK!!! :(
-        // Kugar Ho (8-1), Jessie Casey (9-2), Harris Ling (9-1)
-        $gibbonPersonID = $data->getField('student', 'gibbonPersonID');
-        if ($reportID == 4 && ($gibbonPersonID == 2426 || $gibbonPersonID == 3577 || $gibbonPersonID == 4021)) {
-            $status = '';
         }
 
         // Store this in the database, for easy lookup

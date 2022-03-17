@@ -17,10 +17,11 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Forms\Form;
 use Gibbon\Tables\DataTable;
-use Gibbon\Domain\Activities\ActivityGateway;
 use Gibbon\Services\Format;
+use Gibbon\Domain\Activities\ActivityGateway;
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -29,7 +30,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
-    //Get action with highest precendence
+    // Get action with highest precedence
     $highestAction = getHighestGroupedAction($guid, $_GET['q'], $connection2);
     if ($highestAction == false) {
         echo "<div class='error'>";
@@ -45,8 +46,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
         $roleCategory = getRoleCategory($session->get('gibbonRoleIDCurrent'), $connection2);
 
         //Check access controls
-        $allActivityAccess = getSettingByScope($connection2, 'Activities', 'access');
-        $hideExternalProviderCost = getSettingByScope($connection2, 'Activities', 'hideExternalProviderCost');
+        $settingGateway = $container->get(SettingGateway::class);
+        $allActivityAccess = $settingGateway->getSettingByScope('Activities', 'access');
+        $hideExternalProviderCost = $settingGateway->getSettingByScope('Activities', 'hideExternalProviderCost');
 
         if (!($allActivityAccess == 'View' or $allActivityAccess == 'Register')) {
             echo "<div class='error'>";
@@ -59,7 +61,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                 echo '</div>';
             }
 
-            $disableExternalProviderSignup = getSettingByScope($connection2, 'Activities', 'disableExternalProviderSignup');
+            $disableExternalProviderSignup = $settingGateway->getSettingByScope('Activities', 'disableExternalProviderSignup');
             if ($disableExternalProviderSignup == 'Y') {
                 echo "<div class='warning'>";
                 echo __('Please check activity details for instructions on how to register for activities offered by outside providers.');
@@ -83,27 +85,27 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                     $result->execute($data);
 
                 if ($result->rowCount() < 1) {
-                    // echo "<div class='error'>";
-                    // echo __('Access denied.');
-                    // echo '</div>';
+                    echo "<div class='error'>";
+                    echo __('Access denied.');
+                    echo '</div>';
                 } else {
                     $options = array();
                     while ($row = $result->fetch()) {
-                        // TIS: remove start date check
-                            $dataChild = array('gibbonFamilyID' => $row['gibbonFamilyID'], 'gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'));
-                            $sqlChild = "SELECT * FROM gibbonFamilyChild JOIN gibbonPerson ON (gibbonFamilyChild.gibbonPersonID=gibbonPerson.gibbonPersonID) JOIN gibbonStudentEnrolment ON (gibbonPerson.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID) JOIN gibbonFormGroup ON (gibbonStudentEnrolment.gibbonFormGroupID=gibbonFormGroup.gibbonFormGroupID) WHERE gibbonFamilyID=:gibbonFamilyID AND gibbonPerson.status='Full' AND (dateEnd IS NULL OR dateEnd>='".date('Y-m-d')."') AND gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID ORDER BY surname, preferredName ";
-                            $resultChild = $connection2->prepare($sqlChild);
-                            $resultChild->execute($dataChild);
+
+                        $dataChild = array('gibbonFamilyID' => $row['gibbonFamilyID'], 'gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'date' => date('Y-m-d'));
+                        $sqlChild = "SELECT * FROM gibbonFamilyChild JOIN gibbonPerson ON (gibbonFamilyChild.gibbonPersonID=gibbonPerson.gibbonPersonID) JOIN gibbonStudentEnrolment ON (gibbonPerson.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID) JOIN gibbonFormGroup ON (gibbonStudentEnrolment.gibbonFormGroupID=gibbonFormGroup.gibbonFormGroupID) WHERE gibbonFamilyID=:gibbonFamilyID AND gibbonPerson.status='Full' AND (dateStart IS NULL OR dateStart<=:date) AND (dateEnd IS NULL OR dateEnd>=:date) AND gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID ORDER BY surname, preferredName ";
+                        $resultChild = $connection2->prepare($sqlChild);
+                        $resultChild->execute($dataChild);
                         if ($resultChild->rowCount() > 0) {
                             while ($rowChild = $resultChild->fetch()) {
                                 $options[$rowChild['gibbonPersonID']] = Format::name('', $rowChild['preferredName'], $rowChild['surname'], 'Student', true);
                                 ++$countChild;
                             }
-
-                            if ($resultChild->rowCount() == 1) {
-                                $gibbonPersonID = key($options);
-                            }
                         }
+                    }
+
+                    if (count($options) == 1) {
+                        $gibbonPersonID = key($options);
                     }
 
                     if ($countChild == 0) {
@@ -114,13 +116,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                 }
             }
 
-            echo '<h2>';
-            echo __('Filter & Search');
-            echo '</h2>';
-
             $search = $_GET['search'] ?? '';
 
             $form = Form::create('searchForm', $session->get('absoluteURL').'/index.php','get');
+            $form->setTitle(__('Filter & Search'));
             $form->setClass('noIntBorder fullWidth');
 
             $form->addHiddenValue('q', "/modules/".$session->get('module')."/activities_view.php");
@@ -143,15 +142,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
             echo '<h2>';
             echo __('Activities');
             echo '</h2>';
-
-            //Set pagination variable
-            $page = $_GET['page'] ?? 1;
-
-            if ((!is_numeric($page)) or $page < 1) {
-                $page = 1;
-            }
-
-            $today = date('Y-m-d');
 
             //Set special where params for different roles and permissions
             $continue = true;
@@ -179,18 +169,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                 $continue = false;
 
                 //Confirm access to this student
-                // TIS: remove start date check
-                    $dataChild = array('gibbonPersonID' => $gibbonPersonID, 'gibbonPersonID2' => $session->get('gibbonPersonID'));
-                    $sqlChild = "SELECT * FROM gibbonFamilyChild JOIN gibbonFamily ON (gibbonFamilyChild.gibbonFamilyID=gibbonFamily.gibbonFamilyID) JOIN gibbonFamilyAdult ON (gibbonFamilyAdult.gibbonFamilyID=gibbonFamily.gibbonFamilyID) JOIN gibbonPerson ON (gibbonFamilyChild.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonPerson.status='Full' AND (dateEnd IS NULL  OR dateEnd>='".date('Y-m-d')."') AND gibbonFamilyChild.gibbonPersonID=:gibbonPersonID AND gibbonFamilyAdult.gibbonPersonID=:gibbonPersonID2 AND childDataAccess='Y'";
-                    $resultChild = $connection2->prepare($sqlChild);
-                    $resultChild->execute($dataChild);
+                $dataChild = array('gibbonPersonID' => $gibbonPersonID, 'gibbonPersonID2' => $session->get('gibbonPersonID'), 'date' => date('Y-m-d'));
+                $sqlChild = "SELECT * FROM gibbonFamilyChild JOIN gibbonFamily ON (gibbonFamilyChild.gibbonFamilyID=gibbonFamily.gibbonFamilyID) JOIN gibbonFamilyAdult ON (gibbonFamilyAdult.gibbonFamilyID=gibbonFamily.gibbonFamilyID) JOIN gibbonPerson ON (gibbonFamilyChild.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonPerson.status='Full' AND (dateStart IS NULL OR dateStart<=:date) AND (dateEnd IS NULL  OR dateEnd>=:date) AND gibbonFamilyChild.gibbonPersonID=:gibbonPersonID AND gibbonFamilyAdult.gibbonPersonID=:gibbonPersonID2 AND childDataAccess='Y'";
+                $resultChild = $connection2->prepare($sqlChild);
+                $resultChild->execute($dataChild);
                 if ($resultChild->rowCount() == 1) {
 
                     $dataStudent = array('gibbonPersonID' => $gibbonPersonID, 'gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'));
                     $sqlStudent = 'SELECT * FROM gibbonStudentEnrolment WHERE gibbonPersonID=:gibbonPersonID AND gibbonSchoolYearID=:gibbonSchoolYearID';
                     $resultStudent = $connection2->prepare($sqlStudent);
                     $resultStudent->execute($dataStudent);
-
 
                     if ($resultStudent->rowCount() == 1) {
                         $rowStudent = $resultStudent->fetch();
@@ -200,12 +188,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                             $and = " AND gibbonYearGroupIDList LIKE '%$gibbonYearGroupID%'";
                         }
                     }
-
+                    
                 } else {
-                    echo '<div class="message" style="font-size:14px;padding: 16px;">';
+                    echo '<div class="message">';
                     echo __('Select a child in your family view their available activities.');
                     echo '</div>';
-                    return;
+                    $continue = true;
                 }
             }
 
@@ -215,9 +203,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                 echo '</div>';
             } else {
                 //Should we show date as term or date?
-                $dateType = getSettingByScope($connection2, 'Activities', 'dateType');
+                $dateType = $settingGateway->getSettingByScope('Activities', 'dateType');
                 if ($dateType == 'Term') {
-                    $maxPerTerm = getSettingByScope($connection2, 'Activities', 'maxPerTerm');
+                    $maxPerTerm = $settingGateway->getSettingByScope('Activities', 'maxPerTerm');
                 } else {
                     $dateType = 'Date';
                 }
@@ -227,10 +215,22 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
 
                 // Toggle Features
                 $canAccessRegistration = !empty($gibbonPersonID) && (($roleCategory == 'Student' && $highestAction == 'View Activities_studentRegister') || ($roleCategory == 'Parent' && $highestAction == 'View Activities_studentRegisterByParent' && $countChild > 0));
-                $paymentOn = getSettingByScope($connection2, 'Activities', 'payment') != 'None' && getSettingByScope($connection2, 'Activities', 'payment') != 'Single';
+                $paymentOn = $settingGateway->getSettingByScope('Activities', 'payment') != 'None' && $settingGateway->getSettingByScope('Activities', 'payment') != 'Single';
+
+                $activityGateway = $container->get(ActivityGateway::class);
+    
+                // CRITERIA
+                $criteria = $activityGateway->newQueryCriteria()
+                    ->searchBy($activityGateway->getSearchableColumns(), $search)
+                    ->sortBy($dateType != 'Date' ? ['registrationOrder', 'gibbonSchoolYearTermIDList'] : ['registrationOrder', 'gibbonActivity.type'] )
+                    ->sortBy('gibbonActivity.name')
+                    ->pageSize(50)
+                    ->fromArray($_POST);
+
+                $activities = $activityGateway->queryActivitiesBySchoolYear($criteria, $session->get('gibbonSchoolYearID'), $dateType, $gibbonYearGroupID);
 
                 // Registration Limit Check
-                if ($allActivityAccess == 'Register' && $canAccessRegistration) {
+                if ($allActivityAccess == 'Register' && $canAccessRegistration && $activities->count() > 0) {
                     if ($dateType == 'Term' and $maxPerTerm > 0) {
                         echo "<div class='warning'>";
                         echo __("Remember, each student can register for no more than $maxPerTerm activities per term. Your current registration count by term is:");
@@ -263,34 +263,22 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                                 $activityCountRemaining = max(0, $activity['maxPerStudent'] - $activityCountByType);
 
                                 if ($activityCountRemaining > 0) { 
-                                    echo '<div class="warning" style="font-size:14px;padding: 16px;">';
-                                    echo '<strong>'.$activity['name'].' '.__('Registration Available').':</strong> ';
-                                    echo sprintf(__('Each student can register for %1$s %2$s activities.'), $activity['maxPerStudent'], $activity['name']).'<br/>&nbsp;<br/>';
-                                    echo sprintf(__('Your current registration count is: %1$s'), $activityCountByType).'<br/>&nbsp;<br/>';
-                                    echo '<span style="font-weight: bold; color: #444;">'.sprintf(__('You can register for %1$s more %2$s activities.'), $activityCountRemaining, $activity['name']).'</span>';
+                                    echo '<div class="warning">';
+                                        echo '<strong>'.$activity['name'].' '.__('Registration Available').':</strong> ';
+                                        echo sprintf(__('Each student can register for %1$s %2$s activities.'), $activity['maxPerStudent'], $activity['name']).'<br/>&nbsp;<br/>';
+                                        echo sprintf(__('Your current registration count is: %1$s'), $activityCountByType).'<br/>&nbsp;<br/>';
+                                        echo '<span style="font-weight: bold; color: #444;">'.sprintf(__('You can register for %1$s more %2$s activities.'), $activityCountRemaining, $activity['name']).'</span>';
                                     echo '</div>';
                                 } else if ($activityCountByType > 0) {
-                                    echo '<div class="success" style="font-size:14px;padding: 16px;">';
-                                    echo '<strong>'.$activity['name'].' '.__('Registration Complete').':</strong> ';
-                                    echo sprintf(__('You have registered for %1$s %2$s activities.'), $activityCountByType, $activity['name']);
+                                    echo '<div class="success">';
+                                        echo '<strong>'.$activity['name'].' '.__('Registration Complete').':</strong> ';
+                                        echo sprintf(__('You have registered for %1$s %2$s activities.'), $activityCountByType, $activity['name']);
                                     echo '</div>';
                                 }
                             }
                         }
                     }
                 }
-
-                $activityGateway = $container->get(ActivityGateway::class);
-    
-                // CRITERIA
-                $criteria = $activityGateway->newQueryCriteria()
-                    ->searchBy($activityGateway->getSearchableColumns(), $search)
-                    ->sortBy($dateType != 'Date' ? ['registrationOrder', 'gibbonSchoolYearTermIDList'] : ['registrationOrder', 'gibbonActivity.type'] )
-                    ->sortBy('gibbonActivity.name')
-                    ->pageSize(50)
-                    ->fromArray($_POST);
-
-                $activities = $activityGateway->queryActivitiesBySchoolYear($criteria, $session->get('gibbonSchoolYearID'), $dateType, $gibbonYearGroupID);
 
                 // DATA TABLE
                 $table = DataTable::createPaginated('viewActivities', $criteria);
@@ -299,7 +287,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                 if ($canAccessRegistration && !empty($gibbonPersonID)) {
                     $enroledActivities = $activityGateway->selectActivityEnrolmentByStudent($session->get('gibbonSchoolYearID'), $gibbonPersonID)->fetchGroupedUnique();
 
-                    $activities->transform(function(&$activity) use ($enroledActivities) {
+                    $activities->transform(function (&$activity) use ($enroledActivities) {
                         $activity['enrolmentFull'] = $activity['waitingList'] != 'Y' && $activity['enrolment'] >= $activity['maxParticipants'];
     
                         if (isset($enroledActivities[$activity['gibbonActivityID']])) {
@@ -317,13 +305,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                 }
 
                 $table->addColumn('name', __('Activity'))
-                    ->format(function($activity) {
+                    ->format(function ($activity) {
                         return $activity['name'].'<br/><span class="small emphasis">'.$activity['type'].'</span>';
                     });
 
                 $table->addColumn('provider', __('Provider'))
                     ->width('10%')
-                    ->format(function($activity) use ($session) {
+                    ->format(function ($activity) use ($session) {
                         return ($activity['provider'] == 'School')? $session->get('organisationNameShort') : __('External');
                     });
 
@@ -331,7 +319,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                     ->width('18%')
                     ->description(__('Days'))
                     ->sortable($dateType != 'Date' ? ['gibbonSchoolYearTermIDList'] : ['programStart', 'programEnd'])
-                    ->format(function($activity) use ($dateType, $schoolTerms, $activityGateway) {
+                    ->format(function ($activity) use ($dateType, $schoolTerms, $activityGateway) {
                         if (empty($schoolTerms)) return '';
 
                         $output = '';
@@ -358,7 +346,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
 
                 $table->addColumn('yearGroups', __('Years'))
                     ->width('15%')
-                    ->format(function($activity) use ($yearGroups) {
+                    ->format(function ($activity) use ($yearGroups) {
                         return ($activity['yearGroupCount'] >= count($yearGroups)/2)? '<i>'.__('All').'</i>' : $activity['yearGroups'];
                     });
 
@@ -366,7 +354,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                     $table->addColumn('payment', __('Cost'))
                         ->width('15%')
                         ->description($session->get('currency'))
-                        ->format(function($activity) {
+                        ->format(function ($activity) {
                             $payment = ($activity['payment'] > 0) 
                                 ? Format::currency($activity['payment']) . '<br/>' . __($activity['paymentType'])
                                 : '<i>'.__('None').'</i>';
@@ -379,7 +367,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                 if ($canAccessRegistration) {
                     $table->addColumn('enrolmentAvailable', __('Enrolment'))
                         ->sortable(false)
-                        ->format(function($activity) use ($disableExternalProviderSignup) {
+                        ->format(function ($activity) use ($disableExternalProviderSignup) {
                             if ($activity['provider'] == 'External' and $disableExternalProviderSignup == 'Y') {
                                 return '<i>'.__('See activity details').'</i>';
                             } else if (!empty($activity['currentEnrolment'])) {

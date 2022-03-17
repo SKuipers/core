@@ -18,146 +18,106 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
+use Gibbon\Domain\Activities\ActivityTypeGateway;
+use Gibbon\Tables\DataTable;
+use Gibbon\Domain\System\SettingGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/activitySettings.php') == false) {
-    //Access denied
-    echo "<div class='error'>";
-    echo __('You do not have access to this action.');
-    echo '</div>';
+    // Access denied
+    $page->addError(__('You do not have access to this action.'));
 } else {
-    //Proceed!
+    // Proceed!
     $page->breadcrumbs->add(__('Activity Settings'));
 
     $form = Form::create('activitySettings', $session->get('absoluteURL').'/modules/'.$session->get('module').'/activitySettingsProcess.php');
 
-    echo '<h3>';
-    echo __('Activity Types');
-    echo '</h3>';
-
-    // Activity Types - CSV to Table Migration
-    $activityTypes = getSettingByScope($connection2, 'Activities', 'activityTypes');
+    $settingGateway = $container->get(SettingGateway::class);
+    $activityTypes = $settingGateway->getSettingByScope('Activities', 'activityTypes');
+    $activityTypeGateway = $container->get(ActivityTypeGateway::class);
     
+    // Activity Types - CSV to Table Migration
     if (!empty($activityTypes)) {
         $continue = true;
-        $activityTypes = array_map(function($item) { return trim($item); }, explode(',', $activityTypes));
-        $access = getSettingByScope($connection2, 'Activities', 'access');
-        $enrolmentType = getSettingByScope($connection2, 'Activities', 'enrolmentType');
-        $backupChoice = getSettingByScope($connection2, 'Activities', 'backupChoice');
+        $activityTypes = array_map('trim', explode(',', $activityTypes));
+        $access = $settingGateway->getSettingByScope('Activities', 'access');
+        $enrolmentType = $settingGateway->getSettingByScope('Activities', 'enrolmentType');
+        $backupChoice = $settingGateway->getSettingByScope('Activities', 'backupChoice');
 
         foreach ($activityTypes as $type) {
-            $data = array('name' => $type, 'access' => $access, 'enrolmentType' => $enrolmentType, 'backupChoice' => $backupChoice);
-            $sql = "INSERT INTO gibbonActivityType SET name=:name, description='', maxPerStudent=0, access=:access, enrolmentType=:enrolmentType, backupChoice=:backupChoice";
-            $pdo->executeQuery($data, $sql);
-            $continue = $continue && $pdo->getQuerySuccess();
+            $inserted = $activityTypeGateway->insert(['name' => $type, 'access' => $access, 'enrolmentType' => $enrolmentType, 'backupChoice' => $backupChoice]);
+            $continue &= $inserted;
         }
 
         if ($continue) {
-            $sql = "UPDATE gibbonSetting SET value='' WHERE scope='Activities' AND name='activityTypes'";
-            $pdo->executeQuery(array(), $sql);
+            $settingGateway->updateSettingByScope('Activities', 'activityTypes', '');
         }
     }
 
-    $data = array();
-    $sql = 'SELECT * FROM gibbonActivityType ORDER BY name';
-    $result = $pdo->executeQuery($data, $sql);
+    // QUERY
+    $criteria = $activityTypeGateway->newQueryCriteria()
+        ->sortBy(['name'])
+        ->fromArray($_POST);
 
-    echo "<div class='linkTop'>";
-    echo "<a href='".$session->get('absoluteURL').'/index.php?q=/modules/'.$session->get('module')."/activitySettings_type_add.php'>".__('Add')."<img style='margin-left: 5px' title='".__('Add')."' src='./themes/".$session->get('gibbonThemeName')."/img/page_new.png'/></a>";
-    echo '</div>';
+    $activityTypes = $activityTypeGateway->queryActivityTypes($criteria);
 
-    if ($result->rowCount() < 1) {
-        echo "<div class='error'>";
-        echo __('There are no records to display.');
-        echo '</div>';
-    } else {
-        echo "<table cellspacing='0' class='fullWidth colorOddEven'>";
-        echo "<tr class='head'>";
-        echo '<th>';
-        echo __('Name');
-        echo '</th>';
-        echo '<th>';
-        echo __('Access');
-        echo '</th>';
-        echo '<th>';
-        echo __('Enrolment Type');
-        echo '</th>';
-        echo '<th style="width:80px;">';
-        echo __('Max per Student');
-        echo '</th>';
-        echo '<th style="width:70px;">';
-        echo __('Waiting List');
-        echo '</th>';
-        echo '<th style="width:70px;">';
-        echo __('Backup Choice');
-        echo '</th>';
-        echo '<th style="width:80px;">';
-        echo __('Actions');
-        echo '</th>';
-        echo '</tr>';
+    // DATA TABLE
+    $table = DataTable::createPaginated('activityTypes', $criteria);
+    $table->setTitle(__('Activity Types'));
+    $table->addHeaderAction('add', __('Add'))
+        ->setURL('/modules/School Admin/activitySettings_type_add.php')
+        ->displayLabel();
 
-        while ($type = $result->fetch()) {
-            echo "<tr>";
-            echo '<td>';
-            echo $type['name'];
-            echo '</td>';
-            echo '<td>';
-            echo $type['access'];
-            echo '</td>';
-            echo '<td>';
-            echo $type['enrolmentType'];
-            echo '</td>';
-            echo '<td>';
-            echo $type['maxPerStudent'];
-            echo '</td>';
-            echo '<td>';
-            echo ynExpander($guid, $type['waitingList']);
-            echo '</td>';
-            echo '<td>';
-            echo ynExpander($guid, $type['backupChoice']);
-            echo '</td>';
-            echo '<td>';
-            echo "<a href='".$session->get('absoluteURL').'/index.php?q=/modules/'.$session->get('module').'/activitySettings_type_edit.php&gibbonActivityTypeID='.$type['gibbonActivityTypeID']."'><img title='".__($guid, 'Edit')."' src='./themes/".$session->get('gibbonThemeName')."/img/config.png'/></a> ";
-            echo "<a class='thickbox' href='".$session->get('absoluteURL').'/fullscreen.php?q=/modules/'.$session->get('module').'/activitySettings_type_delete.php&gibbonActivityTypeID='.$type['gibbonActivityTypeID']."&width=650&height=155'><img title='".__($guid, 'Delete')."' src='./themes/".$session->get('gibbonThemeName')."/img/garbage.png'/></a>";
-            echo '</td>';
-            echo '</tr>';
-        }
-        echo '</table>';
-    }
+    $table->addColumn('name', __('Name'));
+    $table->addColumn('access', __('Access'));
+    $table->addColumn('enrolmentType', __('Enrolment Type'));
+    $table->addColumn('maxPerStudent', __('Max per Student'))->width('10%');
+    $table->addColumn('waitingList', __('Waiting List'))->width('10%');
+    $table->addColumn('backupChoice', __('Backup Choice'))->width('10%');
 
-    echo '<h3>';
-    echo __(__('Settings'));
-    echo '</h3>';
+    // ACTIONS
+    $table->addActionColumn()
+        ->addParam('gibbonActivityTypeID')
+        ->format(function ($values, $actions) {
+            $actions->addAction('edit', __('Edit'))
+                ->setURL('/modules/School Admin/activitySettings_type_edit.php');
+
+            $actions->addAction('delete', __('Delete'))
+                ->setURL('/modules/School Admin/activitySettings_type_delete.php');
+        });
+
+    echo $table->render($activityTypes);
+
 
     $form = Form::create('activitySettings', $session->get('absoluteURL').'/modules/'.$session->get('module').'/activitySettingsProcess.php');
-
+    $form->setTitle(__('Settings'));
     $form->addHiddenValue('address', $session->get('address'));
     $form->addHiddenValue('activityTypes', '');
-
-    $dateTypes = array(
-        'Date' => __('Date'),
-        'Term' =>  __('Term')
-    );
-    $setting = getSettingByScope($connection2, 'Activities', 'dateType', true);
-    $row = $form->addRow();
-        $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
-        $row->addSelect($setting['name'])->fromArray($dateTypes)->selected($setting['value'])->required();
-
-    $form->toggleVisibilityByClass('perTerm')->onSelect($setting['name'])->when('Term');
-
-    $setting = getSettingByScope($connection2, 'Activities', 'maxPerTerm', true);
-    $row = $form->addRow()->addClass('perTerm');
-        $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
-        $row->addSelect($setting['name'])->fromString('0,1,2,3,4,5')->selected($setting['value'])->required();
 
     $accessTypes = array(
         'None' => __('None'),
         'View' => __('View'),
         'Register' =>  __('Register')
     );
-    $setting = getSettingByScope($connection2, 'Activities', 'access', true);
+    $setting = $settingGateway->getSettingByScope('Activities', 'access', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addSelect($setting['name'])->fromArray($accessTypes)->selected($setting['value'])->required();
+
+    $dateTypes = array(
+        'Date' => __('Date'),
+        'Term' =>  __('Term')
+    );
+    $setting = $settingGateway->getSettingByScope('Activities', 'dateType', true);
+    $row = $form->addRow();
+        $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
+        $row->addSelect($setting['name'])->fromArray($dateTypes)->selected($setting['value'])->required();
+
+    $form->toggleVisibilityByClass('perTerm')->onSelect($setting['name'])->when('Term');
+
+    $setting = $settingGateway->getSettingByScope('Activities', 'maxPerTerm', true);
+    $row = $form->addRow()->addClass('perTerm');
+        $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
+        $row->addSelect($setting['name'])->fromString('0,1,2,3,4,5')->selected($setting['value'])->required();
 
     $paymentTypes = array(
         'None' => __('None'),
@@ -165,31 +125,17 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/activitySetti
         'Per Activity' =>  __('Per Activity'),
         'Single + Per Activity' =>  __('Single + Per Activity')
     );
-    $setting = getSettingByScope($connection2, 'Activities', 'payment', true);
+    $setting = $settingGateway->getSettingByScope('Activities', 'payment', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addSelect($setting['name'])->fromArray($paymentTypes)->selected($setting['value'])->required();
 
-    $enrolmentTypes = array(
-        'Competitive' => __('Competitive'),
-        'Selection' => __('Selection')
-    );
-    $setting = getSettingByScope($connection2, 'Activities', 'enrolmentType', true);
-    $row = $form->addRow();
-        $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
-        $row->addSelect($setting['name'])->fromArray($enrolmentTypes)->selected($setting['value'])->required();
-
-    $setting = getSettingByScope($connection2, 'Activities', 'backupChoice', true);
+    $setting = $settingGateway->getSettingByScope('Activities', 'disableExternalProviderSignup', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addYesNo($setting['name'])->selected($setting['value'])->required();
 
-    $setting = getSettingByScope($connection2, 'Activities', 'disableExternalProviderSignup', true);
-    $row = $form->addRow();
-        $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
-        $row->addYesNo($setting['name'])->selected($setting['value'])->required();
-
-    $setting = getSettingByScope($connection2, 'Activities', 'hideExternalProviderCost', true);
+    $setting = $settingGateway->getSettingByScope('Activities', 'hideExternalProviderCost', true);
     $row = $form->addRow();
         $row->addLabel($setting['name'], __($setting['nameDisplay']))->description(__($setting['description']));
         $row->addYesNo($setting['name'])->selected($setting['value'])->required();

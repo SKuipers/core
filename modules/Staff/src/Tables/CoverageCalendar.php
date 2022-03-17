@@ -100,9 +100,11 @@ class CoverageCalendar
                     $day = $month['days'][$dayCount] ?? null;
                     if (empty($day) || ($day['count'] <= 0 && !$day['exception'])) return '';
     
-                    $coverage = $day['coverage'];
+                    $coverage = $day['coverage'] ?? [];
+
+                    if (empty($coverage)) return;
     
-                    $url = 'fullscreen.php?q=/modules/Staff/coverage_view_details.php&gibbonStaffCoverageID='.$coverage['gibbonStaffCoverageID'].'&width=800&height=550';
+                    $url = 'fullscreen.php?q=/modules/Staff/coverage_view_details.php&gibbonStaffCoverageID='.($coverage['gibbonStaffCoverageID'] ?? '').'&width=800&height=550';
 
                     $params['title'] = Format::dateReadable($day['date'], '%A').'<br/>'.Format::dateReadable($day['date'], '%b %e, %Y');
                     $params['class'] = '';

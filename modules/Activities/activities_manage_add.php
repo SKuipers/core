@@ -20,6 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Domain\Activities\ActivityGateway;
+use Gibbon\Domain\System\SettingGateway;
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -33,24 +34,24 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
         ->add(__('Manage Activities'), 'activities_manage.php')
         ->add(__('Add Activity'));
 
-    $editLink = '';
     if (isset($_GET['editID'])) {
-        $editLink = $session->get('absoluteURL').'/index.php?q=/modules/Activities/activities_manage_edit.php&gibbonActivityID='.$_GET['editID'].'&search='.$_GET['search'].'&gibbonSchoolYearTermID='.$_GET['gibbonSchoolYearTermID'];
-    }
-    $page->return->setEditLink($editLink);
-
-    if ($_GET['search'] != '' || $_GET['gibbonSchoolYearTermID'] != '') {
-        echo "<div class='linkTop'>";
-        echo "<a href='".$session->get('absoluteURL').'/index.php?q=/modules/Activities/activities_manage.php&search='.$_GET['search']."&gibbonSchoolYearTermID=".$_GET['gibbonSchoolYearTermID']."'>".__('Back to Search Results').'</a>';
-        echo '</div>';
+        $page->return->setEditLink($session->get('absoluteURL').'/index.php?q=/modules/Activities/activities_manage_edit.php&gibbonActivityID='.$_GET['editID'].'&search='.$_GET['search'].'&gibbonSchoolYearTermID='.$_GET['gibbonSchoolYearTermID']);
     }
 
-    $search = $_GET['search'] ?? null;
+    $search = $_GET['search'] ?? '';
     
     $activityGateway = $container->get(ActivityGateway::class);
+    $settingGateway = $container->get(SettingGateway::class);
 
     $form = Form::create('activity', $session->get('absoluteURL').'/modules/'.$session->get('module').'/activities_manage_addProcess.php?search='.$search.'&gibbonSchoolYearTermID='.$_GET['gibbonSchoolYearTermID']);
     $form->setFactory(DatabaseFormFactory::create($pdo));
+
+    if (!empty($_GET['search']) || !empty($_GET['gibbonSchoolYearTermID'])) {
+        $form->addHeaderAction('back', __('Back to Results'))
+            ->setURL('/modules/Activities/activities_manage.php')
+            ->addParam('search', $_GET['search'])
+            ->addParam('gibbonSchoolYearTermID', $_GET['gibbonSchoolYearTermID']);
+    }
 
     $form->addHiddenValue('address', $session->get('address'));
 
@@ -58,15 +59,22 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
 
     $row = $form->addRow();
         $row->addLabel('name', __('Name'));
-        $row->addTextField('name')->required()->maxLength(40);
+        $row->addTextField('name')
+            ->required()
+            ->maxLength(40);
 
     $row = $form->addRow();
         $row->addLabel('provider', __('Provider'));
-        $row->addSelect('provider')->required()->fromArray(array('School' => $session->get('organisationNameShort'), 'External' => __('External')));
-    
+        $row->addSelect('provider')
+            ->required()
+            ->fromArray([
+                'School'    => $session->get('organisationNameShort'),
+                'External'  => __('External')
+            ]);
+
     $activityTypes = $activityGateway->selectActivityTypeOptions()->fetchKeyPair();
     if (empty($activityTypes)) {
-        $activityTypes = getSettingByScope($connection2, 'Activities', 'activityTypes');
+        $activityTypes = $settingGateway->getSettingByScope('Activities', 'activityTypes');
         $activityTypes = array_map('trim', explode(',', $activityTypes));
     }
 
@@ -84,7 +92,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
         $row->addLabel('registration', __('Registration'))->description(__('Assuming system-wide registration is open, should this activity be open for registration?'));
         $row->addYesNo('registration')->required();
 
-    $dateType = getSettingByScope($connection2, 'Activities', 'dateType');
+
+    $dateType = $settingGateway->getSettingByScope('Activities', 'dateType');
     $form->addHiddenValue('dateType', $dateType);
     if ($dateType != 'Date') {
         $row = $form->addRow();
@@ -108,62 +117,82 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
             }
         }
 
+        $dateFormatPHP = $session->get('i18n')['dateFormatPHP'];
+
         $row = $form->addRow();
             $row->addLabel('listingStart', __('Listing Start Date'))->description(__('Default: 2 weeks before the end of the current term.'));
-            $row->addDate('listingStart')->required()->setValue($listingStart->format($session->get('i18n')['dateFormatPHP']));
+            $row->addDate('listingStart')
+                ->required()
+                ->setValue($listingStart->format($dateFormatPHP));
 
         $row = $form->addRow();
             $row->addLabel('listingEnd', __('Listing End Date'))->description(__('Default: 2 weeks after the start of next term.'));
-            $row->addDate('listingEnd')->required()->setValue($listingEnd->format($session->get('i18n')['dateFormatPHP']));
+            $row->addDate('listingEnd')
+                ->required()
+                ->setValue($listingEnd->format($dateFormatPHP));
 
         $row = $form->addRow();
             $row->addLabel('programStart', __('Program Start Date'))->description(__('Default: first day of next term.'));
-            $row->addDate('programStart')->required()->setValue($programStart->format($session->get('i18n')['dateFormatPHP']));
+            $row->addDate('programStart')
+                ->required()
+                ->setValue($programStart->format($dateFormatPHP));
 
         $row = $form->addRow();
             $row->addLabel('programEnd', __('Program End Date'))->description(__('Default: last day of the next term.'));
-            $row->addDate('programEnd')->required()->setValue($programEnd->format($session->get('i18n')['dateFormatPHP']));
+            $row->addDate('programEnd')
+                ->required()
+                ->setValue($programEnd->format($dateFormatPHP));
     }
 
     $row = $form->addRow();
         $row->addLabel('gibbonYearGroupIDList', __('Year Groups'));
-        $row->addCheckboxYearGroup('gibbonYearGroupIDList')->checkAll()->addCheckAllNone();
+        $row->addCheckboxYearGroup('gibbonYearGroupIDList')
+            ->checkAll()
+            ->addCheckAllNone();
 
     $row = $form->addRow();
         $row->addLabel('maxParticipants', __('Max Participants'));
-        $row->addNumber('maxParticipants')->required()->maxLength(4)->setValue('0');
+        $row->addNumber('maxParticipants')
+            ->required()
+            ->maxLength(4)
+            ->setValue('0');
 
     $column = $form->addRow()->addColumn();
         $column->addLabel('description', __('Description'));
-        $column->addEditor('description', $guid)->setRows(10)->showMedia();
+        $column->addEditor('description', $guid)
+            ->setRows(10)
+            ->showMedia();
 
-    $payment = getSettingByScope($connection2, 'Activities', 'payment');
+    $payment = $settingGateway->getSettingByScope('Activities', 'payment');
     if ($payment != 'None' && $payment != 'Single') {
         $form->addRow()->addHeading(__('Cost'));
 
         $row = $form->addRow();
             $row->addLabel('payment', __('Cost'));
-            $row->addCurrency('payment')->required()->maxLength(9)->setValue('0.00');
-
-        $costTypes = array(
-            'Entire Programme' => __('Entire Programme'),
-            'Per Session'      => __('Per Session'),
-            'Per Week'         => __('Per Week'),
-            'Per Term'         => __('Per Term'),
-        );
+            $row->addCurrency('payment')
+                ->required()
+                ->maxLength(9)
+                ->setValue('0.00');
 
         $row = $form->addRow();
             $row->addLabel('paymentType', __('Cost Type'));
-            $row->addSelect('paymentType')->required()->fromArray($costTypes);
-
-        $costStatuses = array(
-            'Finalised' => __('Finalised'),
-            'Estimated' => __('Estimated'),
-        );
+            $row->addSelect('paymentType')
+                ->required()
+                ->fromArray([
+                    'Entire Programme' => __('Entire Programme'),
+                    'Per Session'      => __('Per Session'),
+                    'Per Week'         => __('Per Week'),
+                    'Per Term'         => __('Per Term'),
+                ]);
 
         $row = $form->addRow();
             $row->addLabel('paymentFirmness', __('Cost Status'));
-            $row->addSelect('paymentFirmness')->required()->fromArray($costStatuses);
+            $row->addSelect('paymentFirmness')
+                ->required()
+                ->fromArray([
+                    'Finalised' => __('Finalised'),
+                    'Estimated' => __('Estimated'),
+                ]);
     }
 
     $form->addRow()->addHeading(__('Time Slots'));
@@ -214,7 +243,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
 
     //Custom Blocks
     $row = $form->addRow();
-        $slotBlocks = $row->addCustomBlocks('timeSlots', $gibbon->session)
+        $slotBlocks = $row->addCustomBlocks('timeSlots', $session)
             ->fromTemplate($slotBlock)
             ->settings([
                 'placeholder' => __('Time Slots will appear here...'),
@@ -228,18 +257,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
 
     $row = $form->addRow();
         $row->addLabel('staff', __('Staff'));
-        $row->addSelectUsers('staff', $session->get('gibbonSchoolYearID'), array('includeStaff' => true))->selectMultiple();
-
-    $staffRoles = array(
-        'Organiser' => __('Organiser'),
-        'Coach'     => __('Coach'),
-        'Assistant' => __('Assistant'),
-        'Other'     => __('Other'),
-    );
+        $row->addSelectUsers('staff', $session->get('gibbonSchoolYearID'), ['includeStaff' => true])->selectMultiple();
 
     $row = $form->addRow();
         $row->addLabel('role', 'Role');
-        $row->addSelect('role')->fromArray($staffRoles);
+        $row->addSelect('role')
+            ->fromArray([
+                'Organiser' => __('Organiser'),
+                'Coach'     => __('Coach'),
+                'Assistant' => __('Assistant'),
+                'Other'     => __('Other'), 
+            ]);
 
     $row = $form->addRow();
         $row->addFooter();

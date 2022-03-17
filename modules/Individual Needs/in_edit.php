@@ -23,6 +23,7 @@ use Gibbon\Services\Format;
 use Gibbon\Tables\DataTable;
 use Gibbon\Forms\CustomFieldHandler;
 use Gibbon\Forms\DatabaseFormFactory;
+use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Domain\System\CustomFieldGateway;
 use Gibbon\Domain\IndividualNeeds\INAssistantGateway;
 
@@ -69,12 +70,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/in_edit.p
         } else {
             $student = $result->fetch();
 
-            $search = isset($_GET['search'])? $_GET['search'] : null;
-            $source = isset($_GET['source'])? $_GET['source'] : null;
-            $gibbonINDescriptorID = isset($_GET['gibbonINDescriptorID'])? $_GET['gibbonINDescriptorID'] : null;
-            $gibbonAlertLevelID = isset($_GET['gibbonAlertLevelID'])? $_GET['gibbonAlertLevelID'] : null;
-            $gibbonFormGroupID = isset($_GET['gibbonFormGroupID'])? $_GET['gibbonFormGroupID'] : null;
-            $gibbonYearGroupID = isset($_GET['gibbonYearGroupID'])? $_GET['gibbonYearGroupID'] : null;
+            $search = $_GET['search'] ?? null;
+            $source = $_GET['source'] ?? null;
+            $gibbonINDescriptorID = $_GET['gibbonINDescriptorID'] ?? null;
+            $gibbonAlertLevelID = $_GET['gibbonAlertLevelID'] ?? null;
+            $gibbonFormGroupID = $_GET['gibbonFormGroupID'] ?? null;
+            $gibbonYearGroupID = $_GET['gibbonYearGroupID'] ?? null;
 
             if ($search != '' and $source == '') {
                 echo "<div class='linkTop'>";
@@ -212,7 +213,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/in_edit.p
             }
 
             // DISPLAY AND EDIT IEP
-           
+
 
             $table = $form->addRow()->addTable()->setClass('smallIntBorder fullWidth mt-2');
 
@@ -236,9 +237,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/in_edit.p
                 $container->get(CustomFieldHandler::class)->addCustomFieldsToForm($form, 'Individual Needs', ['table' => $table, 'readonly' => true], $archivedIEP['fields']);
             } else {
                 if (empty($IEP)) { // New record, get templates if they exist
-                    $IEP['targets'] = getSettingByScope($connection2, 'Individual Needs', 'targetsTemplate');
-                    $IEP['strategies'] = getSettingByScope($connection2, 'Individual Needs', 'teachingStrategiesTemplate');
-                    $IEP['notes'] = getSettingByScope($connection2, 'Individual Needs', 'notesReviewTemplate');
+                    $settingGateway = $container->get(SettingGateway::class);
+                    $IEP['targets'] = $settingGateway->getSettingByScope('Individual Needs', 'targetsTemplate');
+                    $IEP['strategies'] = $settingGateway->getSettingByScope('Individual Needs', 'teachingStrategiesTemplate');
+                    $IEP['notes'] = $settingGateway->getSettingByScope('Individual Needs', 'notesReviewTemplate');
                 }
 
                 // CURRENT IEP
@@ -278,5 +280,5 @@ if (isActionAccessible($guid, $connection2, '/modules/Individual Needs/in_edit.p
         }
     }
     //Set sidebar
-    $session->set('sidebarExtra', getUserPhoto($guid, $student['image_240'] ?? '', 240));
+    $session->set('sidebarExtra', Format::userPhoto($student['image_240'] ?? '', 240));
 }

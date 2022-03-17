@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Forms\Form;
 use Gibbon\Services\Format;
 
@@ -55,9 +56,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
         ->add(__('Activity Enrolment'), 'activities_manage_enrolment.php',  $urlParams)
         ->add(__('Edit Enrolment'));
 
-    //Check if school year specified
-    $gibbonActivityID = $_GET['gibbonActivityID'];
-    $gibbonPersonID = $_GET['gibbonPersonID'];
+    //Check if gibbonActivityID and gibbonPersonID specified
+    $gibbonActivityID = $_GET['gibbonActivityID'] ?? '';
+    $gibbonPersonID = $_GET['gibbonPersonID'] ?? '';
     if ($gibbonPersonID == '' or $gibbonActivityID == '') {
         $page->addError(__('You have not specified one or more required parameters.'));
     } else {
@@ -72,7 +73,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
         } else {
             //Let's go!
             $values = $result->fetch();
-            $dateType = getSettingByScope($connection2, 'Activities', 'dateType');
+
+            $settingGateway = $container->get(SettingGateway::class);
+            $dateType = $settingGateway->getSettingByScope('Activities', 'dateType');
 
             if ($_GET['search'] != '' || $_GET['gibbonSchoolYearTermID'] != '') {
                 echo "<div class='linkTop'>";
@@ -113,18 +116,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
             $row = $form->addRow();
             $row->addLabel('student', __('Student'));
             $row->addTextField('student')->readOnly()->setValue(Format::name('', htmlPrep($values['preferredName']), htmlPrep($values['surname']), 'Student'));
-                            
-            // Load the enrolmentType system setting, optionally override with the Activity Type setting
-            $enrolment = getSettingByScope($connection2, 'Activities', 'enrolmentType');
-            $enrolment = (!empty($values['enrolmentType']))? $values['enrolmentType'] : $enrolment;
 
-			$statuses = array('Accepted' => __('Accepted'));
-			if ($enrolment == 'Competitive') {
-                if (!empty($values['waitingList']) && $values['waitingList'] == 'Y') {
-                    $statuses['Waiting List'] = __('Waiting List');
-                }
-			} else {
-				$statuses['Pending'] = __('Pending');
+            // Load the enrolmentType system setting, optionally override with the Activity Type setting
+            $enrolment = $settingGateway->getSettingByScope('Activities', 'enrolmentType');
+            $enrolment = !empty($values['enrolmentType'])? $values['enrolmentType'] : $enrolment;
+
+            $statuses = array('Accepted' => __('Accepted'));
+            if ($enrolment == 'Competitive') {
+                $statuses['Waiting List'] = __('Waiting List');
+            } else {
+                $statuses['Pending'] = __('Pending');
             }
             $statuses['Not Accepted'] = __('Not Accepted');
 

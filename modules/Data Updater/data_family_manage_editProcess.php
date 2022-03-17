@@ -21,14 +21,15 @@ include '../../gibbon.php';
 
 $gibbonFamilyUpdateID = $_GET['gibbonFamilyUpdateID'] ?? '';
 $gibbonFamilyID = $_POST['gibbonFamilyID'] ?? '';
-$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address'])."/data_family_manage_edit.php&gibbonFamilyUpdateID=$gibbonFamilyUpdateID";
+$address = $_POST['address'] ?? '';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($address)."/data_family_manage_edit.php&gibbonFamilyUpdateID=$gibbonFamilyUpdateID";
 
 if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_family_manage_edit.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
 } else {
     //Proceed!
-    //Check if school year specified
+    //Check if sgibbonFamilyUpdateID and gibbonFamilyID specified
     if ($gibbonFamilyUpdateID == '' or $gibbonFamilyID == '') {
         $URL .= '&return=error1';
         header("Location: {$URL}");
