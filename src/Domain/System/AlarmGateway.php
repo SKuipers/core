@@ -53,6 +53,21 @@ class AlarmGateway extends QueryableGateway
         return $this->db()->select($sql, $data);
     }
 
+    public function selectAlarmConfirmationReadable($gibbonAlarmID)
+    {
+        $data = ['gibbonAlarmID' => $gibbonAlarmID, 'today' => date('Y-m-d')];
+        $sql = "SELECT gibbonPerson.gibbonPersonID, surname, preferredName, (CASE WHEN gibbonAlarmConfirmID IS NOT NULL THEN 'Yes' ELSE 'No' END) as Confirmed 
+                FROM gibbonPerson 
+                JOIN gibbonStaff ON (gibbonStaff.gibbonPersonID=gibbonPerson.gibbonPersonID) 
+                LEFT JOIN gibbonAlarmConfirm ON (gibbonAlarmConfirm.gibbonPersonID=gibbonPerson.gibbonPersonID AND gibbonAlarmID=:gibbonAlarmID) 
+                WHERE gibbonPerson.status='Full' 
+                AND (dateStart IS NULL OR dateStart<=:today) 
+                AND (dateEnd IS NULL  OR dateEnd>=:today) 
+                ORDER BY surname, preferredName";
+
+        return $this->db()->select($sql, $data);
+    }
+
     public function getAlarmConfirmationByPerson($gibbonAlarmID, $gibbonPersonID)
     {
         $data = ['gibbonAlarmID' => $gibbonAlarmID, 'gibbonPersonID' => $gibbonPersonID];
@@ -69,6 +84,14 @@ class AlarmGateway extends QueryableGateway
             ->cols($data);
 
         return $this->runInsert($query);
+    }
+
+    public function getLatestAlarm()
+    {
+        $data = ['status' => 'Past'];
+        $sql = "SELECT gibbonAlarmID, type, status, gibbonPersonID, timestampStart, timestampEnd FROM gibbonAlarm WHERE status=:status ORDER BY timestampEnd DESC";
+
+        return $this->db()->selectOne($sql, $data);
     }
     
 }

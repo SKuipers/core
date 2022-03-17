@@ -45,6 +45,11 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/alarm.php') =
 
     $form = Form::create('alarmSettings', $gibbon->session->get('absoluteURL').'/modules/'.$gibbon->session->get('module').'/alarmProcess.php');
     
+    $form->addHeaderAction('export', __('Export'))
+            ->setURL('/modules/' . $session->get('module') . '/alarm_export.php')
+            ->directLink();
+
+
     $settingGateway = $container->get(SettingGateway::class);
     
     $settingAlarmSound = $settingGateway->getSettingByScope('System Admin', 'customAlarmSound', true);
