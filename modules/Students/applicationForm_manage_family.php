@@ -33,9 +33,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
     echo '</div>';
 } else {
     //Proceed!
-    echo "<div class='trail'>";
-    echo "<div class='trailHead'><a href='".$_SESSION[$guid]['absoluteURL']."'>".__('Home')."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/'.getModuleName($_GET['q']).'/'.getModuleEntry($_GET['q'], $connection2, $guid)."'>".__(getModuleName($_GET['q']))."</a> > <a href='".$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Students/applicationForm_manage.php&gibbonSchoolYearID='.$_GET['gibbonSchoolYearID']."'>".__('Manage Applications')."</a> > </div><div class='trailEnd'>".__('Edit Family').'</div>';
-    echo '</div>';
 
     //Check if school year specified
     $gibbonFamilyIDExisting = isset($_GET['gibbonFamilyIDExisting'])? $_GET['gibbonFamilyIDExisting'] : '';
@@ -49,6 +46,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
         echo '</div>';
         return;
     }
+
+    $urlParams = compact('gibbonApplicationFormID', 'gibbonSchoolYearID', 'search');
+
+    $page->breadcrumbs
+        ->add(__('Manage Applications'), 'applicationForm_manage.php', $urlParams)
+        ->add(__('Edit Form'), 'applicationForm_manage_edit.php', $urlParams)
+        ->add(__('Edit Family'));
 
     $applicationGateway = $container->get(ApplicationFormGateway::class);
     $familyGateway = $container->get(FamilyGateway::class);
