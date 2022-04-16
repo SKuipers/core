@@ -32,9 +32,9 @@ class Validator
     protected $allowableHTML;
     protected $allowableHTMLString;
 
-    public function __construct(Session $session)
+    public function __construct(string $allowableHTMLString)
     {
-        $this->allowableHTMLString = $session->get('allowableHTML');
+        $this->allowableHTMLString = $allowableHTMLString;
         $this->allowableHTML = $this->parseTagsFromString($this->allowableHTMLString);
     }
 

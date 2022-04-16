@@ -48,7 +48,7 @@ class SessionGateway extends QueryableGateway
             ->newQuery()
             ->from($this->getTableName())
             ->cols([
-                'gibbonSessionID', 'gibbonSession.timestampCreated', 'gibbonSession.timestampModified', 'gibbonPerson.gibbonPersonID', 'gibbonPerson.title', 'gibbonPerson.surname', 'gibbonPerson.preferredName', 'gibbonPerson.username',  'gibbonPerson.lastIPAddress', 'gibbonRole.category AS roleCategory', "CONCAT(gibbonModule.name, ': ', SUBSTRING_INDEX(gibbonAction.name, '_', 1)) AS actionName"
+                'gibbonSessionID', 'gibbonSession.timestampCreated', 'gibbonSession.sessionStatus', 'gibbonSession.timestampModified', 'gibbonPerson.gibbonPersonID', 'gibbonPerson.title', 'gibbonPerson.surname', 'gibbonPerson.preferredName', 'gibbonPerson.username',  'gibbonPerson.lastIPAddress', 'gibbonRole.category AS roleCategory', "CONCAT(gibbonModule.name, ': ', SUBSTRING_INDEX(gibbonAction.name, '_', 1)) AS actionName"
             ])
             ->leftJoin('gibbonPerson', 'gibbonSession.gibbonPersonID=gibbonPerson.gibbonPersonID')
             ->leftJoin('gibbonRole', 'gibbonRole.gibbonRoleID=gibbonPerson.gibbonRoleIDPrimary')
@@ -58,10 +58,18 @@ class SessionGateway extends QueryableGateway
         return $this->runQuery($query, $criteria);
     }
 
-    public function updateSessionAction($gibbonSessionID, $actionName, $gibbonPersonID)
+    public function updateSessionAction($gibbonSessionID, $actionName, $moduleName, $gibbonPersonID)
     {
-        $data = ['gibbonSessionID' => $gibbonSessionID, 'gibbonPersonID' => $gibbonPersonID, 'actionName' => $actionName, 'timestampCreated' => date('Y-m-d H:i:s'), 'timestampModified' => date('Y-m-d H:i:s')];
-        $sql = "INSERT INTO gibbonSession (gibbonSessionID, gibbonPersonID, gibbonActionID, timestampCreated, timestampModified) VALUES (:gibbonSessionID, :gibbonPersonID, (SELECT gibbonActionID FROM gibbonAction WHERE FIND_IN_SET(:actionName, URLList) AND :actionName <> '' LIMIT 1), :timestampCreated, :timestampModified) ON DUPLICATE KEY UPDATE gibbonActionID=VALUES(gibbonActionID), timestampModified=:timestampModified";
+        $data = ['gibbonSessionID' => $gibbonSessionID, 'gibbonPersonID' => $gibbonPersonID, 'actionName' => $actionName, 'moduleName' => $moduleName, 'timestampCreated' => date('Y-m-d H:i:s'), 'timestampModified' => date('Y-m-d H:i:s')];
+        $sql = "INSERT INTO gibbonSession (gibbonSessionID, gibbonPersonID, gibbonActionID, timestampCreated, timestampModified) VALUES (:gibbonSessionID, :gibbonPersonID, (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonModule.gibbonModuleID=gibbonAction.gibbonModuleID) WHERE gibbonModule.name = :moduleName AND FIND_IN_SET(:actionName, gibbonAction.URLList) AND :actionName <> '' LIMIT 1), :timestampCreated, :timestampModified) ON DUPLICATE KEY UPDATE gibbonActionID=VALUES(gibbonActionID), timestampModified=:timestampModified";
+
+        return $this->db()->update($sql, $data);
+    }
+
+    public function updateSessionStatus($gibbonSessionID, $gibbonPersonID, $sessionStatus)
+    {
+        $data = ['gibbonSessionID' => $gibbonSessionID, 'gibbonPersonID' => $gibbonPersonID, 'sessionStatus' => $sessionStatus, 'timestampCreated' => date('Y-m-d H:i:s'), 'timestampModified' => date('Y-m-d H:i:s')];
+        $sql = "INSERT INTO gibbonSession (gibbonSessionID, gibbonPersonID, sessionStatus, timestampCreated, timestampModified) VALUES (:gibbonSessionID, :gibbonPersonID, :sessionStatus, :timestampCreated, :timestampModified) ON DUPLICATE KEY UPDATE sessionStatus=:sessionStatus, timestampModified=:timestampModified";
 
         return $this->db()->update($sql, $data);
     }

@@ -93,7 +93,9 @@ class UserGateway extends QueryableGateway implements ScrubbableGateway
                     gibbonRole.futureYearsLogin,
                     gibbonRole.pastYearsLogin,
                     gibbonRole.name as roleName,
-                    gibbonRole.category as roleCategory
+                    gibbonRole.category as roleCategory,
+                    gibbonPerson.gibboni18nIDPersonal,
+                    gibbonPerson.gibbonThemeIDPersonal
                 FROM gibbonPerson 
                 LEFT JOIN gibbonRole ON (gibbonPerson.gibbonRoleIDPrimary=gibbonRole.gibbonRoleID) 
                 WHERE (
@@ -144,7 +146,7 @@ class UserGateway extends QueryableGateway implements ScrubbableGateway
     public function selectUserNamesByStatus($status = 'Full', $category = null)
     {
         $data = array('statusList' => is_array($status) ? implode(',', $status) : $status );
-        $sql = "SELECT gibbonPersonID, surname, preferredName, status, dateEnd, username, lastTimestamp, gibbonRole.category as roleCategory
+        $sql = "SELECT gibbonPersonID, surname, preferredName, status, dateStart, dateEnd, username, lastTimestamp, gibbonRole.category as roleCategory
                 FROM gibbonPerson
                 JOIN gibbonRole ON (gibbonRole.gibbonRoleID=gibbonPerson.gibbonRoleIDPrimary)
                 WHERE FIND_IN_SET(gibbonPerson.status, :statusList)";

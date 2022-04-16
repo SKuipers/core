@@ -31,6 +31,7 @@ use League\OAuth2\Client\Provider\GenericProvider;
 use League\Container\ServiceProvider\AbstractServiceProvider;
 use League\OAuth2\Client\Token\AccessToken;
 use Gibbon\Domain\User\UserGateway;
+use Gibbon\Auth\Exception\OAuthLoginError;
 
 /**
  * Authentication API Services
@@ -68,7 +69,7 @@ class AuthServiceProvider extends AbstractServiceProvider
         $container = $this->getLeagueContainer();
 
         $container->share(AuthFactory::class, function () {
-            $authSession = new AuthSession($this->container->get(Session::class), $this->container->get(Session::class));
+            $authSession = new AuthSession($this->container->get(Session::class));
             return new AuthFactory($_COOKIE, $authSession, $authSession);
         });
 
@@ -115,14 +116,12 @@ class AuthServiceProvider extends AbstractServiceProvider
                                 'googleAPIRefreshToken' => $accessToken['refresh_token'],
                             ]);
                         }
-                    } else {
-                        return null;
                     }
                 }
             } catch (\InvalidArgumentException $e) {
-                return null;
+                throw new OAuthLoginError($e->getMessage());
             } catch (\Google_Service_Exception $e) {
-                return null;
+                throw new OAuthLoginError($e->getMessage());
             }
 
             return $client;
@@ -176,11 +175,11 @@ class AuthServiceProvider extends AbstractServiceProvider
                     }
                 }
             } catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {
-                return null;
+                throw new OAuthLoginError($e->getMessage());
             } catch (\InvalidArgumentException $e) {
-                return null;
+                throw new OAuthLoginError($e->getMessage());
             } catch (\RuntimeException $e) {
-                return null;
+                throw new OAuthLoginError($e->getMessage());
             }
 
             return $oauthProvider;
@@ -193,14 +192,22 @@ class AuthServiceProvider extends AbstractServiceProvider
             $ssoSettings = $settingGateway->getSettingByScope('System Admin', 'ssoOther');
             $ssoSettings = json_decode($ssoSettings, true);
 
-            return new GenericProvider([
-                'clientId'                  => $ssoSettings['clientID'],
-                'clientSecret'              => $ssoSettings['clientSecret'],
-                'redirectUri'               => $session->get('absoluteURL').'/login.php',
-                'urlAuthorize'              => $ssoSettings['authorizeEndpoint'],
-                'urlAccessToken'            => $ssoSettings['tokenEndpoint'],
-                'urlResourceOwnerDetails'   => $ssoSettings['userEndpoint'],
-            ]);
+            try {
+                return new GenericProvider([
+                    'clientId'                  => $ssoSettings['clientID'],
+                    'clientSecret'              => $ssoSettings['clientSecret'],
+                    'redirectUri'               => $session->get('absoluteURL').'/login.php',
+                    'urlAuthorize'              => $ssoSettings['authorizeEndpoint'],
+                    'urlAccessToken'            => $ssoSettings['tokenEndpoint'],
+                    'urlResourceOwnerDetails'   => $ssoSettings['userEndpoint'],
+                ]);
+            } catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {
+                throw new OAuthLoginError($e->getMessage());
+            } catch (\InvalidArgumentException $e) {
+                throw new OAuthLoginError($e->getMessage());
+            } catch (\RuntimeException $e) {
+                throw new OAuthLoginError($e->getMessage());
+            }
         });
 
     }

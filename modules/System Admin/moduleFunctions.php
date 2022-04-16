@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use GuzzleHttp\Client;
 use Gibbon\Domain\System\I18nGateway;
 use Psr\Container\ContainerInterface;
 
@@ -440,4 +441,46 @@ function camelToWords($name)
     ], ' ', preg_replace('/(?<![A-Z])[A-Z]/', ' \0', $name))));
 
     return $label;
+}
+
+/**
+ * Performs a HTTP GET request on the uploads folder 
+ *
+ * @param string $absoluteURL
+ * @return string
+ */
+function checkUploadsFolderStatus($absoluteURL) : bool
+{
+    $statusCode = '';
+    $responseBody = '';
+    try {
+        $client = new Client();
+        $response = $client->request('GET', $absoluteURL.'/uploads', [
+            'headers' => ['Referer' => $absoluteURL.'/index.php'],
+        ]);
+        $statusCode = $response->getStatusCode();
+        $responseBody = $response->getBody();
+    } catch (GuzzleHttp\Exception\ClientException $e) {
+        $responseBody = $e->getMessage();
+    } catch (\GuzzleHttp\Exception\GuzzleException $e) {
+        $responseBody = $e->getMessage();
+    }
+
+    if (stripos($responseBody, 'Index of') !== false || stripos($responseBody, 'Parent Directory') !== false) {
+        return false;
+    }
+
+    if (substr($statusCode, 0, 1) == '4') {
+        return true;
+    }
+
+    if (stripos($responseBody, '403') !== false || stripos($responseBody, '404') !== false) {
+        return true;
+    }
+
+    if (stripos($responseBody, 'Forbidden') !== false || stripos($responseBody, 'Not Found') !== false) {
+        return true;
+    }
+
+    return false;
 }

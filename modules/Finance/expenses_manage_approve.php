@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Http\Url;
 use Gibbon\Forms\Form;
 use Gibbon\Services\Format;
 use Gibbon\Domain\System\SettingGateway;
@@ -136,9 +137,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenses_manage_ap
                             $values = $result->fetch();
 
                             if ($status2 != '' or $gibbonFinanceBudgetID2 != '') {
-                                echo "<div class='linkTop'>";
-                                echo "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/Finance/expenses_manage.php&gibbonFinanceBudgetCycleID=$gibbonFinanceBudgetCycleID&status2=$status2&gibbonFinanceBudgetID2=$gibbonFinanceBudgetID2'>".__('Back to Search Results').'</a>';
-                                echo '</div>';
+                                 $params = [
+                                    "gibbonFinanceBudgetCycleID" => $gibbonFinanceBudgetCycleID,
+                                    "status2" => $status2,
+                                    "gibbonFinanceBudgetID2" =>$gibbonFinanceBudgetID2
+                                ];
+                                $page->navigator->addSearchResultsAction(Url::fromModuleRoute('Finance', 'expenses_manage.php')->withQueryParams($params));
                             }
 
                             // Get budget allocation & allocated amounts
@@ -154,7 +158,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenses_manage_ap
 							$form->addHiddenValue('gibbonFinanceBudgetID2', $gibbonFinanceBudgetID2);
 							$form->addHiddenValue('gibbonFinanceBudgetCycleID', $gibbonFinanceBudgetCycleID);
 
-							$form->addRow()->addHeading(__('Basic Information'));
+							$form->addRow()->addHeading('Basic Information', __('Basic Information'));
 
 							$cycleName = getBudgetCycleName($gibbonFinanceBudgetCycleID, $connection2);
 							$row = $form->addRow();
@@ -198,7 +202,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenses_manage_ap
 								$col->addLabel('purchaseDetails', __('Purchase Details'));
 								$col->addContent($values['purchaseDetails']);
 
-                            $form->addRow()->addHeading(__('Budget Tracking'));
+                            $form->addRow()->addHeading('Budget Tracking', __('Budget Tracking'));
 
                             $row = $form->addRow();
                                 $row->addLabel('costLabel', __('Total Cost'));
@@ -229,12 +233,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenses_manage_ap
                                         ->addClass( (is_numeric($budgetRemaining) && $budgetRemaining - $values['cost'] > 0)? 'textUnderBudget' : 'textOverBudget' );
                             }
 
-                            $form->addRow()->addHeading(__('Log'));
+                            $form->addRow()->addHeading('Log', __('Log'));
 
                             $expenseLog = $container->get(ExpenseLog::class)->create($gibbonFinanceExpenseID);
                             $form->addRow()->addContent($expenseLog->getOutput());
 
-                            $form->addRow()->addHeading(__('Action'));
+                            $form->addRow()->addHeading('Action', __('Action'));
 
                             $approvalRequired = approvalRequired($guid, $session->get('gibbonPersonID'), $values['gibbonFinanceExpenseID'], $gibbonFinanceBudgetCycleID, $connection2);
                             if ($approvalRequired != true) {

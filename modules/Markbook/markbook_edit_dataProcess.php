@@ -20,8 +20,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Services\Format;
 use Gibbon\Domain\System\LogGateway;
+use Gibbon\Data\Validator;
 
-include '../../gibbon.php';
+require_once '../../gibbon.php';
+
+$_POST = $container->get(Validator::class)->sanitize($_POST);
 
 $logGateway = $container->get(LogGateway::class);
 $settingGateway = $container->get(SettingGateway::class);
@@ -275,7 +278,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_dat
                                 $logGateway->addLog($gibbon->session->get('gibbonSchoolYearID'), $gibbonModuleID, $gibbon->session->get('gibbonPersonID'), 'Uploaded Response Failed', [
                                     'gibbonMarkbookColumnID' => $gibbonMarkbookColumnID,
                                     'gibbonPersonIDStudent' => $gibbonPersonIDStudent,
-                                    'name' => $row['name'],
+                                    'name' => $name,
                                     'attachment' => $attachment,
                                     'errorMessage' => $errorMessage,
                                     'fileType' => $file['type'] ?? '',

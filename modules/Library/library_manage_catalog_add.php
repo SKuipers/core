@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Http\Url;
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 
@@ -44,9 +45,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
     $page->return->setEditLink($editLink);
 
     if (array_filter($urlParams)) {
-        echo "<div class='linkTop'>";
-        echo "<a href='".$session->get('absoluteURL').'/index.php?q=/modules/Library/library_manage_catalog.php&'.http_build_query($urlParams)."'>".__('Back to Search Results').'</a>';
-        echo '</div>';
+        $page->navigator->addSearchResultsAction(Url::fromModuleRoute('Library', 'library_manage_catalog.php')->withQueryParams($urlParams));
     }
 
     $form = Form::create('libraryCatalog', $session->get('absoluteURL').'/modules/Library/library_manage_catalog_addProcess.php?'.http_build_query($urlParams));
@@ -54,7 +53,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
 
     $form->addHiddenValue('address', $session->get('address'));
 
-    $form->addRow()->addHeading(__('Catalog Type'));
+    $form->addRow()->addHeading('Catalog Type', __('Catalog Type'));
 
     $sql = "SELECT gibbonLibraryTypeID AS value, name FROM gibbonLibraryType WHERE active='Y' ORDER BY name";
     $row = $form->addRow();
@@ -67,7 +66,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
 
     $form->toggleVisibilityByClass('general')->onSelect('gibbonLibraryTypeID')->whenNot('Please select...');
 
-    $form->addRow()->addClass('general')->addHeading(__('General Details'))->addClass('general');
+    $form->addRow()->addClass('general')->addHeading('General Details', __('General Details'))->addClass('general');
 
     $row = $form->addRow()->addClass('general');
         $row->addLabel('name', __('Name'))->description(__('Volume or product name.'));
@@ -199,7 +198,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
         $row->addLabel('comment', __('Comments/Notes'));
         $row->addTextArea('comment')->setRows(10);
 
-    $form->addRow()->addClass('general')->addHeading(__('Type-Specific Details'))->addClass('general');
+    $form->addRow()->addClass('general')->addHeading('Type-Specific Details', __('Type-Specific Details'))->addClass('general');
 
     // Type-specific form fields loaded via ajax
     $row = $form->addRow('detailsRow')->addClass('general')->addContent('')->addClass('general');

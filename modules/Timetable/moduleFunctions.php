@@ -116,8 +116,8 @@ function getSpaceBookingEvents($guid, $connection2, $startDayStamp, $gibbonPerso
 
     try {
         if ($gibbonPersonID != '') {
-            $dataSpaceBooking = array('gibbonPersonID1' => $gibbonPersonID, 'gibbonPersonID2' => $gibbonPersonID);
-            $sqlSpaceBooking = "(SELECT gibbonTTSpaceBooking.*, name, title, surname, preferredName FROM gibbonTTSpaceBooking JOIN gibbonSpace ON (gibbonTTSpaceBooking.foreignKeyID=gibbonSpace.gibbonSpaceID) JOIN gibbonPerson ON (gibbonTTSpaceBooking.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE foreignKey='gibbonSpaceID' AND gibbonTTSpaceBooking.gibbonPersonID=:gibbonPersonID1 AND date>='".date('Y-m-d', $startDayStamp)."' AND  date<='".date('Y-m-d', ($startDayStamp + (7 * 24 * 60 * 60)))."') UNION (SELECT gibbonTTSpaceBooking.*, name, title, surname, preferredName FROM gibbonTTSpaceBooking JOIN gibbonLibraryItem ON (gibbonTTSpaceBooking.foreignKeyID=gibbonLibraryItem.gibbonLibraryItemID) JOIN gibbonPerson ON (gibbonTTSpaceBooking.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE foreignKey='gibbonLibraryItemID' AND gibbonTTSpaceBooking.gibbonPersonID=:gibbonPersonID2 AND date>='".date('Y-m-d', $startDayStamp)."' AND  date<='".date('Y-m-d', ($startDayStamp + (7 * 24 * 60 * 60)))."') ORDER BY date, timeStart, name";
+            $dataSpaceBooking = array('gibbonPersonID1' => $gibbonPersonID, 'gibbonPersonID2' => $gibbonPersonID, 'startDay' => date('Y-m-d', $startDayStamp), 'endDay' => date('Y-m-d', ($startDayStamp + (7 * 24 * 60 * 60))));
+            $sqlSpaceBooking = "(SELECT gibbonTTSpaceBooking.*, name, title, surname, preferredName FROM gibbonTTSpaceBooking JOIN gibbonSpace ON (gibbonTTSpaceBooking.foreignKeyID=gibbonSpace.gibbonSpaceID) JOIN gibbonPerson ON (gibbonTTSpaceBooking.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE foreignKey='gibbonSpaceID' AND gibbonTTSpaceBooking.gibbonPersonID=:gibbonPersonID1 AND date>=:startDay AND  date<=:endDay) UNION (SELECT gibbonTTSpaceBooking.*, name, title, surname, preferredName FROM gibbonTTSpaceBooking JOIN gibbonLibraryItem ON (gibbonTTSpaceBooking.foreignKeyID=gibbonLibraryItem.gibbonLibraryItemID) JOIN gibbonPerson ON (gibbonTTSpaceBooking.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE foreignKey='gibbonLibraryItemID' AND gibbonTTSpaceBooking.gibbonPersonID=:gibbonPersonID2 AND date>=:startDay AND  date<=:endDay) ORDER BY date, timeStart, name";
         } else {
             $dataSpaceBooking = array();
             $sqlSpaceBooking = "(SELECT gibbonTTSpaceBooking.*, name, title, surname, preferredName FROM gibbonTTSpaceBooking JOIN gibbonSpace ON (gibbonTTSpaceBooking.foreignKeyID=gibbonSpace.gibbonSpaceID) JOIN gibbonPerson ON (gibbonTTSpaceBooking.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE foreignKey='gibbonSpaceID' AND  date>='".date('Y-m-d', $startDayStamp)."' AND  date<='".date('Y-m-d', ($startDayStamp + (7 * 24 * 60 * 60)))."') UNION (SELECT gibbonTTSpaceBooking.*, name, title, surname, preferredName FROM gibbonTTSpaceBooking JOIN gibbonLibraryItem ON (gibbonTTSpaceBooking.foreignKeyID=gibbonLibraryItem.gibbonLibraryItemID) JOIN gibbonPerson ON (gibbonTTSpaceBooking.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE foreignKey='gibbonLibraryItem' AND  date>='".date('Y-m-d', $startDayStamp)."' AND  date<='".date('Y-m-d', ($startDayStamp + (7 * 24 * 60 * 60)))."') ORDER BY date, timeStart, name";
@@ -420,9 +420,11 @@ function renderTT($guid, $connection2, $gibbonPersonID, $gibbonTTID, $title = ''
             $output .= '<td>';
             $output .= "<span style='font-size: 115%; font-weight: bold'>".__('Timetable Chooser').'</span>: ';
             while ($row = $result->fetch()) {
-                $output .= "<input name='schoolCalendar' value='".($session->get('viewCalendarSchool') == 'Y' ? 'Y' : 'N')."' type='hidden'>";
-                $output .= "<input name='personalCalendar' value='".($session->get('viewCalendarPersonal') == 'Y' ? 'Y' : 'N')."' type='hidden'>";
-                $output .= "<input name='spaceBookingCalendar' value='".($session->get('viewCalendarSpaceBooking') == 'Y' ? 'Y' : 'N')."' type='hidden'>";
+                $output .= "<form method='post' action='".$session->get('absoluteURL')."/index.php?q=$q&gibbonTTID=".$row['gibbonTTID']."$params'>";
+                $output .= "<input name='ttDate' value='".date($session->get('i18n')['dateFormatPHP'], $startDayStamp)."' type='hidden'>";
+                $output .= "<input name='schoolCalendar' value='".($session->get('viewCalendarSchool') == 'Y' ? 'Y' : '')."' type='hidden'>";
+                $output .= "<input name='personalCalendar' value='".($session->get('viewCalendarPersonal') == 'Y' ? 'Y' : '')."' type='hidden'>";
+                $output .= "<input name='spaceBookingCalendar' value='".($session->get('viewCalendarSpaceBooking') == 'Y' ? 'Y' : '')."' type='hidden'>";
                 $output .= "<input name='fromTT' value='Y' type='hidden'>";
                 $output .= "<input class='buttonLink' style='min-width: 30px; margin-top: 0px; float: left' type='submit' value='".$row['name']."'>";
                 $output .= '</form>';
@@ -1417,7 +1419,7 @@ function renderTTDay($guid, $connection2, $gibbonTTID, $schoolOpen, $startDaySta
                         if ($height < 60) {
                             $fontSize = '85%';
                         }
-                        $output .= "<div class='$class2' $title style='z-index: $zCount; position: absolute; top: $top; width: 100%; min-width: $width; height: $height; margin: 0px; padding: 0px; opacity: $ttAlpha; font-size: $fontSize'>";
+                        $output .= "<div class='$class2' $title style='z-index: $zCount; position: absolute; top: $top; width: 100%; min-width: $width; height: $height; margin: 0px; padding: 0px;  font-size: $fontSize'>";
                         if ($height >= 45) {
                             $output .= $rowPeriods['name'].'<br/>';
                             $output .= '<i>'.substr($effectiveStart, 0, 5).' - '.substr($effectiveEnd, 0, 5).'</i><br/>';
@@ -1683,9 +1685,9 @@ function renderTTSpace($guid, $connection2, $gibbonSpaceID, $gibbonTTID, $title 
         while ($row = $result->fetch()) {
             $output .= "<form method='post' action='".$session->get('absoluteURL')."/index.php?q=$q".$params.'&gibbonTTID='.$row['gibbonTTID']."'>";
             $output .= "<input name='ttDate' value='".date($session->get('i18n')['dateFormatPHP'], $startDayStamp)."' type='hidden'>";
-            $output .= "<input name='schoolCalendar' value='".($session->get('viewCalendarSchool') == 'Y' ? 'Y' : 'N')."' type='hidden'>";
-            $output .= "<input name='personalCalendar' value='".($session->get('viewCalendarPersonal') == 'Y' ? 'Y' : 'N')."' type='hidden'>";
-            $output .= "<input name='spaceBookingCalendar' value='".($session->get('viewCalendarSpaceBooking') == 'Y' ? 'Y' : 'N')."' type='hidden'>";
+            $output .= "<input name='schoolCalendar' value='".($session->get('viewCalendarSchool') == 'Y' ? 'Y' : '')."' type='hidden'>";
+            $output .= "<input name='personalCalendar' value='".($session->get('viewCalendarPersonal') == 'Y' ? 'Y' : '')."' type='hidden'>";
+            $output .= "<input name='spaceBookingCalendar' value='".($session->get('viewCalendarSpaceBooking') == 'Y' ? 'Y' : '')."' type='hidden'>";
             $output .= "<input name='fromTT' value='Y' type='hidden'>";
             $output .= "<input class='buttonLink' style='min-width: 30px; margin-top: 0px; float: left' type='submit' value='".$row['name']."'>";
             $output .= '</form>';

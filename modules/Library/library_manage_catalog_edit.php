@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Http\Url;
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 
@@ -56,10 +57,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
             $urlParams = array_intersect_key($_GET, $urlParamKeys);
             $urlParams = array_merge($urlParamKeys, $urlParams);
 
-            if ($_GET['name'] != '' or $_GET['gibbonLibraryTypeID'] != '' or $_GET['gibbonSpaceID'] != '' or $_GET['status'] != '' or $_GET['gibbonPersonIDOwnership'] != '' or $_GET['typeSpecificFields'] != '') {
-                echo "<div class='linkTop'>";
-                echo "<a href='".$session->get('absoluteURL').'/index.php?q=/modules/Library/library_manage_catalog.php&'.http_build_query($urlParams)."'>".__('Back to Search Results').'</a>';
-                echo '</div>';
+            if (array_filter($urlParams)) {
+                $page->navigator->addSearchResultsAction(Url::fromModuleRoute('Library', 'library_manage_catalog.php')->withQueryParams($urlParams));
             }
 
             $form = Form::create('libraryCatalog', $session->get('absoluteURL').'/modules/Library/library_manage_catalog_editProcess.php?'.http_build_query($urlParams));
@@ -71,13 +70,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
             $form->addHiddenValue('type', $values['type']);
             $form->addHiddenValue('statusBorrowable', 'Available');
 
-            $form->addRow()->addHeading(__('Catalog Type'));
+            $form->addRow()->addHeading('Catalog Type', __('Catalog Type'));
 
             $row = $form->addRow();
                 $row->addLabel('typeText', __('Type'));
                 $row->addTextField('typeText')->required()->readOnly()->setValue(__($values['type']));
 
-            $form->addRow()->addHeading(__('General Details'));
+            $form->addRow()->addHeading('General Details', __('General Details'));
 
             $row = $form->addRow();
                 $row->addLabel('name', __('Name'))->description(__('Volume or product name.'));
@@ -217,7 +216,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
                 $row->addLabel('comment', __('Comments/Notes'));
                 $row->addTextArea('comment')->setRows(10);
 
-            $form->addRow()->addHeading(__('Type-Specific Details'));
+            $form->addRow()->addHeading('Type-Specific Details', __('Type-Specific Details'));
 
             // Type-specific form fields loaded via ajax
             $row = $form->addRow('detailsRow')->addContent('');

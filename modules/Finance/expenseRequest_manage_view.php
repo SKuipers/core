@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Http\Url;
 use Gibbon\Forms\Form;
 use Gibbon\Services\Format;
 use Gibbon\Domain\System\SettingGateway;
@@ -102,9 +103,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenseRequest_man
                         //Let's go!
                         $values = $result->fetch();
                         if ($status2 != '' or $gibbonFinanceBudgetID2 != '') {
-                            echo "<div class='linkTop'>";
-                            echo "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/Finance/expenseRequest_manage.php&gibbonFinanceBudgetCycleID=$gibbonFinanceBudgetCycleID&status2=$status2&gibbonFinanceBudgetID2=$gibbonFinanceBudgetID2'>".__('Back to Search Results').'</a>';
-                            echo '</div>';
+                            $params = [
+                                "gibbonFinanceBudgetCycleID" => $gibbonFinanceBudgetCycleID,
+                                "status2" => $status2,
+                                "gibbonFinanceBudgetID2" =>$gibbonFinanceBudgetID2
+                            ];
+                            $page->navigator->addSearchResultsAction(Url::fromModuleRoute('Finance', 'expenseRequest_manage.php')->withQueryParams($params));
                         }
 
                         $form = Form::create('action', $session->get('absoluteURL').'/modules/'.$session->get('module').'/expenseRequest_manage_viewProcess.php');
@@ -118,7 +122,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenseRequest_man
 
                         $form->addHiddenValue('gibbonFinanceBudgetCycleID', $gibbonFinanceBudgetCycleID);
 
-                        $form->addRow()->addHeading(__('Basic Information'));
+                        $form->addRow()->addHeading('Basic Information', __('Basic Information'));
 
                         $cycleName = getBudgetCycleName($gibbonFinanceBudgetCycleID, $connection2);
                         $row = $form->addRow();
@@ -160,7 +164,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenseRequest_man
                             $column->addLabel('purchaseDetails', __('Purchase Details'));
                             $column->addContent($values['purchaseDetails'])->setClass('fullWidth');
 
-                        $form->addRow()->addHeading(__('Log'));
+                        $form->addRow()->addHeading('Log', __('Log'));
 
                         $expenseLog = $container->get(ExpenseLog::class)->create($gibbonFinanceExpenseID);
                         $form->addRow()->addContent($expenseLog->getOutput());

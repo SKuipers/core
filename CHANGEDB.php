@@ -1070,5 +1070,25 @@ INSERT INTO `gibbonEmailTemplate` (`templateType`, `templateName`, `moduleName`,
 INSERT INTO `gibbonEmailTemplate` (`templateType`, `templateName`, `moduleName`, `templateSubject`, `templateBody`, `variables`, `timestamp`) VALUES ('Positive Behaviour Letter 2', 'Positive Behaviour Letter 2', 'Behaviour', 'Positive Behaviour Letter for {{studentSurname}}, {{studentPreferredName}} ({{studentFormGroup}}) via {{systemName}} at {{organisationName}}', '', '{\"behaviourCount\": [\"randomDigit\"], \r\n\"behaviourRecord\": [\"paragraph\"], \r\n\"studentPreferredName\": [\"firstName\"],\r\n\"studentSurname\": [\"lastName\"],\r\n\"studentFormGroup\": \"Y07\",\r\n\"parentPreferredName\": [\"firstNameFemale\"],\r\n\"parentSurname\": [\"lastName\"],\r\n\"parentTitle\": [\"titleFemale\"],\r\n\"formTutorPreferredName\": [\"firstNameMale\"],\r\n\"formTutorSurname\": [\"lastName\"],\r\n\"formTutorTitle\": [\"titleMale\"],\r\n\"formTutorEmail\": [\"safeEmail\"],\r\n\"date\": [\"date\"]\r\n}', '2021-10-20 13:58:10');end
 INSERT INTO `gibbonEmailTemplate` (`templateType`, `templateName`, `moduleName`, `templateSubject`, `templateBody`, `variables`, `timestamp`) VALUES ('Positive Behaviour Letter 3', 'Positive Behaviour Letter 3', 'Behaviour', 'Positive Behaviour Letter for {{studentSurname}}, {{studentPreferredName}} ({{studentFormGroup}}) via {{systemName}} at {{organisationName}}', '', '{\"behaviourCount\": [\"randomDigit\"], \r\n\"behaviourRecord\": [\"paragraph\"], \r\n\"studentPreferredName\": [\"firstName\"],\r\n\"studentSurname\": [\"lastName\"],\r\n\"studentFormGroup\": \"Y07\",\r\n\"parentPreferredName\": [\"firstNameFemale\"],\r\n\"parentSurname\": [\"lastName\"],\r\n\"parentTitle\": [\"titleFemale\"],\r\n\"formTutorPreferredName\": [\"firstNameMale\"],\r\n\"formTutorSurname\": [\"lastName\"],\r\n\"formTutorTitle\": [\"titleMale\"],\r\n\"formTutorEmail\": [\"safeEmail\"],\r\n\"date\": [\"date\"]\r\n}', '2021-10-20 13:58:10');end
 ALTER TABLE `gibbonBehaviourLetter` ADD `type` ENUM('Negative','Positive') NOT NULL DEFAULT 'Negative' AFTER `status`;end
+ALTER TABLE `gibbonReportingCriteriaType` ADD `defaultValue` VARCHAR(255) DEFAULT NULL AFTER `valueType`;end
+CREATE TABLE IF NOT EXISTS `gibbonPersonStatusLog` (`gibbonPersonStatusLogID` int(12) UNSIGNED ZEROFILL NOT NULL, `gibbonPersonID` int(10) UNSIGNED ZEROFILL NOT NULL, `statusOld` enum('Full','Expected','Left','Pending Approval') NOT NULL DEFAULT 'Full', `statusNew` enum('Full','Expected','Left','Pending Approval') NOT NULL DEFAULT 'Full', `reason` text NOT NULL, `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8;end
+ALTER TABLE `gibbonPersonStatusLog` ADD PRIMARY KEY (`gibbonPersonStatusLogID`), ADD KEY `gibbonPersonID` (`gibbonPersonID`);end
+ALTER TABLE `gibbonPersonStatusLog` MODIFY `gibbonPersonStatusLogID` int(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT;end
+CREATE TABLE IF NOT EXISTS `gibbonActivityType` ( `gibbonActivityTypeID` INT(6) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT , `name` VARCHAR(60) NULL, `description` TEXT NULL , `access` ENUM('None','View','Register') NULL DEFAULT 'Register', `enrolmentType` ENUM('Competitive','Selection') NULL DEFAULT 'Competitive', `maxPerStudent` INT(3) NOT NULL DEFAULT '0' , `waitingList` ENUM('Y','N') NULL DEFAULT 'Y', `backupChoice` ENUM('Y','N') NULL DEFAULT 'Y', PRIMARY KEY (`gibbonActivityTypeID`), UNIQUE KEY (`name`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;end
+UPDATE `gibbonAction` SET `URLList` = 'activitySettings.php,activitySettings_type_add.php,activitySettings_type_edit.php,activitySettings_type_delete.php' WHERE `name`='Activity Settings' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='School Admin');end
+UPDATE gibbonSetting SET value='br[style],strong[style],b[style],em[style],span[style],p[style],address[style],pre[style|class],h1[style],h2[style],h3[style],h4[style],h5[style],h6[style],table[style],thead[style],tbody[style],tfoot[style],tr[style],td[style|colspan|rowspan],ol[style],ul[style],li[style],blockquote[style],a[style|target|href],img[style|class|src|width|height],video[style],source[style],hr[style],iframe[style|width|height|src|frameborder|allowfullscreen],embed[style],div[style],sup[style],sub[style],code[style|class],details[style|class],summary[style|class]' WHERE name='allowableHTML' AND scope='System';end
+SELECT 'Hello, this blank line is important, nothing to see here.';end
+";
 
+//v23.0.01
+++$count;
+$sql[$count][0] = '23.0.01';
+$sql[$count][1] = "
+INSERT INTO `gibboni18n` (`code`, `name`, `version`, `active`, `installed`, `systemDefault`, `dateFormat`, `dateFormatRegEx`, `dateFormatPHP`, `rtl`) VALUES ('es_DO', 'Español - República Dominicana', '23.0.01', 'Y', 'Y', 'N', 'dd/mm/yyyy', '/^(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\\d\\d$/i', 'd/m/Y', 'N');end
+";
+
+//v23.0.02
+++$count;
+$sql[$count][0] = '23.0.02';
+$sql[$count][1] = "
 ";

@@ -16,8 +16,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
+use Gibbon\Data\Validator;
 
-include '../../gibbon.php';
+require_once '../../gibbon.php';
+
+$_POST = $container->get(Validator::class)->sanitize($_POST);
 
 $URL = $session->get('absoluteURL').'/index.php?q=/modules/'.getModuleName($_POST['address']).'/activitySettings.php';
 
@@ -34,11 +37,6 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/activitySetti
     }
     $access = $_POST['access'];
     $payment = $_POST['payment'];
-    $activityTypes = '';
-    foreach (explode(',', $_POST['activityTypes']) as $type) {
-        $activityTypes .= trim($type).',';
-    }
-    $activityTypes = substr($activityTypes, 0, -1);
     $disableExternalProviderSignup = $_POST['disableExternalProviderSignup'] ?? '';
     $hideExternalProviderCost = $_POST['hideExternalProviderCost'] ?? '';
 
@@ -80,15 +78,6 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/activitySetti
         try {
             $data = array('value' => $payment);
             $sql = "UPDATE gibbonSetting SET value=:value WHERE scope='Activities' AND name='payment'";
-            $result = $connection2->prepare($sql);
-            $result->execute($data);
-        } catch (PDOException $e) {
-            $fail = true;
-        }
-
-        try {
-            $data = array('value' => $activityTypes);
-            $sql = "UPDATE gibbonSetting SET value=:value WHERE scope='Activities' AND name='activityTypes'";
             $result = $connection2->prepare($sql);
             $result->execute($data);
         } catch (PDOException $e) {

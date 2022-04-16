@@ -17,10 +17,11 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Domain\System\SettingGateway;
+use Gibbon\Http\Url;
 use Gibbon\Forms\Form;
 use Gibbon\Services\Format;
 use Gibbon\Forms\DatabaseFormFactory;
+use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Domain\Timetable\CourseSyncGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_add.php') == false) {
@@ -47,9 +48,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_add
     $search = (isset($_GET['search']))? $_GET['search'] : '';
 
     if (!empty($search)) {
-        echo "<div class='linkTop'>";
-        echo "<a href='".$session->get('absoluteURL').'/index.php?q=/modules/User Admin/user_manage.php&search='.$search."'>".__('Back to Search Results').'</a>';
-        echo '</div>';
+        $page->navigator->addSearchResultsAction(Url::fromModuleRoute('User Admin', 'user_manage.php')->withQueryParam('search', $search));
     }
 
     echo Format::alert(__('Note that certain fields are available depending on the role categories (Staff, Student, Parent) that a user is assigned to. These fields, such as personal documents and custom fields, will be editable after the user has been created.'), 'message');
@@ -60,7 +59,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_add
     $form->addHiddenValue('address', $session->get('address'));
 
     // BASIC INFORMATION
-    $form->addRow()->addHeading(__('Basic Information'));
+    $form->addRow()->addHeading('Basic Information', __('Basic Information'));
 
     $row = $form->addRow();
         $row->addLabel('title', __('Title'));
@@ -104,7 +103,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_add
             ->setMaxUpload(false);
 
     // SYSTEM ACCESS
-    $form->addRow()->addHeading(__('System Access'));
+    $form->addRow()->addHeading('System Access', __('System Access'));
 
     // Put together an array of this user's current roles
     $currentUserRoles = (is_array($session->get('gibbonRoleIDAll'))) ? array_column($session->get('gibbonRoleIDAll'), 0) : array();
@@ -176,7 +175,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_add
         $row->addYesNo('passwordForceReset')->required();
 
     // CONTACT INFORMATION
-    $form->addRow()->addHeading(__('Contact Information'));
+    $form->addRow()->addHeading('Contact Information', __('Contact Information'));
 
     $row = $form->addRow();
         $emailLabel = $row->addLabel('email', __('Email'));
@@ -242,7 +241,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_add
         $row->addURL('website');
 
     // SCHOOL INFORMATION
-    $form->addRow()->addHeading(__('School Information'));
+    $form->addRow()->addHeading('School Information', __('School Information'));
 
     $dayTypeOptions = $settingGateway->getSettingByScope('User Admin', 'dayTypeOptions');
     if (!empty($dayTypeOptions)) {
@@ -269,7 +268,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_add
         $row->addSelectSchoolYear('gibbonSchoolYearIDClassOf');
 
     // BACKGROUND INFORMATION
-    $form->addRow()->addHeading(__('Background Information'));
+    $form->addRow()->addHeading('Background Information', __('Background Information'));
 
     $row = $form->addRow();
         $row->addLabel('languageFirst', __('First Language'));
@@ -309,7 +308,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_add
     $residencyStatusList = $settingGateway->getSettingByScope('User Admin', 'residencyStatus');
 
     // EMPLOYMENT
-    $form->addRow()->addHeading(__('Employment'));
+    $form->addRow()->addHeading('Employment', __('Employment'));
 
     $row = $form->addRow();
         $row->addLabel('profession', __('Profession'));
@@ -324,7 +323,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_add
         $row->addTextField('jobTitle')->maxLength(90);
 
     // EMERGENCY CONTACTS
-    $form->addRow()->addHeading(__('Emergency Contacts'));
+    $form->addRow()->addHeading('Emergency Contacts', __('Emergency Contacts'));
 
     $form->addRow()->addContent(__('These details are used when immediate family members (e.g. parent, spouse) cannot be reached first. Please try to avoid listing immediate family members.'));
 
@@ -361,7 +360,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_add
         $row->addTextField('emergency2Number2')->maxLength(30);
 
     // MISCELLANEOUS
-    $form->addRow()->addHeading(__('Miscellaneous'));
+    $form->addRow()->addHeading('Miscellaneous', __('Miscellaneous'));
 
     $sql = "SELECT gibbonHouseID as value, name FROM gibbonHouse ORDER BY name";
     $row = $form->addRow();
@@ -420,7 +419,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_add
     // STAFF
     $form->toggleVisibilityByClass('staffDetails')->onSelect('gibbonRoleIDPrimary')->when($staffRoles);
     $form->toggleVisibilityByClass('staffRecord')->onCheckbox('staffRecord')->when('Y');
-    $form->addRow()->addClass('staffDetails')->addHeading(__('Staff'))->addClass('staffDetails');
+    $form->addRow()->addClass('staffDetails')->addHeading('Staff', __('Staff'))->addClass('staffDetails');
 
     $row = $form->addRow()->addClass('staffDetails');
         $row->addLabel('staffRecord', __('Add Staff'));
@@ -438,7 +437,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_add
     // STUDENT
     $form->toggleVisibilityByClass('studentDetails')->onSelect('gibbonRoleIDPrimary')->when($studentRoles);
     $form->toggleVisibilityByClass('studentRecord')->onCheckbox('studentRecord')->when('Y');
-    $form->addRow()->addClass('studentDetails')->addHeading(__('Student'))->addClass('studentDetails');
+    $form->addRow()->addClass('studentDetails')->addHeading('Student', __('Student'))->addClass('studentDetails');
 
     $row = $form->addRow()->addClass('studentDetails');
         $row->addLabel('studentRecord', __('Add Student Enrolment'));

@@ -17,9 +17,10 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Domain\System\SettingGateway;
+use Gibbon\Http\Url;
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
+use Gibbon\Domain\System\SettingGateway;
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -65,9 +66,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenses_manage_ad
             echo '</div>';
         } else {
             if ($status2 != '' or $gibbonFinanceBudgetID2 != '') {
-                echo "<div class='linkTop'>";
-                echo "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/Finance/expenses_manage.php&gibbonFinanceBudgetCycleID=$gibbonFinanceBudgetCycleID&status2=$status2&gibbonFinanceBudgetID2=$gibbonFinanceBudgetID2'>".__('Back to Search Results').'</a>';
-                echo '</div>';
+                 $params = [
+                    "gibbonFinanceBudgetCycleID" => $gibbonFinanceBudgetCycleID,
+                    "status2" => $status2,
+                    "gibbonFinanceBudgetID2" =>$gibbonFinanceBudgetID2
+                ];
+                $page->navigator->addSearchResultsAction(Url::fromModuleRoute('Finance', 'expenses_manage.php')->withQueryParams($params));
 			}
 
 			$form = Form::create('expenseManage', $session->get('absoluteURL').'/modules/'.$session->get('module').'/expenses_manage_addProcess.php');
@@ -78,7 +82,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenses_manage_ad
             $form->addHiddenValue('gibbonFinanceBudgetID2', $gibbonFinanceBudgetID2);
 			$form->addHiddenValue('gibbonFinanceBudgetCycleID', $gibbonFinanceBudgetCycleID);
 
-			$form->addRow()->addHeading(__('Basic Information'));
+			$form->addRow()->addHeading('Basic Information', __('Basic Information'));
 
 			$cycleName = getBudgetCycleName($gibbonFinanceBudgetCycleID, $connection2);
 			$row = $form->addRow();
@@ -128,7 +132,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenses_manage_ad
 
 			$form->toggleVisibilityByClass('paymentInfo')->onSelect('status')->when('Paid');
 
-			$form->addRow()->addHeading(__('Payment Information'))->addClass('paymentInfo');
+			$form->addRow()->addHeading('Payment Information', __('Payment Information'))->addClass('paymentInfo');
 
 			$row = $form->addRow()->addClass('paymentInfo');
 				$row->addLabel('paymentDate', __('Date Paid'))->description(__('Date of payment, not entry to system.'));

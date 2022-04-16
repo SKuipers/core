@@ -50,7 +50,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reports_manage_add
     $form->addHiddenValue('address', $gibbon->session->get('address'));
     $form->addHiddenValue('gibbonSchoolYearID', $gibbonSchoolYearID);
 
-    $form->addRow()->addHeading(__('Report Details'));
+    $form->addRow()->addHeading('Report Details', __('Report Details'));
 
     $schoolYear = $container->get(SchoolYearGateway::class)->getSchoolYearByID($gibbonSchoolYearID);
     $row = $form->addRow();
@@ -72,19 +72,21 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reports_manage_add
         $row->addSelect('gibbonReportTemplateID')->fromArray($templatesCycles + $templatesEnrolment)->required()->placeholder();
 
     // Reporting Cycle Context
-    $form->toggleVisibilityByClass('reportingCycleContext')->onSelect('gibbonReportTemplateID')->when(array_keys($templatesCycles));
+    if (!empty($templatesCycles)) {
+        $form->toggleVisibilityByClass('reportingCycleContext')->onSelect('gibbonReportTemplateID')->when(array_keys($templatesCycles));
 
-    $reportingCycles = $reportingCycleGateway->selectReportingCyclesBySchoolYear($gibbonSchoolYearID)->fetchKeyPair();
-    $row = $form->addRow()->addClass('reportingCycleContext');
-        $row->addLabel('gibbonReportingCycleID', __('Reporting Cycle'));
-        $row->addSelect('gibbonReportingCycleID')->fromArray($reportingCycles)->required()->placeholder();
+        $reportingCycles = $reportingCycleGateway->selectReportingCyclesBySchoolYear($gibbonSchoolYearID)->fetchKeyPair();
+        $row = $form->addRow()->addClass('reportingCycleContext');
+            $row->addLabel('gibbonReportingCycleID', __('Reporting Cycle'));
+            $row->addSelect('gibbonReportingCycleID')->fromArray($reportingCycles)->required()->placeholder();
+    }
 
     // Student Enrolment Context
     $row = $form->addRow();
         $row->addLabel('gibbonYearGroupIDList', __('Year Groups'));
         $row->addCheckboxYearGroup('gibbonYearGroupIDList')->addCheckAllNone()->loadFromCSV($values);
     
-    $form->addRow()->addHeading(__('Access'));
+    $form->addRow()->addHeading('Access', __('Access'));
 
     $archives = $container->get(ReportArchiveGateway::class)->selectWriteableArchives()->fetchKeyPair();
     $row = $form->addRow();

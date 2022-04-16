@@ -39,7 +39,7 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/activeSession
     if (!empty($primaryRole['name']) && $primaryRole['name'] == 'Administrator') {
         $form = Form::create('sessionSettings', $session->get('absoluteURL').'/modules/System Admin/activeSessions_settingsProcess.php');
 
-        $form->addRow()->addHeading(__('Settings'));
+        $form->addRow()->addHeading('Settings', __('Settings'));
 
         $setting = $settingGateway->getSettingByScope('System Admin', 'maintenanceMode', true);
         $row = $form->addRow();
@@ -61,8 +61,8 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/activeSession
 
     // QUERY
     $criteria = $sessionGateway->newQueryCriteria()
-        ->sortBy('timestampModified', 'DESC')
-        ->pageSize(0)
+        ->sortBy(['sessionStatus', 'timestampModified'], 'DESC')
+        ->pageSize(100)
         ->fromPOST();
 
     $sessions = $sessionGateway->queryActiveSessions($criteria);
@@ -72,7 +72,7 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/activeSession
     $table->setTitle(__('View'));
 
     $table->modifyRows(function ($values, $row) {
-        // if (empty($values['gibbonPersonID'])) $row->addClass('dull');
+        if (empty($values['sessionStatus'])) $row->addClass('dull');
         return $row;
     });
 

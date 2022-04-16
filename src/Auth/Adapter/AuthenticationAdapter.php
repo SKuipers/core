@@ -109,6 +109,13 @@ abstract class AuthenticationAdapter implements AdapterInterface, ContainerAware
         // Satisfy the interface, but do nothing at this time
     }
 
+    public function updateSession(Auth $auth)
+    {
+        // Update current session record to attach it to this user
+        $userData = $auth->getUserData();
+        $this->sessionGateway->updateSessionStatus(session_id(), $userData['gibbonPersonID'], 'Logged In');
+    }
+
     /**
      * Gets an array of basic user data from the database.
      *
@@ -118,9 +125,14 @@ abstract class AuthenticationAdapter implements AdapterInterface, ContainerAware
      * 
      * @throws Aura\Auth\Exception\UsernameNotFound
      * @throws Aura\Auth\Exception\MultipleMatches
+     * @throws Gibbon\Auth\Exception\DatabaseLoginError
      */
     protected function getUserData(array $input)
     {
+        if (empty($this->userGateway)) {
+            throw new Exception\DatabaseLoginError;
+        }
+
         $userResult = $this->userGateway->selectLoginDetailsByUsername($input['username'] ?? '');
 
         if ($userResult->rowCount() < 1) {
@@ -131,7 +143,10 @@ abstract class AuthenticationAdapter implements AdapterInterface, ContainerAware
             throw new AuraException\MultipleMatches;
         }
 
-        return $userResult->fetch();
+        $userData = $userResult->fetch();
+        $_POST['gibbonPersonIDLoginAttempt'] = $userData['gibbonPersonID'] ?? null;
+
+        return $userData;
     }
 
     /**
@@ -178,12 +193,12 @@ abstract class AuthenticationAdapter implements AdapterInterface, ContainerAware
         $maintenanceMode = $this->getContainer()->get(SettingGateway::class)->getSettingByScope('System Admin', 'maintenanceMode');
 
         // Missing role ID information
-        if (empty($userData['gibbonRoleIDPrimary']) || empty($userData['gibbonRoleIDAll'])) {
+        if (empty($primaryRole) || empty($userData['gibbonRoleIDPrimary']) || empty($userData['gibbonRoleIDAll'])) {
             throw new Exception\DatabaseLoginError;
         }
 
         // Insufficient privileges for this user
-        if ($userData['canLogin'] != 'Y') {
+        if (empty($userData['canLogin']) || $userData['canLogin'] != 'Y') {
             throw new Exception\InsufficientPrivileges;
         }
 
@@ -200,8 +215,6 @@ abstract class AuthenticationAdapter implements AdapterInterface, ContainerAware
         // Check fail count, reject & alert if 3rd time
         if ($userData['failCount'] >= 3) {
             $this->updateFailCount($userData, $userData['failCount'] + 1);
-            $this->notifySystemAdmin($userData);
-            throw new Exception\TooManyFailedLogins;
         }
     }
 
@@ -266,12 +279,11 @@ abstract class AuthenticationAdapter implements AdapterInterface, ContainerAware
             'username' => $userData['username'],
         ]);
 
-        // Update current session record to attach it to this user
-        $this->sessionGateway->update(session_id(), [
-            'gibbonPersonID' => $userData['gibbonPersonID'],
-            'sessionStatus' => 'Logged In',
-            'timestampModified' => date('Y-m-d H:i:s'),
-        ]);
+        // Remove all other session records attached to the previous session
+        $this->sessionGateway->delete(session_id());
+
+        // Force a garbage collection of inactive sessions older than 1 day
+        $this->sessionGateway->deleteExpiredSessions(86400);
 
         // Update user personal theme
         if (!empty($userData['gibbonThemeIDPersonal'])) {
@@ -282,8 +294,11 @@ abstract class AuthenticationAdapter implements AdapterInterface, ContainerAware
             );
         }
 
-        // Update user language
-        $languageSelected = $_POST['gibboni18nID'] ?? $this->session->get('gibboni18nIDPersonal') ?? null;
+        // Update user language, using login option, then personal language, then system default
+        $languageSelected = !empty($_POST['gibboni18nID']) && $_POST['gibboni18nID'] != $this->session->get('i18n')['gibboni18nID']
+            ? $_POST['gibboni18nID'] : 
+            $userData['gibboni18nIDPersonal'] ?? null;
+
         if (!empty($languageSelected)) {
             if ($i18n = $this->getContainer()->get(I18nGateway::class)->getByID($languageSelected)) {
                 $this->session->set('i18n', $i18n);
@@ -298,12 +313,19 @@ abstract class AuthenticationAdapter implements AdapterInterface, ContainerAware
      */
     protected function updateFailCount($userData, $failCount = 0)
     {
+        $userData['failCount'] = $failCount;
+
         $this->userGateway->update($userData['gibbonPersonID'], [
             'lastFailIPAddress' => $_SERVER['REMOTE_ADDR'],
             'lastFailTimestamp' => date('Y-m-d H:i:s'),
-            'failCount' => $failCount,
+            'failCount' => $userData['failCount'],
             'username' => $userData['username'],
         ]);
+
+        if ($failCount >= 3) {
+            $this->notifySystemAdmin($userData);
+            throw new Exception\TooManyFailedLogins;
+        }
     }
 
     /**
@@ -345,12 +367,14 @@ abstract class AuthenticationAdapter implements AdapterInterface, ContainerAware
     {
         if ($userData['failCount'] != 3) return;
 
+        $this->session = $this->getContainer()->get(Session::class);
+
         // Raise a new notification event
         $event = new NotificationEvent('User Admin', 'Login - Failed');
 
         $event->addRecipient($this->session->get('organisationAdministrator'));
         $event->setNotificationText(sprintf(__('Someone failed to login to account "%1$s" 3 times in a row.'), $userData['username']));
-        $event->setActionLink(Url::fromModuleRoute('User Admin', 'user_manage')->withAbsoluteURL()->withQueryParam('search', $userData['username']));
+        $event->setActionLink('/index.php?q=/modules/User Admin/user_manage.php&search='.$userData['username']);
 
         $event->sendNotifications($this->getContainer()->get('db'), $this->session);
     }

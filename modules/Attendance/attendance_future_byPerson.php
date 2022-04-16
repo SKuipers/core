@@ -120,12 +120,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_futu
             $logs = $attendanceLogGateway->selectFutureAttendanceLogsByPersonAndDate($gibbonPersonID[0], $today)->fetchAll();
 
             //Get classes for partial attendance
-            $classes = $courseEnrolmentGateway->selectClassesByPersonAndDate($gibbon->session->get('gibbonSchoolYearID'), $gibbonPersonID[0], !empty($date) ? Format::dateConvert($date) : date('Y-m-d'));
+            $classes = $courseEnrolmentGateway->selectClassesByPersonAndDate($gibbon->session->get('gibbonSchoolYearID'), $gibbonPersonID[0], !empty($date) ? Format::dateConvert($date) : date('Y-m-d'))->fetchAll();
 
             if ($absenceType == 'partial' && empty($classes)) {
                 echo Format::alert(__('Cannot record a partial absence. This student does not have timetabled classes for this day.'));
                 return;
             }
+
+            // Filter only classes that are attendanceable
+            $classes = array_filter($classes, function ($item) {
+                return $item['attendance'] == 'Y';
+            });
 
             // Display attendance logs
             if (!empty($logs)) {
@@ -180,7 +185,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_futu
         $form->addHiddenValue('absenceType', $absenceType);
         $form->addHiddenValue('gibbonPersonID', implode(",", $gibbonPersonID));
 
-        $form->addRow()->addHeading(__('Set Future Attendance'));
+        $form->addRow()->addHeading('Set Future Attendance', __('Set Future Attendance'));
 
         if ($absenceType == 'full') {
             $row = $form->addRow();
@@ -189,7 +194,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_futu
 
             $row = $form->addRow();
                 $row->addLabel('dateEnd', __('End Date'));
-                $row->addDate('dateEnd');
+                $row->addDate('dateEnd')->minimum(date('Y-m-d', strtotime('today +1 day')));
         } else {
             $form->addHiddenValue('dateStart', $date);
             $form->addHiddenValue('dateEnd', $date);
@@ -212,7 +217,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_futu
 
         // Filter only attendance types with future = 'Y'
         $attendanceTypes = array_reduce($attendance->getAttendanceTypes(), function ($group, $item) {
-            if ($item['future'] == 'Y') $group[] = $item['name'];
+            if ($item['future'] == 'Y') $group[$item['name']] = __($item['name']);
             return $group;
         }, array());
 

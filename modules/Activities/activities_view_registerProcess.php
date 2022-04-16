@@ -21,8 +21,12 @@ use Gibbon\Comms\NotificationEvent;
 use Gibbon\Domain\System\LogGateway;
 use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Services\Format;
+use Gibbon\Domain\Activities\ActivityGateway;
+use Gibbon\Data\Validator;
 
-include '../../gibbon.php';
+require_once '../../gibbon.php';
+
+$_POST = $container->get(Validator::class)->sanitize($_POST);
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -51,6 +55,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
         $roleCategory = getRoleCategory($session->get('gibbonRoleIDCurrent'), $connection2);
 
         $settingGateway = $container->get(SettingGateway::class);
+        $activityGateway = $container->get(ActivityGateway::class);
 
         //Check access controls
         $access = $settingGateway->getSettingByScope('Activities', 'access');
@@ -133,7 +138,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                             $backupChoice = !empty($row['backupChoice'])? $row['backupChoice'] : $backupChoice;
 
                             $gibbonActivityIDBackup = ($backupChoice == 'Y')? $_POST['gibbonActivityIDBackup'] : '';
-                            $activityCountByType = getStudentActivityCountByType($pdo, $row['type'], $gibbonPersonID);
+                            $activityCountByType = $activityGateway->getStudentActivityCountByType($row['type'], $gibbonPersonID);
                             
                             if (!empty($row['access']) && $row['access'] != 'Register') {
                                 $URL .= '&return=error0';
@@ -153,16 +158,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                                 // Load the enrolmentType system setting, optionally override with the Activity Type setting
                                 $enrolment = $settingGateway->getSettingByScope('Activities', 'enrolmentType');
                                 $enrolment = !empty($row['enrolmentType'])? $row['enrolmentType'] : $enrolment;
-
-                                //Lock the activityStudent database table
-                                try {
-                                    $sql = 'LOCK TABLES gibbonActivityStudent WRITE, gibbonPerson WRITE, gibbonLog WRITE';
-                                    $result = $connection2->query($sql);
-                                } catch (PDOException $e) {
-                                    $URL .= '&return=error2';
-                                    header("Location: {$URL}");
-                                    exit;
-                                }
 
                                 if ($enrolment == 'Selection') {
                                     $status = 'Pending';
@@ -201,11 +196,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
 
                                 //Set log
                                 $logGateway->addLog($session->get('gibbonSchoolYearIDCurrent'), $gibbonModuleID, $session->get('gibbonPersonID'), 'Activities - Student Registered', array('gibbonPersonIDStudent' => $gibbonPersonID));
-
-                                //Unlock locked database tables
-
-                                    $sql = 'UNLOCK TABLES';
-                                    $result = $connection2->query($sql);
 
                                 // Get the start and end date of the activity, depending on which dateType we're using
                                 $activityTimespan = getActivityTimespan($connection2, $gibbonActivityID, $row['gibbonSchoolYearTermIDList']);
@@ -325,16 +315,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                                     }
                                 }
 
-                                //Lock the activityStudent database table
-                                try {
-                                    $sql = 'LOCK TABLES gibbonActivityStudent WRITE, gibbonActivity READ, gibbonPerson READ, gibbonNotificationEvent READ, gibbonModule READ, gibbonAction READ, gibbonPermission READ, gibbonNotificationListener READ, gibbonNotification WRITE, gibbonFamilyChild READ, gibbonFamily READ, gibbonFamilyAdult READ, gibbonLog WRITE';
-                                    $result = $connection2->query($sql);
-                                } catch (PDOException $e) {
-                                    $URL .= '&return=error2';
-                                    header("Location: {$URL}");
-                                    exit;
-                                }
-
                                 //Count spaces
                                 $dataNumberRegistered = array('gibbonActivityID' => $gibbonActivityID, 'today' => date('Y-m-d'));
                                 $sqlNumberRegistered = "SELECT * FROM gibbonActivityStudent JOIN gibbonPerson ON (gibbonActivityStudent.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonPerson.status='Full' AND (dateStart IS NULL OR dateStart<=:today) AND (dateEnd IS NULL  OR dateEnd>=:today) AND gibbonActivityID=:gibbonActivityID AND gibbonActivityStudent.status='Accepted'";
@@ -408,10 +388,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                                         $event->sendNotifications($pdo, $gibbon->session);
                                     }
                                 }
-                                //Unlock locked database tables
-
-                                    $sql = 'UNLOCK TABLES';
-                                    $result = $connection2->query($sql);
                             }
 
                             $URLSuccess = $URLSuccess.'&return=success1';
