@@ -451,36 +451,36 @@ function camelToWords($name)
  */
 function checkUploadsFolderStatus($absoluteURL) : bool
 {
-    $statusCode = '';
-    $responseBody = '';
-    try {
-        $client = new Client();
-        $response = $client->request('GET', $absoluteURL.'/uploads', [
-            'headers' => ['Referer' => $absoluteURL.'/index.php'],
-        ]);
-        $statusCode = $response->getStatusCode();
-        $responseBody = $response->getBody();
-    } catch (GuzzleHttp\Exception\ClientException $e) {
-        $responseBody = $e->getMessage();
-    } catch (\GuzzleHttp\Exception\GuzzleException $e) {
-        $responseBody = $e->getMessage();
-    }
+    // $statusCode = '';
+    // $responseBody = '';
+    // try {
+    //     $client = new Client();
+    //     $response = $client->request('GET', $absoluteURL.'/uploads', [
+    //         'headers' => ['Referer' => $absoluteURL.'/index.php'],
+    //     ]);
+    //     $statusCode = $response->getStatusCode();
+    //     $responseBody = $response->getBody();
+    // } catch (GuzzleHttp\Exception\ClientException $e) {
+    //     $responseBody = $e->getMessage();
+    // } catch (\GuzzleHttp\Exception\GuzzleException $e) {
+    //     $responseBody = $e->getMessage();
+    // }
 
-    if (stripos($responseBody, 'Index of') !== false || stripos($responseBody, 'Parent Directory') !== false) {
-        return false;
-    }
+    // if (stripos($responseBody, 'Index of') !== false || stripos($responseBody, 'Parent Directory') !== false) {
+    //     return false;
+    // }
 
-    if (substr($statusCode, 0, 1) == '4') {
-        return true;
-    }
+    // if (substr($statusCode, 0, 1) == '4') {
+    //     return true;
+    // }
 
-    if (stripos($responseBody, '403') !== false || stripos($responseBody, '404') !== false) {
-        return true;
-    }
+    // if (stripos($responseBody, '403') !== false || stripos($responseBody, '404') !== false) {
+    //     return true;
+    // }
 
-    if (stripos($responseBody, 'Forbidden') !== false || stripos($responseBody, 'Not Found') !== false) {
-        return true;
-    }
+    // if (stripos($responseBody, 'Forbidden') !== false || stripos($responseBody, 'Not Found') !== false) {
+    //     return true;
+    // }
 
     return false;
 }
