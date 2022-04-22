@@ -55,7 +55,7 @@ class CustomFieldIDs extends Migration
         foreach ($users as $user) {
             if (empty($user['fields'])) continue;
 
-            $fieldData = json_decode($user['fields'], true);
+            $fieldData = json_decode($user['fields'], true) ?? [];
             $fieldData = $updateIDs($fieldData);
             
             $partialFail &= !$this->userGateway->update($user['gibbonPersonID'], [
@@ -69,7 +69,7 @@ class CustomFieldIDs extends Migration
         foreach ($updates as $update) {
             if (empty($update['fields'])) continue;
 
-            $fieldData = json_decode($update['fields'], true);
+            $fieldData = json_decode($update['fields'], true) ?? [];
             $fieldData = $updateIDs($fieldData);
 
             $partialFail &= !$this->personUpdateGateway->update($update['gibbonPersonUpdateID'], [
@@ -83,13 +83,13 @@ class CustomFieldIDs extends Migration
         foreach ($applications as $application) {
             if (empty($application['fields']) && empty($application['parent1fields']) && empty($application['parent2fields'])) continue;
 
-            $fieldData = json_decode($application['fields'], true);
+            $fieldData = json_decode($application['fields'], true) ?? [];
             $fieldData = $updateIDs($fieldData);
 
-            $parent1fieldData = json_decode($application['parent1fields'], true);
+            $parent1fieldData = json_decode($application['parent1fields'], true) ?? [];
             $parent1fieldData = $updateIDs($parent1fieldData);
 
-            $parent2fieldData = json_decode($application['parent2fields'], true);
+            $parent2fieldData = json_decode($application['parent2fields'], true) ?? [];
             $parent2fieldData = $updateIDs($parent2fieldData);
 
             $partialFail &= !$this->applicationGateway->update($application['gibbonApplicationFormID'], [
