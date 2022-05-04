@@ -88,7 +88,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reports_generate_b
             // Archive
             if ($student = $studentGateway->getByID($identifier)) {
                 $path = $archiveFile->getSingleFilePath($gibbonReportID, $student['gibbonYearGroupID'], $identifier);
-                $renderer->render($template, $reports, $gibbon->session->get('absolutePath').$archive['path'].'/'.$path);
+                $renderer->render($template, $reports, realpath($gibbon->session->get('absolutePath').$archive['path']).'/'.$path);
 
                 $reportArchiveEntryGateway->insertAndUpdate([
                     'reportIdentifier'      => $report['name'],
