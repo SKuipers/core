@@ -366,7 +366,7 @@ if ($settingGateway->getSettingByScope('User Admin', 'personalBackground') == 'Y
 }
 
 if (!empty($backgroundImage)) {
-    $page->addData(['bodyBackground' => 'background: url("'.$backgroundImage.'") '.$backgroundScroll.' #626cd3!important;background-size: cover !important;']);
+    $page->addData(['bodyBackground' => 'background: url("'.$backgroundImage.'") '.$backgroundScroll.' #d9251d!important;background-size: cover !important;']);
 }
 
 $page->stylesheets->add('theme-dev', 'resources/assets/css/theme.min.css');
