@@ -482,5 +482,5 @@ function checkUploadsFolderStatus($absoluteURL) : bool
     //     return true;
     // }
 
-    return false;
+    return true;
 }
