@@ -29,7 +29,7 @@ if ($roleCategory == 'Staff') {
                        onClick="window.open(\''.$_SESSION[$guid]['webLink'].'/portal/\')" 
                        style="height:32px;margin-bottom:15px; background:#C4ECFF; cursor: pointer;">';
     $output .= '</p>';
-} else if ($roleCategory == 'Parent') {
+} else if ($roleCategory == 'Parent' && isActionAccessible($guid, $connection2, '/modules/Health Code/hc_upload.php')) {
     $i18n = $_SESSION[$guid]['i18n']['code'];
     $header = $i18n == 'zh_CN' || $i18n == 'zh_HK' ? '上傳澳門健康碼（幼稚園至小六）' :  __('Upload Macau Health Code PK-Grade 6');
     $body = $i18n == 'zh_CN' || $i18n == 'zh_HK' ? '請於孩子進入學校前上傳他們的澳門健康碼截圖：' : __('Please upload your child\'s Macau Health Code screenshots each morning before they enter the building:');
