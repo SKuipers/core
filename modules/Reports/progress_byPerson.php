@@ -85,8 +85,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/progress_byPerson.
     $progress = $reportingProgressGateway->queryReportingProgressByPerson($criteria, $gibbonSchoolYearID, $gibbonReportingCycleID, $gibbonReportingScopeID)->toArray();
     $progressByPerson = array_reduce($progress, function ($group, $item) {
         if (isset($group[$item['gibbonPersonID']])) {
-            $group[$item['gibbonPersonID']]['progressCount'] += $item['progressCount'];
-            $group[$item['gibbonPersonID']]['totalCount'] += $item['totalCount'];
+            $group[$item['gibbonPersonID']]['progressCount'] += $item['progressCount'] + $item['progressCountGroup'];
+            $group[$item['gibbonPersonID']]['totalCount'] += $item['totalCount'] + $item['totalCountGroup'];
         } else {
             $group[$item['gibbonPersonID']] = $item;
         }
@@ -103,6 +103,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/progress_byPerson.
         ->format(function ($person) {
             return Format::name('', $person['preferredName'], $person['surname'], 'Staff', true, true);
         });
+
     $table->addColumn('progress', __('Progress'))
         ->width('40%')
         ->format(function ($reporting) use (&$page) {
@@ -112,7 +113,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/progress_byPerson.
                 'width'         => 'w-64',
             ]);
         });
-
 
     $table->addActionColumn()
         ->addParam('gibbonPersonID')

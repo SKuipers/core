@@ -75,7 +75,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/progress_byReporti
 
     foreach ($reportingCycles as $cycle) {
         $criteria = $reportingProgressGateway->newQueryCriteria()->sortBy('sequenceNumber');
-        $progress = $reportingProgressGateway->queryReportingProgressByCycle($criteria, $cycle['gibbonReportingCycleID']);
+        $progress = $reportingProgressGateway->queryReportingProgressByCycle($criteria, $cycle['gibbonReportingCycleID'])->toArray();;
+        $progressByCycle = array_reduce($progress, function ($group, $item) {
+            if (isset($group[$item['gibbonReportingScopeID']])) {
+                $group[$item['gibbonReportingScopeID']]['progressCount'] += $item['progressCount'] + $item['progressCountGroup'];
+                $group[$item['gibbonReportingScopeID']]['totalCount'] += $item['totalCount'] + $item['totalCountGroup'];
+            } else {
+                $group[$item['gibbonReportingScopeID']] = $item;
+            }
+            return $group;
+        }, []);
 
         // DATA TABLE
         $table = DataTable::create('progress');
@@ -101,6 +110,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/progress_byReporti
                         ->setURL('/modules/Reports/progress_byPerson.php');
             });
 
-        echo $table->render($progress);
+        echo $table->render($progressByCycle);
     }
 }
