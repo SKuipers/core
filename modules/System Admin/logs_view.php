@@ -54,8 +54,7 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/logs_view.php
         $row->addSelectUsers('gibbonPersonID')->selected($gibbonPersonID)->placeholder();
 
     $row = $form->addRow();
-        $row->addLabel('ip', __('IP Address'))
-            ->setClass('mediumWidth');
+        $row->addLabel('ip', __('IP Address'));
         $row->addTextField('ip')->setValue($ip);
 
     $row = $form->addRow();
@@ -85,18 +84,22 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/logs_view.php
 
     $table->addExpandableColumn('comment')
         ->format(function($log) {
-            $array = !empty($log['serialisedArray']) ? unserialize($log['serialisedArray']) : [];
+            $detailsArray = !empty($log['serialisedArray']) ? unserialize($log['serialisedArray']) : [];
 
             $details = '';
-            if (is_array($array) && count($array) > 0) {
+            if (is_array($detailsArray) && count($detailsArray) > 0) {
                 $details = "<table class='smallIntBorder' style='width:100%;'>";
-                foreach ($array as $fieldName => $fieldValue) {
+                foreach ($detailsArray as $fieldName => $fieldValue) {
+                    if ($fieldName == 'data') continue;
+
                     $fieldValue = is_array($fieldValue)
                         ? htmlentities(json_encode($fieldValue))
                         : htmlentities($fieldValue);
                     $details .= sprintf('<tr><td><b>%1$s</b></td><td style="line-break: anywhere; width: 645px;">%2$s</td></tr>', $fieldName, (substr($fieldValue, 0, 2) == 'a:') ? __("Contains serialised data.") : $fieldValue);
                 }
                 $details .= "</table>";
+            } else {
+                $details = $log['serialisedArray'];
             }
 
             return $details;

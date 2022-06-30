@@ -107,13 +107,13 @@ class FormFactory implements FormFactoryInterface
 
     public function createHeading($id = '', $content = null, $tag = null)
     {
-        $content = is_null($content) || $content == 'h3' ? $id : $content;
+        $content = is_null($content) || $content == 'h3' || $content == 'h4' ? $id : $content;
         return new Layout\Heading($id, $content, $tag);
     }
 
     public function createSubheading($id = '', $content = null, $tag = 'h4')
     {
-        $content = is_null($content) || $content == 'h4' ? $id : $content;
+        $content = is_null($content) || $content == 'h3' || $content == 'h4' ? $id : $content;
         return new Layout\Heading($id, $content, $tag = 'h4');
     }
 
@@ -259,6 +259,11 @@ class FormFactory implements FormFactoryInterface
     public function createCustomBlocks($name, Session $session)
     {
         return new Input\CustomBlocks($this, $name, $session);
+    }
+
+    public function createDocuments($name, $documents, $view, $absoluteURL, $mode = '')
+    {
+        return new Input\Documents($this, $name, $documents, $view, $absoluteURL, $mode);
     }
 
     public function createPersonalDocuments($name, $documents, $view, $settingGateway)

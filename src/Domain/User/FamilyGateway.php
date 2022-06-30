@@ -128,7 +128,7 @@ class FamilyGateway extends QueryableGateway implements ScrubbableGateway
             ->newSelect()
             ->cols($allFields
                 ? ['gibbonFamilyAdult.gibbonFamilyID', 'gibbonFamilyAdult.*', 'gibbonPerson.*']
-                : ['gibbonFamilyAdult.gibbonFamilyID', 'gibbonPerson.gibbonPersonID', 'gibbonPerson.title', 'gibbonPerson.preferredName', 'gibbonPerson.surname', 'gibbonPerson.status', 'gibbonPerson.email'])
+                : ['gibbonFamilyAdult.gibbonFamilyID', 'gibbonPerson.gibbonPersonID', 'gibbonPerson.title', 'gibbonPerson.preferredName', 'gibbonPerson.surname', 'gibbonPerson.status', 'gibbonPerson.email', 'gibbonPerson.gender'])
             ->from('gibbonFamilyAdult')
             ->innerJoin('gibbonPerson', 'gibbonFamilyAdult.gibbonPersonID=gibbonPerson.gibbonPersonID')
             ->where('FIND_IN_SET(gibbonFamilyAdult.gibbonFamilyID, :gibbonFamilyIDList)')
@@ -208,6 +208,21 @@ class FamilyGateway extends QueryableGateway implements ScrubbableGateway
             FROM gibbonFamilyChild
             JOIN gibbonFamily ON (gibbonFamily.gibbonFamilyID=gibbonFamilyChild.gibbonFamilyID)
             WHERE FIND_IN_SET(gibbonFamilyChild.gibbonPersonID, :gibbonPersonIDList)
+            ORDER BY gibbonFamily.name";
+
+        return $this->db()->select($sql, $data);
+    }
+
+    public function selectFamiliesByAdult($gibbonPersonID)
+    {
+        $gibbonPersonIDList = is_array($gibbonPersonID) ? implode(',', $gibbonPersonID) : $gibbonPersonID;
+        $data = array('gibbonPersonIDList' => $gibbonPersonIDList);
+        $sql = "SELECT gibbonFamilyAdult.gibbonPersonID, gibbonFamily.*
+            FROM gibbonFamilyAdult
+            JOIN gibbonFamily ON (gibbonFamily.gibbonFamilyID=gibbonFamilyAdult.gibbonFamilyID)
+            WHERE
+                FIND_IN_SET(gibbonFamilyAdult.gibbonPersonID, :gibbonPersonIDList)
+                AND gibbonFamilyAdult.childDataAccess='Y'
             ORDER BY gibbonFamily.name";
 
         return $this->db()->select($sql, $data);

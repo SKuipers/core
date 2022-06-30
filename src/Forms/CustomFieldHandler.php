@@ -83,6 +83,7 @@ class CustomFieldHandler
                 'varchar'    => __('Short Text (max 255 characters)'),
                 'text'       => __('Long Text'),
                 'editor'     => __('Rich Text'),
+                'code'       => __('Code'),
             ],
             __('Options') => [
                 'select'     => __('Dropdown'),
@@ -170,31 +171,10 @@ class CustomFieldHandler
         $fields = [];
 
         foreach ($customFields as $field) {
-            $fieldValue = $field['type'] == 'editor'
-                ? $_POST[$prefix.$field['gibbonCustomFieldID'].'CustomEditor'] ?? null
-                : $_POST[$prefix.$field['gibbonCustomFieldID']] ?? null;
-
-            if ($field['type'] == 'file' || $field['type'] == 'image') {
-                if ($field['type'] == 'image') {
-                    $this->fileUploader->getFileExtensions('Graphics/Design');
-                }
-
-                // Move attached file, if there is one
-                if (!empty($_FILES[$prefix.$field['gibbonCustomFieldID'].'File']['tmp_name'])) {
-                    $file = $_FILES[$prefix.$field['gibbonCustomFieldID'].'File'] ?? null;
-
-                    // Upload the file, return the /uploads relative path
-                    $fieldValue = $this->fileUploader->uploadFromPost($file, $field['name']);
-                }
-            }
+            $fieldName = $prefix.$field['gibbonCustomFieldID'];
+            $fieldValue = $this->getFieldValueFromPOST($fieldName, $field['type']);
 
             if (!is_null($fieldValue)) {
-                if ($field['type'] == 'date') {
-                    $fieldValue = Format::dateConvert($fieldValue);
-                } elseif ($field['type'] == 'checkboxes') {
-                    $fieldValue = implode(',', $fieldValue);
-                }
-
                 $fields[$field['gibbonCustomFieldID']] = $fieldValue;
             }
 
@@ -204,6 +184,37 @@ class CustomFieldHandler
         }
 
         return json_encode($fields);
+    }
+
+    public function getFieldValueFromPOST($fieldName, $fieldType)
+    {
+        $fieldValue = $fieldType == 'editor' || $fieldType == 'code'
+                ? $_POST[$fieldName.'CustomEditor'] ?? null
+                : $_POST[$fieldName] ?? null;
+
+        if ($fieldType == 'file' || $fieldType == 'image') {
+            if ($fieldType == 'image') {
+                $this->fileUploader->getFileExtensions('Graphics/Design');
+            }
+
+            // Move attached file, if there is one
+            if (!empty($_FILES[$fieldName.'File']['tmp_name'])) {
+                $file = $_FILES[$fieldName.'File'] ?? null;
+
+                // Upload the file, return the /uploads relative path
+                $fieldValue = $this->fileUploader->uploadFromPost($file, $fieldName);
+            }
+        }
+
+        if (!is_null($fieldValue)) {
+            if ($fieldType == 'date') {
+                $fieldValue = Format::dateConvert($fieldValue);
+            } elseif ($fieldType == 'checkboxes') {
+                $fieldValue = implode(',', $fieldValue);
+            }
+        }
+
+        return $fieldValue;
     }
 
     public function addCustomFieldsToForm(&$form, $context, $params = [], $fields = [])
@@ -260,7 +271,7 @@ class CustomFieldHandler
                 $name = $prefix.$field['gibbonCustomFieldID'];
                 $row = $table->addRow()->addClass($params['class'] ?? '')->setHeading($heading);
 
-                if ($field['type'] == 'editor') {
+                if ($field['type'] == 'editor' || $field['type'] == 'code') {
                     $name = $name.'CustomEditor';
                     $row = $row->addColumn();
                 }
@@ -275,6 +286,7 @@ class CustomFieldHandler
     {
         $existingFields = !empty($fields) && is_string($fields)? json_decode($fields, true) : (is_array($fields) ? $fields : []);
         $customFieldsGrouped = $this->customFieldGateway->selectCustomFields($context, $params + ['hideHidden' => '1'])->fetchGrouped();
+        $allowHTMLFields = [];
 
         if (empty($table)) {
             $table = DataTable::createDetails('customFields');
@@ -304,6 +316,9 @@ class CustomFieldHandler
                     : $table->addColumn($field['gibbonCustomFieldID'], __($field['name']));
 
                 switch ($field['type']) {
+                    case 'code':
+                        $allowHTMLFields[] = $field['name'];
+                        break;
                     case 'editor':
                         $col->addClass('col-span-3');
                         break;
@@ -333,6 +348,8 @@ class CustomFieldHandler
                 }
             }
         }
+
+        $table->addMetaData('allowHTML', $allowHTMLFields);
 
         return $table;
     }
@@ -385,7 +402,7 @@ class CustomFieldHandler
             if (!isset($_POST['newcustom'.$field['gibbonCustomFieldID'].'On'])) continue;
             if (!isset($_POST['newcustom'.$field['gibbonCustomFieldID']])) continue;
 
-            $value = $field['type'] == 'editor'
+            $value = $field['type'] == 'editor' || $field['type'] == 'code'
                 ? $_POST['newcustom'.$field['gibbonCustomFieldID'].'CustomEditor'] ?? ''
                 : $_POST['newcustom'.$field['gibbonCustomFieldID']] ?? '';
 

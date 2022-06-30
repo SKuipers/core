@@ -307,7 +307,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                                     ->setURL('/modules/User Admin/user_manage_edit.php');
                         }
 
-                        $table->addColumn('name', __('Preferred Name'))
+                        $table->addColumn('name', __('Name'))
                                 ->format(Format::using('name', ['', 'preferredName', 'surname', 'Student']));
 
                         $table->addColumn('officialName', __('Official Name'));
@@ -355,7 +355,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
 
                                     $formGroupGateway = $container->get(FormGroupGateway::class);
                                     $formGroup = $formGroupGateway->getByID($row['gibbonFormGroupID']);
-                                    
+
                                     if (isset($formGroup['gibbonPersonIDTutor'])) {
                                         $dataDetail = array('gibbonFormGroupID' => $row['gibbonFormGroupID']);
                                         $sqlDetail = 'SELECT gibbonPersonID, title, surname, preferredName FROM gibbonFormGroup JOIN gibbonPerson ON (gibbonFormGroup.gibbonPersonIDTutor=gibbonPerson.gibbonPersonID OR gibbonFormGroup.gibbonPersonIDTutor2=gibbonPerson.gibbonPersonID OR gibbonFormGroup.gibbonPersonIDTutor3=gibbonPerson.gibbonPersonID) WHERE gibbonFormGroupID=:gibbonFormGroupID ORDER BY surname, preferredName';
@@ -432,7 +432,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                                     while ($rowSelect = $resultSelect->fetch()) {
                                         echo '<u>'.$rowSelect['schoolYear'].'</u>: '.$rowSelect['formGroup'].'<br/>';
                                     }
-                                    
+
                                     if ($row['dateEnd'] != '') {
                                         echo '<u>'.__('End Date').'</u>: '.Format::date($row['dateEnd']).'</br>';
                                     }
@@ -451,7 +451,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                                     }
                                     return '';
                                 });
-                        
+
                         $privacySetting = $settingGateway->getSettingByScope('User Admin', 'privacy');
                         if ($privacySetting == 'Y') {
                             $table->addColumn('privacy', __('Privacy'))
@@ -471,7 +471,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                                     return $output;
                                 });
                         }
-                        
+
                         $studentAgreementOptions = $settingGateway->getSettingByScope('School Admin', 'studentAgreementOptions');
                         if ($studentAgreementOptions != '') {
                             $table->addColumn('studentAgreements', __('Student Agreements'))
@@ -485,6 +485,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                         //Get and display a list of student's teachers
                         $studentGateway = $container->get(StudentGateway::class);
                         $staff = $studentGateway->selectAllRelatedUsersByStudent($gibbon->session->get('gibbonSchoolYearID'), $row['gibbonYearGroupID'], $row['gibbonFormGroupID'], $gibbonPersonID)->fetchAll();
+                        $canViewStaff = isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.php');
                         $criteria = $studentGateway->newQueryCriteria();
 
                         if ($staff) {
@@ -511,19 +512,24 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
 
                                 $table->addColumn('image_240', __('Photo'))
                                     ->context('primary')
-                                    ->format(function ($person) {
+                                    ->format(function ($person) use ($canViewStaff) {
+                                        $photo = Format::userPhoto($person['image_240'], 'sm');
                                         $url = './index.php?q=/modules/Staff/staff_view_details.php&gibbonPersonID='.$person['gibbonPersonID'];
-                                        return Format::link($url, Format::userPhoto($person['image_240'], 'sm'));
+                                        return $canViewStaff 
+                                            ? Format::link($url, $photo)
+                                            : $photo;
                                     });
 
                                 $table->addColumn('fullName', __('Name'))
                                     ->context('primary')
                                     ->sortable(['surname', 'preferredName'])
                                     ->width('20%')
-                                    ->format(function ($person) {
+                                    ->format(function ($person) use ($canViewStaff) {
                                         $text = Format::name('', $person['preferredName'], $person['surname'], 'Staff', false, true);
                                         $url = './index.php?q=/modules/Staff/staff_view_details.php&gibbonPersonID='.$person['gibbonPersonID'];
-                                        return Format::link($url, $text, ['class' => 'font-bold underline leading-normal']);
+                                        return $canViewStaff 
+                                            ? Format::link($url, $text, ['class' => 'font-bold underline leading-normal'])
+                                            : $text;
                                     });
                             } else {
                                 $table->addColumn('fullName', __('Name'))
@@ -696,9 +702,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                         $col->addColumn('ethnicity', __('Ethnicity'));
                         $col->addColumn('religion', __('Religion'));
 
-                        $col->addColumn('languageFirst', __('First Language'));
-                        $col->addColumn('languageSecond', __('Second Language'));
-                        $col->addColumn('languageThird', __('Third Language'));
+                        $col->addColumn('languageFirst', __('First Language'))->translatable();
+                        $col->addColumn('languageSecond', __('Second Language'))->translatable();
+                        $col->addColumn('languageThird', __('Third Language'))->translatable();
 
                         $col = $table->addColumn('System Access', __('System Access'));
 
@@ -780,15 +786,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                                 echo '</td>';
                                 echo "<td style='width: 33%; vertical-align: top'>";
                                 echo "<span style='font-size: 115%; font-weight: bold'>".__('Family Status').'</span><br/>';
-                                echo $rowFamily['status'];
+                                echo __($rowFamily['status']);
                                 echo '</td>';
                                 echo "<td style='width: 34%; vertical-align: top' colspan=2>";
                                 echo "<span style='font-size: 115%; font-weight: bold'>".__('Home Languages').'</span><br/>';
                                 if ($rowFamily['languageHomePrimary'] != '') {
-                                    echo $rowFamily['languageHomePrimary'].'<br/>';
+                                    echo __($rowFamily['languageHomePrimary']).'<br/>';
                                 }
                                 if ($rowFamily['languageHomeSecondary'] != '') {
-                                    echo $rowFamily['languageHomeSecondary'].'<br/>';
+                                    echo __($rowFamily['languageHomeSecondary']).'<br/>';
                                 }
                                 echo '</td>';
                                 echo '</tr>';
@@ -814,7 +820,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                                 echo '</td>';
                                 echo "<td style='width: 33%; padding-top: 15px; vertical-align: top'>";
                                 echo "<span style='font-size: 115%; font-weight: bold'>".__('Home Address (Country)').'</span><br/>';
-                                echo $rowFamily['homeAddressCountry'];
+                                echo __($rowFamily['homeAddressCountry']);
                                 echo '</td>';
                                 echo '</tr>';
                                 echo '</table>';
@@ -843,7 +849,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                                     echo "<span style='font-size: 115%; font-weight: bold'>".__('Name').'</span><br/>';
                                     echo Format::name($rowMember['title'], $rowMember['preferredName'], $rowMember['surname'], 'Parent');
                                     if ($rowMember['status'] != 'Full') {
-                                        echo "<span style='font-weight: normal; font-style: italic'> (".$rowMember['status'].')</span>';
+                                        echo "<span style='font-weight: normal; font-style: italic'> (".__($rowMember['status']).')</span>';
                                     }
                                     echo "<div style='font-size: 85%; font-style: italic'>";
 
@@ -853,7 +859,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                                         $resultRelationship->execute($dataRelationship);
                                     if ($resultRelationship->rowCount() == 1) {
                                         $rowRelationship = $resultRelationship->fetch();
-                                        echo $rowRelationship['relationship'];
+                                        echo __($rowRelationship['relationship']);
                                     } else {
                                         echo '<i>'.__('Relationship Unknown').'</i>';
                                     }
@@ -867,11 +873,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                                     echo '<tr>';
                                     echo "<td $class style='width: 33%; padding-top: 15px; vertical-align: top'>";
                                     echo "<span style='font-size: 115%; font-weight: bold'>".__('First Language').'</span><br/>';
-                                    echo $rowMember['languageFirst'];
+                                    echo __($rowMember['languageFirst']);
                                     echo '</td>';
                                     echo "<td $class style='width: 33%; padding-top: 15px; vertical-align: top'>";
                                     echo "<span style='font-size: 115%; font-weight: bold'>".__('Second Language').'</span><br/>';
-                                    echo $rowMember['languageSecond'];
+                                    echo __($rowMember['languageSecond']);
                                     echo '</td>';
                                     echo '</tr>';
                                     echo '<tr>';
@@ -999,7 +1005,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
 
                                         echo "<a href='index.php?q=/modules/Students/student_view_details.php&gibbonPersonID=".$rowMember['gibbonPersonID']."&allStudents=".$allStudents."'>".Format::name('', $rowMember['preferredName'], $rowMember['surname'], 'Student').'</a><br/>';
 
-                                        echo "<span style='font-weight: normal; font-style: italic'>".__('Status').': '.$rowMember['status'].'</span>';
+                                        echo "<span style='font-weight: normal; font-style: italic'>".__('Status').': '.__($rowMember['status']).'</span>';
                                         echo '</div>';
                                         echo '</td>';
 
@@ -1072,7 +1078,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                                     $resultRelationship->execute($dataRelationship);
                                     if ($resultRelationship->rowCount() == 1) {
                                         $rowRelationship = $resultRelationship->fetch();
-                                        echo $rowRelationship['relationship'];
+                                        echo __($rowRelationship['relationship']);
                                     } else {
                                         echo '<i>'.__('Unknown').'</i>';
                                     }
@@ -1108,7 +1114,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                         echo "<span style='font-size: 115%; font-weight: bold'>".__('Contact 1').'</span><br/>';
                         echo $row['emergency1Name'];
                         if ($row['emergency1Relationship'] != '') {
-                            echo ' ('.$row['emergency1Relationship'].')';
+                            echo ' ('.__($row['emergency1Relationship']).')';
                         }
                         echo '</td>';
                         echo "<td style='width: 33%; vertical-align: top'>";
@@ -1127,7 +1133,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                         echo "<span style='font-size: 115%; font-weight: bold'>".__('Contact 2').'</span><br/>';
                         echo $row['emergency2Name'];
                         if ($row['emergency2Relationship'] != '') {
-                            echo ' ('.$row['emergency2Relationship'].')';
+                            echo ' ('.__($row['emergency2Relationship']).')';
                         }
                         echo '</td>';
                         echo "<td style='width: 33%; padding-top: 15px; vertical-align: top'>";

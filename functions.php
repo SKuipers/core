@@ -524,11 +524,11 @@ function getYearGroupsFromIDList($guid, $connection2, $ids, $vertical = false, $
                     $sqlYearsOr = '';
                     for ($i = 0; $i < count($years); ++$i) {
                         if ($i == 0) {
-                            $dataYears[$years[$i]] = $years[$i];
-                            $sqlYearsOr = $sqlYearsOr.' WHERE gibbonYearGroupID=:'.$years[$i];
+                            $dataYears["year$i"] = $years[$i];
+                            $sqlYearsOr = $sqlYearsOr.' WHERE gibbonYearGroupID=:year'.$i;
                         } else {
-                            $dataYears[$years[$i]] = $years[$i];
-                            $sqlYearsOr = $sqlYearsOr.' OR gibbonYearGroupID=:'.$years[$i];
+                            $dataYears["year$i"] = $years[$i];
+                            $sqlYearsOr = $sqlYearsOr.' OR gibbonYearGroupID=:year'.$i;
                         }
                     }
 
@@ -682,24 +682,25 @@ function getHighestGroupedAction($guid, $address, $connection2)
     if (empty($session->get('gibbonRoleIDCurrent'))) return false;
 
     $output = false;
-    $moduleID = checkModuleReady($address, $connection2);
+    $module = getModuleName($address);
 
     try {
         $data = [
             'actionName' => '%'.getActionName($address).'%',
             'gibbonRoleID' => $session->get('gibbonRoleIDCurrent'),
-            'moduleID' => $moduleID,
+            'moduleName' => $module,
         ];
         $sql = 'SELECT
         gibbonAction.name
         FROM
         gibbonAction
+        INNER JOIN gibbonModule ON (gibbonModule.gibbonModuleID=gibbonAction.gibbonModuleID)
         INNER JOIN gibbonPermission ON (gibbonAction.gibbonActionID=gibbonPermission.gibbonActionID)
         INNER JOIN gibbonRole ON (gibbonPermission.gibbonRoleID=gibbonRole.gibbonRoleID)
         WHERE
-        (gibbonAction.URLList LIKE :actionName) AND
-        (gibbonPermission.gibbonRoleID=:gibbonRoleID) AND
-        (gibbonAction.gibbonModuleID=:moduleID)
+        gibbonAction.URLList LIKE :actionName AND
+        gibbonPermission.gibbonRoleID=:gibbonRoleID AND
+        gibbonModule.name=:moduleName
         ORDER BY gibbonAction.precedence DESC, gibbonAction.gibbonActionID';
 
         $result = $connection2->prepare($sql);
@@ -1222,17 +1223,25 @@ function isActionAccessible($guid, $connection2, $address, $sub = '')
         //Check user has a current role set
         if ($session->get('gibbonRoleIDCurrent') != '') {
             //Check module ready
-            $moduleID = checkModuleReady($address, $connection2);
-            if ($moduleID != false) {
+            $module = getModuleName($address);
+            if (!empty($module)) {
                 //Check current role has access rights to the current action.
                 try {
-                    $data = array('actionName' => '%'.getActionName($address).'%', 'gibbonRoleID' => $session->get('gibbonRoleIDCurrent'));
-                    $sqlWhere = '';
+                    $data = array('actionName' => '%'.getActionName($address).'%', 'gibbonRoleID' => $session->get('gibbonRoleIDCurrent'), 'moduleName' => $module);
+
+                    $sql = "SELECT gibbonAction.name FROM gibbonAction
+                    JOIN gibbonModule ON (gibbonModule.gibbonModuleID=gibbonAction.gibbonModuleID)
+                    JOIN gibbonPermission ON (gibbonAction.gibbonActionID=gibbonPermission.gibbonActionID)
+                    JOIN gibbonRole ON (gibbonPermission.gibbonRoleID=gibbonRole.gibbonRoleID)
+                    WHERE gibbonAction.URLList LIKE :actionName
+                        AND gibbonPermission.gibbonRoleID=:gibbonRoleID
+                        AND gibbonModule.name=:moduleName ";
+
                     if ($sub != '') {
                         $data['sub'] = $sub;
-                        $sqlWhere = 'AND gibbonAction.name=:sub';
+                        $sql .= ' AND gibbonAction.name=:sub';
                     }
-                    $sql = "SELECT gibbonAction.name FROM gibbonAction, gibbonPermission, gibbonRole WHERE (gibbonAction.URLList LIKE :actionName) AND (gibbonAction.gibbonActionID=gibbonPermission.gibbonActionID) AND (gibbonPermission.gibbonRoleID=gibbonRole.gibbonRoleID) AND (gibbonPermission.gibbonRoleID=:gibbonRoleID) AND (gibbonAction.gibbonModuleID=$moduleID) $sqlWhere";
+
                     $result = $connection2->prepare($sql);
                     $result->execute($data);
                     if ($result->rowCount() > 0) {
@@ -1279,65 +1288,6 @@ function isModuleAccessible($guid, $connection2, $address = '')
     }
 
     return $output;
-}
-
-/**
- * @deprecated in v16. Use DataTables::createdPaginated()
- */
-function printPagination($guid, $total, $page, $pagination, $position, $get = '')
-{
-    global $session;
-
-    if ($position == 'bottom') {
-        $class = 'paginationBottom';
-    } else {
-        $class = 'paginationTop';
-    }
-
-    echo "<div class='$class'>";
-    $totalPages = ceil($total / $pagination);
-    $i = 0;
-    echo __('Records').' '.(($page - 1) * $session->get('pagination') + 1).'-';
-    if (($page * $session->get('pagination')) > $total) {
-        echo $total;
-    } else {
-        echo $page * $session->get('pagination');
-    }
-    echo ' '.__('of').' '.$total.' : ';
-
-    if ($totalPages <= 10) {
-        for ($i = 0;$i <= ($total / $pagination);++$i) {
-            if ($i == ($page - 1)) {
-                echo "$page ";
-            } else {
-                echo "<a href='".$session->get('absoluteURL').'/index.php?q='.$session->get('address').'&page='.($i + 1)."&$get'>".($i + 1).'</a> ';
-            }
-        }
-    } else {
-        if ($page > 1) {
-            echo "<a href='".$session->get('absoluteURL').'/index.php?q='.$session->get('address')."&page=1&$get'>".__('First').'</a> ';
-            echo "<a href='".$session->get('absoluteURL').'/index.php?q='.$session->get('address').'&page='.($page - 1)."&$get'>".__('Previous').'</a> ';
-        } else {
-            echo __('First').' '.__('Previous').' ';
-        }
-
-        $spread = 10;
-        for ($i = 0;$i <= ($total / $pagination);++$i) {
-            if ($i == ($page - 1)) {
-                echo "$page ";
-            } elseif ($i > ($page - (($spread / 2) + 2)) and $i < ($page + (($spread / 2)))) {
-                echo "<a href='".$session->get('absoluteURL').'/index.php?q='.$session->get('address').'&page='.($i + 1)."&$get'>".($i + 1).'</a> ';
-            }
-        }
-
-        if ($page != $totalPages) {
-            echo "<a href='".$session->get('absoluteURL').'/index.php?q='.$session->get('address').'&page='.($page + 1)."&$get'>".__('Next').'</a> ';
-            echo "<a href='".$session->get('absoluteURL').'/index.php?q='.$session->get('address').'&page='.$totalPages."&$get'>".__('Last').'</a> ';
-        } else {
-            echo __('Next').' '.__('Last');
-        }
-    }
-    echo '</div>';
 }
 
 //Get the module name from the address
@@ -1598,7 +1548,7 @@ function isCommandLineInterface()
             return true;
         }
 
-        if (empty($_SERVER['REMOTE_ADDR']) and !isset($_SERVER['HTTP_USER_AGENT']) and count($_SERVER['argv']) > 0)
+        if (empty($_SERVER['REMOTE_ADDR']) and !isset($_SERVER['HTTP_USER_AGENT']) and count($_SERVER['argv'] ?? []) > 0)
         {
             return true;
         }

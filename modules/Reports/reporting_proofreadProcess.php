@@ -21,6 +21,8 @@ use Gibbon\Module\Reports\Domain\ReportingProofGateway;
 use Gibbon\Module\Reports\Domain\ReportingValueGateway;
 use Gibbon\Data\Validator;
 
+$_POST['address'] = '/modules/Reports/reporting_proofread.php';
+
 require_once '../../gibbon.php';
 
 $_POST = $container->get(Validator::class)->sanitize($_POST);
@@ -29,8 +31,9 @@ $mode = $_POST['mode'] ?? '';
 $gibbonPersonID = $_POST['gibbonPersonID'] ?? '';
 $gibbonFormGroupID = $_POST['gibbonFormGroupID'] ?? '';
 $page = $_POST['page'] ?? '';
+$filter = $_POST['filter'] ?? '';
 
-$URL = $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Reports/reporting_proofread.php&mode='.$mode.'&gibbonPersonID='.$gibbonPersonID.'&gibbonFormGroupID='.$gibbonFormGroupID.'&page='.$page;
+$URL = $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Reports/reporting_proofread.php&mode='.$mode.'&gibbonPersonID='.$gibbonPersonID.'&gibbonFormGroupID='.$gibbonFormGroupID.'&page='.$page.'&filter='.$filter;
 
 if (!empty($_POST['override'])) {
     $URL .= '&override='.$_POST['override'];
@@ -43,6 +46,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_proofrea
 } else {
     // Proceed!
     $partialFail = false;
+    $updated = false;
 
     $comments = $_POST['comment'] ?? [];
     $statuses = $_POST['status'] ?? [];
@@ -94,6 +98,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_proofrea
                 'status' => $data['status'],
                 'comment' => $data['comment'],
                 'reason' => $data['reason'],
+                'gibbonPersonIDProofed' => $data['gibbonPersonIDProofed'],
+                'timestampProofed' => $data['timestampProofed'],
             ]);
         }
         

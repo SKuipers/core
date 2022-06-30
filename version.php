@@ -20,7 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 /**
  * Sets version information.
  */
-$version = '23.0.02';
+$version = '25.0.00';
 
 /**
  * System Requirements

@@ -166,6 +166,7 @@ abstract class AuthenticationAdapter implements AdapterInterface, ContainerAware
         // Verify user access beyond basic login credentials
         $this->verifyUserAccess($userData);
         $this->verifySchoolYearAccess($userData);
+        $this->verifyMFA($userData);
 
         // Verification has succeeded, update and return a safe set of user data.
         $this->updateUserData($userData);
@@ -262,6 +263,54 @@ abstract class AuthenticationAdapter implements AdapterInterface, ContainerAware
         $this->session->set('gibbonSchoolYearID', $schoolYear['gibbonSchoolYearID']);
         $this->session->set('gibbonSchoolYearName', $schoolYear['name']);
         $this->session->set('gibbonSchoolYearSequenceNumber', $schoolYear['sequenceNumber']);
+    }
+
+    protected function verifyMFA($userData)
+    {
+        $mfaCheck = @$this->userGateway->getByID($userData['gibbonPersonID'], ['mfaSecret']);
+        if (empty($mfaCheck['mfaSecret'])) {
+            $this->session->forget(['mfaToken', 'mfaTokenPass', 'mfaMethod']);
+            return;
+        }
+
+        // Check that the form nonce can only be used once
+        $mfaFormNonce = $this->session->remove('mfaFormNonce');
+        if (!empty($_POST['mfaFormNonce']) && $mfaFormNonce != $_POST['mfaFormNonce']) {
+            $this->session->forget(['mfaToken', 'mfaTokenPass', 'mfaMethod', 'mfaFormNonce']);
+            throw new Exception\InsufficientPrivileges;
+        }
+
+        // Check to see if the user had already passed their MFA check
+        if (!empty($userData['mfaLoginSuccess']) && ($userData['mfaLoginSuccess'] == $this->session->get('mfaToken') && $userData['mfaLoginCode'] == $_POST['mfaCode'])) {
+            $this->session->forget(['mfaToken', 'mfaTokenPass', 'mfaMethod']);
+            return;
+        }
+
+        // Determine how to authenticate the MFA token
+        $method = get_called_class();
+        switch ($method) {
+            case 'Gibbon\Auth\Adapter\OAuthGoogleAdapter':
+                $password = $this->session->get('googleAPIAccessToken', [])['access_token'] ?? ''; break;
+            case 'Gibbon\Auth\Adapter\OAuthMicrosoftAdapter':
+                $password = $this->session->get('microsoftAPIAccessToken', [])['access_token'] ?? ''; break;
+            case 'Gibbon\Auth\Adapter\OAuthGenericAdapter':
+                $password = $this->session->get('genericAPIAccessToken', [])['access_token'] ?? ''; break;
+            default:
+                $password = !empty($_POST['password']) ? hash('sha256', $userData['passwordStrongSalt'].$_POST['password']) : '';
+        }
+
+        // Check for presence of MFA secret
+        $mfaToken = hash('sha256', $mfaCheck['mfaSecret'].session_id());
+        $mfaTokenPass = hash('sha256', $mfaCheck['mfaSecret'].$password);
+
+        $this->userGateway->update($userData['gibbonPersonID'], ['mfaToken' => $mfaToken]);
+
+        $this->session->set('mfaToken', $mfaToken);
+        $this->session->set('mfaTokenPass', $mfaTokenPass);
+        $this->session->set('mfaMethod', $method);
+        $this->session->forget('mfaFormNonce');
+
+        throw new Exception\MFATokenRequired;
     }
 
     /**

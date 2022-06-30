@@ -48,7 +48,7 @@ class UserGateway extends QueryableGateway implements ScrubbableGateway
     private static $scrubbableKey = false;
     private static $scrubbableColumns = ['passwordStrong' => 'randomString', 'passwordStrongSalt' => 'randomString', 'address1' => '', 'address1District' => '', 'address1Country' => '', 'address2' => '', 'address2District' => '', 'address2Country' => '', 'phone1Type' => '', 'phone1CountryCode' => '', 'phone1' => '', 'phone3Type' => '', 'phone3CountryCode' => '', 'phone3' => '', 'phone2Type' => '', 'phone2CountryCode' => '', 'phone2' => '', 'phone4Type' => '', 'phone4CountryCode' => '', 'phone4' => '', 'website' => '', 'languageFirst' => '', 'languageSecond' => '', 'languageThird' => '', 'countryOfBirth' => '',  'ethnicity' => '', 'religion' => '', 'profession' => '', 'employer' => '', 'jobTitle' => '', 'emergency1Name' => '', 'emergency1Number1' => '', 'emergency1Number2' => '', 'emergency1Relationship' => '', 'emergency2Name' => '', 'emergency2Number1' => '', 'emergency2Number2' => '', 'emergency2Relationship' => '', 'transport' => '', 'transportNotes' => '', 'calendarFeedPersonal' => '', 'lockerNumber' => '', 'vehicleRegistration' => '', 'personalBackground' => '', 'studentAgreements' =>null, 'fields' => ''];
 
-    private static $safeUserFields = ['gibbonPersonID', 'username', 'surname', 'firstName', 'preferredName', 'officialName', 'email', 'emailAlternate', 'website', 'gender', 'status', 'image_240', 'lastTimestamp', 'messengerLastRead', 'calendarFeedPersonal', 'viewCalendarSchool', 'viewCalendarPersonal', 'viewCalendarSpaceBooking', 'dateStart', 'personalBackground', 'gibboni18nIDPersonal', 'googleAPIRefreshToken', 'microsoftAPIRefreshToken', 'genericAPIRefreshToken', 'receiveNotificationEmails', 'cookieConsent', 'gibbonHouseID'];
+    private static $safeUserFields = ['gibbonPersonID', 'username', 'surname', 'firstName', 'preferredName', 'officialName', 'email', 'emailAlternate', 'website', 'gender', 'status', 'image_240', 'lastTimestamp', 'messengerLastRead', 'calendarFeedPersonal', 'viewCalendarSchool', 'viewCalendarPersonal', 'viewCalendarSpaceBooking', 'dateStart', 'personalBackground', 'gibboni18nIDPersonal', 'googleAPIRefreshToken', 'microsoftAPIRefreshToken', 'genericAPIRefreshToken', 'receiveNotificationEmails', 'mfaToken' , 'cookieConsent', 'gibbonHouseID', 'passwordForceReset'];
 
     /**
      * Queries the list of users for the Manage Users page.
@@ -189,5 +189,21 @@ class UserGateway extends QueryableGateway implements ScrubbableGateway
                 ORDER BY FIND_IN_SET(gibbonPerson.gibbonPersonID, :gibbonPersonIDList), surname, preferredName";
 
         return $this->db()->select($sql, $data);
+    }
+
+    public function addRoleToUser($gibbonPersonID, $gibbonRoleID)
+    {
+        $data = ['gibbonPersonID' => $gibbonPersonID, 'gibbonRoleID' => $gibbonRoleID];
+        $sql = "UPDATE gibbonPerson SET gibbonRoleIDAll=concat(gibbonRoleIDAll, ',', :gibbonRoleID) WHERE gibbonPersonID=:gibbonPersonID AND gibbonRoleIDAll NOT LIKE CONCAT('%', :gibbonRoleID, '%')";
+
+        return $this->db()->affectingStatement($sql, $data);
+    }
+
+    public function removeRoleFromUser($gibbonPersonID, $gibbonRoleID)
+    {
+        $data = ['gibbonPersonID' => $gibbonPersonID, 'gibbonRoleID' => $gibbonRoleID];
+        $sql = "UPDATE gibbonPerson SET gibbonRoleIDAll=REPLACE(REPLACE(gibbonRoleIDAll, :gibbonRoleID, ''), ',,', '') WHERE gibbonPersonID=:gibbonPersonID AND gibbonRoleIDAll LIKE CONCAT('%', :gibbonRoleID, '%')";
+
+        return $this->db()->update($sql, $data);
     }
 }

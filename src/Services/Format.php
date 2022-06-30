@@ -232,11 +232,11 @@ class Format
                 $minutes = floor($seconds / 60);
                 $time = __n('{count} min', '{count} mins', $minutes);
                 break;
-            case ($seconds >= 3600 && $seconds < 86400):
+            case ($seconds >= 3600 && $seconds < 172800):
                 $hours = floor($seconds / 3600);
                 $time = __n('{count} hr', '{count} hrs', $hours);
                 break;
-            case ($seconds >= 86400 && $seconds < 1209600):
+            case ($seconds >= 172800 && $seconds < 1209600):
                 $days = floor($seconds / 86400);
                 $time = __n('{count} day', '{count} days', $days);
                 break;
@@ -350,6 +350,8 @@ class Format
      */
     public static function genderName($value, $translate = true)
     {
+        if (empty($value)) return '';
+        
         $genderNames = [
             'F'           => __('Female'),
             'M'           => __('Male'),
@@ -462,7 +464,7 @@ class Format
         }
 
         if (stripos($url, static::$settings['absoluteURL']) === false) {
-            return '<a href="'.$url.'" '.self::attributes($attr).' target="_blank">'.$text.'</a>';
+            return '<a href="'.$url.'" '.self::attributes($attr).' target="_blank" rel="noopener noreferrer">'.$text.'</a>';
         } else {
             return '<a href="'.$url.'" '.self::attributes($attr).'>'.$text.'</a>';
         }
@@ -477,7 +479,7 @@ class Format
     public static function hyperlinkAll(string $value)
     {
         $pattern = '/([^">]|^)(https?:\/\/[^"<>\s]+)/';
-        return preg_replace($pattern, '$1<a target="_blank" href="$2">$2</a>', $value);
+        return preg_replace($pattern, '$1<a target="_blank" rel="noopener noreferrer" href="$2">$2</a>', $value);
     }
 
     /**
@@ -598,6 +600,50 @@ class Format
         return $output;
     }
 
+    public static function listDetails(array $items, $tag = 'ul', $listClass = '', $itemClass = 'leading-normal')
+    {
+        $output = "<$tag class='$listClass'>";
+        foreach ($items as $label => $value) {
+            if ($label == 'heading' || $label == 'subheading') {
+                $hTag = $label == 'heading' ? 'h3' : 'h4';
+                $output .= "<li class='{$itemClass}'><{$hTag}>".$value."</{$hTag}></li>";
+            } else {
+                $output .= "<li class='{$itemClass}'><strong>".$label.'</strong>: '.$value.'</li>';
+            }
+        }
+        $output .= "</$tag>";
+
+        return $output;
+    }
+
+    public static function table(array $items, $class = 'w-full', $rowClass = '', $cellClass = '')
+    {
+        if (empty($items)) return '';
+
+        $headings =  array_unique(array_merge(...array_map(function ($item) {
+            return array_keys($item);
+        }, $items)));
+
+        $output = "<table class='$class'>";
+
+        $output .= "<thead>";
+        foreach ($headings as $key => $label) {
+            $output .= "<th>".$label.'</th>';
+        }
+        $output .= "</thead>";
+
+        foreach ($items as $index => $item) {
+            $output .= "<tr class='$rowClass'>";
+            foreach ($headings as $key) {
+                $output .= "<td class='$cellClass'>".($item[$key] ?? '').'</td>';
+            }
+            $output .= "</tr>";
+        }
+        $output .= "</table>";
+
+        return $output;
+    }
+
     /**
      * Formats a name based on the provided Role Category. Optionally reverses the name (surname first) or uses an informal format (no title).
      *
@@ -659,7 +705,12 @@ class Format
     public static function nameLinked($gibbonPersonID, $title, $preferredName, $surname, $roleCategory = 'Other', $reverse = false, $informal = false, $params = [])
     {
         $name = self::name($title, $preferredName, $surname, $roleCategory, $reverse, $informal);
-        if ($roleCategory == 'Staff') {
+        if ($roleCategory == 'Parent' || $roleCategory == 'Other') {
+            $url = Url::fromModuleRoute('User Admin', 'user_manage_edit')
+                ->withAbsoluteUrl()
+                ->withQueryParams(['gibbonPersonID' => $gibbonPersonID] + $params);
+            $output = self::link($url, $name);
+        } elseif ($roleCategory == 'Staff') {
             $url = Url::fromModuleRoute('Staff', 'staff_view_details')
                 ->withAbsoluteUrl()
                 ->withQueryParams(['gibbonPersonID' => $gibbonPersonID] + $params);
