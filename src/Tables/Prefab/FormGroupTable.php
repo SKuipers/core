@@ -62,6 +62,11 @@ class FormGroupTable extends DataTable
             $canViewConfidential = false;
         }
 
+        if ($highestAction == 'View Student Profile_myChildren') {
+            $this->withData([]);
+            return;
+        }
+        
         if ($canPrint && isActionAccessible($guid, $connection2, '/modules/Students/report_students_byFormGroup.php') == false) {
             $canPrint = false;
         }
