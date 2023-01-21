@@ -277,10 +277,10 @@ function rubricView($guid, $connection2, $gibbonRubricID, $mark, $gibbonPersonID
             //Controls for viewing mode
             if ($gibbonPersonID != '' && $hasContexts) {
                 $output .= "<div class='linkTop'>";
-                $output .= "Viewing Mode: <select name='type' id='type' class='type' style='width: 152px; float: none'>";
-                $output .= "<option id='type' name='type' value='Current'>".__('Current').'</option>';
-                $output .= "<option id='type' name='type' value='Visualise'>".__('Visualise').'</option>';
-                $output .= "<option id='type' name='type' value='Historical'>".__('Historical Data').'</option>';
+                $output .= "Viewing Mode: <select name='rubricTypeSelect' id='rubricTypeSelect' class='type' style='width: 152px; float: none'>";
+                $output .= "<option name='rubricTypeSelect' value='Current'>".__('Current').'</option>';
+                $output .= "<option name='rubricTypeSelect' value='Visualise'>".__('Visualise').'</option>';
+                $output .= "<option name='rubricTypeSelect' value='Historical'>".__('Historical Data').'</option>';
                 $output .= '</select>';
                 $output .= '</div>';
             }
@@ -301,8 +301,8 @@ function rubricView($guid, $connection2, $gibbonRubricID, $mark, $gibbonPersonID
                     $row->addContent()->addClass('');
 
                 if ($hasContexts) {
-                    $form->toggleVisibilityByClass('currentView')->onSelect('type')->when('Current');
-                    $form->toggleVisibilityByClass('historical')->onSelect('type')->when('Historical');
+                    $form->toggleVisibilityByClass('currentView')->onSelect('rubricTypeSelect')->when('Current');
+                    $form->toggleVisibilityByClass('historical')->onSelect('rubricTypeSelect')->when('Historical');
                 }
 
                     // Column Headers
@@ -400,35 +400,33 @@ function rubricView($guid, $connection2, $gibbonRubricID, $mark, $gibbonPersonID
 
             $output .= "</div>";
 
-            if ($hasContexts) {
-                //Div to contain visualisation
-                $output .= "<div id='visualise' style='display: none'>";
-                    $output .= "<p>";
-                        $output .= __("This view offers a visual representation of all rubric data for the current student, this year, in the current context:");
-                    $output .= "</p>";
+            //Div to contain visualisation
+            $output .= "<div id='visualise' style='display: none'>";
+                $output .= "<p>";
+                    $output .= __("This view offers a visual representation of all rubric data for the current student, this year, in the current context:");
+                $output .= "</p>";
 
-                    require_once __DIR__ . '/src/Visualise.php';
-                    $visualise = new Visualise($gibbon->session->get('absoluteURL'), $page, $gibbonPersonID, $columns, $rows, $cells, $contexts);
+                require_once __DIR__ . '/src/Visualise.php';
+                $visualise = new Visualise($gibbon->session->get('absoluteURL'), $page, $gibbonPersonID, $columns, $rows, $cells, $contexts);
 
-                    $output .= $visualise->renderVisualise();
+                $output .= $visualise->renderVisualise();
 
-                $output .= "</div>";
+            $output .= "</div>";
 
-                //Function to show/hide rubric/visualisation
-                $output .= "<script type='text/javascript'>
-                     $(document).ready(function(){
-                        $('#type').change(function () {
-                            if ($(this).val() == 'Current' || $(this).val() == 'Historical') {
-                                $('#rubric').slideDown('fast', $('#rubric').css('display','block'));
-                                $('#visualise').css('display','none');
-                            } else {
-                                $('#visualise').slideDown('fast', $('#visualise').css('display','block'));
-                                $('#rubric').css('display','none');
-                            }
-                        });
+            //Function to show/hide rubric/visualisation
+            $output .= "<script type='text/javascript'>
+                 $(document).ready(function(){
+                    $('#rubricTypeSelect').change(function () {
+                        if ($(this).val() == 'Current' || $(this).val() == 'Historical') {
+                            $('#rubric').slideDown('fast', $('#rubric').css('display','block'));
+                            $('#visualise').css('display','none');
+                        } else {
+                            $('#visualise').slideDown('fast', $('#visualise').css('display','block'));
+                            $('#rubric').css('display','none');
+                        }
                     });
                 </script>";
-            }
+            
             $output .= "<style>";
             for ($i = 0; $i < $rowCount; ++$i) {
                 $color = $rows[$i]['backgroundColor'] ?? '#666666';

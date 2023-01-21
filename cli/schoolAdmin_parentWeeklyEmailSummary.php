@@ -21,6 +21,7 @@ use Gibbon\View\View;
 use Gibbon\Services\Format;
 use Gibbon\Contracts\Comms\Mailer;
 use Gibbon\Comms\NotificationEvent;
+use Gibbon\Data\PasswordPolicy;
 use Gibbon\Domain\User\FamilyGateway;
 use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Domain\Planner\PlannerEntryGateway;
@@ -31,11 +32,6 @@ use Gibbon\Domain\Planner\PlannerParentWeeklyEmailSummaryGateway;
 $_POST['address'] = '/modules/School Admin/emailSummarySettings.php';
 
 require __DIR__.'/../gibbon.php';
-
-// Setup some of the globals
-getSystemSettings($guid, $connection2);
-setCurrentSchoolYear($guid, $connection2);
-Format::setupFromSession($container->get('session'));
 
 $settingGateway = $container->get(SettingGateway::class);
 
@@ -94,7 +90,7 @@ foreach ($families as $gibbonFamilyID => $students) {
     // Get the adults in this family and filter by email settings
     $familyAdults = $familyGateway->selectAdultsByFamily($gibbonFamilyID, true)->fetchAll();
     $familyAdults = array_filter($familyAdults, function ($parent) {
-        return $parent['contactEmail'] == 'Y';
+        return $parent['status'] == 'Full' && $parent['contactEmail'] == 'Y' && !empty($parent['email']);
     });
 
     if (empty($familyAdults)) continue;
@@ -183,8 +179,9 @@ foreach ($families as $gibbonFamilyID => $students) {
         }
 
         // Make and store unique code for confirmation.
+        $randStrGenerator = new PasswordPolicy(true, true, false, 40); // Use password policy to generate random string
         for ($count = 0; $count < 100; $count++) {
-            $key = randomPassword(40);
+            $key = $randStrGenerator->generate();
             $checkUnique = $emailSummaryGateway->getAnySummaryDetailsByKey($key);
 
             if (empty($checkUnique)) break;

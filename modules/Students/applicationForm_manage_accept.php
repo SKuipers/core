@@ -23,6 +23,7 @@ use Gibbon\Services\Format;
 use Gibbon\Contracts\Comms\Mailer;
 use Gibbon\Data\UsernameGenerator;
 use Gibbon\Comms\NotificationEvent;
+use Gibbon\Data\PasswordPolicy;
 use Gibbon\Domain\System\LogGateway;
 use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Domain\User\PersonalDocumentGateway;
@@ -50,7 +51,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
     if ($gibbonApplicationFormID == '' or $gibbonSchoolYearID == '') {
         $page->addError(__('You have not specified one or more required parameters.'));
     } else {
-        
+
             $data = array('gibbonApplicationFormID' => $gibbonApplicationFormID);
             $sql = "SELECT * FROM gibbonApplicationForm WHERE gibbonApplicationFormID=:gibbonApplicationFormID AND (status='Pending' OR status='Waiting List')";
             $result = $connection2->prepare($sql);
@@ -186,7 +187,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                 $list = $col->addContent();
 
                 if (empty($values['gibbonFormGroupID'])) {
-                    $list->append('<li>'.__('Enrol the student in the selected school year (as the student has been assigned to a form group).').'</li>');
+                    $list->append('<li>'.__('Enrol the student in the selected school year (as the student has not been assigned to a form group).').'</li>');
                 }
 
                 $list->append('<li>'.__('Create an individual needs record for the student.').'</li>')
@@ -231,6 +232,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                 //CREATE STUDENT
                 $failStudent = true;
 
+                /** @var PasswordPolicy */
+                $passwordPolicy = $container->get(PasswordPolicy::class);
+
 
                 if (!empty($values['gibbonPersonIDStudent'])) {
                     // EXISTING STUDENT
@@ -251,7 +255,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                         $username = $studentDetails['username'];
 
                         // Generate a random password
-                        $password = randomPassword(8);
+                        $password = $passwordPolicy->generate();
                         $salt = getSalt();
                         $passwordStrong = hash('sha256', $salt.$password);
 
@@ -284,7 +288,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                     }
 
                     // Generate a random password
-                    $password = randomPassword(8);
+                    $password = $passwordPolicy->generate();
                     $salt = getSalt();
                     $passwordStrong = hash('sha256', $salt.$password);
 
@@ -496,7 +500,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                     echo '</ul>';
 
                     //Move documents to student notes
-                    
+
                         $dataDoc = array('gibbonApplicationFormID' => $gibbonApplicationFormID);
                         $sqlDoc = 'SELECT * FROM gibbonApplicationFormFile WHERE gibbonApplicationFormID=:gibbonApplicationFormID';
                         $resultDoc = $connection2->prepare($sqlDoc);
@@ -507,7 +511,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                             $note .= "<a href='".$session->get('absoluteURL').'/'.$rowDoc['path']."'>".$rowDoc['name'].'</a><br/>';
                         }
                         $note .= '</p>';
-                        
+
                             $data = array('gibbonPersonID' => $gibbonPersonID, 'title' => __('Application Documents'), 'note' => $note, 'gibbonPersonIDCreator' => $session->get('gibbonPersonID'), 'timestamp' => date('Y-m-d H:i:s'));
                             $sql = 'INSERT INTO gibbonStudentNote SET gibbonPersonID=:gibbonPersonID, gibbonStudentNoteCategoryID=NULL, title=:title, note=:note, gibbonPersonIDCreator=:gibbonPersonIDCreator, timestamp=:timestamp';
                             $result = $connection2->prepare($sql);
@@ -689,7 +693,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                         while ($rowParents = $resultParents->fetch()) {
                             //Update parent roles
                             if (strpos($rowParents['gibbonRoleIDAll'], '004') === false) {
-                                
+
                                     $dataRoleUpdate = array('gibbonPersonID' => $rowParents['gibbonPersonID']);
                                     $sqlRoleUpdate = "UPDATE gibbonPerson SET gibbonRoleIDAll=concat(gibbonRoleIDAll, ',004') WHERE gibbonPersonID=:gibbonPersonID";
                                     $resultRoleUpdate = $connection2->prepare($sqlRoleUpdate);
@@ -752,7 +756,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                     } else {
                         //CREATE A NEW FAMILY
                         $failFamily = true;
-                        
+
                         $familyName = $values['parent1preferredName'].' '.$values['parent1surname'];
                         if ($values['parent2preferredName'] != '' and $values['parent2surname'] != '') {
                             $familyName .= ' & '.$values['parent2preferredName'].' '.$values['parent2surname'];
@@ -787,7 +791,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
 
                         if ($insertOK == true) {
                             $failFamily = false;
-                            
+
                             $gibbonFamilyID = $connection2->lastInsertID();
                         }
 
@@ -917,7 +921,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                         $status = $schoolYearEntry['status'] == 'Upcoming' && $informParents != 'Y' ? 'Full' : 'Full'; 
 
                         // Generate a random password
-                        $password = randomPassword(8);
+                        $password = $passwordPolicy->generate();
                         $salt = getSalt();
                         $passwordStrong = hash('sha256', $salt.$password);
 
@@ -1088,7 +1092,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                         $status = $schoolYearEntry['status'] == 'Upcoming' && $informParents != 'Y' ? 'Full' : 'Full'; 
 
                         // Generate a random password
-                        $password = randomPassword(8);
+                        $password = $passwordPolicy->generate();
                         $salt = getSalt();
                         $passwordStrong = hash('sha256', $salt.$password);
 
@@ -1249,7 +1253,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                                 } else {
                                     $body = sprintf(__('Dear %1$s,<br/><br/>Welcome to %2$s, %3$s\'s system for managing school information. You can access the system by going to %4$s and logging in with your new username (%5$s) and password (%6$s). You can learn more about using %7$s on the official support website (https://docs.gibbonedu.org/parents).<br/><br/>In order to maintain the security of your data, we highly recommend you change your password to something easy to remember but hard to guess. This can be done by using the Preferences page after logging in (top-right of the screen).<br/><br/>'), Format::name('', $informParentsEntry['preferredName'], $informParentsEntry['surname'], 'Student'), $session->get('systemName'), $session->get('organisationNameShort'), $session->get('absoluteURL'), $informParentsEntry['username'], $informParentsEntry['password'], $session->get('systemName')).sprintf(__('Please feel free to reply to this email should you have any questions.<br/><br/>%1$s,<br/><br/>%2$s Admissions Administrator'), $session->get('organisationAdmissionsName'), $session->get('systemName'));
                                 }
-                                $bodyPlain = emailBodyConvert($body);
 
                                 $mail = $container->get(Mailer::class);
                                 $mail->SetFrom($session->get('organisationAdmissionsEmail'), $session->get('organisationAdmissionsName'));
@@ -1280,7 +1283,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                     }
 
                     // Raise a new notification event
-                    $event = new NotificationEvent('Students', 'Application Form Accepted');
+                    $event = new NotificationEvent('Admissions', 'Application Form Accepted');
 
                     $studentName = Format::name('', $values['preferredName'], $values['surname'], 'Student');
                     $studentGroup = (!empty($formGroupName))? $formGroupName : $yearGroupName;
@@ -1302,7 +1305,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
 
                     // Raise a new notification event for SEN
                     if (!empty($values['senDetails']) || !empty($values['medicalInformation'])) {
-                        $event = new NotificationEvent('Students', 'New Application with SEN/Medical');
+                        $event = new NotificationEvent('Admissions', 'New Application with SEN/Medical');
                         $event->addScope('gibbonPersonIDStudent', $gibbonPersonID);
                         $event->addScope('gibbonYearGroupID', $values['gibbonYearGroupIDEntry']);
 
@@ -1338,7 +1341,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                         echo __('Student status could not be updated: student is in the system, but acceptance has failed.');
                         echo '</div>';
 
-                        
+
                     } else {
                         echo '<h4>';
                         echo __('Application Status');

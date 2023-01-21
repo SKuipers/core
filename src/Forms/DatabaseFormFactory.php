@@ -34,13 +34,23 @@ use Gibbon\Services\Format;
  */
 class DatabaseFormFactory extends FormFactory
 {
+    /**
+     * Database connection.
+     *
+     * @var Connection
+     */
     protected $pdo;
 
+    /**
+     * Cached query results.
+     *
+     * @var array
+     */
     protected $cachedQueries = array();
 
     /**
      * Create a factory with access to the provided a database connection.
-     * @param  Gibbon\Contracts\Database\Connection  $pdo
+     * @param  Connection  $pdo
      */
     public function __construct(Connection $pdo)
     {
@@ -151,7 +161,7 @@ class DatabaseFormFactory extends FormFactory
                 WHERE gibbonSchoolYearID=:gibbonSchoolYearID
                 AND gibbonCourse.name LIKE :courseFilter
                 AND gibbonCourseClassPerson.gibbonPersonID=:gibbonPersonID
-                AND NOT role LIKE '% - Left%'
+                AND NOT gibbonCourseClassPerson.role LIKE '% - Left%'
                 ORDER BY class";
 
             $result = $this->pdo->select($sql, $data);
@@ -169,7 +179,7 @@ class DatabaseFormFactory extends FormFactory
                 WHERE gibbonSchoolYearID=:gibbonSchoolYearID
                 AND FIND_IN_SET(gibbonCourse.gibbonDepartmentID, :gibbonDepartmentIDList)
                 AND gibbonCourseClassPerson.gibbonPersonID=:gibbonPersonID
-                AND NOT role LIKE '% - Left%'
+                AND NOT gibbonCourseClassPerson.role LIKE '% - Left%'
                 ORDER BY class";
 
             $result = $this->pdo->select($sql, $data);
@@ -180,7 +190,13 @@ class DatabaseFormFactory extends FormFactory
 
         if (!empty($gibbonPersonID)) {
             $data = ['gibbonSchoolYearID' => $gibbonSchoolYearID, 'gibbonPersonID' => $gibbonPersonID];
-            $sql = "SELECT gibbonCourseClass.gibbonCourseClassID as value, CONCAT(gibbonCourse.nameShort, '.', gibbonCourseClass.nameShort) as name FROM gibbonCourseClassPerson JOIN gibbonCourseClass ON (gibbonCourseClassPerson.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) JOIN gibbonCourse ON (gibbonCourseClass.gibbonCourseID=gibbonCourse.gibbonCourseID) WHERE gibbonCourse.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonPersonID=:gibbonPersonID";
+            $sql = "SELECT gibbonCourseClass.gibbonCourseClassID as value, CONCAT(gibbonCourse.nameShort, '.', gibbonCourseClass.nameShort) as name
+                FROM gibbonCourseClassPerson
+                JOIN gibbonCourseClass ON (gibbonCourseClassPerson.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID)
+                JOIN gibbonCourse ON (gibbonCourseClass.gibbonCourseID=gibbonCourse.gibbonCourseID)
+                WHERE gibbonCourse.gibbonSchoolYearID=:gibbonSchoolYearID
+                AND gibbonPersonID=:gibbonPersonID
+                AND NOT gibbonCourseClassPerson.role LIKE '% - Left%'";
             if (isset($params['attendance'])) {
                 $data['attendance'] = $params['attendance'];
                 $sql .= " AND gibbonCourseClass.attendance=:attendance";
@@ -400,14 +416,14 @@ class DatabaseFormFactory extends FormFactory
                     JOIN gibbonFormGroup ON (gibbonStudentEnrolment.gibbonFormGroupID=gibbonFormGroup.gibbonFormGroupID)
                     JOIN gibbonYearGroup ON (gibbonStudentEnrolment.gibbonYearGroupID=gibbonYearGroup.gibbonYearGroupID)
                      ";
-                    
+
             if (!empty($gibbonSchoolYearID)) {
                 $sql .= "WHERE gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID
                         AND gibbonPerson.status='Full'
-                        AND (dateStart IS NULL OR dateStart<=:date) 
+                        AND (dateStart IS NULL OR dateStart<=:date)
                         AND (dateEnd IS NULL OR dateEnd>=:date)";
-            }    
-                    
+            }
+
             $sql .= " ORDER BY formGroupName, gibbonPerson.surname, gibbonPerson.preferredName";
 
             $result = $this->pdo->select($sql, ['gibbonSchoolYearID' => $gibbonSchoolYearID, 'date' => date('Y-m-d')]);
@@ -423,11 +439,11 @@ class DatabaseFormFactory extends FormFactory
         $sql = "SELECT gibbonPerson.gibbonPersonID, title, surname, preferredName, username, gibbonRole.category
                 FROM gibbonPerson
                 JOIN gibbonRole ON (gibbonRole.gibbonRoleID=gibbonPerson.gibbonRoleIDPrimary) ";
-          
+
         if (!empty($gibbonSchoolYearID)) {
             $sql .= " WHERE status='Full' OR status='Expected' ";
         }
-                    
+
         $sql .= " ORDER BY surname, preferredName";
 
         $result = $this->pdo->select($sql);
