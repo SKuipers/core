@@ -21,6 +21,7 @@ namespace Gibbon\Domain\System;
 
 use Gibbon\Domain\Traits\TableAware;
 use Gibbon\Domain\QueryableGateway;
+use Gibbon\Domain\QueryCriteria;
 
 /**
  * Setting Gateway
@@ -54,8 +55,29 @@ class SettingGateway extends QueryableGateway
      *
      * @var string[]
      */
-    private static $searchableColumns = ['scope', 'name'];
+    private static $searchableColumns = ['scope', 'name', 'nameDisplay', 'description'];
 
+    /**
+     * @param QueryCriteria $criteria
+     * @return DataSet
+     */
+    public function querySettings(QueryCriteria $criteria, $scopes = null)
+    {
+        $query = $this
+            ->newQuery()
+            ->from($this->getTableName())
+            ->cols([
+                'scope', 'name', 'nameDisplay', 'description', 'value',
+            ]);
+
+        if (!empty($scopes)) {
+            $query->where('FIND_IN_SET(scope, :scopes)')
+                  ->bindValue('scopes', is_array($scopes)? implode(',', $scopes) : $scopes);
+        }
+
+        return $this->runQuery($query, $criteria);
+    }
+    
     /**
      * Get settings by the scope and the setting name.
      *
@@ -90,8 +112,8 @@ class SettingGateway extends QueryableGateway
      */
     public function getAllSettingsByScope($scope)
     {
-        $data = ['scope' => $scope];
-        $sql = "SELECT * FROM gibbonSetting WHERE scope=:scope ORDER BY name";
+        $data = ['scope' => is_array($scope)? implode(',', $scope) : $scope ];
+        $sql = "SELECT * FROM gibbonSetting WHERE FIND_IN_SET(scope, :scope) ORDER BY name";
 
         return $this->db()->select($sql, $data)->fetchAll();
     }
