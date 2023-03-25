@@ -472,6 +472,7 @@ class FormFactory implements FormFactoryInterface
                 'DZD دج' => 'Algerian Dinar (دج)',
                 'BDT ó' => 'Bangladeshi Taka (ó)',
                 'BTC' => 'Bitcoin',
+                'BWP P' => 'Botswana Pula (P)',
                 'BGN лв.' => 'Bulgarian Lev (лв.)',
                 'XAF FCFA' => 'Central African Francs (FCFA)',
                 'CNY ¥' => 'Chinese Renminbi (¥)',

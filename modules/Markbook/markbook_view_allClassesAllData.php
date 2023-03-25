@@ -997,8 +997,8 @@ require_once __DIR__ . '/src/MarkbookColumn.php';
         }
 
         // Class Average
-        if ($markbook->getSetting('enableColumnWeighting') == 'Y' && $columnFilter != 'unmarked' && $defaultAssessmentScale['numeric'] == 'Y') {
-            echo '<tr>';
+        if ($markbook->getSetting('enableColumnWeighting') == 'Y' && $columnFilter != 'unmarked') {
+            echo '<tr style="height: 25px;">';
             echo '<td class="firstColumn right dataDividerTop">'.__('Class Average').':</td>';
 
             if ($markbook->hasExternalAssessments()) {

@@ -45,7 +45,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_planner.php
     // DATE SELECTOR
     $link = $session->get('absoluteURL').'/index.php?q=/modules/Staff/coverage_planner.php';
 
-    $form = Form::create('action', $link);
+    $form = Form::create('dateNav', $link);
     $form->setClass('blank fullWidth');
     $form->addHiddenValue('address', $session->get('address'));
 
@@ -68,25 +68,32 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_planner.php
 
     // COVERAGE
     $coverage = $staffCoverageGateway->selectCoverageByTimetableDate($gibbonSchoolYearID, $date->format('Y-m-d'))->fetchGrouped();
-    $times = $staffCoverageDateGateway->selectCoverageTimesByDate($gibbonSchoolYearID, $date->format('Y-m-d'))->fetchAll();
+    $times = $staffCoverageDateGateway->selectCoverageTimesByDate($gibbonSchoolYearID, $date->format('Y-m-d'))->fetchGroupedUnique();
 
     if (empty($times)) {
-        $times = [['groupBy' => '']];
+        $times = ['' => ['groupBy' => '']];
     }
+
+    $copyURL = Url::fromHandlerModuleRoute('fullscreen.php', 'Staff', 'coverage_planner_copy.php')
+        ->withQueryParams(['date' => $date->format('Y-m-d'), 'width' => 800, 'height' => 600 ]);
+    echo $form->getFactory()->createWebLink(Format::icon('copy', __('Copy')))
+        ->setURL($copyURL)
+        ->addClass('thickbox float-right mt-8')
+        ->getOutput();
 
     echo '<h2>'.__(Format::dateReadable($date->format('Y-m-d'), '%A')).'</h2>';
     echo '<p>'.Format::dateReadable($date->format('Y-m-d')).'</p>';
 
-    foreach ($times as $timeSlot) {
+    foreach ($times as $groupBy => $timeSlot) {
 
-        $coverageByTT = $coverage[$timeSlot['groupBy']] ?? [];
+        $coverageByTT = $coverage[$groupBy] ?? [];
 
         // DATA TABLE
         $gridRenderer = new GridView($container->get('twig'));
         
         $table = DataTable::create('staffCoverage')->setRenderer($gridRenderer);
 
-        if (!empty($timeSlot['groupBy'])) {
+        if (!empty($groupBy)) {
             $table->setDescription('<h4 class="-mb-3">'.__($timeSlot['period']).' <span class="text-xs font-normal">('.Format::timeRange($timeSlot['timeStart'], $timeSlot['timeEnd']).')</span></h4>');
         }
 
@@ -99,6 +106,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_planner.php
             if ($coverage['absenceStatus'] == 'Pending Approval') return $row->addClass('bg-stripe');
             if ($coverage['status'] == 'Declined') return null;
             if ($coverage['status'] == 'Cancelled') return null;
+            if ($coverage['status'] == 'Not Required') $row->addClass('bg-dull');
             if ($coverage['status'] == 'Accepted') $row->addClass('bg-green-200');
             if ($coverage['status'] == 'Requested') $row->addClass('bg-red-200');
             if ($coverage['status'] == 'Pending') $row->addClass('bg-red-200');
@@ -128,7 +136,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_planner.php
                 $url = $coverage['context'] == 'Class' 
                     ? './index.php?q=/modules/Departments/department_course_class.php&gibbonDepartmentID='.$coverage['gibbonDepartmentID'].'&gibbonCourseID='.$coverage['gibbonCourseID'].'&gibbonCourseClassID='.$coverage['gibbonCourseClassID']
                     : '';
-                return Format::link($url, $coverage['contextName']);
+                return Format::link($url, $coverage['contextName']).'<br/>'.Format::small($coverage['space']);
             });
 
         $table->addColumn('coverage', __('Substitute'))
@@ -137,6 +145,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_planner.php
             ->format(function($coverage) {
                 if ($coverage['absenceStatus'] == 'Pending Approval') {
                     return Format::tag(__('Pending Approval'), 'dull');
+                } elseif ($coverage['status'] == 'Not Required') {
+                    return Format::tag(__('Not Required'), 'dull');
                 } elseif ($coverage['status'] == 'Pending') {
                     return Format::tag(__('Cover Required'), 'bg-red-300 text-red-800');
                 }
@@ -179,5 +189,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_planner.php
             });
 
         echo $table->render($coverageByTT);
+
     }
 }

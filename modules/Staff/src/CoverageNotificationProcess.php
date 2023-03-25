@@ -35,6 +35,8 @@ use Gibbon\Module\Staff\Messages\IndividualRequest;
 use Gibbon\Module\Staff\Messages\BroadcastRequest;
 use Gibbon\Module\Staff\Messages\NoCoverageAvailable;
 use Gibbon\Module\Staff\Messages\NewCoverageRequest;
+use Gibbon\Module\Staff\Messages\NewAbsenceWithCoverage;
+use Gibbon\Domain\Staff\StaffAbsenceGateway;
 
 /**
  * CoverageNotificationProcess
@@ -44,6 +46,7 @@ use Gibbon\Module\Staff\Messages\NewCoverageRequest;
  */
 class CoverageNotificationProcess extends BackgroundProcess
 {
+    protected $staffAbsenceGateway;
     protected $staffCoverageGateway;
     protected $staffCoverageDateGateway;
     protected $substituteGateway;
@@ -56,6 +59,7 @@ class CoverageNotificationProcess extends BackgroundProcess
     protected $organisationHR;
 
     public function __construct(
+        StaffAbsenceGateway $staffAbsenceGateway,
         StaffCoverageGateway $staffCoverageGateway,
         StaffCoverageDateGateway $staffCoverageDateGateway,
         SubstituteGateway $substituteGateway,
@@ -63,6 +67,7 @@ class CoverageNotificationProcess extends BackgroundProcess
         SettingGateway $settingGateway,
         MessageSender $messageSender
     ) {
+        $this->staffAbsenceGateway = $staffAbsenceGateway;
         $this->staffCoverageGateway = $staffCoverageGateway;
         $this->staffCoverageDateGateway = $staffCoverageDateGateway;
         $this->substituteGateway = $substituteGateway;
@@ -85,6 +90,43 @@ class CoverageNotificationProcess extends BackgroundProcess
 
         $recipients = [$this->organisationHR];
         $message = new NewCoverageRequest($coverage, $dates);
+
+        // Add the absent person, if this coverage request was created by someone else
+        if ($coverage['gibbonPersonID'] != $coverage['gibbonPersonIDStatus']) {
+            $recipients[] = $coverage['gibbonPersonID'];
+        }
+
+        // Add the notification group members, if selected
+        if (!empty($coverage['gibbonGroupID'])) {
+            $groupRecipients = $this->groupGateway->selectPersonIDsByGroup($coverage['gibbonGroupID'])->fetchAll(\PDO::FETCH_COLUMN, 0);
+            $recipients = array_merge($recipients, $groupRecipients);
+        }
+
+        if ($sent = $this->messageSender->send($message, $recipients, $coverage['gibbonPersonID'])) {
+            $data = [
+                'notificationSent' => 'Y',
+                'notificationList' => json_encode($recipients),
+            ];
+            foreach ($coverageList as $gibbonStaffCoverageID) {
+                $this->staffCoverageGateway->update($gibbonStaffCoverageID, $data);
+            }
+            
+        }
+
+        return $sent;
+    }
+
+    public function runNewAbsenceWithCoverageRequest($coverageList)
+    {
+        if (empty($coverageList)) return false;
+
+        $dates = $this->getCoverageDates($coverageList);
+
+        $coverage = $this->getCoverageDetailsByID(current($coverageList));
+        $absence = $this->staffAbsenceGateway->getAbsenceDetailsByID($coverage['gibbonStaffAbsenceID'] ?? '');
+
+        $recipients = [$this->organisationHR];
+        $message = new NewAbsenceWithCoverage($absence, $coverage, $dates);
 
         // Add the absent person, if this coverage request was created by someone else
         if ($coverage['gibbonPersonID'] != $coverage['gibbonPersonIDStatus']) {

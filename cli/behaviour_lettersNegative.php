@@ -36,17 +36,21 @@ ini_set('memory_limit','1024M');
 set_time_limit(1200);
 
 //Check for CLI, so this cannot be run through browser
-if (!isCommandLineInterface()) { echo __('This script cannot be run from a browser, only via CLI.');
+$settingGateway = $container->get(SettingGateway::class);
+$remoteCLIKey = $settingGateway->getSettingByScope('System Admin', 'remoteCLIKey');
+$remoteCLIKeyInput = $_GET['remoteCLIKey'] ?? null;
+if (!(isCommandLineInterface() OR ($remoteCLIKey != '' AND $remoteCLIKey == $remoteCLIKeyInput))) {
+    echo __('This script cannot be run from a browser, only via CLI.');
 } else {
     $emailSendCount = 0;
     $emailFailCount = 0;
+    $emailFailList = [];
 
     // Prep for email sending later
     $mail = $container->get(Mailer::class);
     $mail->SMTPKeepAlive = true;
 
     // Initialize the notification sender & gateway objects
-    $settingGateway = $container->get(SettingGateway::class);
     $notificationGateway = new NotificationGateway($pdo);
     $notificationSender = new NotificationSender($notificationGateway, $gibbon->session);
 
@@ -306,6 +310,7 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
                                 ++$emailSendCount;
                                 if ($parent['email'] == '') {
                                     ++$emailFailCount;
+                                    $emailFailList[] = $parent['surname'].', '.$parent['preferredName'].' (no email)';
                                 } else {
                                     $recipientList .= $parent['email'].', ';
 
@@ -348,6 +353,7 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
                                         $behaviourLetterGateway->update($gibbonBehaviourLetterID, ['body' => $body]);
                                     } else {
                                         ++$emailFailCount;
+                                        $emailFailList[] = $parent['surname'].', '.$parent['preferredName'].' ('.$parent['email'].')';
                                     }
 
                                     // Clear addresses
@@ -380,7 +386,7 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
     if ($emailSendCount == 0 && $emailFailCount == 0) {
         $event->setNotificationText(__('The Behaviour Letter CLI script has run: no emails were sent.'));
     } else {
-        $event->setNotificationText(sprintf(__('The Behaviour Letter CLI script has run: %1$s emails were sent, of which %2$s failed.'), $emailSendCount, $emailFailCount));
+        $event->setNotificationText(sprintf(__('The Behaviour Letter CLI script has run: %1$s emails were sent, of which %2$s failed.'), $emailSendCount, $emailFailCount).'<br/><br/>'.Format::list($emailFailList));
     }
 
     $event->setActionLink('/index.php?q=/modules/Behaviour/behaviour_letters.php');
@@ -393,5 +399,5 @@ if (!isCommandLineInterface()) { echo __('This script cannot be run from a brows
     $sendReport = $notificationSender->sendNotifications();
 
     // Output the result to terminal
-    echo sprintf('Sent %1$s notifications: %2$s inserts, %3$s updates, %4$s emails sent, %5$s emails failed.', $sendReport['count'], $sendReport['inserts'], $sendReport['updates'], $sendReport['emailSent'], $sendReport['emailFailed'])."\n";
+    echo sprintf('Sent %1$s notifications: %2$s inserts, %3$s updates, %4$s emails sent, %5$s emails failed.', $sendReport['count'], $sendReport['inserts'], $sendReport['updates'], $emailSendCount, $emailFailCount)."\n";
 }

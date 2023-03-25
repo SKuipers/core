@@ -673,6 +673,11 @@ UPDATE `gibbonAction` SET URLList='formBuilder.php,formBuilder_preview.php,formB
 DELETE FROM `gibbonPermission` WHERE gibbonActionID=(SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Admissions' AND gibbonAction.name='Manage Other Forms');end
 ";
 
+//v24.0.01
+++$count;
+$sql[$count][0] = '24.0.01';
+$sql[$count][1] = "";
+
 //v25.0.00
 ++$count;
 $sql[$count][0] = '25.0.00';
@@ -730,10 +735,12 @@ UPDATE `gibbonNotificationEvent` SET moduleName='Admissions' WHERE moduleName='S
 UPDATE `gibbonNotificationEvent` SET moduleName='Admissions' WHERE moduleName='Students' AND event='New Application with SEN/Medical';end
 UPDATE `gibbonNotificationEvent` SET moduleName='Admissions' WHERE moduleName='Students' AND event='Application Form Accepted';end
 UPDATE `gibbonNotificationEvent` SET moduleName='Admissions' WHERE moduleName='Students' AND event='Student Withdrawn';end
-
 ";
 
-//v24.0.01
+//v26.0.00
 ++$count;
-$sql[$count][0] = '24.0.01';
-$sql[$count][1] = "";
+$sql[$count][0] = '26.0.00';
+$sql[$count][1] = "
+ALTER TABLE `gibbonStaffCoverage` CHANGE `status` `status` ENUM('Requested','Accepted','Declined','Cancelled','Pending','Not Required') CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT 'Requested';end
+ALTER TABLE `gibbonStaffDuty` ADD `nameShort` VARCHAR(20) NOT NULL AFTER `name`;end
+";

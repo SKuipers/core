@@ -22,24 +22,24 @@ namespace Gibbon\Module\Staff\Messages;
 use Gibbon\Module\Staff\Message;
 use Gibbon\Services\Format;
 
-class NewCoverageRequest extends Message
+class NewAbsenceWithCoverage extends Message
 {
+    protected $absence;
     protected $coverage;
-    protected $details;
     protected $dates;
+    protected $details;
 
-    public function __construct($coverage, $dates)
+    public function __construct($absence, $coverage, $dates)
     {
+        $this->absence = $absence;
         $this->coverage = $coverage;
         $this->dates = $dates;
         $this->details = [
-            'nameAbsent'   => Format::name($coverage['titleAbsence'], $coverage['preferredNameAbsence'], $coverage['surnameAbsence'], 'Staff', false, true),
-            'date'         => Format::dateRangeReadable($coverage['dateStart'], $coverage['dateEnd']),
-            'time'         => $coverage['allDay'] == 'Y' ? __('All Day') : Format::timeRange($coverage['timeStart'], $coverage['timeEnd']),
-            'type'         => trim($coverage['type'].' '.$coverage['reason']),
+            'name'   => Format::name($coverage['titleAbsence'], $coverage['preferredNameAbsence'], $coverage['surnameAbsence'], 'Staff', false, true),
+            'date'         => Format::dateRangeReadable($absence['dateStart'], $absence['dateEnd']),
+            'time'         => $absence['allDay'] == 'Y' ? __('All Day') : Format::timeRange($absence['timeStart'], $absence['timeEnd']),
+            'type'         => trim($absence['type'].' '.$absence['reason']),
         ];
-
-
     }
 
     public function via() : array
@@ -51,12 +51,12 @@ class NewCoverageRequest extends Message
 
     public function getTitle() : string
     {
-        return __('Staff Coverage');
+        return __('Staff Absence with Coverage');
     }
 
     public function getText() : string
     {
-        return __("{nameAbsent} has submitted a coverage request for their {type} absence on {date}.", $this->details);
+        return __("{name} will be absent on {date} for {type} and has submitted a coverage request for the following times:", $this->details);
     }
 
     public function getDetails() : array
@@ -69,7 +69,11 @@ class NewCoverageRequest extends Message
         }
 
         return [
-            __('Staff')      => $this->details['nameAbsent'],
+            __('Staff')      => $this->details['name'],
+            __('Type')       => $this->details['type'],
+            __('Date')       => $this->details['date'],
+            __('Time')       => $this->details['time'],
+            __('Comment')    => $this->coverage['comment'],
             __('Coverage')   => Format::listDetails($coverageDetails),
             __('Notes')      => $this->coverage['notesStatus'],
         ];
@@ -77,7 +81,7 @@ class NewCoverageRequest extends Message
 
     public function getModule() : string
     {
-        return 'Staff';
+        return __('Staff');
     }
 
     public function getAction() : string
@@ -87,6 +91,6 @@ class NewCoverageRequest extends Message
 
     public function getLink() : string
     {
-        return 'index.php?q=/modules/Staff/coverage_view_details.php&gibbonStaffCoverageID='.$this->coverage['gibbonStaffCoverageID'];
+        return 'index.php?q=/modules/Staff/absences_view_details.php&gibbonStaffAbsenceID='.$this->coverage['gibbonStaffAbsenceID'];
     }
 }
