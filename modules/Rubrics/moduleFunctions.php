@@ -425,6 +425,7 @@ function rubricView($guid, $connection2, $gibbonRubricID, $mark, $gibbonPersonID
                             $('#rubric').css('display','none');
                         }
                     });
+                });
                 </script>";
             
             $output .= "<style>";
