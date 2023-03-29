@@ -21,7 +21,7 @@ include '../../gibbon.php';
 
 include './moduleFunctions.php';
 
-if ($session->get('gibbonRoleIDCurrentCategory') != 'Staff') {
+if ($session->get('gibbonRoleIDCurrentCategory') != 'Staff' && $session->get('gibbonRoleIDCurrentCategory') != 'Student') {
     return;
 }
 
