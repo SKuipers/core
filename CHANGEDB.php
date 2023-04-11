@@ -743,4 +743,9 @@ $sql[$count][0] = '26.0.00';
 $sql[$count][1] = "
 ALTER TABLE `gibbonStaffCoverage` CHANGE `status` `status` ENUM('Requested','Accepted','Declined','Cancelled','Pending','Not Required') CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT 'Requested';end
 ALTER TABLE `gibbonStaffDuty` ADD `nameShort` VARCHAR(20) NOT NULL AFTER `name`;end
+UPDATE `gibbonLibraryItem` SET timestampUpdate = CURRENT_TIMESTAMP WHERE UNIX_TIMESTAMP(timestampUpdate) = 0;end
+UPDATE `gibbonLibraryItem` SET timestampStatus = CURRENT_TIMESTAMP WHERE UNIX_TIMESTAMP(timestampStatus) = 0;end
+UPDATE `gibbonLibraryItem` SET timestampCreator = CURRENT_TIMESTAMP WHERE UNIX_TIMESTAMP(timestampCreator) = 0;end
+ALTER TABLE `gibbonLibraryItem` ADD `gibbonLibraryItemIDParent` INT(10) NULL DEFAULT NULL AFTER `gibbonLibraryItemID`;end
+INSERT INTO `gibbonAction` (`gibbonModuleID`, `name`, `precedence`, `category`, `description`, `helpURL`, `URLList`, `entryURL`, `entrySidebar`, `menuShow`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES ((SELECT gibbonModuleID FROM gibbonModule WHERE name='Behaviour'), 'View Behaviour Records_my', '0', 'Behaviour Records', 'View basic details of behaviour records about themselves.', 'teachers/people/behaviour/', 'behaviour_view.php,behaviour_view_details.php', 'behaviour_view.php', 'Y', 'Y', 'N', 'N', 'N', 'N', 'N', 'N', 'Y', 'N', 'N');end
 ";
