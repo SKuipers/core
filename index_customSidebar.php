@@ -30,17 +30,17 @@ if ($roleCategory == 'Staff') {
                        style="height:32px;margin-bottom:15px; background:#C4ECFF; cursor: pointer;">';
     $output .= '</p>';
 } else if ($roleCategory == 'Parent' && isActionAccessible($guid, $connection2, '/modules/Health Code/hc_upload.php')) {
-    $i18n = $_SESSION[$guid]['i18n']['code'];
-    $header = $i18n == 'zh_CN' || $i18n == 'zh_HK' ? '上傳澳門健康碼（幼稚園至小六）' :  __('Upload Macau Health Code PK-Grade 6');
-    $body = $i18n == 'zh_CN' || $i18n == 'zh_HK' ? '請於孩子進入學校前上傳他們的澳門健康碼截圖：' : __('Please upload your child\'s Macau Health Code screenshots each morning before they enter the building:');
-    $button = $i18n == 'zh_CN' || $i18n == 'zh_HK' ? '上傳澳門健康碼' :  __('Upload Macau Health Code');
+    // $i18n = $_SESSION[$guid]['i18n']['code'];
+    // $header = $i18n == 'zh_CN' || $i18n == 'zh_HK' ? '上傳澳門健康碼（幼稚園至小六）' :  __('Upload Macau Health Code PK-Grade 6');
+    // $body = $i18n == 'zh_CN' || $i18n == 'zh_HK' ? '請於孩子進入學校前上傳他們的澳門健康碼截圖：' : __('Please upload your child\'s Macau Health Code screenshots each morning before they enter the building:');
+    // $button = $i18n == 'zh_CN' || $i18n == 'zh_HK' ? '上傳澳門健康碼' :  __('Upload Macau Health Code');
 
-	$output .= '<h2>' . $header . '</h2>';
-	$output .= '<p>'. $body .'<br/>';
-    $output .= '<a class="button" href="'.$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Health Code/hc_upload.php" style="border: 1px solid #222222;background-color: #eeeeee;;color: #444444;font-weight: bold;font-size: 13px ;text-decoration:none;padding: 8px;display:block;text-align:center;">';
-    $output .= $button;
-    $output .= '</a>';
-    $output .= '</p>';
+	// $output .= '<h2>' . $header . '</h2>';
+	// $output .= '<p>'. $body .'<br/>';
+    // $output .= '<a class="button" href="'.$_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Health Code/hc_upload.php" style="border: 1px solid #222222;background-color: #eeeeee;;color: #444444;font-weight: bold;font-size: 13px ;text-decoration:none;padding: 8px;display:block;text-align:center;">';
+    // $output .= $button;
+    // $output .= '</a>';
+    // $output .= '</p>';
 }
 
 return $output;
