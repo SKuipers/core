@@ -136,7 +136,10 @@ class MpdfRenderer implements ReportRendererInterface
         $this->setHeader($this->firstPage);
 
         if ($this->firstPage) {
-            // $this->setFooter(true);
+            if ($this->hasMode(self::OUTPUT_CONTINUOUS)) {
+                $this->setFooter(true);
+            }
+            
             $this->pdf->AddPageByArray([
                 'type' => 'ODD',
                 'resetpagenum' => 1,
@@ -296,7 +299,7 @@ class MpdfRenderer implements ReportRendererInterface
             $this->setHeader();
         }
 
-        $this->setFooter();
+        $this->setFooter(true);
         $this->pdf->writeHTML('<br/>');
 
         $this->runPostProcess($reportData);
