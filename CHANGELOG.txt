@@ -69,6 +69,7 @@ v26.0.00
         Staff: fixed substitute availability check not including timetable exclusions
         Staff: fixed error when deleting ad hoc coverage that is not attached to a class
         Staff: fixed approved absence with user-selected coverage not re-broadcasting substitute requests
+        Staff: fixed requested coverage not actionable by substitute after approval
         Timetable: fixed period showing absent in classes with multiple teachers when one is absent
         Timetable: fixed PHP deprecation issue relating to $roleCategory
         User Admin: fixed disallowed permissions not showing as disabled in Manage Permissions
