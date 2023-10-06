@@ -89,7 +89,7 @@ class AbsenceView
             ]);
         }
 
-        $coverageList = $this->staffCoverageGateway->selectCoverageByAbsenceID($absence['gibbonStaffAbsenceID'])->fetchAll();
+        $coverageList = $this->staffCoverageGateway->selectCoverageByAbsenceID($absence['gibbonStaffAbsenceID'], true)->fetchAll();
         
         // Coverage Details
         if (!empty($coverageList)) {
