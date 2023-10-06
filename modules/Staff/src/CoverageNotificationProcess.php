@@ -133,7 +133,7 @@ class CoverageNotificationProcess extends BackgroundProcess
         $recipients[] = $this->organisationHR;
 
         // Add the absent person, if this coverage request was created by someone else
-        if ($coverage['gibbonPersonID'] != $coverage['gibbonPersonIDStatus'] || $coverage['notificationSent'] == 'N') {
+        if ($coverage['gibbonPersonID'] != $coverage['gibbonPersonIDStatus']) {
             $recipients[] = $coverage['gibbonPersonID'];
         }
 
@@ -152,7 +152,10 @@ class CoverageNotificationProcess extends BackgroundProcess
             foreach ($coverageList as $gibbonStaffCoverageID) {
                 $this->staffCoverageGateway->update($gibbonStaffCoverageID, $data);
             }
-            
+
+            $this->staffAbsenceGateway->update($coverage['gibbonStaffAbsenceID'], [
+                'notificationSent' => 'Y',
+            ]);
         }
 
         return $sent;
