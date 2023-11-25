@@ -1728,7 +1728,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                                 if ($resultList->rowCount() > 0) {
 
                                     // Only display for the current year
-                                    if ($filter == $_SESSION[$guid]['gibbonSchoolYearID']) {
+                                    if (!empty($filter) && $filter == $_SESSION[$guid]['gibbonSchoolYearID']) {
                                         // Only visible to teachers and admin for now
                                         if ($highestAction == 'View Markbook_allClassesAllData') {
                                             renderStudentGPA($pdo, $guid, $_GET['gibbonPersonID'], $filter, false);
