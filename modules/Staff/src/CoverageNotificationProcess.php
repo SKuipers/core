@@ -1,7 +1,9 @@
 <?php
 /*
-Gibbon, Flexible & Open School System
-Copyright (C) 2010, Ross Parker
+Gibbon: the flexible, open school platform
+Founded by Ross Parker at ICHK Secondary. Built by Ross Parker, Sandra Kuipers and the Gibbon community (https://gibbonedu.org/about/)
+Copyright © 2010, Gibbon Foundation
+Gibbon™, Gibbon Education Ltd. (Hong Kong)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -133,7 +135,7 @@ class CoverageNotificationProcess extends BackgroundProcess
         $recipients[] = $this->organisationHR;
 
         // Add the absent person, if this coverage request was created by someone else
-        if ($coverage['gibbonPersonID'] != $coverage['gibbonPersonIDStatus']) {
+        if ($coverage['gibbonPersonID'] != $coverage['gibbonPersonIDStatus'] || empty($coverage['gibbonPersonIDApproval'])) {
             $recipients[] = $coverage['gibbonPersonID'];
         }
 
@@ -145,7 +147,7 @@ class CoverageNotificationProcess extends BackgroundProcess
 
         if ($sent = $this->messageSender->send($message, $recipients, $coverage['gibbonPersonID'])) {
             $data = [
-                'status' => $this->coverageMode == 'Requested' ? 'Requested' : 'Accepted',
+                'status' => $this->coverageMode == 'Assigned' && !empty($coverage['gibbonPersonIDCoverage'])? 'Accepted' : 'Requested',
                 'notificationSent' => 'Y',
                 'notificationList' => json_encode($recipients),
             ];

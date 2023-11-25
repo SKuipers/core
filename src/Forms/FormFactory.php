@@ -1,7 +1,9 @@
 <?php
 /*
-Gibbon, Flexible & Open School System
-Copyright (C) 2010, Ross Parker
+Gibbon: the flexible, open school platform
+Founded by Ross Parker at ICHK Secondary. Built by Ross Parker, Sandra Kuipers and the Gibbon community (https://gibbonedu.org/about/)
+Copyright © 2010, Gibbon Foundation
+Gibbon™, Gibbon Education Ltd. (Hong Kong)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -256,9 +258,9 @@ class FormFactory implements FormFactoryInterface
         return $button;
     }
 
-    public function createCustomBlocks($name, Session $session)
+    public function createCustomBlocks($name, Session $session, bool $canDelete = true)
     {
-        return new Input\CustomBlocks($this, $name, $session);
+        return new Input\CustomBlocks($this, $name, $session, $canDelete);
     }
 
     public function createDocuments($name, $documents, $view, $absoluteURL, $mode = '')
@@ -406,11 +408,12 @@ class FormFactory implements FormFactoryInterface
     public function createSelectMaritalStatus($name)
     {
         return $this->createSelect($name)->fromArray(array(
-            'Married'         => __('Married'),
-            'Separated'         => __('Separated'),
-            'Divorced'      => __('Divorced'),
-            'De Facto'         => __('De Facto'),
-            'Other'          => __('Other')
+            'Married'   => __('Married'),
+            'Separated' => __('Separated'),
+            'Divorced'  => __('Divorced'),
+            'De Facto'  => __('De Facto'),
+            'Single'    => __('Single'),
+            'Other'     => __('Other'),
         ))->placeholder();
     }
 
