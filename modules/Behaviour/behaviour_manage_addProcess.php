@@ -102,79 +102,110 @@ if (isActionAccessible($guid, $connection2, '/modules/Behaviour/behaviour_manage
                 $gibbonBehaviourID = $connection2->lastInsertID();
 
                 // Attempt to notify tutor(s) and EA(s) of negative behaviour
-                if ($type == 'Negative') {
+                $dataDetail = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'gibbonPersonID' => $gibbonPersonID);
+                $sqlDetail = 'SELECT gibbonPersonIDTutor, gibbonPersonIDTutor2, gibbonPersonIDTutor3, surname, preferredName, gibbonStudentEnrolment.gibbonYearGroupID FROM gibbonFormGroup JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonFormGroupID=gibbonFormGroup.gibbonFormGroupID) JOIN gibbonPerson ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonStudentEnrolment.gibbonPersonID=:gibbonPersonID';
+                $resultDetail = $connection2->prepare($sqlDetail);
+                $resultDetail->execute($dataDetail);
 
-                        $dataDetail = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'gibbonPersonID' => $gibbonPersonID);
-                        $sqlDetail = 'SELECT gibbonPersonIDTutor, gibbonPersonIDTutor2, gibbonPersonIDTutor3, surname, preferredName, gibbonStudentEnrolment.gibbonYearGroupID FROM gibbonFormGroup JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonFormGroupID=gibbonFormGroup.gibbonFormGroupID) JOIN gibbonPerson ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE gibbonStudentEnrolment.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonStudentEnrolment.gibbonPersonID=:gibbonPersonID';
-                        $resultDetail = $connection2->prepare($sqlDetail);
-                        $resultDetail->execute($dataDetail);
-                    if ($resultDetail->rowCount() == 1) {
-                        $rowDetail = $resultDetail->fetch();
+                if ($resultDetail->rowCount() == 1) {
+                    $rowDetail = $resultDetail->fetch();
 
-                        // Initialize the notification sender & gateway objects
-                        $notificationGateway = new NotificationGateway($pdo);
-                        $notificationSender = new NotificationSender($notificationGateway, $gibbon->session);
+                    // Initialize the notification sender & gateway objects
+                    $notificationGateway = new NotificationGateway($pdo);
+                    $notificationSender = new NotificationSender($notificationGateway, $session);
 
-                        $studentName = Format::name('', $rowDetail['preferredName'], $rowDetail['surname'], 'Student', false);
-                        $actionLink = "/index.php?q=/modules/Behaviour/behaviour_view_details.php&gibbonPersonID=$gibbonPersonID&search=";
+                    $studentName = Format::name('', $rowDetail['preferredName'], $rowDetail['surname'], 'Student', false);
+                    $actionLink = "/index.php?q=/modules/Behaviour/behaviour_view_details.php&gibbonPersonID=$gibbonPersonID&search=";
 
-                        // Raise a new notification event
+                    // Raise a new notification event
+                    if ($type == 'Negative') {
                         $event = new NotificationEvent('Behaviour', 'New Negative Record');
+                        $event->setNotificationText(__('{name} has created a negative behaviour record for {student}.', [
+                            'name' => $session->get('preferredName').' '.$session->get('surname'),
+                            'student' => $studentName,
+                        ]));
+                    } elseif ($type == 'Positive') {
+                        $event = new NotificationEvent('Behaviour', 'New Positive Record');
+                        $event->setNotificationText(__('{name} has created a positive behaviour record for {student}.', [
+                            'name' => $session->get('preferredName').' '.$session->get('surname'),
+                            'student' => $studentName,
+                        ]));
+                    }
+                    
+                    $event->setActionLink($actionLink);
 
-                        $event->setNotificationText(sprintf(__('Someone has created a negative behaviour record for %1$s.'), $studentName));
-                        $event->setActionLink($actionLink);
+                    $event->addScope('gibbonPersonIDStudent', $gibbonPersonID);
+                    $event->addScope('gibbonYearGroupID', $rowDetail['gibbonYearGroupID']);
 
-                        $event->addScope('gibbonPersonIDStudent', $gibbonPersonID);
-                        $event->addScope('gibbonYearGroupID', $rowDetail['gibbonYearGroupID']);
+                    // Add notifications for Educational Assistants
+                    if ($settingGateway->getSettingByScope('Behaviour', 'notifyEducationalAssistants') == 'Y') {
+                        $educationalAssistants = $container->get(INAssistantGateway::class)->selectINAssistantsByStudent($gibbonPersonID)->fetchAll();
+                        foreach ($educationalAssistants as $ea) {
+                            $event->addRecipient($ea['gibbonPersonID']);
+                        }
+                    }
 
-                        // Add notifications for Educational Assistants
-                        if ($settingGateway->getSettingByScope('Behaviour', 'notifyEducationalAssistants') == 'Y') {
-                            $educationalAssistants = $container->get(INAssistantGateway::class)->selectINAssistantsByStudent($gibbonPersonID)->fetchAll();
-                            foreach ($educationalAssistants as $ea) {
-                                $event->addRecipient($ea['gibbonPersonID']);
+                    // Add event listeners to the notification sender
+                    $event->pushNotifications($notificationGateway, $notificationSender);
+
+                    // Add direct notifications to form group tutors
+                    if ($event->getEventDetails($notificationGateway, 'active') == 'Y') {
+                        if ($settingGateway->getSettingByScope('Behaviour', 'notifyTutors') == 'Y') {
+
+                            if ($type == 'Negative') {
+                                $notificationText = __('{name} has created a negative behaviour record for your tutee, {student}.', [
+                                    'name' => $session->get('preferredName').' '.$session->get('surname'),
+                                    'student' => $studentName,
+                                ]);
+                            } elseif ($type == 'Positive') {
+                                $notificationText = __('{name} has created a positive behaviour record for your tutee, {student}.', [
+                                    'name' => $session->get('preferredName').' '.$session->get('surname'),
+                                    'student' => $studentName,
+                                ]);
+                            }
+
+                            if ($rowDetail['gibbonPersonIDTutor'] != null and $rowDetail['gibbonPersonIDTutor'] != $session->get('gibbonPersonID')) {
+                                $notificationSender->addNotification($rowDetail['gibbonPersonIDTutor'], $notificationText, 'Behaviour', $actionLink);
+                            }
+                            if ($rowDetail['gibbonPersonIDTutor2'] != null and $rowDetail['gibbonPersonIDTutor2'] != $session->get('gibbonPersonID')) {
+                                $notificationSender->addNotification($rowDetail['gibbonPersonIDTutor2'], $notificationText, 'Behaviour', $actionLink);
+                            }
+                            if ($rowDetail['gibbonPersonIDTutor3'] != null and $rowDetail['gibbonPersonIDTutor3'] != $session->get('gibbonPersonID')) {
+                                $notificationSender->addNotification($rowDetail['gibbonPersonIDTutor3'], $notificationText, 'Behaviour', $actionLink);
                             }
                         }
+                    }
+
+                    // Check if this is an IN student
+                    $studentIN = $container->get(INGateway::class)->selectIndividualNeedsDescriptorsByStudent($gibbonPersonID)->fetchAll();
+                    if (!empty($studentIN)) {
+                        // Raise a notification event for IN students
+                        $eventIN = new NotificationEvent('Behaviour', 'Behaviour Record for IN Student');
+                        
+                        if ($type == 'Negative') {
+                            $eventIN->setNotificationText(__('{name} has created a negative behaviour record for {student}.', [
+                                'name' => $session->get('preferredName').' '.$session->get('surname'),
+                                'student' => $studentName,
+                            ]));
+                        } elseif ($type == 'Positive') { 
+                            $eventIN->setNotificationText(__('{name} has created a positive behaviour record for {student}.', [
+                                'name' => $session->get('preferredName').' '.$session->get('surname'),
+                                'student' => $studentName,
+                            ]));
+                        }
+                        $eventIN->setActionLink($actionLink);
+
+                        $eventIN->addScope('gibbonPersonIDStudent', $gibbonPersonID);
+                        $eventIN->addScope('gibbonYearGroupID', $rowDetail['gibbonYearGroupID']);
 
                         // Add event listeners to the notification sender
-                        $event->pushNotifications($notificationGateway, $notificationSender);
-
-                        // Add direct notifications to form group tutors
-                        if ($event->getEventDetails($notificationGateway, 'active') == 'Y') {
-                            if ($settingGateway->getSettingByScope('Behaviour', 'notifyTutors') == 'Y') {
-                                $notificationText = sprintf(__('Someone has created a negative behaviour record for your tutee, %1$s.'), $studentName);
-
-                                if ($rowDetail['gibbonPersonIDTutor'] != null and $rowDetail['gibbonPersonIDTutor'] != $session->get('gibbonPersonID')) {
-                                    $notificationSender->addNotification($rowDetail['gibbonPersonIDTutor'], $notificationText, 'Behaviour', $actionLink);
-                                }
-                                if ($rowDetail['gibbonPersonIDTutor2'] != null and $rowDetail['gibbonPersonIDTutor2'] != $session->get('gibbonPersonID')) {
-                                    $notificationSender->addNotification($rowDetail['gibbonPersonIDTutor2'], $notificationText, 'Behaviour', $actionLink);
-                                }
-                                if ($rowDetail['gibbonPersonIDTutor3'] != null and $rowDetail['gibbonPersonIDTutor3'] != $session->get('gibbonPersonID')) {
-                                    $notificationSender->addNotification($rowDetail['gibbonPersonIDTutor3'], $notificationText, 'Behaviour', $actionLink);
-                                }
-                            }
-                        }
-
-                        // Check if this is an IN student
-                        $studentIN = $container->get(INGateway::class)->selectIndividualNeedsDescriptorsByStudent($gibbonPersonID)->fetchAll();
-                        if (!empty($studentIN)) {
-                            // Raise a notification event for IN students
-                            $eventIN = new NotificationEvent('Behaviour', 'Behaviour Record for IN Student');
-                            
-                            $eventIN->setNotificationText(sprintf(__('Someone has created a negative behaviour record for %1$s.'), $studentName));
-                            $eventIN->setActionLink($actionLink);
-    
-                            $eventIN->addScope('gibbonPersonIDStudent', $gibbonPersonID);
-                            $eventIN->addScope('gibbonYearGroupID', $rowDetail['gibbonYearGroupID']);
-
-                            // Add event listeners to the notification sender
-                            $eventIN->pushNotifications($notificationGateway, $notificationSender);
-                        }
-
-                        // Send all notifications
-                        $notificationSender->sendNotifications();
+                        $eventIN->pushNotifications($notificationGateway, $notificationSender);
                     }
+
+                    // Send all notifications
+                    $notificationSender->sendNotifications();
                 }
+                
 
                 if ($copyToNotes == 'on') {
                     //Write to notes
