@@ -59,7 +59,10 @@ class AssignHouse extends AbstractFormProcess implements ViewableProcess
         if (!$formData->has('gibbonPersonIDStudent')) return;
 
         // Get pseudo-randomly assigned house
-        $assignedHouse = $this->houseGateway->selectAssignedHouseByGender($this->session->get('gibbonSchoolYearIDCurrent'), $formData->get('gibbonYearGroupIDEntry'), $formData->get('gender'))->fetch();
+        //$assignedHouse = $this->houseGateway->selectAssignedHouseByGender($this->session->get('gibbonSchoolYearIDCurrent'), $formData->get('gibbonYearGroupIDEntry'), $formData->get('gender'))->fetch();
+
+        // TIS: assign house by year group
+        $assignedHouse = $this->houseGateway->selectAssignedHouseByYearGroup($this->session->get('gibbonSchoolYearIDCurrent'), $formData->get('gibbonYearGroupIDEntry'))->fetch();
 
         if (empty($assignedHouse)) return;
 

@@ -113,4 +113,48 @@ class HouseGateway extends QueryableGateway
 
         return $this->runSelect($select);
     }
+
+    public function selectAssignedHouseByYearGroup($gibbonSchoolYearID, $gibbonYearGroupID)
+    {
+        $data = ['gibbonSchoolYearID' => $gibbonSchoolYearID, 'gibbonYearGroupID' => $gibbonYearGroupID];
+        $sql = "SELECT 
+                gibbonYearGroup.gibbonYearGroupID,
+                gibbonYearGroup.name AS yearGroupName,
+                gibbonHouse.name AS house,
+                gibbonHouse.gibbonHouseID,
+                COUNT(gibbonStudentEnrolment.gibbonPersonID) AS total
+            FROM 
+                gibbonHouse
+            LEFT JOIN 
+                gibbonPerson ON gibbonPerson.gibbonHouseID = gibbonHouse.gibbonHouseID
+                AND gibbonPerson.status = 'Full'
+            LEFT JOIN 
+                gibbonStudentEnrolment ON gibbonStudentEnrolment.gibbonPersonID = gibbonPerson.gibbonPersonID
+                AND gibbonStudentEnrolment.gibbonSchoolYearID =  :gibbonSchoolYearID
+            LEFT JOIN 
+                gibbonYearGroup ON gibbonYearGroup.gibbonYearGroupID = gibbonStudentEnrolment.gibbonYearGroupID
+            WHERE 
+                gibbonYearGroup.gibbonYearGroupID =  :gibbonYearGroupID
+            GROUP BY 
+                gibbonYearGroup.gibbonYearGroupID, 
+                gibbonHouse.gibbonHouseID
+            HAVING 
+                total = (
+                    SELECT MIN(total) FROM (
+                        SELECT COUNT(gibbonStudentEnrolment.gibbonPersonID) AS total
+                        FROM gibbonHouse
+                        LEFT JOIN gibbonPerson ON gibbonPerson.gibbonHouseID = gibbonHouse.gibbonHouseID
+                            AND gibbonPerson.status = 'Full'
+                        LEFT JOIN gibbonStudentEnrolment ON gibbonStudentEnrolment.gibbonPersonID = gibbonPerson.gibbonPersonID
+                            AND gibbonStudentEnrolment.gibbonSchoolYearID =   :gibbonSchoolYearID
+                        LEFT JOIN gibbonYearGroup ON gibbonYearGroup.gibbonYearGroupID = gibbonStudentEnrolment.gibbonYearGroupID
+                        WHERE gibbonYearGroup.gibbonYearGroupID =  :gibbonYearGroupID
+                        GROUP BY gibbonYearGroup.gibbonYearGroupID, gibbonHouse.gibbonHouseID
+                    ) AS SubQuery
+                )
+            ORDER BY RAND()
+            LIMIT 1;";
+
+        return $this->db()->select($sql, $data);
+    }
 }

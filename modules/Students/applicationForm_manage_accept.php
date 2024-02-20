@@ -405,18 +405,49 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                 } else {
                     //Check boys and girls in each house in year group
                     try {
-                        $dataHouse = array('gibbonYearGroupID' => $values['gibbonYearGroupIDEntry'], 'gibbonSchoolYearID' => $values['gibbonSchoolYearIDEntry'], 'gender' => $values['gender']);
-                        $sqlHouse = "SELECT gibbonHouse.name AS house, gibbonHouse.gibbonHouseID, count(DISTINCT gibbonPerson.gibbonPersonID) AS count
-                            FROM gibbonHouse
-                                LEFT JOIN gibbonPerson ON (gibbonPerson.gibbonHouseID=gibbonHouse.gibbonHouseID AND gender=:gender AND status='Full')
-                                LEFT JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID
-                                    AND gibbonSchoolYearID=:gibbonSchoolYearID
-                                    AND gibbonYearGroupID=:gibbonYearGroupID)
-                            WHERE gibbonHouse.gibbonHouseID IS NOT NULL
-                            GROUP BY house, gibbonHouse.gibbonHouseID
-                            ORDER BY count, RAND(), gibbonHouse.gibbonHouseID";
+                        $dataHouse = array('gibbonYearGroupID' => $values['gibbonYearGroupIDEntry'], 'gibbonSchoolYearID' => $values['gibbonSchoolYearIDEntry']); 
+                        $sqlHouse = "
+                             SELECT 
+                             gibbonYearGroup.gibbonYearGroupID,
+                             gibbonYearGroup.name AS yearGroupName,
+                             gibbonHouse.name AS house,
+                             gibbonHouse.gibbonHouseID,
+                             COUNT(gibbonStudentEnrolment.gibbonPersonID) AS total
+                         FROM 
+                             gibbonHouse
+                         LEFT JOIN 
+                             gibbonPerson ON gibbonPerson.gibbonHouseID = gibbonHouse.gibbonHouseID
+                             AND gibbonPerson.status = 'Full'
+                         LEFT JOIN 
+                             gibbonStudentEnrolment ON gibbonStudentEnrolment.gibbonPersonID = gibbonPerson.gibbonPersonID
+                             AND gibbonStudentEnrolment.gibbonSchoolYearID =  :gibbonSchoolYearID
+                         LEFT JOIN 
+                             gibbonYearGroup ON gibbonYearGroup.gibbonYearGroupID = gibbonStudentEnrolment.gibbonYearGroupID
+                         WHERE 
+                             gibbonYearGroup.gibbonYearGroupID =  :gibbonYearGroupID
+                         GROUP BY 
+                             gibbonYearGroup.gibbonYearGroupID, 
+                             gibbonHouse.gibbonHouseID
+                         HAVING 
+                             total = (
+                                 SELECT MIN(total) FROM (
+                                     SELECT COUNT(gibbonStudentEnrolment.gibbonPersonID) AS total
+                                     FROM gibbonHouse
+                                     LEFT JOIN gibbonPerson ON gibbonPerson.gibbonHouseID = gibbonHouse.gibbonHouseID
+                                         AND gibbonPerson.status = 'Full'
+                                     LEFT JOIN gibbonStudentEnrolment ON gibbonStudentEnrolment.gibbonPersonID = gibbonPerson.gibbonPersonID
+                                         AND gibbonStudentEnrolment.gibbonSchoolYearID =   :gibbonSchoolYearID
+                                     LEFT JOIN gibbonYearGroup ON gibbonYearGroup.gibbonYearGroupID = gibbonStudentEnrolment.gibbonYearGroupID
+                                     WHERE gibbonYearGroup.gibbonYearGroupID =  :gibbonYearGroupID
+                                     GROUP BY gibbonYearGroup.gibbonYearGroupID, gibbonHouse.gibbonHouseID
+                                 ) AS SubQuery
+                             )
+                         ORDER BY RAND()
+                         LIMIT 1;
+                        ";
                         $resultHouse = $connection2->prepare($sqlHouse);
                         $resultHouse->execute($dataHouse);
+                        
                     } catch (PDOException $e) {
                         $houseFail = true;
                         $partialFailures[] = 'houseFail';
