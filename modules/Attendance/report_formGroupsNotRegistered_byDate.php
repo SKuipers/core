@@ -252,10 +252,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/report_formGrou
                             $resultTutor->execute($dataTutor);
 
                         while ($rowTutor = $resultTutor->fetch()) {
-
-                            echo '<a href='.$gibbon->session->get('absoluteURL').'/index.php?q=%2Fmodules%2FStaff%2Fstaff_view_details.php&gibbonPersonID='.$rowTutor['gibbonPersonID'].'>';
-
-                            echo Format::name('', $rowTutor['preferredName'], $rowTutor['surname'], 'Staff', true, true).'</a><br/>';
+                            echo Format::nameLinked($rowTutor['gibbonPersonID'], '', $rowTutor['preferredName'], $rowTutor['surname'], 'Staff', true, true).'<br/>';
                         }
 
                     }
