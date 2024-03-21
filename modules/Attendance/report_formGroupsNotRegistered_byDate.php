@@ -140,18 +140,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/report_formGrou
 
             echo "<table cellspacing='0' style='width: 100%'>";
             echo "<tr class='head'>";
+
             echo '<th>';
             echo __('Form Group');
             echo '</th>';
+
             echo '<th >';
             echo __('Date');
             echo '</th>';
+
             echo '<th width="164px">';
             echo __('History');
             echo '</th>';
+
             echo '<th>';
             echo __('Tutor');
             echo '</th>';
+
             echo '</tr>';
 
             $count = 0;
@@ -235,21 +240,28 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/report_formGrou
                         echo '</table>';
 
                     echo '</td>';
+
                     echo '<td>';
                     if ($row['gibbonPersonIDTutor'] == '' and $row['gibbonPersonIDTutor2'] == '' and $row['gibbonPersonIDTutor3'] == '') {
                         echo '<i>Not set</i>';
                     } else {
 
                             $dataTutor = array('gibbonPersonID1' => $row['gibbonPersonIDTutor'], 'gibbonPersonID2' => $row['gibbonPersonIDTutor2'], 'gibbonPersonID3' => $row['gibbonPersonIDTutor3']);
-                            $sqlTutor = 'SELECT surname, preferredName FROM gibbonPerson WHERE gibbonPersonID=:gibbonPersonID1 OR gibbonPersonID=:gibbonPersonID2 OR gibbonPersonID=:gibbonPersonID3';
+                            $sqlTutor = 'SELECT surname, preferredName, gibbonPersonID FROM gibbonPerson WHERE gibbonPersonID=:gibbonPersonID1 OR gibbonPersonID=:gibbonPersonID2 OR gibbonPersonID=:gibbonPersonID3';
                             $resultTutor = $connection2->prepare($sqlTutor);
                             $resultTutor->execute($dataTutor);
 
                         while ($rowTutor = $resultTutor->fetch()) {
-                            echo Format::name('', $rowTutor['preferredName'], $rowTutor['surname'], 'Staff', true, true).'<br/>';
+
+                            echo '<a href='.$gibbon->session->get('absoluteURL').'/index.php?q=%2Fmodules%2FStaff%2Fstaff_view_details.php&gibbonPersonID='.$rowTutor['gibbonPersonID'].'>';
+
+                            echo Format::name('', $rowTutor['preferredName'], $rowTutor['surname'], 'Staff', true, true).'</a><br/>';
                         }
+
                     }
+
                     echo '</td>';
+
                     echo '</tr>';
                 }
             }
