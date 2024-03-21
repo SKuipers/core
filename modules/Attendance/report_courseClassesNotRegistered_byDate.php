@@ -130,7 +130,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/report_courseCl
 
 
             $data = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID') );
-            $sql = "SELECT gibbonCourseClass.gibbonCourseClassID, gibbonCourseClass.name as class, gibbonCourse.name as course, gibbonCourse.nameShort as courseShort, (SELECT count(*) FROM gibbonCourseClassPerson WHERE role='Student' AND gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) as studentCount FROM gibbonCourseClass JOIN gibbonCourse ON (gibbonCourseClass.gibbonCourseID=gibbonCourse.gibbonCourseID) WHERE gibbonCourse.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonCourseClass.attendance = 'Y' ORDER BY gibbonCourse.nameShort, gibbonCourseClass.nameShort";
+            $sql = "SELECT gibbonCourseClass.gibbonCourseClassID, gibbonCourseClass.name as class, gibbonCourse.name as course, gibbonCourse.nameShort as courseShort, (SELECT count(*) FROM gibbonCourseClassPerson WHERE role='Student' AND gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) as studentCount, gibbonTTColumnRow.name as 'Period' FROM gibbonCourseClass 
+            JOIN gibbonCourse ON (gibbonCourseClass.gibbonCourseID=gibbonCourse.gibbonCourseID)
+            JOIN gibbonTTDayRowClass ON (gibbonTTDayRowClass.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID)
+            JOIN gibbonTTDay ON (gibbonTTDayRowClass.gibbonTTDayID=gibbonTTDay.gibbonTTDayID)
+            JOIN gibbonTTColumnRow ON (gibbonTTDayRowClass.gibbonTTColumnRowID=gibbonTTColumnRow.gibbonTTColumnRowID)
+            JOIN gibbonTTColumn ON (gibbonTTColumnRow.gibbonTTColumnID=gibbonTTColumn.gibbonTTColumnID)
+            WHERE gibbonCourse.gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonCourseClass.attendance = 'Y' ORDER BY gibbonCourse.nameShort, gibbonCourseClass.nameShort";
             $result = $connection2->prepare($sql);
             $result->execute($data);
 
@@ -164,6 +170,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/report_courseCl
             echo '</th>';
             echo '<th>';
             echo __('Teacher');
+            echo '</th>';
+            echo '<th>';
+            echo __('Period');
             echo '</th>';
             echo '</tr>';
 
@@ -274,9 +283,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/report_courseCl
 
                     if ($resultTutor->rowCount() > 0) {
                         while ($rowTutor = $resultTutor->fetch()) {
-                            echo Format::name('', $rowTutor['preferredName'], $rowTutor['surname'], 'Staff', true, true).'<br/>';
+                            echo '<a href='.$gibbon->session->get('absoluteURL').'/index.php?q=%2Fmodules%2FStaff%2Fstaff_view_details.php&gibbonPersonID='.$rowTutor['gibbonPersonID'].'>';
+                            echo Format::name('', $rowTutor['preferredName'], $rowTutor['surname'], 'Staff', true, true).'</a><br/>';
                         }
                     }
+
+                    echo '<td>';
+                    echo $row['Period'];
+                    echo '</td>';
 
                     echo '</td>';
                     echo '</tr>';
