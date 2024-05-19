@@ -112,6 +112,8 @@ class FileUploader
 
         // Trim and remove excess path info
         $filename = basename($filename);
+        $filename =  preg_replace('[/~`!@%#$%^&*()+={}\[\]|\\:;"\'<>,.?\/]', '', $filename);
+        
         $destinationFolder = trim($destinationFolder, '/');
 
         // Check the existence of the temp file to upload
