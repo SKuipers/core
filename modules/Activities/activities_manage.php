@@ -71,7 +71,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
 
     $form = Form::create('searchForm', $session->get('absoluteURL').'/index.php', 'get');
     $form->setFactory(DatabaseFormFactory::create($pdo));
-    $form->setClass('noIntBorder fullWidth');
+    $form->setClass('noIntBorder w-full');
 
     $form->addHiddenValue('q', "/modules/".$session->get('module')."/activities_manage.php");
 
@@ -156,7 +156,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
     // COLUMNS
     $table->addColumn('name', __('Activity'))
         ->format(function($activity) {
-            return $activity['name'].'<br/><span class="small emphasis">'.$activity['type'].'</span>';
+            return $activity['name'].'<br/><span class="text-xs italic">'.$activity['type'].'</span>';
         });
 
     $table->addColumn('days', __('Days'))
