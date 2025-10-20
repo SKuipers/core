@@ -49,7 +49,7 @@ require_once __DIR__.'/functions.php';
 // Core Services
 $container = new League\Container\Container();
 $container->delegate(new League\Container\ReflectionContainer);
-$container->share('autoloader', $autoloader);
+$container->addShared('autoloader', $autoloader);
 
 $container->inflector(\League\Container\ContainerAwareInterface::class)
           ->invokeMethod('setContainer', [$container]);
@@ -84,7 +84,7 @@ if ($gibbon->isInstalled()) {
         // Add the database to the container
         $connection2 = $pdo->getConnection();
         $container->add('db', $pdo);
-        $container->share(Gibbon\Contracts\Database\Connection::class, $pdo);
+        $container->addShared(Gibbon\Contracts\Database\Connection::class, $pdo);
 
         // Add a feature flag here to prevent errors before updating
         // TODO: this can likely be removed in v24+
@@ -118,7 +118,7 @@ if (!defined('SESSION_TABLE_AVAILABLE')) {
 // Globals for backwards compatibility
 $session = $container->get('session');
 $gibbon->session = $session;
-$container->share(\Gibbon\Contracts\Services\Session::class, $session);
+$container->addShared(\Gibbon\Contracts\Services\Session::class, $session);
 
 // Setup global absoluteURL for all urls.
 if ($gibbon->isInstalled() && $session->has('absoluteURL')) {

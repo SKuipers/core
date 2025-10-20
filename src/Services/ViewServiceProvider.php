@@ -61,12 +61,24 @@ class ViewServiceProvider extends AbstractServiceProvider
     ];
 
     /**
+     * Return true if the service provider provides a service for 
+     * the given alias $id
+     *
+     * @param string $id
+     * @return bool
+     */
+    public function provides(string $id): bool
+    {
+        return in_array($id, $this->provides);
+    }
+
+    /**
      * This is where the magic happens, within the method you can
      * access the container and register or retrieve anything
      * that you need to, but remember, every alias registered
      * within this method must be declared in the `$provides` array.
      */
-    public function register()
+    public function register(): void
     {
         $container = $this->getContainer();
         
@@ -103,7 +115,7 @@ class ViewServiceProvider extends AbstractServiceProvider
             return new DetailsView($container->get('twig'));
         });
 
-        $container->share(Environment::class, function () {
+        $container->addShared(Environment::class, function () {
             return $this->getContainer()->get('twig');
         });
     }

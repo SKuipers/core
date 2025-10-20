@@ -61,16 +61,28 @@ class AuthServiceProvider extends AbstractServiceProvider
     ];
 
     /**
+     * Return true if the service provider provides a service for 
+     * the given alias $id
+     *
+     * @param string $id
+     * @return bool
+     */
+    public function provides(string $id): bool
+    {
+        return in_array($id, $this->provides);
+    }
+    
+    /**
      * This is where the magic happens, within the method you can
      * access the container and register or retrieve anything
      * that you need to, but remember, every alias registered
      * within this method must be declared in the `$provides` array.
      */
-    public function register()
+    public function register(): void
     {
-        $container = $this->getLeagueContainer();
+        $container = $this->getContainer();
 
-        $container->share(AuthFactory::class, function () {
+        $container->addShared(AuthFactory::class, function () {
             $authSession = new AuthSession($this->container->get(Session::class));
             return new AuthFactory($_COOKIE, $authSession, $authSession);
         });
@@ -79,7 +91,7 @@ class AuthServiceProvider extends AbstractServiceProvider
             return new PasswordVerifier('sha256');
         });
 
-        $container->share(Google_Client::class, function () {
+        $container->addShared(Google_Client::class, function () {
             $session = $this->getContainer()->get('session');
             $settingGateway = $this->getContainer()->get(SettingGateway::class);
 
@@ -134,14 +146,14 @@ class AuthServiceProvider extends AbstractServiceProvider
             return $client;
         });
 
-        $container->share(Google_Service_Calendar::class, function () {
+        $container->addShared(Google_Service_Calendar::class, function () {
             $client = $this->getContainer()->get(Google_Client::class);
 
             return $client ? new Google_Service_Calendar($client) : null;
         });
 
 
-        $container->share('Microsoft_Auth', function () {
+        $container->addShared('Microsoft_Auth', function () {
             $session = $this->getContainer()->get('session');
             $settingGateway = $this->getContainer()->get(SettingGateway::class);
 
@@ -196,7 +208,7 @@ class AuthServiceProvider extends AbstractServiceProvider
             return $oauthProvider;
         });
 
-        $container->share('Generic_Auth', function () {
+        $container->addShared('Generic_Auth', function () {
             $session = $this->getContainer()->get('session');
             $settingGateway = $this->getContainer()->get(SettingGateway::class);
 

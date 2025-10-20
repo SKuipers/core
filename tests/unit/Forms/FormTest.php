@@ -50,7 +50,7 @@ class FormTest extends TestCase
 
         $container = new Container();
 
-        $container->share('twig', function () {
+        $container->addShared('twig', function () {
             $absolutePath = realpath(__DIR__ . '/../../../');
             $loader = new \Twig\Loader\FilesystemLoader($absolutePath.'/resources/templates');
 
@@ -65,10 +65,10 @@ class FormTest extends TestCase
             return $twig;
         });
 
-        $container->share(SessionInterface::class, function () {
+        $container->addShared(SessionInterface::class, function () {
             return new Session('test-guid');
         });
-        $container->share(TokenHandler::class, function () use ($container) {
+        $container->addShared(TokenHandler::class, function () use ($container) {
             return new TokenHandler($container->get(SessionInterface::class));
         });
         $service = new ViewServiceProvider();
