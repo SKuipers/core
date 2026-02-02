@@ -28,6 +28,8 @@ use Gibbon\Domain\Activities\ActivityGateway;
 use Gibbon\Domain\Timetable\TimetableDayDateGateway;
 use Gibbon\Domain\School\SchoolYearSpecialDayGateway;
 use Gibbon\Domain\Attendance\AttendanceLogPersonGateway;
+use Gibbon\Domain\School\SchoolYearGateway;
+use Gibbon\Http\Url;
 
 /**
  * Student Attendance Status
@@ -37,26 +39,26 @@ use Gibbon\Domain\Attendance\AttendanceLogPersonGateway;
  */
 class StudentAttendanceStatus
 {
-    protected $pdo;
+    protected $schoolYearGateway;
+    protected $schoolYearSpecialDayGateway;
     protected $attendanceLogGateway;
 	protected $timetableGateway;
-    protected $schoolYearSpecialDayGateway;
     protected $activityGateway;
     protected $settingGateway;
 
     public function __construct(
-        Connection $pdo,
+        SchoolYearGateway $schoolYearGateway,
+        SchoolYearSpecialDayGateway $schoolYearSpecialDayGateway,
         AttendanceLogPersonGateway $attendanceLogGateway,
 		TimetableDayDateGateway $timetableGateway,
-        SchoolYearSpecialDayGateway $schoolYearSpecialDayGateway,
         ActivityGateway $activityGateway,
         SettingGateway $settingGateway,
 
     ) {
-        $this->pdo = $pdo;
+        $this->schoolYearGateway = $schoolYearGateway;
+        $this->schoolYearSpecialDayGateway = $schoolYearSpecialDayGateway;
         $this->attendanceLogGateway = $attendanceLogGateway;
 		$this->timetableGateway = $timetableGateway;
-        $this->schoolYearSpecialDayGateway = $schoolYearSpecialDayGateway;
         $this->activityGateway = $activityGateway;
         $this->settingGateway = $settingGateway;
     }
@@ -65,25 +67,36 @@ class StudentAttendanceStatus
     {
         $today = date('Y-m-d');
         $currentTime = date('H:i:s');
+        
+        if (!$this->schoolYearGateway->isSchoolOpenByDate($today)) return [];
+
+        $statusData = [
+            'date'           => $today,
+            'time'           => $currentTime,
+            'fullName'       => Format::name('', $preferredName, $surname, 'Student'),
+            'gibbonPersonID' => $gibbonPersonID,
+            'absent'         => false,
+            'url' => Url::fromModuleRoute('Attendance', 'attendance_take_byPerson')->withQueryParams(['gibbonPersonID' => $gibbonPersonID, 'date' => $today]),
+        ];
+
         $lastNonClassAttendanceLog = $this->attendanceLogGateway->selectNonClassAttendanceLogsByPersonAndDate($gibbonPersonID, $today)->fetch();
-        $absent = false;
 
         if (!empty($lastNonClassAttendanceLog)) {
-            $absent = $lastNonClassAttendanceLog['type'] == 'Absent';
-            
-            if ($absent) {
-                $absenceMessage = __('{name} is {type} today.', [
-                    'name' =>Format::name('', $preferredName, $surname, 'Student'),
-                    'type' => __($lastNonClassAttendanceLog['type'])]);
-            } else {
-                $absenceMessage = __('{name} is {type} today.', [
-                    'name' =>Format::name('', $preferredName, $surname, 'Student'),
-                    'type' => __($lastNonClassAttendanceLog['type'])]);
-                $absenceMessage .= '<br/><br/><ul>';
+
+            $statusData['absent'] = $lastNonClassAttendanceLog['type'] == 'Absent';
+            $statusData['status'] = $lastNonClassAttendanceLog['type'];
+            $statusData['reason'] = $lastNonClassAttendanceLog['reason'];
+            $statusData['comment'] = $lastNonClassAttendanceLog['comment'];
+            $statusData['timestamp'] = $lastNonClassAttendanceLog['timestampTaken'];
+
+            if (!$statusData['absent']) {
+                
+                $absenceMessage = '<br/><br/><ul>';
 
                 $isStudentOffTimetableToday =  $this->schoolYearSpecialDayGateway->getIsStudentOffTimetableByDate($gibbonSchoolYearID, $gibbonPersonID, $today);
 
                 if ($isStudentOffTimetableToday) {
+                    $statusData['offTimetable'] = $isStudentOffTimetableToday['name'];
                     $absenceMessage .= '<li>'.__('The student is off timetable today for ').$isStudentOffTimetableToday['name'].'</li>';                           
                 } else {
                     $classes = $this->timetableGateway->selectTimetabledPeriodsByPersonAndDateRange($gibbonPersonID, $today, $today)->fetchAll();
@@ -98,17 +111,18 @@ class StudentAttendanceStatus
 
                     if ($currentClass) {
                         // Handle room changes
-                        if (!empty($currentClass['spaceChanged'])) {
-                            $currentClass['roomName'] = $currentClass['roomNameChange'] ?? '';
-                        }
                                     
                         $currentClassAttendance = $this->attendanceLogGateway->selectClassAttendanceLogsByPersonAndDate($currentClass['gibbonCourseClassID'], $gibbonPersonID, $today)->fetch();
 
-                        $absenceMessage .= '<li>'.__('Currently, {type} in {class}, {room}.', [
-                            'type'  => $currentClassAttendance['type'] ?? 'attendance has not been recorded yet',
-                            'class' => Format::courseClassName($currentClass['courseNameShort'], $currentClass['classNameShort']),
-                            'room'  => $currentClass['roomName']
-                        ]).'</li>';
+                        $statusData['class'] = [
+                            'name' => Format::courseClassName($currentClass['courseNameShort'], $currentClass['classNameShort']),
+                            'status' => $currentClassAttendance['type'] ?? '',
+                            'timestamp' => $currentClassAttendance['timestampTaken'] ?? null,
+                            'location' => !empty($currentClass['spaceChanged']) ? $currentClass['roomNameChange'] : $currentClass['roomName'],
+                            'phone' => !empty($currentClass['spaceChanged']) ? $currentClass['phoneChange'] : $currentClass['phone'],
+                            'period' => $currentClass['period'] ?? '',
+                            'timeRange' => Format::timeRange($currentClass['timeStart'], $currentClass['timeEnd']),
+                        ];
                     } else {
                         // Check if student is currently in an activity
                         $dateType = $this->settingGateway->getSettingByScope('Activities', 'dateType');
@@ -127,10 +141,14 @@ class StudentAttendanceStatus
                 }                                
             }
         } else {
-            $absenceMessage = __('No attendance has been recorded for {name} today yet.', [
-                'name' =>Format::name('', $preferredName, $surname, 'Student')]);
+            $isStudentOffTimetableToday =  $this->schoolYearSpecialDayGateway->getIsStudentOffTimetableByDate($gibbonSchoolYearID, $gibbonPersonID, $today);
+
+            if ($isStudentOffTimetableToday) {
+                $statusData['offTimetable'] = $isStudentOffTimetableToday['name'];                        
+            }
         }
-        
-        return $absent ? Format::alert($absenceMessage, 'error') : Format::alert($absenceMessage, 'message');
+
+        return $statusData;
+        //$absent ? Format::alert($absenceMessage, 'error') : Format::alert($absenceMessage, 'message');
     }
 }

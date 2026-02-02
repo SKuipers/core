@@ -193,6 +193,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                 }
                 return;
             } else {
+                $canViewFullProfile = $highestAction == 'View Student Profile_fullEditAllNotes' || $highestAction == 'View Student Profile_full' || $highestAction == 'View Student Profile_fullNoNotes';
+                $canTakeAttendanceByPerson = isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_take_byPerson.php');
                 try {
                     if ($highestAction == 'View Student Profile_myChildren') {
                         $data = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'gibbonPersonID1' => $_GET['gibbonPersonID'], 'gibbonPersonID2' => $session->get('gibbonPersonID'), 'today' => date('Y-m-d'));
@@ -214,7 +216,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                             WHERE gibbonPerson.gibbonPersonID=:gibbonPersonID
                             AND gibbonSchoolYearID=:gibbonSchoolYearID AND gibbonPerson.status='Full'
                             AND (dateStart IS NULL OR dateStart<=:today) AND (dateEnd IS NULL OR dateEnd>=:today)";
-                    } elseif ($highestAction == 'View Student Profile_fullEditAllNotes' || $highestAction == 'View Student Profile_full' || $highestAction == 'View Student Profile_fullNoNotes') {
+                    } elseif ($canViewFullProfile) {
                         if ($allStudents != 'on') {
                             $data = array('gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'), 'gibbonPersonID' => $gibbonPersonID, 'today' => date('Y-m-d'));
                             $sql = "SELECT gibbonPerson.*, gibbonStudentEnrolment.gibbonSchoolYearID, gibbonStudentEnrolment.gibbonYearGroupID, gibbonStudentEnrolment.gibbonFormGroupID, gibbonStudentEnrolment.rollOrder FROM gibbonPerson
@@ -293,9 +295,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                         }
 
                         // Show student's attendance and Current Location
-                        $currentAttendanceStatus = $container->get(StudentAttendanceStatus::class)->getCurrentAttendanceStatus($session->get('gibbonSchoolYearID'), $gibbonPersonID, $row['preferredName'], $row['surname']);
-                        
-                        echo $currentAttendanceStatus ?? '';
+                        if ($canViewFullProfile && $canTakeAttendanceByPerson) {
+                            $attendanceStatus = $container->get(StudentAttendanceStatus::class)->getCurrentAttendanceStatus($session->get('gibbonSchoolYearID'), $gibbonPersonID, $row['preferredName'], $row['surname']);
+                            
+                            echo !empty($attendanceStatus) ? $page->fetchFromTemplate('ui/userStatus.twig.html', $attendanceStatus) : '';
+                        }
 
                         $table = DataTable::createDetails('generalInfo');
 
@@ -1532,7 +1536,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
 
                             // DATA TABLE
                             $renderer = $container->get(StudentHistoryView::class);
-                            $renderer->addData('canTakeAttendanceByPerson', isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_take_byPerson.php'));
+                            $renderer->addData('canTakeAttendanceByPerson', $canTakeAttendanceByPerson);
 
                             $table = DataTable::create('studentHistory', $renderer);
                             echo $table->render($attendanceData);

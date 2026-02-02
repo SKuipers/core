@@ -62,6 +62,24 @@ class SchoolYearGateway extends QueryableGateway
         return $this->runQuery($query, $criteria);
     }
 
+    public function isSchoolOpenByDate(string $date)
+    {
+        $data = ['date' => $date];
+        $sql = "SELECT gibbonSchoolYear.gibbonSchoolYearID
+            FROM gibbonSchoolYear
+                LEFT JOIN gibbonDaysOfWeek ON (gibbonDaysOfWeek.name=DAYNAME(:date) AND gibbonDaysOfWeek.schoolDay='Y')
+                LEFT JOIN gibbonSchoolYearTerm ON (gibbonSchoolYearTerm.gibbonSchoolYearID=gibbonSchoolYear.gibbonSchoolYearID 
+                    AND :date BETWEEN gibbonSchoolYearTerm.firstDay AND gibbonSchoolYearTerm.lastDay)
+                LEFT JOIN gibbonSchoolYearSpecialDay ON (gibbonSchoolYearSpecialDay.type='School Closure' AND gibbonSchoolYearSpecialDay.date=:date)
+            WHERE gibbonSchoolYearTerm.gibbonSchoolYearTermID IS NOT NULL
+            AND gibbonDaysOfWeek.gibbonDaysOfWeekID IS NOT NULL
+            AND gibbonSchoolYearSpecialDay.gibbonSchoolYearSpecialDayID IS NULL
+            GROUP BY gibbonSchoolYear.gibbonSchoolYearID
+            ";
+
+        return !empty($this->db()->selectOne($sql, $data));
+    }
+
     /**
      * Get a key value array with gibbonSchoolYearID as keys
      * and the school year name as the values.
