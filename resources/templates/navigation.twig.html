@@ -12,17 +12,17 @@ current user. Outputs the sidebar in 'full' view-mode and as a
 collapsed drop-down list in 'mini' view-mode.
 -->#}
 
-{% set sidebarClass = 'shadow bg-white rounded px-6 mb-6' %}
+{% set sidebarClass = 'shadow bg-white rounded px-6 mb-6 dark:bg-gray-800 dark:shadow-gray-900' %}
 
 {% if sidebar or menuModule is not empty %}
 <div class="mx-4 sm:mx-0 relative sm:static" x-data="{moduleMenu: false}" @keydown.escape.window="moduleMenu = false" @click.outside="moduleMenu = false" x-init="moduleMenu = false">
 
     {% if menuModule %}
-    <button @click="moduleMenu = !moduleMenu" class="relative w-full flex rounded justify-center items-center sm:w-48 bg-white sm:border border-grey-600 border-solid p-2 mb-4 sm:mt-4 sm:absolute sm:top-0 sm:right-0 sm:mr-6 z-40 {{ sidebar ? 'lg:hidden' }}">
-        <span class="text-gray-600 text-sm sm:text-xs font-bold uppercase ">
+    <button @click="moduleMenu = !moduleMenu" class="relative w-full flex rounded justify-center items-center sm:w-48 bg-white sm:border border-grey-600 border-solid p-2 mb-4 sm:mt-4 sm:absolute sm:top-0 sm:right-0 sm:mr-6 z-40 {{ sidebar ? 'lg:hidden' }} dark:bg-gray-800 dark:border-gray-600">
+        <span class="text-gray-600 text-sm sm:text-xs font-bold uppercase dark:text-gray-300">
             {{ __('Module Menu') }}
         </span>
-        {{ icon('basic', 'menu', 'size-6 sm:size-5 text-gray-600 ml-2') }}
+        {{ icon('basic', 'menu', 'size-6 sm:size-5 text-gray-600 ml-2 dark:text-gray-300') }}
     </button>
     {% endif %}
 
@@ -59,7 +59,7 @@ collapsed drop-down list in 'mini' view-mode.
 
             {% for categoryName, items in menuModule %}
                 <li class="w-full column-no-break p-0">
-                    <h5 class="m-0 mb-1 text-sm px-px pt-2 pb-1 text-{{ themeColour }}-600 border-b-0 uppercase">
+                    <h5 class="m-0 mb-1 text-sm px-px pt-2 pb-1 text-{{ themeColour }}-600 border-b-0 uppercase dark:text-{{ themeColour }}-400">
                         {{ __(categoryName, (items|first).textDomain) }}
                     </h5>
                     
@@ -67,7 +67,7 @@ collapsed drop-down list in 'mini' view-mode.
                     {% for item in items %}
                         <li class="-mx-4 -my-1">
                             <a @click="moduleMenu = false" hx-boost="true" hx-target="#content-wrap" hx-select="#content-wrap" hx-swap="outerHTML show:window:top swap:0s" hx-indicator="#loadingIndicator" @click="menuItemActive = '{{ item.actionName|replace({' ': '-', '&': '', '\'': ''}) }}'"
-                            href="{{ item.url }}" class="block relative text-gray-700 no-underline px-3 py-1  text-sm leading-normal lg:leading-normal rounded transition cursor-pointer hover:bg-gray-200" :class="[ (menuItemActive === '{{ item.actionName|replace({' ': '-', '&': '', '\'': ''}) }}' ) ? 'navigation-link text-gray-900 bg-gray-300 font-semibold' : '' ] ">
+                            href="{{ item.url }}" class="block relative text-gray-700 no-underline px-3 py-1  text-sm leading-normal lg:leading-normal rounded transition cursor-pointer hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700" :class="[ (menuItemActive === '{{ item.actionName|replace({' ': '-', '&': '', '\'': ''}) }}' ) ? 'navigation-link text-gray-900 bg-gray-300 font-semibold dark:text-gray-100 dark:bg-gray-600' : '' ] ">
                                 {{ __(item.name, item.textDomain) }}
                             </a>
                         </li>

@@ -20,7 +20,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
     {% endif %}
                     
     {% if dataSet.getResultCount == 0 %}
-        <div class="h-24 rounded-sm border bg-gray-100 shadow-inner overflow-hidden">
+        <div class="h-24 rounded-sm border dark:border-gray-600 bg-gray-100 dark:bg-gray-800 shadow-inner overflow-hidden">
         {{ block('blankslate') }}
         </div>
     {% else %}

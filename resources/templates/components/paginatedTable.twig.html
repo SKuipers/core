@@ -96,7 +96,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
         </button>
     {% endfor %}
     
-    <button type="button" class="filter inline-flex items-center px-1.5 rounded-r-md text-xxs bg-white border-0 ring-1 ring-inset ring-gray-400 text-gray-600 hover:bg-gray-200 font-semibold clear">
+    <button type="button" class="filter inline-flex items-center px-1.5 rounded-r-md text-xxs bg-white dark:bg-gray-800 border-0 ring-1 ring-inset ring-gray-400 dark:ring-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 font-semibold clear">
         <span class="sr-only">
             {{ __('Clear') }}
         </span>
@@ -108,7 +108,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
 {% block pageCount %}
     {% if dataSet.getTotalCount > 0 %}
-    <div class="text-xs text-gray-700">
+    <div class="text-xs text-gray-700 dark:text-gray-300">
         {{ searchText ? __('Search') ~ " " }}
 
         {{ dataSet.isSubset ? __('Results') : __('Records') }}
@@ -131,7 +131,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
     
     {% if dataSet.getPage > 0 and (dataSet.getResultCount > dataSet.getPageSize or filterOptions) %}
     <nav class="pagination isolate mb-2 inline-flex rounded-md" aria-label="Pagination">
-        <button type="button" class="paginate px-1.5 rounded-l-md bg-white text-gray-600 ring-gray-400  {{ not dataSet.isFirstPage ? 'cursor-pointer hover:bg-gray-200'}} {{ buttonStyle }}" data-page="{{ dataSet.getPrevPageNumber }}" {{ dataSet.isFirstPage ? 'disabled'}}>
+        <button type="button" class="paginate px-1.5 rounded-l-md bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 ring-gray-400 dark:ring-gray-600  {{ not dataSet.isFirstPage ? 'cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700'}} {{ buttonStyle }}" data-page="{{ dataSet.getPrevPageNumber }}" {{ dataSet.isFirstPage ? 'disabled'}}>
             <span class="sr-only">
                 {{ __('Prev') }}
             </span>
@@ -140,13 +140,13 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
         {%- for page in dataSet.getPaginatedRange -%}
             {%- if page == '...' -%}
-                <button type="button" class="{{ buttonStyle }} hidden bg-white text-gray-600 sm:inline-flex px-4 sm:px-3 py-2 ring-gray-400" disabled>...</button>
+                <button type="button" class="{{ buttonStyle }} hidden bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 sm:inline-flex px-4 sm:px-3 py-2 ring-gray-400 dark:ring-gray-600" disabled>...</button>
             {%- else -%}
-                <button type="button" class="paginate {{ buttonStyle }} px-4 sm:px-3 py-2 {{ page == dataSet.getPage ? 'z-20 bg-blue-500 hover:bg-blue-600 ring-blue-700 text-white relative' : 'z-10 hidden sm:inline-flex bg-white text-gray-600 cursor-pointer hover:bg-gray-200 ring-gray-400' }}" data-page="{{ page }}" {{ page == dataSet.getPage ? 'aria-current="page"' }}>{{ page }}</button>
+                <button type="button" class="paginate {{ buttonStyle }} px-4 sm:px-3 py-2 {{ page == dataSet.getPage ? 'z-20 bg-blue-500 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-700 ring-blue-700 dark:ring-blue-800 text-white relative' : 'z-10 hidden sm:inline-flex bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ring-gray-400 dark:ring-gray-600' }}" data-page="{{ page }}" {{ page == dataSet.getPage ? 'aria-current="page"' }}>{{ page }}</button>
             {%- endif -%}
         {%- endfor -%}
 
-        <button type="button" class="paginate px-1.5 rounded-r-md bg-white text-gray-600 ring-gray-400  {{ not dataSet.isLastPage ? 'cursor-pointer hover:bg-gray-200'}} {{ buttonStyle }}" data-page="{{ dataSet.getNextPageNumber }}" {{ dataSet.isLastPage ? 'disabled'}}>
+        <button type="button" class="paginate px-1.5 rounded-r-md bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 ring-gray-400 dark:ring-gray-600  {{ not dataSet.isLastPage ? 'cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700'}} {{ buttonStyle }}" data-page="{{ dataSet.getNextPageNumber }}" {{ dataSet.isLastPage ? 'disabled'}}>
             <span class="sr-only">
                 {{ __('Next') }}
             </span>

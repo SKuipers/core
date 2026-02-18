@@ -18,7 +18,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 <div class="flex justify-between my-4 {{ item.comment is empty and html is empty and message is empty ? 'sm:items-center'}}">
 
     <div class="{{ compact ? 'w-8 sm:w-12' : 'w-12 sm:w-16' }} mr-4 flex flex-col items-center">
-        <div class="{{ item.image_240 ? 'flex-none' : 'flex items-center justify-center' }} overflow-hidden {{ compact ? 'w-8 sm:w-12 h-8 sm:h-12' : 'w-12 sm:w-16 h-12 sm:h-16' }} rounded-full bg-gray-200 border border-solid">
+        <div class="{{ item.image_240 ? 'flex-none' : 'flex items-center justify-center' }} overflow-hidden {{ compact ? 'w-8 sm:w-12 h-8 sm:h-12' : 'w-12 sm:w-16 h-12 sm:h-16' }} rounded-full bg-gray-200 dark:bg-gray-700 border border-solid dark:border-gray-600">
             {% if item.image_240 %}
                 <img class="w-full" src="{{ absoluteURL }}/{{ item.image_240 }}" />
             {% else %}
@@ -29,18 +29,18 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
     <div class="flex-1">
 
-        <div class="relative bg-gray-100 rounded text-gray-800 text-sm leading-snug border ">
+        <div class="relative bg-gray-100 dark:bg-gray-800 rounded text-gray-800 dark:text-gray-200 text-sm leading-snug border dark:border-gray-600 ">
 
             <div class="absolute top-0 left-0 border-transparent" style="margin: 15px 0 0 -18px; border-width: 9px; border-right-color: #d2d0d0;"></div>
-            <div class="absolute top-0 left-0 border-8 border-transparent" style="margin: 16px 0 0 -16px; border-width: 8px; border-right-color: #fafafa;"></div>
+            <div class="absolute top-0 left-0 border-8 border-transparent dark:border-gray-800" style="margin: 16px 0 0 -16px; border-width: 8px; border-right-color: #fafafa;"></div>
 
-            <div class="px-4 py-3 text-gray-700 text-sm font-sans leading-relaxed flex flex-col sm:flex-row justify-between items-center">
+            <div class="px-4 py-3 text-gray-700 dark:text-gray-300 text-sm font-sans leading-relaxed flex flex-col sm:flex-row justify-between items-center">
                 <div>
                 <span class="inline-block font-semibold">
-                    {% if item.url %}<a href="{{ item.url }}" class="text-gray-800 underline">{% endif %}
+                    {% if item.url %}<a href="{{ item.url }}" class="text-gray-800 dark:text-gray-200 underline">{% endif %}
                     {{- formatUsing('name', item.title, item.preferredName, item.surname, 'Student', false, true) -}}
                     {% if item.url %}</a>{% endif %}
-                    {%- if item.label %}<span class="ml-2 font-normal text-xs text-gray-600">{{ item.label }}</span>{% endif -%}
+                    {%- if item.label %}<span class="ml-2 font-normal text-xs text-gray-600 dark:text-gray-400">{{ item.label }}</span>{% endif -%}
                 </span>
 
                 {% if item.timestamp %}
@@ -67,14 +67,14 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
             </div>
 
             {% if item.comment %}
-            <div class="discussion-comment p-4 bg-white border-t rounded-b">
+            <div class="discussion-comment p-4 bg-white dark:bg-gray-900 border-t dark:border-gray-600 rounded-b">
                 {{ item.comment|raw }}
             </div>
             {% endif %}
         </div>
 
         {% if item.replies %}
-            <div class="bg-white rounded-b">
+            <div class="bg-white dark:bg-gray-900 rounded-b">
                 {{ include ('ui/discussion.twig.html', {'discussion': item.replies}) }}
             </div>
         {% endif %}
@@ -84,7 +84,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 {% endfor %}
 
 {% if discussion is empty and blankSlate %}
-    <div class="h-48 rounded-sm border bg-gray-100 shadow-inner overflow-hidden">
+    <div class="h-48 rounded-sm border dark:border-gray-600 bg-gray-100 dark:bg-gray-800 shadow-inner overflow-hidden">
         {% block blankslate %}
         {{ include('components/blankSlate.twig.html') }}
         {% endblock blankslate %}

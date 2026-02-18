@@ -164,7 +164,7 @@ class DataTableView extends View implements RendererInterface
         $th = new TableCell($column->getLabel());
 
         $th->setTitle($column->getTitle())
-           ->setClass('column p-3 sm:p-4 font-semibold '.$column->getClass())
+           ->setClass('column p-3 sm:p-4 font-semibold text-gray-700 dark:text-gray-300 '.$column->getClass())
            ->addData('description', $column->getDescription());
 
         $this->applyContexts($column, $th);

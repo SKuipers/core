@@ -8,26 +8,26 @@
 
 <div x-data="{ show: true, policy: false, pw: '' }" class="flex-grow relative flex">
     <input x-model.fill="pw" :type="show ? 'password' : 'text'" <?= $attributes; ?> autocomplete="off" 
-    class="<?= $class; ?> <?= $groupClass; ?> w-full min-w-0  py-2 placeholder:text-gray-500  sm:text-sm sm:leading-5 <?= $type != 'text' ? 'input-icon' : ''; ?>
-    <?= !empty($readonly) ? 'border-dashed text-gray-600 cursor-not-allowed :ring-0 focus:border-gray-400' : 'text-gray-900 focus:ring-1 focus:ring-inset focus:ring-blue-500'; ?>"
+    class="<?= $class; ?> <?= $groupClass; ?> w-full min-w-0  py-2 placeholder:text-gray-500 dark:placeholder:text-gray-400  sm:text-sm sm:leading-5 <?= $type != 'text' ? 'input-icon' : ''; ?>
+    <?= !empty($readonly) ? 'border-dashed text-gray-600 dark:text-gray-400 cursor-not-allowed :ring-0 focus:border-gray-400 dark:focus:border-gray-600 dark:bg-gray-800 dark:border-gray-700' : 'text-gray-900 dark:text-gray-100 dark:bg-gray-800 dark:border-gray-600 focus:ring-1 focus:ring-inset focus:ring-blue-500 dark:focus:ring-blue-400'; ?>"
     <?= !empty($policy) ? ' @focus="policy=true;pw=$el.value" @blur="policy=false;pw=$el.value" @click.away="policy=false"' : ''; ?>
     />
 
     <span class="absolute top-0.5 right-2">
 
         <button type="button" @click="show = !show" :class="{'hidden': !show, 'block':show }" tabindex="-1">
-        <?= icon('basic', 'eye', 'pointer-events-none size-8 mt-px p-1.5 rounded bg-white text-gray-500 hover:text-gray-700'); ?>
+        <?= icon('basic', 'eye', 'pointer-events-none size-8 mt-px p-1.5 rounded bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'); ?>
         </button>
 
         <button type="button" @click="show = !show" :class="{'block': !show, 'hidden':show }" tabindex="-1">
-        <?= icon('basic', 'eye-slash', 'pointer-events-none size-8 mt-px p-1.5 rounded bg-white text-gray-500 hover:text-gray-700'); ?>
+        <?= icon('basic', 'eye-slash', 'pointer-events-none size-8 mt-px p-1.5 rounded bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'); ?>
         </button>
 
     </span>
 
     <?php if (!empty($policy)) { ?>
 
-    <div x-cloak x-show="policy" x-transition x-data="{meterColor: 'bg-green-400'}" class="absolute mt-10 w-full z-50 bg-white border rounded-md p-2" x-init="$watch('pw', function(value) { meterColor = value.length >= 16 && pw.match(/<?= $policyPattern ?>/) ? 'bg-green-500' : value.length >= 12 ? 'bg-lime-500' : value.length >= 6 ? 'bg-yellow-500' : 'bg-red-600'; } )">
+    <div x-cloak x-show="policy" x-transition x-data="{meterColor: 'bg-green-400'}" class="absolute mt-10 w-full z-50 bg-white dark:bg-gray-800 border dark:border-gray-600 rounded-md p-2" x-init="$watch('pw', function(value) { meterColor = value.length >= 16 && pw.match(/<?= $policyPattern ?>/) ? 'bg-green-500' : value.length >= 12 ? 'bg-lime-500' : value.length >= 6 ? 'bg-yellow-500' : 'bg-red-600'; } )">
 
         <?= __('Password Strength') ?><br>
         <div class="flex gap-1 w-full my-2" >
