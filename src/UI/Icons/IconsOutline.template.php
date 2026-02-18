@@ -180,6 +180,27 @@ $icons = [
     </svg>
     HTML,
 
+    // Heroicons: moon
+    'moon' => <<<HTML
+    <svg class="{$class}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="{$strokeWidth}" stroke="currentColor" aria-hidden="true">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
+    </svg>
+    HTML,
+
+    // Heroicons: sun
+    'sun' => <<<HTML
+    <svg class="{$class}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="{$strokeWidth}" stroke="currentColor" aria-hidden="true">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
+    </svg>
+    HTML,
+
+    // Heroicons: computer-desktop
+    'computer-desktop' => <<<HTML
+    <svg class="{$class}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="{$strokeWidth}" stroke="currentColor" aria-hidden="true">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0V12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 12V5.25" />
+    </svg>
+    HTML,
+    
     // Heroicons: notifications
     'notifications' => <<<HTML
     <svg class="{$class}" style="max-width: 2.5rem;" x="0px" y="0px" viewBox="0 0 100 100" style="enable-background:new 0 0 100 100;" fill="currentColor" aria-hidden="true"><g i:extraneous="self"><path d="M87.5,67.2L83,61.8c-2.8-3.4-4.3-7.7-4.3-12.1V39.6c0-14.6-11-26.7-25.1-28.5v-5c0-2-1.6-3.6-3.6-3.6    c-2,0-3.6,1.6-3.6,3.6v5C32.3,12.9,21.3,25,21.3,39.6v10.1c0,4.4-1.5,8.7-4.3,12.1l-4.4,5.4c-2.3,2.8-2.8,6.7-1.2,10    c1.6,3.3,4.8,5.4,8.5,5.4h13.8c0.8,8.4,7.8,14.9,16.4,14.9s15.6-6.6,16.4-14.9h13.8c3.7,0,6.9-2.1,8.5-5.4    C90.2,73.9,89.8,70.1,87.5,67.2z M50,90.3c-4.6,0-8.4-3.4-9.1-7.8h18.2C58.4,86.9,54.6,90.3,50,90.3z M82.2,74.1    c-0.2,0.4-0.7,1.3-2,1.3H19.8c-1.3,0-1.8-0.9-2-1.3s-0.5-1.4,0.3-2.4l4.4-5.4c3.8-4.7,5.9-10.6,5.9-16.7V39.6    C28.5,27.7,38.1,18,50,18s21.5,9.7,21.5,21.5v10.1c0,6.1,2.1,12,5.9,16.7l4.4,5.4C82.7,72.7,82.4,73.7,82.2,74.1z"/></g></svg>

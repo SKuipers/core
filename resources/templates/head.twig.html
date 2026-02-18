@@ -24,6 +24,27 @@ all stylesheets and scripts with a 'head' context.
     <link rel="shortcut icon" type="image/x-icon" href="./favicon.ico"/>
 {% endblock meta %}
 
+{% block fouc_prevention %}
+    <script>
+        // FOUC Prevention: Apply dark mode class before page renders
+        (function() {
+            var STORAGE_KEY = 'gibbon-theme-preference';
+            var preference = localStorage.getItem(STORAGE_KEY) || 'auto';
+            var isDark = false;
+            
+            if (preference === 'dark') {
+                isDark = true;
+            } else if (preference === 'auto') {
+                isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            }
+            
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+    </script>
+{% endblock fouc_prevention %}
+
 {% block styles %}
     {% for asset in page.stylesheets %}
         {% set assetVersion = asset.version is not empty ? asset.version : version %}

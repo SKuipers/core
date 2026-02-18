@@ -343,6 +343,7 @@ $page->scripts->addMultiple([
     'jquery-ui'      => 'lib/jquery-ui/js/jquery-ui.min.js',
     'htmx'           => 'lib/htmx/htmx.min.js',
     'core'           => 'resources/assets/js/core.min.js',
+    'theme'           => 'resources/assets/js/theme.js',
     
 ], ['context' => 'head']);
 
@@ -730,12 +731,17 @@ if (!$session->has('address')) {
  */
 if ($isLoggedIn) {
     $header = $container->get(Gibbon\UI\Components\Header::class);
+    $userGateway = $container->get(UserGateway::class);
+    
+    // Load user's theme preference
+    $themePreference = $userGateway->getUserPreferenceByScope($session->get('gibbonPersonID'), 'User', 'theme', 'auto');
 
     $page->addData([
         'currentUser'  => $header->getUserDetails(),
         'minorLinks'   => $header->getMinorLinks(),
         'statusTray'   => $header->getStatusTray(),
         'roleCategory' => $session->get('gibbonRoleIDCurrentCategory'),
+        'themePreference' => $themePreference,
     ]);
 }
 

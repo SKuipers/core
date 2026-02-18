@@ -39,4 +39,18 @@ if (empty($preferenceScope) || empty($preferenceKey)) {
     return;
 }
 
-$userGateway->setUserPreferenceByScope($session->get('gibbonPersonID'), $preferenceScope, $preferenceKey, $preferenceValue);
+// Validate theme values
+if ($preferenceKey === 'theme') {
+    $validThemes = ['light', 'dark', 'auto'];
+    if (!in_array($preferenceValue, $validThemes)) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => 'Invalid theme value']);
+        return;
+    }
+}
+
+$result = $userGateway->setUserPreferenceByScope($session->get('gibbonPersonID'), $preferenceScope, $preferenceKey, $preferenceValue);
+
+// Return success response
+header('Content-Type: application/json');
+echo json_encode(['success' => $result !== false]);
