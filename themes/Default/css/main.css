@@ -48,6 +48,16 @@ h6:not([class]) {
     text-transform: uppercase;
     padding-bottom: 5px;
 }
+
+h1:not([class]):is(.dark *),
+h2:not([class]):is(.dark *),
+h3:not([class]):is(.dark *),
+h4:not([class]):is(.dark *),
+h5:not([class]):is(.dark *),
+h6:not([class]):is(.dark *) {
+    color: #c2c2c2;
+}
+
 h1:not([class]) {
     font-size: 17pt;
 }
@@ -279,20 +289,6 @@ textarea[disabled] {
     margin: 1.0rem 0px 0.5rem 0px;
 }
 
-/* IMAGES */
-img.user {
-    background-color: #ffffff;
-    border: 1px solid #000000;
-    padding: 4px;
-    box-shadow: 2px 2px 2px rgba(50, 50, 50, 0.35);
-}
-
-a img.resource,
-img.resource {
-    background-color: #ffffff !important;
-    border: 1px solid #000000 !important;
-    padding: 4px !important;
-}
 
 /* jQueryUI Tweaks */
 .ui-tabs-nav,

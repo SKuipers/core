@@ -395,7 +395,7 @@ class Sidebar implements OutputableInterface, ContainerAwareInterface
                                 $height = 197;
                             }
                             echo "<div class='rounded overflow-hidden border'>";
-                            echo "<div id='messageWallWidget' style='height: ".$height."px;' class='w-full overflow-y-auto  bg-gray-50 rounded leading-relaxed'>";
+                            echo "<div id='messageWallWidget' style='height: ".$height."px;' class='w-full overflow-y-auto  bg-gray-50 dark:bg-gray-800 rounded leading-relaxed'>";
                             //Content added by JS
                             $rand = rand(0, count($unpinnedMessages));
                             $total = count($unpinnedMessages);
@@ -416,7 +416,7 @@ class Sidebar implements OutputableInterface, ContainerAwareInterface
                                 echo "<a class='block text-xs font-bold uppercase mb-1' href='$URL'>".Format::truncate($message['subject'], 20).'</a>';
 
                                 //Text
-                                echo "<div class='text-xs text-gray-700'>";
+                                echo "<div class='text-xs text-gray-700 dark:text-gray-500'>";
 
                                 $messageBody = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $message['body']);
                                 $messageBody = strip_tags($messageBody);

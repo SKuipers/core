@@ -991,7 +991,7 @@ class Format
      * @param string $class
      * @return string
      */
-    public static function photo($path, $size = 75, $class = 'inline-block shadow bg-white border border-gray-600')
+    public static function photo($path, $size = 75, $class = 'inline-block shadow bg-white dark:bg-gray-800 border border-gray-600 dark:border-gray-500')
     {
         switch ($size) {
             case 240:
@@ -1036,7 +1036,7 @@ class Format
      */
     public static function userPhoto($path, $size = 75, $class = '')
     {
-        $class .= ' inline-block shadow bg-white border border-gray-600 ';
+        $class .= ' inline-block shadow bg-white dark:bg-gray-800 border border-gray-600 dark:border-gray-500 ';
 
         switch ($size) {
             case 240:
@@ -1101,7 +1101,7 @@ class Format
                 $daysUntilNextBirthday,
                 ['name' => $preferredName]
             );
-            $iconClass = 'text-gray-600 bg-white';
+            $iconClass = 'text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800';
         }
 
         return Format::tooltip(icon('outline', 'gift', 'absolute bottom-0 -ml-4 size-7 shadow p-0.5 rounded-md '.$iconClass, ['stroke-width' => '1.8']), $title);
@@ -1205,7 +1205,7 @@ class Format
             $colorClass = trim(preg_replace('/[^a-zA-Z0-9_-]/', '', $color));
         }
 
-        return "<div class='rounded-md border h-8 w-8 {$colorClass}' style='background-color:{$colorValue}' title='{$colorTitle}'></div>";
+        return "<div class='rounded-md border dark:border-gray-600 h-8 w-8 {$colorClass}' style='background-color:{$colorValue}' title='{$colorTitle}'></div>";
     }
 
     /**

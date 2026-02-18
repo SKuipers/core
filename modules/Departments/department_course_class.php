@@ -133,8 +133,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Departments/department_cou
                 $table->setTitle($row['courseLong']." - ".$row['classLong']);
                 $table->setDescription(Format::courseClassName($row['course'], $row['class']));
 
-                $table->addMetaData('gridClass', 'rounded-md bg-gray-100 border py-4 gap-6 sm:flex-nowrap justify-around');
-                $table->addMetaData('gridItemClass', 'w-24 sm:flex-1 text-center text-gray-500 hover:text-gray-700');
+                $table->addMetaData('gridClass', 'rounded-md bg-gray-100 dark:bg-gray-800 border dark:border-gray-600 py-4 gap-6 sm:flex-nowrap justify-around');
+                $table->addMetaData('gridItemClass', 'w-24 sm:flex-1 text-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300');
                 $table->addMetaData('hidePagination', true);
 
                 $table->addColumn('icon')
