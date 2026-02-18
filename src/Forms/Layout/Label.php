@@ -47,7 +47,7 @@ class Label extends Element implements RowDependancyInterface
     {
         $this->label = $label;
         $this->setAttribute('for', $for);
-        $this->addClass('font-medium my-0 text-base/6 sm:text-sm/6 text-gray-800');
+        $this->addClass('font-medium my-0 text-base/6 sm:text-sm/6 text-gray-800 dark:text-gray-200');
     }
 
     /**
@@ -194,7 +194,7 @@ class Label extends Element implements RowDependancyInterface
             }
 
             $this->setTitle(__('This value cannot be changed.'));
-            $output .= icon('solid', 'lock-closed', 'inline size-3 ml-2 text-gray-400');
+            $output .= icon('solid', 'lock-closed', 'inline size-3 ml-2 text-gray-400 dark:text-gray-500');
 
         } elseif ($this->getRequired()) {
             $output .= ' <span class="text-sm text-red-600 font-light">*</span>';
@@ -205,7 +205,7 @@ class Label extends Element implements RowDependancyInterface
         }
 
         if (!empty($this->description)) {
-            $output .= '<div class="mt-1 sm:mt-2 text-sm sm:text-xs text-gray-600 font-light">';
+            $output .= '<div class="mt-1 sm:mt-2 text-sm sm:text-xs text-gray-600 dark:text-gray-400 font-light">';
             $output .= $this->getDescription();
             $output .= '</div>';
         }

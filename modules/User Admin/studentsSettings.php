@@ -127,7 +127,7 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/studentsSetting
             ->fromAjax($absoluteURL.'/modules/Staff/staff_searchAjax.php')
             ->selected($contacts)
             ->setParameter('resultsLimit', 10)
-            ->resultsFormatter('function(item){ return "<li class=\'\'><div class=\'inline-block bg-cover w-12 h-12 rounded-full bg-gray-200 border border-gray-400 bg-no-repeat\' style=\'background-image: url(" + item.image + ");\'></div><div class=\'inline-block px-4 truncate\'>" + item.name + "<br/><span class=\'inline-block opacity-75 truncate text-xxs\'>" + item.jobTitle + "</span></div></li>"; }');
+            ->resultsFormatter('function(item){ return "<li class=\'\'><div class=\'inline-block bg-cover w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 border border-gray-400 dark:border-gray-600 bg-no-repeat\' style=\'background-image: url(" + item.image + ");\'></div><div class=\'inline-block px-4 truncate\'>" + item.name + "<br/><span class=\'inline-block opacity-75 truncate text-xxs\'>" + item.jobTitle + "</span></div></li>"; }');
 
     $row = $form->addRow()->addHeading('Day-Type Options', __('Day-Type Options'));
 

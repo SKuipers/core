@@ -507,7 +507,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                                 $gridView = $container->get(GridView::class);
                                 $table->setRenderer($gridView->setCriteria($criteria));
 
-                                $table->addMetaData('gridClass', 'rounded-sm bg-gray-100 border');
+                                $table->addMetaData('gridClass', 'rounded-sm bg-gray-100 dark:bg-gray-800 border');
                                 $table->addMetaData('gridItemClass', 'w-1/2 sm:w-1/4 md:w-1/5 my-4 text-center text-xs');
 
                                 $table->addColumn('image_240', __('Photo'))
@@ -548,7 +548,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                             $table->addColumn('context', __('Context'))
                                 ->notSortable()
                                 ->format(function ($person) use ($view) {
-                                    $class = $view == 'grid'? 'unselectable text-xxs italic text-gray-800' : 'unselectable';
+                                    $class = $view == 'grid'? 'unselectable text-xxs italic text-gray-800 dark:text-gray-200' : 'unselectable';
                                     $context = $person['type'] == 'Class Teacher' ? $person['context'] : $person['type'];
                                     if (!empty($person['classID'])) {
                                         return Format::link('./index.php?q=/modules/Departments/department_course_class.php&gibbonCourseClassID='.$person['classID'], __($context), ['class' => $class.' underline']);

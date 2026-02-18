@@ -59,8 +59,8 @@ class CoverageTodayView
     {
         $coverage = $this->staffCoverageGateway->getByID($this->gibbonStaffCoverageID);
 
-        $page->write('<details class="border  bg-white rounded-b -mt-5 px-4" open>');
-        $page->write('<summary class="py-4 text-gray-700 text-sm cursor-pointer">'.__('View Details').'</summary>');
+        $page->write('<details class="border  bg-white dark:bg-gray-800 rounded-b -mt-5 px-4" open>');
+        $page->write('<summary class="py-4 text-gray-700 dark:text-gray-200 text-sm cursor-pointer">'.__('View Details').'</summary>');
 
         // Coverage Request
         $requester = $this->userGateway->getByID($coverage['gibbonPersonIDStatus']);

@@ -33,7 +33,7 @@ use Gibbon\Forms\FormFactoryInterface;
 class Details extends Row implements OutputableInterface
 {
     protected $summaryText = 'Expand';
-    protected $summaryClass = 'px-1 text-sm leading-normal hover:text-blue-600 cursor-pointer';
+    protected $summaryClass = 'px-1 text-sm leading-normal hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer';
 
     /**
      * Construct a details element with access to a specific factory.
