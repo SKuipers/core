@@ -35,7 +35,7 @@
             type="button" class="flex-1 relative z-20 inline-flex items-center justify-center w-full h-9  px-3 text-sm   transition-all rounded-md bg-transparent cursor-pointer whitespace-nowrap" x-text="option" :class="option == selected ? 'text-gray-800' : 'text-gray-600'"></button>
         </template>
 
-        <div x-init="tabMarker = $el; $el.style.left = ( ((tabSelected-1)/optionCount)*100 ) + '%';" class="absolute left-0 z-10 w-1/<?= $optionCount ?> h-9 duration-300 ease-out" x-cloak><div class="w-full h-full bg-white border rounded-md shadow-sm"></div></div>
+        <div x-init="tabMarker = $el; $el.style.left = ( ((tabSelected-1)/optionCount)*100 ) + '%';" class="absolute left-0 z-10 w-1/<?= $optionCount ?> h-9 duration-300 ease-out" x-cloak><div class="w-full h-full bg-white dark:bg-gray-700 border dark:border-gray-600 rounded-md shadow-sm"></div></div>
     </div>
 
     <input type="hidden" id="<?= $id ?>" name="<?= $name ?>" :value="selected" x-init="toggleInput = $el" />

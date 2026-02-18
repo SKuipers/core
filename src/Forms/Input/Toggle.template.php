@@ -20,7 +20,7 @@
         <span aria-hidden="true" :class="toggle == onValue ? 'border-blue-500' : 'border-gray-400'" 
             style="<?= $value == $onValue ? 'transform: translateX('.($flip * 0.95).'rem)' : 'transform: translateX('.($flip * 0.2).'rem)'; ?>;"
             :style="toggle == onValue ? 'transform: translateX(<?= $flip * 0.95 ?>rem);' : 'transform: translateX(<?= $flip * 0.2 ?>rem);'" 
-            class="border bg-white h-3 w-3 rounded-full transition duration-300 ease-in-out <?= $disabledClass ?>" >
+            class="border bg-white dark:bg-gray-700 h-3 w-3 rounded-full transition duration-300 ease-in-out <?= $disabledClass ?>" >
         </span>
     </button>
 
@@ -34,7 +34,7 @@
         <span aria-hidden="true" :class="toggle == onValue ? 'border-blue-500' : '<?= $toggleType == 'ActiveInactive' ? 'border-red-600' : 'border-gray-400' ?>'" 
             style="<?= $value == $onValue ? 'transform: translateX('.($flip * 2.15).'rem)' : 'transform: translateX('.($flip * 0.25).'rem)'; ?>;"
             :style="toggle == onValue ? 'transform: translateX(<?= $flip * 2.15  ?>rem);' : 'transform: translateX(<?= $flip * 0.25 ?>rem);'" 
-            class="border bg-white h-6 w-6 rounded-full transition duration-300 ease-in-out <?= $disabledClass ?>" >
+            class="border bg-white dark:bg-gray-700 h-6 w-6 rounded-full transition duration-300 ease-in-out <?= $disabledClass ?>" >
         </span>
     </button>
 

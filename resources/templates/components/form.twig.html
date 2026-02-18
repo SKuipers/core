@@ -70,7 +70,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
     {% endfor %}
 
     {% if form.getSectionCount > 0 %}
-    <div id="{{ form.getID }}Wrap" class="w-full grid grid-cols-5 xl:grid-cols-8 gap-2 sm:gap-4 font-sans text-xs text-gray-700 dark:text-gray-300  {{ "noIntBorder" in form.getClass ? 'border dark:border-gray-600 bg-blue-50 dark:bg-blue-800 rounded p-4' }}" style="" cellspacing="0" 
+    <div id="{{ form.getID }}Wrap" class="w-full grid grid-cols-5 xl:grid-cols-8 gap-2 sm:gap-4 font-sans text-xs text-gray-700 dark:text-gray-300  {{ "noIntBorder" in form.getClass ? 'border dark:border-gray-600 bg-blue-50 dark:bg-blue-900 rounded p-4' }}" style="" cellspacing="0" 
         {% if useSaveWarning %}
         x-data="{changed: false, 
             checkInput(formElement) {  

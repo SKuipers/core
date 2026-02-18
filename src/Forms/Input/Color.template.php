@@ -28,7 +28,7 @@
         x-transition:leave="transition ease-in duration-75 transform"
         x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
         class="absolute z-50 top-0 mt-12 rounded-md shadow-lg <?= $showField ? 'left-0' : 'right-0'; ?>">
-        <div class="rounded-md bg-white shadow-xs w-80 px-4 pt-4 pb-3">
+        <div class="rounded-md bg-white dark:bg-gray-800 shadow-xs w-80 px-4 pt-4 pb-3">
             <div class="grid grid-cols-8 justify-center items-center gap-1">
 
             <div class="w-8 h-8 overflow-hidden inline-flex justify-center items-center rounded-full cursor-pointer border-4 border-white focus:outline-none focus:ring"  title="<?= __('Custom Colour'); ?>">
