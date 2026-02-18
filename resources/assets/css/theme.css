@@ -34,7 +34,7 @@ html {
 }
 
 body {
-    @apply text-gray-900;
+    @apply text-gray-900 dark:text-gray-100 dark:bg-gray-900;
     font-family: Helvetica, Arial, sans-serif;
 }
 
@@ -61,15 +61,15 @@ body {
 */
 
 a {
-    @apply text-red-700 no-underline;
+    @apply text-red-700 no-underline dark:text-red-400;
 }
 
 a:not([class]) {
-    @apply text-red-700 bg-transparent;
+    @apply text-red-700 bg-transparent dark:text-red-400;
 }
 
 a:hover:not([class]) {
-    @apply text-red-900 underline;
+    @apply text-red-900 underline dark:text-red-300;
 }
 
 a img {
@@ -83,7 +83,7 @@ a img {
 */
 
 hr {
-    @apply border-gray-300 border my-6;
+    @apply border-gray-300 border my-6 dark:border-gray-700;
 }
 
 .small {
@@ -101,11 +101,11 @@ kbd {
 */
 .alert {
     @apply my-4 p-4 text-xs rounded border p-4 text-xs relative;
-    @apply bg-gray-100 border-gray-600 text-gray-600;
+    @apply bg-gray-100 border-gray-600 text-gray-600 dark:bg-gray-800 dark:border-gray-500 dark:text-gray-300;
 }
 
 .message {
-    @apply bg-blue-100 border-blue-700 text-blue-700;
+    @apply bg-blue-100 border-blue-700 text-blue-700 dark:bg-blue-900 dark:border-blue-500 dark:text-blue-200;
 }
 
 div.message:not(.tag)::before {
@@ -123,7 +123,7 @@ div.message:not(.tag)::before {
 
 .current,
 .success {
-    @apply bg-green-100 border-green-700 text-green-700;
+    @apply bg-green-100 border-green-700 text-green-700 dark:bg-green-900 dark:border-green-500 dark:text-green-200;
 }
 
 div.success:not(.tag)::before {
@@ -140,7 +140,7 @@ div.success:not(.tag)::before {
 }
 
 .warning {
-    @apply bg-orange-100 border-orange-700 text-orange-700;
+    @apply bg-orange-100 border-orange-700 text-orange-700 dark:bg-orange-900 dark:border-orange-500 dark:text-orange-200;
 }
 
 div.warning:not(.tag)::before {
@@ -158,7 +158,7 @@ div.warning:not(.tag)::before {
 
 .past,
 .error {
-    @apply bg-red-200 border-red-700 text-red-700;
+    @apply bg-red-200 border-red-700 text-red-700 dark:bg-red-900 dark:border-red-500 dark:text-red-200;
 }
 
 div.error:not(.tag)::before {
@@ -175,7 +175,7 @@ div.error:not(.tag)::before {
 }
 
 .exception {
-    @apply bg-gray-100 border-gray-800 text-gray-800;
+    @apply bg-gray-100 border-gray-800 text-gray-800 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200;
 }
 
 div.exception:not(.tag)::before {
@@ -193,7 +193,7 @@ div.exception:not(.tag)::before {
 
 
 .magic {
-    @apply bg-purple-100 border-purple-800 text-purple-800;
+    @apply bg-purple-100 border-purple-800 text-purple-800 dark:bg-purple-900 dark:border-purple-600 dark:text-purple-200;
 }
 
 div.magic:not(.tag)::before {
@@ -210,7 +210,7 @@ div.magic:not(.tag)::before {
 }
 
 .empty {
-    @apply bg-gray-50 border-gray-800 text-gray-600;
+    @apply bg-gray-50 border-gray-800 text-gray-600 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400;
 }
 
 div.empty:not(.tag)::before {
@@ -227,11 +227,11 @@ div.empty:not(.tag)::before {
 }
 
 .dull {
-    @apply bg-gray-300 text-gray-600;
+    @apply bg-gray-300 text-gray-600 dark:bg-gray-700 dark:text-gray-400;
 }
 
 .selected {
-    @apply bg-purple-200 border-purple-800 text-purple-800;
+    @apply bg-purple-200 border-purple-800 text-purple-800 dark:bg-purple-900 dark:border-purple-600 dark:text-purple-200;
 }
 
 div.message:not(.tag), div.warning:not(.tag), div.exception:not(.tag), div.success:not(.tag), div.error:not(.tag), div.magic:not(.tag), div.empty:not(.tag) {
@@ -247,7 +247,7 @@ div.message a, div.success a, div.warning a, div.error a, div.exception a, div.d
 }
 
 .badge {
-    @apply absolute z-10 rounded-full bg-purple-400 text-xs text-white no-underline leading-tight font-sans;
+    @apply absolute z-10 rounded-full bg-purple-400 text-xs text-white no-underline leading-tight font-sans dark:bg-purple-600;
     padding: 2px 6px 2px 6px;
 }
 
@@ -292,7 +292,7 @@ div.message a, div.success a, div.warning a, div.error a, div.exception a, div.d
 */
 
 .dataTable tr:not([class]):hover {
-    @apply bg-gray-100;
+    @apply bg-gray-100 dark:bg-gray-800;
 }
 
 .navigation-link::after { 
@@ -328,7 +328,7 @@ select {
 }
 
 input:focus, select:focus, textarea:focus {
-    @apply outline-none ring border-blue-500;
+    @apply outline-none ring border-blue-500 dark:border-blue-400;
 
 }
 
@@ -346,11 +346,11 @@ input[readonly]:focus, select[readonly]:focus, textarea[readonly]:focus {
 }
 
 .button {
-    @apply py-2 px-2 border text-gray-700 text-xs font-bold leading-normal ;
+    @apply py-2 px-2 border text-gray-700 text-xs font-bold leading-normal dark:text-gray-300 dark:border-gray-600;
 }
 
 .button:hover {
-    @apply bg-gray-400;
+    @apply bg-gray-400 dark:bg-gray-700;
 }
 
 .column.inline {
@@ -393,7 +393,7 @@ input[type="color"]::-moz-color-swatch {
 }
 
 [multiple], [type="date"], [type="datetime-local"], [type="email"], [type="month"], [type="number"], [type="password"], [type="search"], [type="tel"], [type="text"], [type="time"], [type="url"], [type="week"], input:where(:not([type])), select, textarea {
-    @apply border-gray-400;
+    @apply border-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100;
 }
 
 /* Alpine Sortable */
@@ -403,6 +403,10 @@ input[type="color"]::-moz-color-swatch {
 
 .tox-tinymce {
     border: 1px solid hsl(220 14% 84%) !important;
+}
+
+.dark .tox-tinymce {
+    border: 1px solid hsl(220 14% 30%) !important;
 }
 
 /*
@@ -515,6 +519,10 @@ input:not([type='checkbox']) + .error-msg::before {
     background-color: white;
 }
 
+.dark input:not([type='checkbox']) + .error-msg::before {
+    background-color: rgb(17 24 39);
+}
+
 /*
  --------------------------------------------------------------------------
   Finder
@@ -524,13 +532,13 @@ input:not([type='checkbox']) + .error-msg::before {
 /* Input Style */
 
 .token-input-list-facebook {
-    @apply w-full overflow-hidden m-0 p-0 list-none bg-white border border-gray-500 text-xs;
+    @apply w-full overflow-hidden m-0 p-0 list-none bg-white border border-gray-500 text-xs dark:bg-gray-800 dark:border-gray-600;
     cursor: text;
 }
 
 .token-input-list-facebook input,
 .token-input-input-token-facebook input {
-    @apply shadow-none border-0 bg-transparent;
+    @apply shadow-none border-0 bg-transparent dark:text-gray-100;
     height: 32px;
 }
 
@@ -552,7 +560,7 @@ input:not([type='checkbox']) + .error-msg::before {
 /* Dropdown Style */
 
 .token-input-dropdown-facebook {
-    @apply absolute w-full overflow-hidden bg-white border border-gray-500 border-t-0 z-10;
+    @apply absolute w-full overflow-hidden bg-white border border-gray-500 border-t-0 z-10 dark:bg-gray-800 dark:border-gray-600;
     box-sizing: content-box;
 }
 
@@ -562,11 +570,11 @@ input:not([type='checkbox']) + .error-msg::before {
 }
 
 .token-input-dropdown-facebook li {
-    @apply m-0 px-2 py-1 cursor-pointer;
+    @apply m-0 px-2 py-1 cursor-pointer dark:text-gray-100;
 }
 
 .token-input-dropdown-facebook p {
-    @apply font-bold text-gray-600 m-0 p-2;
+    @apply font-bold text-gray-600 m-0 p-2 dark:text-gray-400;
 }
 
 .token-input-dropdown-facebook em {
