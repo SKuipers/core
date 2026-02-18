@@ -12,6 +12,11 @@
         ace.config.set('basePath', './lib/ace/');
         
         var editor = ace.edit("editor<?= $id; ?>");
+        
+        // Set theme based on current dark mode state
+        var isDark = document.documentElement.classList.contains('dark');
+        editor.setTheme(isDark ? "ace/theme/monokai" : "ace/theme/textmate");
+        
         editor.getSession().setUseWrapMode(true);
         editor.getSession().on("change", function(e) {
             $("#<?= $id; ?>").val(editor.getSession().getValue());
@@ -46,6 +51,7 @@
     // Ensure the scripts load in the correct order
     (async () => {
         await import("./lib/ace/ace.js")
+        await import("./lib/ace/theme-monokai.js")
         await import("./lib/ace/ext-language_tools.js")
         await setupEditor();
     })();

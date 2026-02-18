@@ -1021,3 +1021,19 @@ table.smallIntBorder td.noPadding {
 .standardForm:not(.blank) .formRow:not(:last-child)  {
     border-bottom-width: 1px;
 }
+
+
+/* Dark mode logo visibility */
+.dark #header-logo img {
+    filter: brightness(0.9) contrast(1.1);
+}
+
+/* Ensure background images are visible in dark mode */
+.dark [style*="background-image"] {
+    filter: brightness(0.85);
+}
+
+/* Ace editor dark mode container */
+.dark [id^="editor"] {
+    background-color: #272822;
+}

@@ -195,6 +195,8 @@ const gibbonTinyMCEDefaults = {
     browser_spellcheck: true,
     convert_urls: false,
     relative_urls: false,
+    skin: document.documentElement.classList.contains('dark') ? 'oxide-dark' : 'oxide',
+    content_css: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
     
     valid_elements: Gibbon.config.tinymce.valid_elements,
     extended_valid_elements : Gibbon.config.tinymce.extended_valid_elements,
