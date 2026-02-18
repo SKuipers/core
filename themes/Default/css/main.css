@@ -42,7 +42,7 @@ h5:not([class]),
 h6:not([class]) {
     margin: 20px 0 10px 0;
     color: #444;
-    background-color: none;
+    /* background-color: none; */
     padding: 0 0 0 0px;
     text-align: left;
     text-transform: uppercase;
@@ -114,10 +114,10 @@ li {
 
 /* TABLES */
 table {
-    color: #666;
+    /* color: #666; */
     font-size: .825rem;
     text-shadow: none;
-    background-color: #fefefe;
+    /* background-color: #fefefe; */
     margin: 0px;
     border: #ccc 1px solid;
     -moz-border-radius: 4px;
@@ -128,7 +128,7 @@ table {
 table th {
     padding: 1rem 0.75rem;
     border-bottom: 1px solid #ccc;
-    background-color: #f3f4f6;
+    /* background-color: #f3f4f6; */
     text-align: left;
 }
 table .heading td:not(:first-child) {
@@ -189,18 +189,18 @@ table tr:last-child td:last-child {
 
 /* ALT TABLE STYLES */
 table.noIntBorder {
-    background-color: #edf7ff;
+    /* background-color: #edf7ff; */
 }
 table.noIntBorder td {
     border: none !important ;
     padding: 5px !important ;
-    background-color: #edf7ff;
+    /* background-color: #edf7ff; */
 }
 table.noIntBorder td:last-child {
     text-align: left;
 }
 table.smallIntBorder {
-    background-color: #fefefe;
+    /* background-color: #fefefe; */
     position: relative;
 }
 table.smallIntBorder td {
@@ -212,11 +212,11 @@ table.noBorder,
 table.noBorder td,
 table.noBorder th {
     border: none !important;
-    background-color: none;
+    /* background-color: none; */
 }
 
 tr.break td {
-    background-color: #eaebec;
+    /* background-color: #eaebec; */
 }
 tr.break h3,
 tr.break h4 {

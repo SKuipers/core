@@ -8,13 +8,13 @@ This is a Gibbon template file, written in HTML and Twig syntax.
 For info about editing, see: https://twig.symfony.com/doc/2.x/
 -->#}
 
-<div class="flex flex-col sm:flex-row w-full mb-6 bg-white shadow rounded font-sans">
+<div class="flex flex-col sm:flex-row w-full mb-6 bg-white dark:bg-gray-800 shadow rounded font-sans">
 
-    <div class="w-full sm:w-1/3 flex flex-wrap font-sans items-start content-end justify-between py-5 px-6 border-b sm:border-b-0 sm:border-r border-gray-300">
-        <div class="w-full text-sm font-light text-gray-600">
+    <div class="w-full sm:w-1/3 flex flex-wrap font-sans items-start content-end justify-between py-5 px-6 border-b sm:border-b-0 sm:border-r border-gray-300 dark:border-gray-600">
+        <div class="w-full text-sm font-light text-gray-600 dark:text-gray-400">
             {{ __('Gibbon Version') }}
         </div>
-        <div class="text-xl font-semibold text-gray-800 leading-normal">
+        <div class="text-xl font-semibold text-gray-800 dark:text-gray-200 leading-normal">
             v{{ gibbonVersion }}
         </div>
         <div id="gibbonCheck" class="mt-1">
@@ -24,11 +24,11 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
         </div>
     </div>
 
-    <div class="w-full sm:w-1/3 flex flex-wrap font-sans items-start content-end justify-between py-5 px-6 border-b sm:border-b-0 sm:border-r border-gray-300">
-        <div class="w-full text-sm font-light text-gray-600">
+    <div class="w-full sm:w-1/3 flex flex-wrap font-sans items-start content-end justify-between py-5 px-6 border-b sm:border-b-0 sm:border-r border-gray-300 dark:border-gray-600">
+        <div class="w-full text-sm font-light text-gray-600 dark:text-gray-400">
             {{ __('PHP Version') }}
         </div>
-        <div class="text-xl font-semibold text-gray-800 leading-normal">
+        <div class="text-xl font-semibold text-gray-800 dark:text-gray-200 leading-normal">
             {{ phpVersion }}
         </div>
         <div class="mt-1">
@@ -38,11 +38,11 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
         </div>
     </div>
 
-    <div class="w-full sm:w-1/3 flex flex-wrap font-sans items-start content-end justify-between py-5 px-6 border-gray-300">
-        <div class="w-full text-sm font-light text-gray-600">
+    <div class="w-full sm:w-1/3 flex flex-wrap font-sans items-start content-end justify-between py-5 px-6 border-gray-300 dark:border-gray-600">
+        <div class="w-full text-sm font-light text-gray-600 dark:text-gray-400">
             {{ __('MySQL Version') }}
         </div>
-        <div class="text-xl font-semibold text-gray-800 leading-normal">
+        <div class="text-xl font-semibold text-gray-800 dark:text-gray-200 leading-normal">
             {{ mySqlVersion }}
         </div>
         <div class="mt-1">
