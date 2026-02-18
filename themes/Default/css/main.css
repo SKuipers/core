@@ -24,10 +24,6 @@ Used under "GNU Creative Commons License", http://creativecommons.org/licenses/G
 */
 
 
-/* LINKS */
-
-
-
 /* TYPOGRAPHY */
 p {
     margin: 0px 0px 15px 0px;
@@ -92,17 +88,6 @@ div.blockView h6 {
 .subdued {
     color: #999;
 }
-.caption {
-    color: #999;
-    font-size: 11px;
-}
-.date {
-    font-weight: bold;
-    font-size: 82%;
-    color: #bbb;
-    display: block;
-    letter-spacing: 1px;
-}
 small {
     font-size: 11px;
 }
@@ -125,10 +110,6 @@ li {
     line-height: 130%;
     padding-left: 5px;
     background: none;
-}
-
-img.logo {
-    margin: 15px 0 6px 0;
 }
 
 /* TABLES */
@@ -173,12 +154,14 @@ table tr:last-child > td {
     border-bottom: 0;
 }
 
+/* Use Tailwind: text-right align-middle instead */
 td.right {
     vertical-align: middle !important;
     text-align: right !important;
     font-size: 11px !important;
     padding: 3px !important ;
 }
+/* Use Tailwind: text-right instead */
 div.right {
     text-align: right !important;
 }
@@ -232,7 +215,6 @@ table.noBorder th {
     background-color: none;
 }
 
-
 tr.break td {
     background-color: #eaebec;
 }
@@ -245,9 +227,11 @@ tr h3,
 tr h4 {
     border: none !important;
 }
+/* Use Tailwind: p-1 instead */
 table.mini td {
     padding: 5px !important ;
 }
+/* Use Tailwind: p-1 instead */
 table.mini tr.head th {
     padding: 5px !important ;
 }
@@ -661,12 +645,6 @@ div.resourceAddSlider {
     margin-bottom: -5px;
 }
 
-/* Usability tweak to make large data tables like User Permissions easier to read */
-table.rowHighlight tr:not(.break):hover td,
-table.columnHighlight .hover:not(:first-child) {
-    background: #edf7ff !important;
-}
-
 /* v15 NEW CLASSES */
 .input-box {
     float: right;
@@ -700,19 +678,23 @@ table.columnHighlight .hover:not(:first-child) {
     border-top-width: 0px;
 }
 
+/* Use Tailwind: float-right leading-6 instead */
 .input-box-meta {
     float: right;
     line-height: 22px;
 }
 
+/* Use Tailwind: float-left instead */
 .floatLeft {
     float: left !important;
 }
 
+/* Use Tailwind: float-right instead */
 .floatRight {
     float: right !important;
 }
 
+/* Use Tailwind: float-none instead */
 .floatNone {
     float: none !important;
 }
@@ -736,15 +718,16 @@ table.columnHighlight .hover:not(:first-child) {
     color: #e00;
 }
 
-tr.head td {
-    /* font-weight: bold;
-    font-size: 110%; */
+.matchHighlightText {
+    color: #e00;
 }
 
+/* Use Tailwind: text-right instead */
 .right {
     text-align: right !important;
 }
 
+/* Use Tailwind: text-center instead */
 .textCenter {
     text-align: center !important;
 }
@@ -756,25 +739,24 @@ tr.head td {
     font-size: 10px;
 }
 
-td.standardWidth {
-    position: relative;
-}
-
 /* Fixes an odd colspan-related width bug in Chrome */
 td.w-full[colspan] {
     width: auto;
 }
 
-/* Utility classes - will be part of the larger css refactor soon */
+/* Utility classes - Use Tailwind equivalents instead */
+/* Use Tailwind: m-0 instead */
 .noMargin {
     margin: 0 !important;
 }
 
+/* Use Tailwind: p-0 instead */
 .noPadding,
 table.smallIntBorder td.noPadding {
     padding: 0 !important;
 }
 
+/* Use Tailwind: border-0 instead */
 .noBorder {
     border: 0 !important;
 }
