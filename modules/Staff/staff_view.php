@@ -209,7 +209,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view.php') == 
                         return $templateView->fetchFromTemplate('staffDirectoryCard.twig.html', ['staff' => $person]);
                     });
             } else {
-                $table->addMetaData('gridClass', 'rounded-sm bg-gray-100 dark:bg-gray-800 border dark:border-gray-600');
+                $table->addMetaData('gridClass', 'rounded-sm bg-gray-100 dark:bg-gray-800 border dark:border-gray-700');
                 $table->addMetaData('gridItemClass', 'w-1/2 sm:w-1/4 md:w-1/5 my-4 text-center text-xs');
 
                 $table->addColumn('image_240', __('Photo'))

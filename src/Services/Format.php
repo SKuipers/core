@@ -1205,7 +1205,7 @@ class Format
             $colorClass = trim(preg_replace('/[^a-zA-Z0-9_-]/', '', $color));
         }
 
-        return "<div class='rounded-md border dark:border-gray-600 h-8 w-8 {$colorClass}' style='background-color:{$colorValue}' title='{$colorTitle}'></div>";
+        return "<div class='rounded-md border dark:border-gray-700 h-8 w-8 {$colorClass}' style='background-color:{$colorValue}' title='{$colorTitle}'></div>";
     }
 
     /**

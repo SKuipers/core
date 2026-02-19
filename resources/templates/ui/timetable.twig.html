@@ -28,7 +28,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
         {% set timetableDay = structure.getTimetableDay(day.date) %}
 
         <div class="flex-1">
-            <button @click="ttActiveDay = '{{ day.nameShort }}';" class="flex w-full items-center justify-center print:justify-between md:justify-between leading-none py-2 px-3 rounded-t border text-gray-700 dark:text-gray-300" :class="{'font-bold md:font-normal bg-white dark:bg-gray-800 border-gray-400 dark:border-gray-600 md:bg-gray-100 dark:md:bg-gray-800': ttActiveDay == '{{ day.nameShort }}', 'font-normal bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 md:border-gray-400 dark:md:border-gray-600': ttActiveDay != '{{ day.nameShort }}'}" 
+            <button @click="ttActiveDay = '{{ day.nameShort }}';" class="flex w-full items-center justify-center print:justify-between md:justify-between leading-none py-2 px-3 rounded-t border text-gray-700 dark:text-gray-300" :class="{'font-bold md:font-normal bg-white dark:bg-gray-800 border-gray-400 dark:border-gray-700 md:bg-gray-100 dark:md:bg-gray-800': ttActiveDay == '{{ day.nameShort }}', 'font-normal bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 md:border-gray-400 dark:md:border-gray-600': ttActiveDay != '{{ day.nameShort }}'}" 
                 {%if timetableDay.color %} style="background-color: {{ timetableDay.color }}; color: {{ timetableDay.fontColor }};" {% endif %}
             >
                 <span class="text-xs">
@@ -52,7 +52,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
         {% set isToday = structure.getToday.format('Y-m-d') == day.date %}
         
-        <div class="flex-1 flex-col border-r border-l dark:border-gray-600 pb-1 {{ isToday ? 'bg-yellow-50 dark:bg-yellow-900/20'}}" :class="{'flex': ttActiveDay == '{{ day.nameShort }}', 'hidden md:flex': ttActiveDay != '{{ day.nameShort }}'}">
+        <div class="flex-1 flex-col border-r border-l dark:border-gray-700 pb-1 {{ isToday ? 'bg-yellow-50 dark:bg-yellow-900/20'}}" :class="{'flex': ttActiveDay == '{{ day.nameShort }}', 'hidden md:flex': ttActiveDay != '{{ day.nameShort }}'}">
     
             {% for layer in layers %}
                 {% for item in layer.getItemsByDate(day.date|date('Y-m-d'), true) %}

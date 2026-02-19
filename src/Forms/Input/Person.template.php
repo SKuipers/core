@@ -100,9 +100,9 @@
     </select>
 
     <!-- trigger button  -->
-    <button type="button" class="<?= $class; ?> <?= $groupClass; ?> inner-input inline-flex w-full items-center justify-start min-w-16 bg-white dark:bg-gray-800 border border-outline dark:border-gray-600 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:border-blue-500 dark:focus:border-blue-400 focus-within:border-blue-500 dark:focus-within:border-blue-400 focus:ring-1 focus:ring-inset focus:ring-blue-500 dark:focus:ring-blue-400 sm:text-sm sm:leading-5 transition  " role="combobox" aria-controls="<?= $id ?>List" aria-haspopup="<?= $id ?>List listbox" x-on:click="toggleSelect(!isOpen)" x-on:keydown.down.prevent="openedWithKeyboard = true" x-on:keydown.enter.prevent="openedWithKeyboard = true" x-on:keydown.space.prevent="openedWithKeyboard = true" x-bind:aria-expanded="isOpen || openedWithKeyboard" x-bind:aria-label="selectedOption ? selectedOption.value : '<?= __($placeholder); ?>'" x-ref="searchSelect" >
+    <button type="button" class="<?= $class; ?> <?= $groupClass; ?> inner-input inline-flex w-full items-center justify-start min-w-16 bg-white dark:bg-gray-800 border border-outline dark:border-gray-700 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:border-blue-500 dark:focus:border-blue-400 focus-within:border-blue-500 dark:focus-within:border-blue-400 focus:ring-1 focus:ring-inset focus:ring-blue-500 dark:focus:ring-blue-400 sm:text-sm sm:leading-5 transition  " role="combobox" aria-controls="<?= $id ?>List" aria-haspopup="<?= $id ?>List listbox" x-on:click="toggleSelect(!isOpen)" x-on:keydown.down.prevent="openedWithKeyboard = true" x-on:keydown.enter.prevent="openedWithKeyboard = true" x-on:keydown.space.prevent="openedWithKeyboard = true" x-bind:aria-expanded="isOpen || openedWithKeyboard" x-bind:aria-label="selectedOption ? selectedOption.value : '<?= __($placeholder); ?>'" x-ref="searchSelect" >
 
-        <div class="flex-none relative w-12 h-12 z-10 mr-4 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700 border border-solid border-gray-400 dark:border-gray-600 bg-no-repeat" style="background-size: 70% 70%; background-position: 50% 50%;">
+        <div class="flex-none relative w-12 h-12 z-10 mr-4 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700 border border-solid border-gray-400 dark:border-gray-700 bg-no-repeat" style="background-size: 70% 70%; background-position: 50% 50%;">
         <div class="absolute left-1/2 top-1/2 -translate-y-1/2 -translate-x-1/2"><?= icon('solid', 'user', 'size-7 mt-2 text-gray-500 dark:text-gray-400') ?></div>
             <img id="<?= $id ?>Photo" x-bind:id="$refs.hiddenInput.id+'Photo'" src="" x-ref="personPhoto">
         </div>
@@ -127,11 +127,11 @@
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" class="absolute ml-3 top-1/2 size-5 -translate-y-1/2 text-on-surface/50 dark:text-on-surface-dark/50" aria-hidden="true" >
                 <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
             </svg>
-            <input type="text" class="w-full border dark:border-gray-600  focus:border-blue-500 dark:focus:border-blue-400 focus:ring-1 focus:ring-inset focus:ring-blue-500 dark:focus:ring-blue-400 rounded-t-md py-2 pl-10 text-sm text-on-surface dark:text-gray-100 dark:bg-gray-800 focus:outline-hidden focus-visible:border-primary disabled:cursor-not-allowed disabled:opacity-75 dark:focus-visible:border-primary-dark" name="searchField" aria-label="<?= __('Search') ?>" x-on:input="getFilteredOptions($el.value)" x-model="search" x-ref="searchField" placeholder="<?= __('Search') ?>" />
+            <input type="text" class="w-full border dark:border-gray-700  focus:border-blue-500 dark:focus:border-blue-400 focus:ring-1 focus:ring-inset focus:ring-blue-500 dark:focus:ring-blue-400 rounded-t-md py-2 pl-10 text-sm text-on-surface dark:text-gray-100 dark:bg-gray-800 focus:outline-hidden focus-visible:border-primary disabled:cursor-not-allowed disabled:opacity-75 dark:focus-visible:border-primary-dark" name="searchField" aria-label="<?= __('Search') ?>" x-on:input="getFilteredOptions($el.value)" x-model="search" x-ref="searchField" placeholder="<?= __('Search') ?>" />
         </div>
 
         <!-- Options  -->
-        <ul class="list-none flex w-fit min-w-full max-h-80 flex-col overflow-x-hidden overflow-y-auto m-0 p-1 border dark:border-gray-600 -mt-px rounded-b-md bg-white dark:bg-gray-800 shadow-lg" style="max-width: max(100%, 24rem);">
+        <ul class="list-none flex w-fit min-w-full max-h-80 flex-col overflow-x-hidden overflow-y-auto m-0 p-1 border dark:border-gray-700 -mt-px rounded-b-md bg-white dark:bg-gray-800 shadow-lg" style="max-width: max(100%, 24rem);">
             <li class="hidden px-4 py-2 text-sm text-on-surface dark:text-on-surface-dark" x-ref="noResultsMessage">
                 <span><?= __('No results') ?></span>
             </li>

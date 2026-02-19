@@ -95,7 +95,7 @@ class ExpandableColumn extends Column
         $output = '';
 
         if ($content = parent::getOutput($data)) {
-            $output .= '<div x-show="expanded" x-collapse @click.outside="expanded = false" class="absolute left-0 w-full bg-white dark:bg-gray-800 p-6 border dark:border-gray-600 rounded-md shadow-md z-40">';
+            $output .= '<div x-show="expanded" x-collapse @click.outside="expanded = false" class="absolute left-0 w-full bg-white dark:bg-gray-800 p-6 border dark:border-gray-700 rounded-md shadow-md z-40">';
             $output .= $content;
             $output .= '</div>';
         }

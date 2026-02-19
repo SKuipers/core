@@ -113,8 +113,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_planner.php
             $table->setDescription('<h4 class="-mb-3">'.__($timeSlot['period']).' '.$description.'</h4>');
         }
 
-        $table->addMetaData('gridClass', 'rounded-sm text-sm bg-gray-100 dark:bg-gray-800 border dark:border-gray-600 border-t-0');
-        $table->addMetaData('gridItemClass', 'w-full py-3 px-3 flex items-center sm:flex-row justify-between border-t dark:border-gray-600');
+        $table->addMetaData('gridClass', 'rounded-sm text-sm bg-gray-100 dark:bg-gray-800 border dark:border-gray-700 border-t-0');
+        $table->addMetaData('gridItemClass', 'w-full py-3 px-3 flex items-center sm:flex-row justify-between border-t dark:border-gray-700');
         $table->addMetaData('blankSlate', __('No coverage required.'));
         $table->addMetaData('hidePagination', true);
 

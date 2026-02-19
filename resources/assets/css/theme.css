@@ -61,15 +61,15 @@ body {
 */
 
 a {
-    @apply text-red-700 no-underline dark:text-red-400;
+    @apply text-red-700 no-underline dark:text-indigo-400;
 }
 
 a:not([class]) {
-    @apply text-red-700 bg-transparent dark:text-red-400;
+    @apply text-red-700 bg-transparent dark:text-indigo-400;
 }
 
 a:hover:not([class]) {
-    @apply text-red-900 underline dark:text-red-300;
+    @apply text-red-900 underline dark:text-indigo-300;
 }
 
 a img {
@@ -140,7 +140,7 @@ div.success:not(.tag)::before {
 }
 
 .warning {
-    @apply bg-orange-100 border-orange-700 text-orange-700 dark:bg-orange-900 dark:border-orange-500 dark:text-orange-200;
+    @apply bg-orange-100 border-orange-700 text-orange-700 dark:bg-amber-900 dark:border-amber-500 dark:text-amber-200;
 }
 
 div.warning:not(.tag)::before {
@@ -175,7 +175,7 @@ div.error:not(.tag)::before {
 }
 
 .exception {
-    @apply bg-gray-100 border-gray-800 text-gray-800 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200;
+    @apply bg-gray-100 border-gray-800 text-gray-800 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200;
 }
 
 div.exception:not(.tag)::before {
@@ -193,7 +193,7 @@ div.exception:not(.tag)::before {
 
 
 .magic {
-    @apply bg-purple-100 border-purple-800 text-purple-800 dark:bg-purple-900 dark:border-purple-600 dark:text-purple-200;
+    @apply bg-purple-100 border-purple-800 text-purple-800 dark:bg-purple-900 dark:border-purple-500 dark:text-purple-200;
 }
 
 div.magic:not(.tag)::before {
@@ -210,7 +210,7 @@ div.magic:not(.tag)::before {
 }
 
 .empty {
-    @apply bg-gray-50 border-gray-800 text-gray-600 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400;
+    @apply bg-gray-50 border-gray-800 text-gray-600 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400;
 }
 
 div.empty:not(.tag)::before {
@@ -239,7 +239,7 @@ div.message:not(.tag), div.warning:not(.tag), div.exception:not(.tag), div.succe
 }
 
 div.message, div.success, div.warning, div.error, div.exception, div.dull, div.magic, div.empty {
-    @apply rounded border my-4 p-4 text-[0.825rem] leading-[1.125rem] relative border-opacity-15;
+    @apply rounded border my-4 p-4 text-[0.825rem] leading-[1.125rem] relative border-opacity-15 dark:border-opacity-15;
 }
 
 div.message a, div.success a, div.warning a, div.error a, div.exception a, div.dull a {
@@ -256,7 +256,7 @@ div.message a, div.success a, div.warning a, div.error a, div.exception a, div.d
 }
 
 .tag {
-    @apply inline-block rounded px-2 text-xs font-medium font-sans leading-loose border border-opacity-15;
+    @apply inline-block rounded px-2 text-xs font-medium font-sans leading-loose border border-opacity-15 dark:border-opacity-15;
 }
 
 .bg-stripe {
@@ -350,7 +350,7 @@ input[readonly]:focus, select[readonly]:focus, textarea[readonly]:focus {
 }
 
 .button {
-    @apply py-2 px-2 border text-gray-700 text-xs font-bold leading-normal dark:text-gray-300 dark:border-gray-600;
+    @apply py-2 px-2 border text-gray-700 text-xs font-bold leading-normal dark:text-gray-300 dark:border-gray-700;
 }
 
 .button:hover {
@@ -397,7 +397,7 @@ input[type="color"]::-moz-color-swatch {
 }
 
 [multiple], [type="date"], [type="datetime-local"], [type="email"], [type="month"], [type="number"], [type="password"], [type="search"], [type="tel"], [type="text"], [type="time"], [type="url"], [type="week"], input:where(:not([type])), select, textarea {
-    @apply border-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100;
+    @apply border-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100;
 }
 
 /* Alpine Sortable */
@@ -536,7 +536,7 @@ input:not([type='checkbox']) + .error-msg::before {
 /* Input Style */
 
 .token-input-list-facebook {
-    @apply w-full overflow-hidden m-0 p-0 list-none bg-white border border-gray-500 text-xs dark:bg-gray-800 dark:border-gray-600;
+    @apply w-full overflow-hidden m-0 p-0 list-none bg-white border border-gray-500 text-xs dark:bg-gray-800 dark:border-gray-700;
     cursor: text;
 }
 
@@ -564,7 +564,7 @@ input:not([type='checkbox']) + .error-msg::before {
 /* Dropdown Style */
 
 .token-input-dropdown-facebook {
-    @apply absolute w-full overflow-hidden bg-white border border-gray-500 border-t-0 z-10 dark:bg-gray-800 dark:border-gray-600;
+    @apply absolute w-full overflow-hidden bg-white border border-gray-500 border-t-0 z-10 dark:bg-gray-800 dark:border-gray-700;
     box-sizing: content-box;
 }
 

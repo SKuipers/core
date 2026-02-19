@@ -38,7 +38,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
    
     {% if not rows and not isFiltered and dataSet.getResultCount == 0 %}
-    <div class="h-32 rounded-sm border dark:border-gray-600 bg-gray-100 dark:bg-gray-800 shadow-inner overflow-hidden">
+    <div class="h-32 rounded-sm border dark:border-gray-700 bg-gray-100 dark:bg-gray-800 shadow-inner overflow-hidden">
         {% block blankslate %}
         {{ include('components/blankSlate.twig.html') }}
         {% endblock blankslate %}
@@ -104,7 +104,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
                                     </div>
 
                                     {% if actions|length > 1 %}
-                                    <button type="button" @click="open = true" class="block sm:hidden rounded-md mx-auto my-1 p-1 shadow-sm bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 font-sans font-bold leading-none" >
+                                    <button type="button" @click="open = true" class="block sm:hidden rounded-md mx-auto my-1 p-1 shadow-sm bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 font-sans font-bold leading-none" >
                                         {{ icon('basic', 'ellipsis-horizontal', 'pointer-events-none block size-7 sm:size-6' ) }}
                                     </button>
                                     {% endif %}

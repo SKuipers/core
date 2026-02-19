@@ -18,7 +18,7 @@ collapsed drop-down list in 'mini' view-mode.
 <div class="mx-4 sm:mx-0 relative sm:static" x-data="{moduleMenu: false}" @keydown.escape.window="moduleMenu = false" @click.outside="moduleMenu = false" x-init="moduleMenu = false">
 
     {% if menuModule %}
-    <button @click="moduleMenu = !moduleMenu" class="relative w-full flex rounded justify-center items-center sm:w-48 bg-white sm:border border-grey-600 border-solid p-2 mb-4 sm:mt-4 sm:absolute sm:top-0 sm:right-0 sm:mr-6 z-40 {{ sidebar ? 'lg:hidden' }} dark:bg-gray-800 dark:border-gray-600">
+    <button @click="moduleMenu = !moduleMenu" class="relative w-full flex rounded justify-center items-center sm:w-48 bg-white sm:border border-grey-600 border-solid p-2 mb-4 sm:mt-4 sm:absolute sm:top-0 sm:right-0 sm:mr-6 z-40 {{ sidebar ? 'lg:hidden' }} dark:bg-gray-800 dark:border-gray-700">
         <span class="text-gray-600 text-sm sm:text-xs font-bold uppercase dark:text-gray-300">
             {{ __('Module Menu') }}
         </span>

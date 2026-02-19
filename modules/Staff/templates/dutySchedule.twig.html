@@ -17,7 +17,7 @@
                 <div class="dutySection rounded" style="min-height: 3.2rem;" data-duty="{{ dutyItem.gibbonStaffDutyID }}" data-weekday="{{ dutyItem.gibbonDaysOfWeekID }}">
 
                 {% for person in dutyItem.roster %}
-                <div class="dutyPerson z-10 rounded flex items-center bg-white dark:bg-gray-900 shadow mb-2 p-2 text-sm border dark:border-gray-600 {% if canEdit %}hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-500 dark:hover:border-blue-600 cursor-move group{% endif %}" data-person="{{ person.gibbonStaffDutyPersonID }}">
+                <div class="dutyPerson z-10 rounded flex items-center bg-white dark:bg-gray-900 shadow mb-2 p-2 text-sm border dark:border-gray-700 {% if canEdit %}hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-500 dark:hover:border-blue-600 cursor-move group{% endif %}" data-person="{{ person.gibbonStaffDutyPersonID }}">
                     <div class="rounded-full w-8 h-8 mr-2 overflow-hidden cursor-move" style="background-image: url('{{ absoluteURL }}/themes/{{ gibbonThemeName }}/img/anonymous_75.jpg'); background-size: cover; background-position: 50% 45%;">
                         {% if person.image_240 is not empty %}
                         <img src="{{ absoluteURL }}/{{ person.image_240 }}" class="w-full -mt-1">
@@ -51,7 +51,7 @@
 </div>
 </div>
 {% else %}
-    <div class="h-48 rounded-sm border dark:border-gray-600 bg-gray-100 dark:bg-gray-800 shadow-inner overflow-hidden">
+    <div class="h-48 rounded-sm border dark:border-gray-700 bg-gray-100 dark:bg-gray-800 shadow-inner overflow-hidden">
         {{ include('components/blankSlate.twig.html') }}
     </div>
 {% endif %}

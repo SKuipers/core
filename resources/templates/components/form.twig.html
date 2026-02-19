@@ -70,7 +70,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
     {% endfor %}
 
     {% if form.getSectionCount > 0 %}
-    <div id="{{ form.getID }}Wrap" class="w-full grid grid-cols-5 xl:grid-cols-8 gap-2 sm:gap-4 font-sans text-xs text-gray-700 dark:text-gray-300  {{ "noIntBorder" in form.getClass ? 'border dark:border-gray-600 bg-blue-50 dark:bg-blue-900 rounded p-4' }}" style="" cellspacing="0" 
+    <div id="{{ form.getID }}Wrap" class="w-full grid grid-cols-5 xl:grid-cols-8 gap-2 sm:gap-4 font-sans text-xs text-gray-700 dark:text-gray-300  {{ "noIntBorder" in form.getClass ? 'border dark:border-gray-600 bg-blue-50 dark:bg-blue-900/50 rounded p-4' }}" style="" cellspacing="0" 
         {% if useSaveWarning %}
         x-data="{changed: false, 
             checkInput(formElement) {  
@@ -97,7 +97,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
             {% set sectionLoop = loop %}
 
             {% if useSections %}
-            <section id="{{ section.getID }}" x-data="{sectionOpen: {{ section.getOpen|default(0) }} }" class="relative {{ (rows|first).class|split(' ')|first }} mb-6 rounded bg-gray-50 dark:bg-gray-800 border dark:border-gray-600  {{ not sectionLoop.last ? 'pb-4 border-t-4 dark:border-t-gray-600 focus-within:border-t-blue-500 dark:focus-within:border-t-blue-400 transition' }} {{ section.getID == 'submit' ? 'w-full sm:sticky -bottom-px -mt-px mb-px z-40' : standardLayout ? '  ' : ''}}" >
+            <section id="{{ section.getID }}" x-data="{sectionOpen: {{ section.getOpen|default(0) }} }" class="relative {{ (rows|first).class|split(' ')|first }} mb-6 rounded bg-gray-50 dark:bg-gray-800 border dark:border-gray-700  {{ not sectionLoop.last ? 'pb-4 border-t-4 dark:border-t-gray-600 focus-within:border-t-blue-500 dark:focus-within:border-t-blue-400 transition' }} {{ section.getID == 'submit' ? 'w-full sm:sticky -bottom-px -mt-px mb-px z-40' : standardLayout ? '  ' : ''}}" >
 
                 {% if not section.getOpen %}
                 <div @click="sectionOpen = !sectionOpen" class="text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400">
@@ -187,18 +187,18 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
         </div>
 
         {% if form.hasMeta and form.getMeta.getElementCount > 0 %}
-        <aside class="hidden xl:flex flex-col col-span-2 sticky top-0 h-min bg-gray-50 dark:bg-gray-800 rounded border border-gray-400 dark:border-gray-600 border-t-4 border-t-gray-400 dark:border-t-gray-600">
+        <aside class="hidden xl:flex flex-col col-span-2 sticky top-0 h-min bg-gray-50 dark:bg-gray-800 rounded border border-gray-400 dark:border-gray-700 border-t-4 border-t-gray-400 dark:border-t-gray-600">
             {% for element in form.getMeta.getElements %}
                 {% set hasClass = element.instanceOf('Gibbon\\Forms\\Layout\\Element') or element.instanceOf('Gibbon\\Forms\\Layout\\Row') %}
             
-                <div class="p-4 {{ not loop.last ? 'border-b dark:border-gray-600'}} {{ hasClass ? element.getClass }}" 
+                <div class="p-4 {{ not loop.last ? 'border-b dark:border-gray-700'}} {{ hasClass ? element.getClass }}" 
                     {{ element.getAttributeString('', 'id,class')|raw }}>
                     {{ element.getOutput|raw }}
                 </div>
             {% endfor %}
 
             <template x-if="invalid">
-                <div x-from-template class="p-4 border-t dark:border-gray-600">
+                <div x-from-template class="p-4 border-t dark:border-gray-700">
                     <span class="tag error">{{ __('Please check these fields') }}:</span>
 
                     <ul class="ml-6">

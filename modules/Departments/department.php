@@ -89,7 +89,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Departments/department.php
             $gridRenderer = new GridView($container->get('twig'));
             $table = $container->get(DataTable::class)->setRenderer($gridRenderer);
             $table->setTitle(__('Staff'));
-            $table->addMetaData('gridClass', 'rounded-sm bg-blue-50 dark:bg-blue-900/20 border dark:border-gray-600 py-2');
+            $table->addMetaData('gridClass', 'rounded-sm bg-blue-50 dark:bg-blue-900/20 border dark:border-gray-700 py-2');
             $table->addMetaData('gridItemClass', 'w-1/2 sm:w-1/4 md:w-1/5 my-2 text-center');
 
             $canViewProfile = isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.php');

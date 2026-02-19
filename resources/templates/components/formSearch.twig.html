@@ -36,7 +36,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
     {% endfor %}
 
     {% if form.getRows|length > 0 %}
-    <section class="w-full bg-blue-50 dark:bg-blue-900 border rounded-md px-4 py-2">
+    <section class="w-full bg-blue-50 dark:bg-blue-900/50 border dark:border-gray-600 rounded-md px-4 py-2">
 
         {% for num, row in form.getRows %}
 

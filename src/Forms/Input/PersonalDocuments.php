@@ -83,7 +83,7 @@ class PersonalDocuments extends Input
 
             $output .= '<input type="hidden" name="'.$name.'['.$document['gibbonPersonalDocumentTypeID'].'][gibbonPersonalDocumentID]" value="'.($document['gibbonPersonalDocumentID'] ?? '').'">';
 
-            $output .= '<div x-data="{omit: '.($omitData ? 'true' : 'false').'}" class="document rounded-sm bg-white dark:bg-gray-800 border dark:border-gray-600 font-sans mt-4">';
+            $output .= '<div x-data="{omit: '.($omitData ? 'true' : 'false').'}" class="document rounded-sm bg-white dark:bg-gray-800 border dark:border-gray-700 font-sans mt-4">';
             $output .= '<div class=" p-4 text-xs font-medium flex items-center justify-between">';
 
             $output .= icon('large', strtolower($document['document']), 'size-6 fill-current mr-3 -my-2');

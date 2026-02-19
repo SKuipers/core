@@ -12,7 +12,7 @@
 
     <?php if (!empty($group)) { ?>
         <fieldset class="w-full gap-2 <?= $inline ? 'inline-flex justify-between items-center ' : 'flex flex-col justify-center ' . ($align == 'left' ? 'items-start' : 'items-end'); ?>" >
-        <legend class="w-full font-medium text-sm/6 text-gray-700 dark:text-gray-300 border-b dark:border-gray-600 mb-3"><?= $group ?></legend>
+        <legend class="w-full font-medium text-sm/6 text-gray-700 dark:text-gray-300 border-b dark:border-gray-700 mb-3"><?= $group ?></legend>
     <?php } ?>
 
     <?php foreach ($optionList as $checkboxValue => $checkbox) { ?>

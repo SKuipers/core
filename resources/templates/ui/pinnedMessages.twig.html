@@ -9,7 +9,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 -->#}
 
 {% if pinnedMessages %}
-<div class="mt-6 border dark:border-gray-600 rounded p-4 overflow-y-auto selected" style="max-height: 20rem">
+<div class="mt-6 border dark:border-gray-700 rounded p-4 overflow-y-auto selected" style="max-height: 20rem">
     {% for index, message in pinnedMessages %}
     <div class="{{ not loop.last ? 'mb-6'}}">
         <a href="{{ absoluteURL }}/index.php?q=/modules/Messenger/messageWall_view.php#{{ index+1 }}" class="no-underline hover:underline hover:text-blue-600 dark:hover:text-blue-400">

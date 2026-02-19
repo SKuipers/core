@@ -1,7 +1,7 @@
 <div class="flex-grow relative inline-flex">
-    <input type="text" <?= $attributes; ?> class="w-full min-w-0 py-2 rounded-l-md placeholder:text-gray-500 dark:placeholder:text-gray-400 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 sm:text-sm sm:leading-5">
+    <input type="text" <?= $attributes; ?> class="w-full min-w-0 py-2 rounded-l-md placeholder:text-gray-500 dark:placeholder:text-gray-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 sm:text-sm sm:leading-5">
 
-    <button type="button" class="-ml-px px-4 bg-gray-100 dark:bg-gray-700 inline-flex items-center border border-gray-400 dark:border-gray-600 rounded-r-md text-base text-gray-600 dark:text-gray-300" onclick="scanner(this)">
+    <button type="button" class="-ml-px px-4 bg-gray-100 dark:bg-gray-700 inline-flex items-center border border-gray-400 dark:border-gray-700 rounded-r-md text-base text-gray-600 dark:text-gray-300" onclick="scanner(this)">
         <?= icon('solid', 'qr-code', 'pointer-events-none size-5 text-gray-700 dark:text-gray-300 fill-current'); ?>
     </button>
 </div>
