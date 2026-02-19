@@ -347,8 +347,8 @@ class CodeMigrator
             }
         }
 
-        // Process return type
-        if ($method->returnType === null) {
+        // Process return type (skip __construct and __destruct - they cannot have return types)
+        if ($method->returnType === null && !in_array($methodName, ['__construct', '__destruct'], true)) {
             $inferredType = $this->typeInference->inferReturnType($method, $className);
             
             if ($this->shouldApplyType($inferredType)) {
