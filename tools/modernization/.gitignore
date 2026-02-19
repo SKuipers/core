@@ -1,0 +1,20 @@
+# Dependencies
+/vendor/
+composer.lock
+
+# Backups
+/backups/
+
+# Reports
+/reports/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db

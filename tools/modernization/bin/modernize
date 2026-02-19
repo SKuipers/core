@@ -1,0 +1,39 @@
+#!/usr/bin/env php
+<?php
+/**
+ * PHP 8.4 Modernization Tool - CLI Entry Point
+ */
+
+// Autoload dependencies
+$autoloadPaths = [
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/../../../vendor/autoload.php',
+];
+
+$autoloaded = false;
+foreach ($autoloadPaths as $autoloadPath) {
+    if (file_exists($autoloadPath)) {
+        require_once $autoloadPath;
+        $autoloaded = true;
+        break;
+    }
+}
+
+if (!$autoloaded) {
+    fwrite(
+        STDERR,
+        'Error: Unable to find Composer autoloader. Run "composer install" first.' . PHP_EOL
+    );
+    exit(1);
+}
+
+use Symfony\Component\Console\Application;
+
+$application = new Application('PHP 8.4 Modernization Tool', '1.0.0');
+
+// Commands will be registered here as they are implemented
+// $application->add(new \Gibbon\Modernization\Command\ScanCommand());
+// $application->add(new \Gibbon\Modernization\Command\MigrateCommand());
+// $application->add(new \Gibbon\Modernization\Command\ValidateCommand());
+
+$application->run();
