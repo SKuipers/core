@@ -26,6 +26,7 @@ v31.0.00
         Form fields have been improved with searchable select boxes
         Smart blocks have been updated with a streamlined appearance and more tools
         Improved text editor with drag-drop image uploads and more formatting options
+        Added a dark mode option and automatic detection of system preference
 
     Security
 
