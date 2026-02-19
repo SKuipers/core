@@ -8,22 +8,34 @@ use PhpParser\Error;
 use PhpParser\Node;
 use PhpParser\ParserFactory;
 use PhpParser\Parser;
+use PhpParser\Lexer;
 
 /**
  * ASTParser - Wrapper for PHP-Parser library
  * 
  * Provides methods to parse PHP files and return Abstract Syntax Trees (AST).
  * Handles parse errors gracefully with detailed error information.
+ * Supports format-preserving parsing for maintaining original code formatting.
  * 
  * Requirements: 1.1, 1.2
  */
 class ASTParser
 {
     private Parser $parser;
+    private Lexer $lexer;
 
     public function __construct()
     {
-        $this->parser = (new ParserFactory())->createForNewestSupportedVersion();
+        // Use Emulative lexer with token tracking for format preservation
+        // First parameter is phpVersion (null for auto-detect), second is options
+        $this->lexer = new Lexer\Emulative(null, [
+            'usedAttributes' => [
+                'comments',
+                'startLine', 'endLine',
+                'startTokenPos', 'endTokenPos',
+            ],
+        ]);
+        $this->parser = (new ParserFactory())->createForNewestSupportedVersion($this->lexer);
     }
 
     /**
@@ -79,7 +91,11 @@ class ASTParser
                 );
             }
 
-            return ParseResult::success($ast, $filename);
+            // Get tokens from parser for format preservation
+            $tokens = $this->parser->getTokens();
+            
+            // Store original code and tokens for format preservation
+            return ParseResult::success($ast, $code, $tokens, $filename);
         } catch (Error $error) {
             return ParseResult::error(
                 $error->getMessage(),

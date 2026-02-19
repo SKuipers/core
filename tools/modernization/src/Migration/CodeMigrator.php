@@ -28,7 +28,8 @@ class CodeMigrator
         private TypeInferenceEngine $typeInference,
         private CodeTransformer $transformer,
         private BackupManager $backupManager,
-        private MigrationConfig $config
+        private MigrationConfig $config,
+        private bool $autoFormat = true
     ) {}
 
     /**
@@ -51,13 +52,7 @@ class CodeMigrator
         }
 
         try {
-            // Step 1: Backup
-            $backupPath = null;
-            if ($this->config->createBackups && !$this->config->dryRun) {
-                $backupPath = $this->backupManager->backupFile($filePath);
-            }
-
-            // Step 2: Read and parse
+            // Step 0: Check if file contains a class/interface/trait/enum
             $originalCode = file_get_contents($filePath);
             if ($originalCode === false) {
                 return new FileMigrationResult(
@@ -67,7 +62,24 @@ class CodeMigrator
                     error: "Failed to read file: {$filePath}"
                 );
             }
+            
+            // Skip files without class, interface, trait, or enum definitions
+            if (!preg_match('/^\s*(abstract\s+)?(final\s+)?(class|interface|trait|enum)\s+\w+/m', $originalCode)) {
+                return new FileMigrationResult(
+                    filePath: $filePath,
+                    success: true,
+                    modified: false,
+                    error: null
+                );
+            }
 
+            // Step 1: Backup
+            $backupPath = null;
+            if ($this->config->createBackups && !$this->config->dryRun) {
+                $backupPath = $this->backupManager->backupFile($filePath);
+            }
+
+            // Step 2: Parse
             $parser = new ASTParser();
             $parseResult = $parser->parseCode($originalCode);
             
@@ -93,6 +105,12 @@ class CodeMigrator
                         error: "Failed to write file: {$filePath}",
                         backupPath: $backupPath
                     );
+                }
+                
+                // Step 5: Format with PHP-CS-Fixer (if enabled)
+                if ($this->autoFormat) {
+                    $this->formatFile($filePath);
+                    $this->formatArrays($filePath);
                 }
             }
 
@@ -517,6 +535,62 @@ class CodeMigrator
         }
 
         return false;
+    }
+
+    /**
+     * Format a file using PHP-CS-Fixer
+     * 
+     * @param string $filePath Path to file to format
+     * @return bool Success status
+     */
+    private function formatFile(string $filePath): bool
+    {
+        $phpCsFixerPath = dirname(__DIR__, 2) . '/vendor/bin/php-cs-fixer';
+        $configPath = dirname(__DIR__, 2) . '/.php-cs-fixer.php';
+        
+        // Check if PHP-CS-Fixer is available
+        if (!file_exists($phpCsFixerPath)) {
+            return false;
+        }
+        
+        // Run PHP-CS-Fixer
+        $command = sprintf(
+            '%s fix %s --config=%s --quiet 2>&1',
+            escapeshellarg($phpCsFixerPath),
+            escapeshellarg($filePath),
+            escapeshellarg($configPath)
+        );
+        
+        exec($command, $output, $returnCode);
+        
+        return $returnCode === 0;
+    }
+
+    /**
+     * Format arrays in a file using format-arrays.php
+     * 
+     * @param string $filePath Path to file to format
+     * @return bool Success status
+     */
+    private function formatArrays(string $filePath): bool
+    {
+        $formatArraysPath = dirname(__DIR__, 2) . '/format-arrays.php';
+        
+        // Check if format-arrays.php is available
+        if (!file_exists($formatArraysPath)) {
+            return false;
+        }
+        
+        // Run format-arrays.php
+        $command = sprintf(
+            'php %s %s 2>&1',
+            escapeshellarg($formatArraysPath),
+            escapeshellarg($filePath)
+        );
+        
+        exec($command, $output, $returnCode);
+        
+        return $returnCode === 0;
     }
 }
 

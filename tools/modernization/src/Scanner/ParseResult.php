@@ -16,6 +16,8 @@ class ParseResult
 {
     /**
      * @param array<Node>|null $ast The parsed AST nodes (null on error)
+     * @param string|null $originalCode The original source code
+     * @param array|null $tokens The lexer tokens for format preservation
      * @param bool $success Whether parsing was successful
      * @param string|null $errorMessage Error message if parsing failed
      * @param string|null $errorCode Error code for categorizing errors
@@ -24,6 +26,8 @@ class ParseResult
      */
     private function __construct(
         private readonly ?array $ast,
+        private readonly ?string $originalCode,
+        private readonly ?array $tokens,
         private readonly bool $success,
         private readonly ?string $errorMessage = null,
         private readonly ?string $errorCode = null,
@@ -35,13 +39,17 @@ class ParseResult
      * Create a successful parse result
      * 
      * @param array<Node> $ast The parsed AST nodes
+     * @param string $originalCode The original source code
+     * @param array $tokens The lexer tokens
      * @param string|null $filename Optional filename for context
      * @return self
      */
-    public static function success(array $ast, ?string $filename = null): self
+    public static function success(array $ast, string $originalCode, array $tokens, ?string $filename = null): self
     {
         return new self(
             ast: $ast,
+            originalCode: $originalCode,
+            tokens: $tokens,
             success: true,
             filename: $filename
         );
@@ -64,6 +72,8 @@ class ParseResult
     ): self {
         return new self(
             ast: null,
+            originalCode: null,
+            tokens: null,
             success: false,
             errorMessage: $errorMessage,
             errorCode: $errorCode,
@@ -105,6 +115,36 @@ class ParseResult
         }
         
         return $this->ast;
+    }
+
+    /**
+     * Get the original source code (only available on success)
+     * 
+     * @return string
+     * @throws \RuntimeException if called on error result
+     */
+    public function getOriginalCode(): string
+    {
+        if (!$this->success) {
+            throw new \RuntimeException('Cannot get original code from error result');
+        }
+        
+        return $this->originalCode;
+    }
+
+    /**
+     * Get the lexer tokens (only available on success)
+     * 
+     * @return array
+     * @throws \RuntimeException if called on error result
+     */
+    public function getTokens(): array
+    {
+        if (!$this->success) {
+            throw new \RuntimeException('Cannot get tokens from error result');
+        }
+        
+        return $this->tokens;
     }
 
     /**
