@@ -52,9 +52,9 @@ TODO: add template variable details.
                             {% endif %}
                             </a>
 
-                            <ul x-cloak x-show="menuOpen" x-transition:enter.duration.250ms x-transition:leave.duration.100ms class="list-none m-0 bg-black bg-opacity-75 backdrop-blur-lg backdrop-contrast-125 backdrop-saturate-150 absolute rounded-md w-48 mt-1 p-1 sm:p-1.5 z-50 cursor-pointer {{ rightToLeft ? 'left-0' : 'right-0' }} dark:bg-gray-800 dark:bg-opacity-95">
+                            <ul x-cloak x-show="menuOpen" x-transition:enter.duration.250ms x-transition:leave.duration.100ms class="list-none m-0 bg-black bg-opacity-75 backdrop-blur-lg backdrop-contrast-125 backdrop-saturate-150 absolute rounded-md w-48 mt-1 p-1 sm:p-1.5 z-50 cursor-pointer {{ rightToLeft ? 'left-0' : 'right-0' }} dark:bg-opacity-60">
                                 {% for link in minorLinks|reverse %}
-                                <li class="hover:bg-{{ themeColour }}-700 rounded dark:hover:bg-gray-700">
+                                <li class="hover:bg-{{ themeColour }}-700 rounded">
                                     <a @click="menuOpen = false" href="{{ link.url }}" class="flex justify-between items-center text-sm text-white focus:text-{{ themeColour }}-200 no-underline px-1 py-2 md:py-1 leading-normal {{ rightToLeft ? 'text-right' : 'text-left' }} dark:text-gray-200 dark:focus:text-gray-400" target="{{ link.target }}" {{ link.target == '_blank' ? 'rel="noopener noreferrer"' : '' }}>
                                         {{- link.name|raw -}}
 
@@ -64,6 +64,53 @@ TODO: add template variable details.
                                     </a>
                                 </li>
                                 {% endfor %}
+
+                                <li class="border-b mx-2 my-3 border-gray-500/25"></li>
+                                <li class="rounded mt-3 py-1 flex" role="menu"
+                                    id="themeToggle" 
+                                    x-data="{ 
+                                        theme: '{{ themePreference|default('auto') }}',
+                                        effectiveTheme: isDark ? 'dark' : 'light',
+                                        init() {
+                                            // Sync server preference with localStorage and calculate effective theme
+                                            if (window.themeManager) {
+                                                window.themeManager.setPreference(this.theme);
+                                                this.effectiveTheme = window.themeManager.getEffectiveTheme();
+                                            }
+                                        },
+                                        setTheme(newTheme) {
+                                            this.theme = newTheme;
+                                            if (window.themeManager) {
+                                                window.themeManager.setPreference(newTheme);
+                                                this.effectiveTheme = window.themeManager.getEffectiveTheme();
+                                            }
+                                            this.savePreference(newTheme);
+                                        },
+                                        savePreference(theme) {
+                                            fetch('{{ absoluteURL }}/preferences_ajax.php?scope=User&key=theme&theme=' + theme)
+                                                .catch(err => console.error('Failed to save theme preference:', err));
+                                        }
+                                    }"
+                                    >
+                                    <button @click="setTheme('light')" 
+                                        class="flex items-center justify-center flex-1 p-1 rounded-md text-xs text-white dark:text-gray-200 hover:bg-{{ themeColour }}-700" :class="theme === 'light' ? 'bg-gray-800' : ''" 
+                                        role="menuitem" title="{{ __('Light') }}">
+                                        {{ icon('outline', 'sun', 'size-5') }}
+                                        <span class="sr-only">{{ __('Light') }}</span>
+                                    </button>
+                                    <button @click="setTheme('dark')" 
+                                        class="flex items-center justify-center flex-1 p-1 rounded-md text-xs text-white dark:text-gray-200 hover:bg-{{ themeColour }}-700" :class="theme === 'dark' ? 'bg-gray-800' : ''" 
+                                        role="menuitem" title="{{ __('Dark') }}">
+                                        {{ icon('outline', 'moon', 'size-5') }}
+                                        <span class="sr-only">{{ __('Dark') }}</span>
+                                    </button>
+                                    <button @click="setTheme('auto')" 
+                                        class="flex items-center justify-center flex-1 p-1 rounded-md text-xs text-white dark:text-gray-200 hover:bg-{{ themeColour }}-700" :class="theme === 'auto' ? 'bg-gray-800' : ''" 
+                                        role="menuitem" title="{{ __('Auto') }}">
+                                        {{ icon('outline', 'computer-desktop', 'size-5') }}
+                                        <span class="sr-only">{{ __('Auto') }}</span>
+                                    </button>
+                                </li>
                             </ul>
 
                         </div>

@@ -26,12 +26,12 @@ all stylesheets and scripts with a 'head' context.
 
 {% block fouc_prevention %}
     <script>
+        var isDark = false;
         // FOUC Prevention: Apply dark mode class before page renders
         (function() {
             var STORAGE_KEY = 'gibbon-theme-preference';
-            var preference = localStorage.getItem(STORAGE_KEY) || 'auto';
-            var isDark = false;
-            
+            var preference = localStorage.getItem(STORAGE_KEY) || '{{ themePreference|default('auto') }}';
+        
             if (preference === 'dark') {
                 isDark = true;
             } else if (preference === 'auto') {
