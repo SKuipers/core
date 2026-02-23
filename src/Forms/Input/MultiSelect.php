@@ -208,7 +208,7 @@ class MultiSelect implements OutputableInterface, ValidatableInterface
     }
 
     /**
-     * Add a LiveValidation setting to the right-hand select by type (eg: Validate.Presence)
+     * Add a validation setting to the right-hand select by type (eg: Validate.Presence)
      * @param  string  $type
      * @param  string  $params
      */

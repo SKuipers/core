@@ -98,7 +98,7 @@ class Radio extends Input
     }
 
     /**
-     * Dead-end stub for interface: LiveValidation does not support Radio elements.
+     * Dead-end stub for interface: validation does not support Radio elements.
      * @param  string  $type
      * @param  string  $params
      */

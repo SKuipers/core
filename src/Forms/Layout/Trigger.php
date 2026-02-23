@@ -164,7 +164,7 @@ class Trigger implements OutputableInterface
         $comparisons = ($this->negate)? "!($comparisons)" : "($comparisons)";
 
         // Change target visibility if source value equals trigger value
-        // Handles LiveValidation by also disabling/enabling inputs
+        // Handles validation by also disabling/enabling inputs
         // The change() call activates any nested triggers
         $output .= "$(document).on('change showhide', '{$this->sourceSelector}', function(event){ \n";
             $output .= "if ($('{$this->sourceSelector}').prop('disabled') == false && {$comparisons}) { \n";

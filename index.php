@@ -336,15 +336,13 @@ $javascriptConfig = [
  * after all content has loaded.
  */
 
-$devMode = $session->get('installType') == 'Development';
-
 // Set page scripts: head
 $page->scripts->addMultiple([
     'jquery'         => 'lib/jquery/jquery.js',
     'jquery-migrate' => 'lib/jquery/jquery-migrate.min.js',
     'jquery-ui'      => 'lib/jquery-ui/js/jquery-ui.min.js',
     'htmx'           => 'lib/htmx/htmx.min.js',
-    'core'           => 'resources/assets/js/'.($devMode ? 'core.js' : 'core.min.js'),
+    'core'           => 'resources/assets/js/core.min.js',
     
 ], ['context' => 'head']);
 
@@ -386,7 +384,6 @@ $page->addHeadExtra($session->get('analytics'));
  */
 $page->stylesheets->addMultiple([
     'jquery-ui'    => 'lib/jquery-ui/css/jquery-ui.min.css',
-    'jquery-time'  => 'lib/jquery-timepicker/jquery.timepicker.css',
 ], ['weight' => -1]);
 
 // Add right-to-left stylesheet

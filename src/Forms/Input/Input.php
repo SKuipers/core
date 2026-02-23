@@ -86,7 +86,7 @@ abstract class Input extends Element implements ValidatableInterface, RowDependa
     }
 
     /**
-     * Add a LiveValidation option to the javascript object (eg: onlyOnSubmit: true, onlyOnBlur: true)
+     * Add a validation option to the javascript object (eg: onlyOnSubmit: true, onlyOnBlur: true)
      * @param  string  $option
      */
     public function addValidationOption($option = '')
@@ -96,7 +96,7 @@ abstract class Input extends Element implements ValidatableInterface, RowDependa
     }
 
     /**
-     * Add a LiveValidation setting to this element by type (eg: Validate.Presence)
+     * Add a validation setting to this element by type (eg: Validate.Presence)
      * @param  string  $type
      * @param  string  $params
      */
@@ -118,7 +118,7 @@ abstract class Input extends Element implements ValidatableInterface, RowDependa
     }
 
     /**
-     * Can this input be validated? Prevent LiveValidation for elements with no ID, and readonly inputs.
+     * Can this input be validated? Prevent validation for elements with no ID, and readonly inputs.
      * @return bool
      */
     public function isValidatable() {
