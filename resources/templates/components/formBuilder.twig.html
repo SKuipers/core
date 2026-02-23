@@ -83,38 +83,46 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 </style>
 
 <script>
-    $('#formFields section').sortable({
-        placeholder: "drag-placeholder bg-gray-400 shadow-inner",
-        handle: ".drag-handle",
-        connectWith: 'section',
-        start: function(event, ui) {
-            // console.log('sort start');
-            $(ui.item).addClass('bg-gray-100').addClass('border');
-            $(ui.placeholder).outerHeight($(ui.item).outerHeight());
-        },
-        update: function(event, ui) {
-            $(ui.item).removeClass('bg-gray-100').removeClass('border');
-            var elementOrder = new Array();
-            $('.draggableRow', '#formFields').each(function() {
-                elementOrder.push($(this).data('drag-id'));
-            });
-
-            var container = $('#formFields');
-            $.ajax({
-                url: $(container).data('drag-url'),
-                data: {
-                    data: $(container).data('drag-data'),
-                    order: JSON.stringify(elementOrder)
-                },
-                type: 'POST',
-                success: function(data) {
-                    // console.log('success '+data);
+    // Initialize SortableJS for form fields
+    document.querySelectorAll('#formFields section').forEach(function(el) {
+        new Sortable(el, {
+            animation: 150,
+            handle: '.drag-handle',
+            ghostClass: 'drag-placeholder',
+            group: 'formFields',
+            
+            onStart: function(evt) {
+                evt.item.classList.add('bg-gray-100', 'border');
+                // Set placeholder height to match item height
+                const placeholder = evt.to.querySelector('.drag-placeholder');
+                if (placeholder) {
+                    placeholder.style.height = evt.item.offsetHeight + 'px';
                 }
-            });
-        },
-        stop: function(event, ui) {
-            $(ui.item).removeClass('bg-gray-100').removeClass('border');
-        },
+            },
+            
+            onEnd: function(evt) {
+                evt.item.classList.remove('bg-gray-100', 'border');
+                
+                // Collect element order
+                const elementOrder = [];
+                document.querySelectorAll('#formFields .draggableRow').forEach(function(row) {
+                    elementOrder.push(row.dataset.dragId);
+                });
+                
+                // Send AJAX request to update order
+                const container = document.querySelector('#formFields');
+                fetch(container.dataset.dragUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        data: container.dataset.dragData,
+                        order: JSON.stringify(elementOrder)
+                    })
+                });
+            }
+        });
     });
 
 </script>

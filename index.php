@@ -347,7 +347,6 @@ $page->scripts->addMultiple([
 ], ['context' => 'head']);
 
 $page->scripts->addMultiple([
-    'jquery-time'    => 'lib/jquery-timepicker/jquery.timepicker.min.js',
     'alpineFocus'    => 'lib/htmx/alpine.focus.min.js',
     'alpineSort'     => 'lib/htmx/alpine.sort.min.js',
     'alpineCollapse' => 'lib/htmx/alpine.collapse.min.js',
@@ -358,15 +357,10 @@ $page->scripts->addMultiple([
 // Set page scripts: foot - core
 $page->scripts->add('core-config', 'window.Gibbon = '.json_encode($javascriptConfig).';', ['type' => 'inline']);
 
-// Set page scripts: foot - jquery
-$page->scripts->addMultiple([
-    'jquery-form'     => 'lib/jquery-form/jquery.form.js',
-    'token-input'     => 'resources/assets/js/tokenInput.js',
-], ['context' => 'foot', 'type' => 'defer']);
-
 // Set page scripts: foot - misc
 $page->scripts->addMultiple([
     'core-setup'     => 'resources/assets/js/setup.js',
+    'token-input'    => 'resources/assets/js/tokenInput.js',
     'tinymce'        => 'lib/tinymce/tinymce.min.js',
 ], ['context' => 'foot', 'type' => 'defer']);
 

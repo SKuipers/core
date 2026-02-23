@@ -59,46 +59,39 @@
 {% if canEdit %}
 <script>
 
-
-$('#dutyOuter .dutySection').sortable({
-    tolerance: 5,
-    cursor: "move",
-    items: ".dutyPerson",
-    connectWith: ".dutySection",
-    zIndex: 20,
-    containment: "#dutyOuter",
-    
-});
-
-$('#dutyOuter .dutySection').droppable({
-    accept: '.dutyPerson',
-
-    classes: {
-        "ui-droppable-active": "bg-stripe-overlay"
-    },
-    over: function(event, ui) {
-    },
-    out: function(event, ui) {
-    },
-    deactivate: function(event, ui) {
-    },
-
-    drop: function(event, ui) {
-        $.ajax({
-            url: '{{ absoluteURL }}/modules/Staff/staff_duty_ajaxProcess.php',
-            data: {
-                gibbonStaffDutyPersonID: $(ui.draggable).data('person'),
-                gibbonStaffDutyID: $(this).data('duty'),
-                gibbonDaysOfWeekID: $(this).data('weekday'),
-                csrftoken: "{{ csrftoken }}",
-                nonce: "{{ nonce }}",
-            },
-            type: 'GET',
-            complete: function (data) {
-            },
+// Initialize SortableJS for all duty sections
+document.querySelectorAll('#dutyOuter .dutySection').forEach(function(el) {
+    new Sortable(el, {
+        animation: 150,
+        ghostClass: 'opacity-50',
+        dragClass: 'z-50',
+        draggable: '.dutyPerson',
+        group: 'dutySection',
+        
+        onStart: function(evt) {
+            evt.to.classList.add('bg-stripe-overlay');
+        },
+        
+        onEnd: function(evt) {
+            evt.from.classList.remove('bg-stripe-overlay');
+            evt.to.classList.remove('bg-stripe-overlay');
             
-        });
-    },
+            // Make AJAX call to update duty assignment
+            const personID = evt.item.dataset.person;
+            const dutyID = evt.to.dataset.duty;
+            const weekdayID = evt.to.dataset.weekday;
+            
+            fetch('{{ absoluteURL }}/modules/Staff/staff_duty_ajaxProcess.php?' + new URLSearchParams({
+                gibbonStaffDutyPersonID: personID,
+                gibbonStaffDutyID: dutyID,
+                gibbonDaysOfWeekID: weekdayID,
+                csrftoken: "{{ csrftoken }}",
+                nonce: "{{ nonce }}"
+            }), {
+                method: 'GET'
+            });
+        }
+    });
 });
     
 </script>

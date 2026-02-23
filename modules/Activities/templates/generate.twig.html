@@ -78,7 +78,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
             </div>
 
 
-            <div class="enrolmentGroup h-full" data-group="0" style="min-height: 8rem;">
+            <div class="enrolmentGroupList h-full" data-group="0" style="min-height: 8rem;">
 
                 {% for person in groups[0] %}
                 {% if mode == 'student' %}
@@ -152,39 +152,51 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
 <script>
 
-    $('#generateGroups .enrolmentGroup').sortable({
-        tolerance: 5,
-        cursor: "move",
-        items: ".enrolmentPerson",
-        connectWith: ".enrolmentGroup",
-        zIndex: 20,
-        // containment: "#generateGroups",
-
+    // Initialize SortableJS for all enrolment groups
+    document.querySelectorAll('#generateGroups .enrolmentGroup').forEach(function(el) {
+        new Sortable(el, {
+            animation: 150,
+            ghostClass: 'opacity-50',
+            dragClass: 'z-50',
+            draggable: '.enrolmentPerson',
+            group: 'enrolmentGroup',
+            
+            onStart: function(evt) {
+                evt.item.classList.add('z-50');
+                evt.to.classList.add('bg-gray-200');
+            },
+            
+            onEnd: function(evt) {
+                evt.item.classList.remove('z-50');
+                evt.from.classList.remove('bg-gray-200');
+                evt.to.classList.remove('bg-gray-200');
+                
+                recalculateStatus(evt.item, evt.to);
+                recalculateGroups();
+            }
+        });
     });
+    
 
-    $('#generateGroups .enrolmentGroup').droppable({
-        accept: '.enrolmentPerson',
+    new Sortable(document.querySelector('#generateGroups .enrolmentGroupList'), {
+        ghostClass: 'opacity-50',
+        dragClass: 'z-50',
+        draggable: '.enrolmentPerson',
+        group: 'enrolmentGroup',
 
-        over: function (event, ui) {
-            $(this).addClass('bg-gray-200');
-            $(ui.draggable).addClass('z-50');
-
-            recalculateStatus(ui.draggable, this);
+        onStart: function(evt) {
+            evt.item.classList.add('z-50');
+            evt.to.classList.add('bg-gray-200');
         },
-        out: function (event, ui) {
-            $(this).removeClass('bg-gray-200');
-            $(ui.draggable).removeClass('z-50');
-        },
-        deactivate: function (event, ui) {
-            $(this).removeClass('bg-gray-200');
-            $(ui.draggable).removeClass('z-50');
-        },
-        drop: function (event, ui) {
-            $(ui.draggable).removeClass('z-50');
-
-            recalculateStatus(ui.draggable, this);
+        
+        onEnd: function(evt) {
+            evt.item.classList.remove('z-50');
+            evt.from.classList.remove('bg-gray-200');
+            evt.to.classList.remove('bg-gray-200');
+            
+            recalculateStatus(evt.item, evt.to);
             recalculateGroups();
-        },
+        }
     });
 
 {% if mode == 'student' %}

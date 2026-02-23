@@ -49,19 +49,29 @@ function makeBlock($guid, $connection2, $i, $mode = 'masterAdd', $title = '', $t
 		</style>
 
 		<script type='text/javascript'>
-			$(function() {
-				$( ".sortable" ).sortable({
-					placeholder: "ui-state-highlight"
-				});
-
-				$( ".sortable" ).bind( "sortstart", function(event, ui) {
-					$("#blockInner<?php echo $i ?>").css("display","none") ;
-					$("#block<?php echo $i ?>").css("height","82px") ;
-					$('#show<?php echo $i ?>').css("background-image", "<?php echo "url(\'".$session->get('absoluteURL').'/themes/'.$session->get('gibbonThemeName')."/img/plus.png\'"?>)");
-					tinyMCE.execCommand('mceRemoveEditor', false, 'contents<?php echo $i ?>') ;
-					tinyMCE.execCommand('mceRemoveEditor', false, 'teachersNotes<?php echo $i ?>') ;
-					$(".sortable").sortable( "refresh" ) ;
-					$(".sortable").sortable( "refreshPositions" ) ;
+			document.addEventListener('DOMContentLoaded', function() {
+				const sortableElements = document.querySelectorAll('.sortable');
+				
+				sortableElements.forEach(function(el) {
+					new Sortable(el, {
+						animation: 150,
+						ghostClass: 'ui-state-highlight',
+						
+						onStart: function(evt) {
+							const blockInner = document.querySelector('#blockInner<?php echo $i ?>');
+							const block = document.querySelector('#block<?php echo $i ?>');
+							const show = document.querySelector('#show<?php echo $i ?>');
+							
+							if (blockInner) blockInner.style.display = 'none';
+							if (block) block.style.height = '82px';
+							if (show) show.style.backgroundImage = "<?php echo "url(\'".$session->get('absoluteURL').'/themes/'.$session->get('gibbonThemeName')."/img/plus.png\'"?>";
+							
+							if (typeof tinyMCE !== 'undefined') {
+								tinyMCE.execCommand('mceRemoveEditor', false, 'contents<?php echo $i ?>');
+								tinyMCE.execCommand('mceRemoveEditor', false, 'teachersNotes<?php echo $i ?>');
+							}
+						}
+					});
 				});
 			});
 
@@ -465,24 +475,34 @@ function makeBlockOutcome($guid,  $i, $type = '', $gibbonOutcomeID = '', $title 
     }
     ?>
 		<script>
-			$(function() {
-				$( "#<?php echo $type ?>" ).sortable({
-					placeholder: "<?php echo $type ?>-ui-state-highlight"
-				});
-
-				$( "#<?php echo $type ?>" ).bind( "sortstart", function(event, ui) {
-					$("#<?php echo $type ?>BlockInner<?php echo $i ?>").css("display","none");
-					$("#<?php echo $type ?>Block<?php echo $i ?>").css("height","82px") ;
-					$('#<?php echo $type ?>show<?php echo $i ?>').css("background-image", "<?php echo "url(\'".$session->get('absoluteURL').'/themes/'.$session->get('gibbonThemeName')."/img/plus.png\'"?>)");
-					tinyMCE.execCommand('mceRemoveEditor', false, '<?php echo $type ?>contents<?php echo $i ?>') ;
-					$("#<?php echo $type ?>").sortable( "refreshPositions" ) ;
-				});
-
-				$( "#<?php echo $type ?>" ).bind( "sortstop", function(event, ui) {
-					//This line has been removed to improve performance with long lists
-					//tinyMCE.execCommand('mceAddEditor', false, '<?php echo $type ?>contents<?php echo $i ?>') ;
-					$("#<?php echo $type ?>Block<?php echo $i ?>").css("height","82px") ;
-				});
+			document.addEventListener('DOMContentLoaded', function() {
+				const typeElement = document.querySelector('#<?php echo $type ?>');
+				
+				if (typeElement) {
+					new Sortable(typeElement, {
+						animation: 150,
+						ghostClass: '<?php echo $type ?>-ui-state-highlight',
+						
+						onStart: function(evt) {
+							const blockInner = document.querySelector('#<?php echo $type ?>BlockInner<?php echo $i ?>');
+							const block = document.querySelector('#<?php echo $type ?>Block<?php echo $i ?>');
+							const show = document.querySelector('#<?php echo $type ?>show<?php echo $i ?>');
+							
+							if (blockInner) blockInner.style.display = 'none';
+							if (block) block.style.height = '82px';
+							if (show) show.style.backgroundImage = "<?php echo "url(\'".$session->get('absoluteURL').'/themes/'.$session->get('gibbonThemeName')."/img/plus.png\'"?>";
+							
+							if (typeof tinyMCE !== 'undefined') {
+								tinyMCE.execCommand('mceRemoveEditor', false, '<?php echo $type ?>contents<?php echo $i ?>');
+							}
+						},
+						
+						onEnd: function(evt) {
+							const block = document.querySelector('#<?php echo $type ?>Block<?php echo $i ?>');
+							if (block) block.style.height = '82px';
+						}
+					});
+				}
 			});
 		</script>
 		<script type="text/javascript">
