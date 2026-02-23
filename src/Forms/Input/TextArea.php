@@ -32,7 +32,6 @@ use Gibbon\View\Component;
 class TextArea extends Input
 {
     protected $maxLength;
-    protected $autosize = false;
 
     /**
      * Create a textarea with a default height of 6 rows.
@@ -102,7 +101,8 @@ class TextArea extends Input
      */
     public function autosize($autosize = true)
     {
-        $this->autosize = $autosize;
+        if ($autosize) $this->addClass('autosize');
+
         return $this;
     }
 
@@ -118,7 +118,6 @@ class TextArea extends Input
         return Component::render(TextArea::class, $this->getAttributeArray() + [
             'outerClass' => $this->getOuterClass(),
             'text'       => htmlentities((string) $text, ENT_QUOTES, 'UTF-8'),
-            'autosize'   => $this->autosize,
         ]);
     }
 }

@@ -216,6 +216,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_write_by
                 ->setID($fieldID)
                 ->maxLength($criteria['characterLimit'])
                 ->setValue($criteria['comment'])
+                ->autosize()
                 ->readonly(!$canWriteReport);
         } else {
             $row = $form->addRow();
@@ -349,10 +350,6 @@ var complete = false;
 var readonly = <?php echo !empty($canWriteReport) && $canWriteReport ? 'false' : 'true'; ?>;
 
 updateStatus();
-
-$(document).ready(function(){
-    autosize($('textarea'));
-});
 
 function save() {
     $('[name="gibbonPersonIDNext"]').val('');

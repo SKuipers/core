@@ -57,7 +57,6 @@ $gradeScaleGateway = $container->get(GradeScaleGateway::class);
 echo "<script type='text/javascript'>";
 ?>
     $(document).ready(function(){
-        autosize($('textarea'));
 
     // Map [Enter] key to work like the [Tab] key
     // Daniel P. Clark 2014
@@ -496,7 +495,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_dat
 
                         $col = $row->onlyIf($hasComment || $hasUpload)->addColumn()->addClass('stacked');
 
-                            $col->onlyIf($hasComment)->addTextArea('comment'.$count)->setRows(6)->setValue($student['comment']);
+                            $col->onlyIf($hasComment)->addTextArea('comment'.$count)->setRows(6)->setValue($student['comment'])->autosize();
 
                             $col->onlyIf($hasUpload)
                                 ->addFileUpload('response'.$count)

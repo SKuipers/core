@@ -147,6 +147,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_write.ph
                     ->setID($fieldID)
                     ->maxLength($criteria['characterLimit'])
                     ->setValue($criteria['comment'])
+                    ->autosize()
                     ->readonly(!$canWriteReport);
             } else {
                 $row = $form->addRow();
@@ -209,9 +210,3 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_write.ph
         'params' => $urlParams,
     ]));
 }
-?>
-<script>
-    $(document).ready(function(){
-        autosize($('textarea'));
-    });
-</script>

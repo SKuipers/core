@@ -40,12 +40,6 @@ $effortAlternativeName = $settingGateway->getSettingByScope('Markbook', 'effortA
 $effortAlternativeNameAbrev = $settingGateway->getSettingByScope('Markbook', 'effortAlternativeNameAbrev');
 $hasEffortName = ($effortAlternativeName != '' && $effortAlternativeNameAbrev != '');
 
-echo "<script type='text/javascript'>";
-    echo '$(document).ready(function(){';
-        echo "autosize($('textarea'));";
-    echo '});';
-echo '</script>';
-
 if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internalAssessment_write_data.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
@@ -188,7 +182,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internal
                             $col = $row->addColumn()->addClass('stacked');
 
                             if ($hasComment) {
-                                $col->addTextArea('comment'.$count)->setRows(6)->setValue($student['comment']);
+                                $col->addTextArea('comment'.$count)->setRows(6)->setValue($student['comment'])->autosize();
                             }
 
                             if ($hasUpload) {
