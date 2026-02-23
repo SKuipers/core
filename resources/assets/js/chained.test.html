@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpine.js Chained Select Test</title>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        h2 {
+            color: #666;
+            font-size: 1.2em;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #444;
+        }
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            background: white;
+        }
+        select:disabled {
+            background: #f5f5f5;
+            color: #999;
+            cursor: not-allowed;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #1565c0;
+        }
+        .success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .test-results {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 13px;
+        }
+        .pass { background: #e8f5e9; color: #2e7d32; }
+        .fail { background: #ffebee; color: #c62828; }
+    </style>
+</head>
+<body>
+    <div class="test-section">
+        <h1>Alpine.js Chained Select Test</h1>
+        <h2>Dependent Select Dropdowns (Vanilla Alpine.js Implementation)</h2>
+
+        <div>
+            <label for="country">Select Country:</label>
+            <select id="country" name="country">
+                <option value="">Please select...</option>
+                <option value="usa">United States</option>
+                <option value="canada">Canada</option>
+                <option value="uk">United Kingdom</option>
+            </select>
+
+            <label for="city">Select City:</label>
+            <select id="city" name="city"
+                x-data="{
+                    parentValue: '',
+                    backup: null,
+                    init() {
+                        const parent = document.querySelector('#country');
+                        if (parent) {
+                            // Clone the select to preserve all options
+                            this.backup = this.$el.cloneNode(true);
+                            
+                            // Set initial parent value
+                            this.parentValue = parent.value;
+                            
+                            // Listen for parent changes
+                            parent.addEventListener('change', () => {
+                                this.parentValue = parent.value;
+                                this.updateOptions();
+                            });
+                            
+                            // Initial update
+                            this.updateOptions();
+                        }
+                    },
+                    updateOptions() {
+                        const selectedChild = this.$el.value;
+                        
+                        // Restore all options from backup
+                        this.$el.innerHTML = this.backup.innerHTML;
+                        this.$el.value = '';
+                        
+                        // Remove options that don't match the selected parent
+                        const options = Array.from(this.$el.options);
+                        options.forEach(option => {
+                            const optionValue = option.value;
+                            const optionClass = option.className;
+                            const hasParentClass = optionClass && optionClass.split(' ').includes(this.parentValue);
+                            
+                            // Keep empty options, placeholder options, and options matching parent
+                            if (optionValue !== '' && 
+                                optionValue !== 'Please select...' && 
+                                !hasParentClass) {
+                                option.remove();
+                            }
+                        });
+                        
+                        // Try to restore the previously selected child value
+                        const matchingOption = Array.from(this.$el.options).find(
+                            opt => opt.value === selectedChild
+                        );
+                        if (matchingOption) {
+                            this.$el.value = selectedChild;
+                        }
+                        
+                        // Count selectable options (excluding empty and placeholder)
+                        const selectableOptions = Array.from(this.$el.options).filter(option => {
+                            return option.value !== '' && option.value !== 'Please select...';
+                        });
+                        
+                        // Disable child select if no valid options available
+                        this.$el.disabled = selectableOptions.length === 0;
+                    }
+                }">
+                <option value="">Please select...</option>
+                <option value="ny" class="usa">New York</option>
+                <option value="la" class="usa">Los Angeles</option>
+                <option value="chicago" class="usa">Chicago</option>
+                <option value="toronto" class="canada">Toronto</option>
+                <option value="vancouver" class="canada">Vancouver</option>
+                <option value="montreal" class="canada">Montreal</option>
+                <option value="london" class="uk">London</option>
+                <option value="manchester" class="uk">Manchester</option>
+                <option value="edinburgh" class="uk">Edinburgh</option>
+            </select>
+
+            <div class="info">
+                <strong>How it works:</strong><br>
+                • Select a country to see cities filtered automatically<br>
+                • City options have CSS classes matching country values<br>
+                • Alpine.js clones the original select and restores/filters options on parent change<br>
+                • Non-matching options are actually removed from the DOM (not just hidden)<br>
+                • Child select is disabled when no valid options are available<br>
+                • Matches the exact behavior of the vanilla JavaScript implementation
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Automated Tests</h2>
+        <button onclick="runTests()" style="padding: 10px 20px; background: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
+            Run Tests
+        </button>
+        <div id="test-results"></div>
+    </div>
+
+    <script>
+        function runTests() {
+            const results = [];
+            const country = document.getElementById('country');
+            const city = document.getElementById('city');
+
+            // Test 1: Initial state
+            results.push({
+                name: 'Initial state - city select should be disabled',
+                pass: city.disabled === true
+            });
+
+            // Test 2: Select USA
+            country.value = 'usa';
+            country.dispatchEvent(new Event('change'));
+            setTimeout(() => {
+                // Count actual options in the DOM (not hidden ones)
+                const usaCities = Array.from(city.options).filter(opt => 
+                    opt.classList.contains('usa')
+                );
+                results.push({
+                    name: 'USA selected - should have exactly 3 US city options in DOM',
+                    pass: usaCities.length === 3
+                });
+
+                // Test 3: Verify non-USA cities are removed
+                const canadaCities = Array.from(city.options).filter(opt => 
+                    opt.classList.contains('canada')
+                );
+                results.push({
+                    name: 'USA selected - Canadian cities should be removed from DOM',
+                    pass: canadaCities.length === 0
+                });
+
+                // Test 4: City select should be enabled
+                results.push({
+                    name: 'USA selected - city select should be enabled',
+                    pass: city.disabled === false
+                });
+
+                // Test 5: Select a city
+                city.value = 'ny';
+                const selectedValue = city.value;
+                results.push({
+                    name: 'Should be able to select New York',
+                    pass: selectedValue === 'ny'
+                });
+
+                // Test 6: Select Canada
+                country.value = 'canada';
+                country.dispatchEvent(new Event('change'));
+                setTimeout(() => {
+                    const canadaCitiesAfter = Array.from(city.options).filter(opt => 
+                        opt.classList.contains('canada')
+                    );
+                    results.push({
+                        name: 'Canada selected - should have exactly 3 Canadian city options in DOM',
+                        pass: canadaCitiesAfter.length === 3
+                    });
+
+                    // Test 7: Verify US cities are removed
+                    const usaCitiesAfter = Array.from(city.options).filter(opt => 
+                        opt.classList.contains('usa')
+                    );
+                    results.push({
+                        name: 'Canada selected - US cities should be removed from DOM',
+                        pass: usaCitiesAfter.length === 0
+                    });
+
+                    // Test 8: City value should be reset
+                    results.push({
+                        name: 'Parent changed - city value should be reset to empty',
+                        pass: city.value === ''
+                    });
+
+                    // Test 9: Verify we can't select a US city when Canada is selected
+                    const nyOption = Array.from(city.options).find(opt => opt.value === 'ny');
+                    results.push({
+                        name: 'Canada selected - New York option should not exist in DOM',
+                        pass: nyOption === undefined
+                    });
+
+                    // Display results
+                    displayResults(results);
+                }, 100);
+            }, 100);
+        }
+
+        function displayResults(results) {
+            const container = document.getElementById('test-results');
+            const passed = results.filter(r => r.pass).length;
+            const total = results.length;
+            
+            let html = `<div class="test-results ${passed === total ? 'pass' : 'fail'}">`;
+            html += `<strong>Test Results: ${passed}/${total} passed</strong><br><br>`;
+            
+            results.forEach((result, i) => {
+                html += `${i + 1}. ${result.name}: ${result.pass ? '✓ PASS' : '✗ FAIL'}<br>`;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
