@@ -26,6 +26,9 @@ use Gibbon\Forms\Traits\MultipleOptionsTrait;
 /**
  * Finder - tokenized search
  *
+ * Uses Alpine.js TokenInput component with Tailwind CSS styling
+ * (replacement for jQuery tokenInput plugin)
+ *
  * @version v14
  * @since   v14
  */
@@ -46,7 +49,6 @@ class Finder extends TextField
     public function __construct($name)
     {
         $this->params = array(
-            'theme'             => 'facebook',
             'hintText'          => __('Start typing...'),
             'noResultsText'     => __('No results'),
             'searchingText'     => __('Searching...'),
@@ -57,6 +59,8 @@ class Finder extends TextField
             'resultsLimit'      => null,
             'enableHTML'        => true,
         );
+
+        $this->setAttribute('x-cloak');
 
         parent::__construct($name);
     }
@@ -95,7 +99,7 @@ class Finder extends TextField
     }
 
     /**
-     * Sets a javascript parameter for the tokenInput UI.
+     * Sets a parameter for the TokenInput component.
      * @param    string  $key
      * @param    string  $value
      */
@@ -160,45 +164,48 @@ class Finder extends TextField
         $output = '<input type="text" '.$this->getAttributeString().'>';
 
         $output .= '<script type="text/javascript">';
-        $output .= '$(document).ready(function () {';
-        $output .= '$("#'.$this->getID().'").tokenInput(';
-
+        $output .= 'document.addEventListener("DOMContentLoaded", function () {';
+        
+        // Prepare options object
+        $options = $this->params;
+        
+        // Add data source
         if (!empty($this->ajaxURL)) {
-            $output .= '"'.$this->ajaxURL.'",';
+            $options['dataSource'] = $this->ajaxURL;
         } else {
-            $output .= json_encode($this->getTokenizedList($this->options)).',';
+            $options['dataSource'] = $this->getTokenizedList($this->options);
         }
-
+        
         // Add the pre-populate param if there's selected items
         if (!empty($this->selected)) {
-            $this->params['prePopulate'] = $this->getTokenizedList($this->selected);
+            $options['prePopulate'] = $this->getTokenizedList($this->selected);
         }
 
         // Add the string placeholders for custom functions
         if (!empty($this->resultsFormatter)) {
-            $this->params['resultsFormatter'] = 'CUSTOM_RESULTS_FORMATTER';
+            $options['resultsFormatter'] = 'CUSTOM_RESULTS_FORMATTER';
         }
         if (!empty($this->tokenFormatter)) {
-            $this->params['tokenFormatter'] = 'CUSTOM_TOKEN_FORMATTER';
+            $options['tokenFormatter'] = 'CUSTOM_TOKEN_FORMATTER';
         }
+        
         // Account for the change in param name from allowCreation to allowFreeTagging
-        if (!empty($this->params['allowCreation'])) {
-            $this->params['allowFreeTagging'] = $this->params['allowCreation'];
+        if (!empty($options['allowCreation'])) {
+            $options['allowFreeTagging'] = $options['allowCreation'];
         }
 
-        $paramsOutput = json_encode($this->params);
+        $optionsOutput = json_encode($options);
 
         // Replace the string placeholders with javascript functions - workaround for json string encoding
         if (!empty($this->resultsFormatter) || !empty($this->tokenFormatter)) {
-            $paramsOutput = str_replace(
+            $optionsOutput = str_replace(
                 ['"CUSTOM_RESULTS_FORMATTER"', '"CUSTOM_TOKEN_FORMATTER"'],
                 [$this->resultsFormatter, $this->tokenFormatter],
-                $paramsOutput
+                $optionsOutput
             );
         }
 
-        $output .= $paramsOutput;
-        $output .= ');';
+        $output .= 'new TokenInput("#'.$this->getID().'", '.$optionsOutput.');';
         $output .= '});';
         $output .= '</script>';
 

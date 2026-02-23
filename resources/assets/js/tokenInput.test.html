@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TokenInput Test - Alpine.js + Tailwind CSS</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- TokenInput Component -->
+    <link rel="stylesheet" href="../css/tokenInput.css">
+</head>
+<body class="bg-gray-50">
+    <div class="max-w-4xl mx-auto p-8">
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold text-gray-900 mb-2">TokenInput Component Test</h1>
+            <p class="text-gray-600">Testing Alpine.js + Tailwind CSS implementation</p>
+        </div>
+        
+        <!-- Test 1: Local Data Source -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Test 1: Local Data Source</h2>
+            <label for="test1" class="block text-sm font-medium text-gray-700 mb-2">Select fruits:</label>
+            <input type="text" id="test1" name="test1" class="hidden">
+            <div class="mt-4 p-4 bg-gray-50 rounded border border-gray-200">
+                <strong class="text-sm text-gray-700">Selected values:</strong>
+                <span id="test1-result" class="text-sm text-gray-900 ml-2">(none)</span>
+            </div>
+        </div>
+        
+        <!-- Test 2: Pre-populated Tokens -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Test 2: Pre-populated Tokens</h2>
+            <label for="test2" class="block text-sm font-medium text-gray-700 mb-2">Pre-selected items:</label>
+            <input type="text" id="test2" name="test2" class="hidden">
+            <div class="mt-4 p-4 bg-gray-50 rounded border border-gray-200">
+                <strong class="text-sm text-gray-700">Selected values:</strong>
+                <span id="test2-result" class="text-sm text-gray-900 ml-2">(none)</span>
+            </div>
+        </div>
+        
+        <!-- Test 3: Free Tagging -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Test 3: Free Tagging Enabled</h2>
+            <label for="test3" class="block text-sm font-medium text-gray-700 mb-2">Add custom tags:</label>
+            <input type="text" id="test3" name="test3" class="hidden">
+            <div class="mt-4 p-4 bg-gray-50 rounded border border-gray-200">
+                <strong class="text-sm text-gray-700">Selected values:</strong>
+                <span id="test3-result" class="text-sm text-gray-900 ml-2">(none)</span>
+            </div>
+        </div>
+        
+        <!-- Test 4: Token Limit -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Test 4: Token Limit</h2>
+            <label for="test4" class="block text-sm font-medium text-gray-700 mb-2">Select up to 3 items:</label>
+            <input type="text" id="test4" name="test4" class="hidden">
+            <div class="mt-4 p-4 bg-gray-50 rounded border border-gray-200">
+                <strong class="text-sm text-gray-700">Selected values:</strong>
+                <span id="test4-result" class="text-sm text-gray-900 ml-2">(none)</span>
+            </div>
+        </div>
+        
+        <!-- API Test Section -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Test 5: Public API Methods</h2>
+            <div class="space-y-4">
+                <div>
+                    <label for="test5" class="block text-sm font-medium text-gray-700 mb-2">Test API methods:</label>
+                    <input type="text" id="test5" name="test5" class="hidden">
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="testAdd()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+                        Add Token
+                    </button>
+                    <button onclick="testRemove()" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
+                        Remove First
+                    </button>
+                    <button onclick="testClear()" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition">
+                        Clear All
+                    </button>
+                    <button onclick="testGet()" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition">
+                        Get Tokens
+                    </button>
+                    <button onclick="testToggleDisable()" class="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 transition">
+                        Toggle Disable
+                    </button>
+                </div>
+                <div class="mt-4 p-4 bg-gray-50 rounded border border-gray-200">
+                    <strong class="text-sm text-gray-700">API Output:</strong>
+                    <pre id="test5-result" class="text-sm text-gray-900 mt-2 whitespace-pre-wrap">(click buttons to test)</pre>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Info Section -->
+        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+            <h3 class="text-lg font-semibold text-blue-900 mb-2">Features Demonstrated</h3>
+            <ul class="list-disc list-inside text-sm text-blue-800 space-y-1">
+                <li>Local data source with search filtering</li>
+                <li>Pre-populated tokens on initialization</li>
+                <li>Free tagging (create custom tokens)</li>
+                <li>Token limits (maximum number of selections)</li>
+                <li>Public API methods (add, remove, clear, get, toggleDisabled)</li>
+                <li>Keyboard navigation (arrow keys, enter, backspace, escape)</li>
+                <li>Duplicate prevention</li>
+                <li>Responsive Tailwind CSS styling</li>
+                <li>Alpine.js reactive state management</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="tokenInput.js"></script>
+    <script>
+        // Test data
+        const fruits = [
+            { id: '1', name: 'Apple' },
+            { id: '2', name: 'Banana' },
+            { id: '3', name: 'Cherry' },
+            { id: '4', name: 'Date' },
+            { id: '5', name: 'Elderberry' },
+            { id: '6', name: 'Fig' },
+            { id: '7', name: 'Grape' },
+            { id: '8', name: 'Honeydew' }
+        ];
+
+        let token1, token2, token3, token4, token5;
+
+        // Wait for Alpine to be ready
+        document.addEventListener('alpine:init', () => {
+            // Test 1: Local data source
+            token1 = new TokenInput('#test1', {
+                dataSource: fruits,
+                hintText: 'Type to search fruits...',
+                onAdd: function(item) {
+                    updateResult('test1');
+                },
+                onDelete: function(item) {
+                    updateResult('test1');
+                }
+            });
+
+            // Test 2: Pre-populated
+            token2 = new TokenInput('#test2', {
+                dataSource: fruits,
+                prePopulate: [
+                    { id: '1', name: 'Apple' },
+                    { id: '3', name: 'Cherry' }
+                ],
+                onAdd: function(item) {
+                    updateResult('test2');
+                },
+                onDelete: function(item) {
+                    updateResult('test2');
+                }
+            });
+
+            // Test 3: Free tagging
+            token3 = new TokenInput('#test3', {
+                dataSource: fruits,
+                allowFreeTagging: true,
+                hintText: 'Type anything...',
+                onAdd: function(item) {
+                    updateResult('test3');
+                },
+                onDelete: function(item) {
+                    updateResult('test3');
+                }
+            });
+
+            // Test 4: Token limit
+            token4 = new TokenInput('#test4', {
+                dataSource: fruits,
+                tokenLimit: 3,
+                hintText: 'Select up to 3...',
+                onAdd: function(item) {
+                    updateResult('test4');
+                },
+                onDelete: function(item) {
+                    updateResult('test4');
+                }
+            });
+
+            // Test 5: API testing
+            token5 = new TokenInput('#test5', {
+                dataSource: fruits,
+                hintText: 'Use buttons to test API...'
+            });
+
+            // Initialize results
+            setTimeout(() => {
+                updateResult('test1');
+                updateResult('test2');
+                updateResult('test3');
+                updateResult('test4');
+            }, 100);
+        });
+
+        // Helper function to update results
+        function updateResult(testId) {
+            const input = document.getElementById(testId);
+            const resultSpan = document.getElementById(testId + '-result');
+            const instance = input.tokenInputInstance;
+            
+            if (instance) {
+                const tokens = instance.get();
+                resultSpan.textContent = tokens.map(t => t.name).join(', ') || '(none)';
+            }
+        }
+
+        // API test functions
+        function testAdd() {
+            const randomFruit = fruits[Math.floor(Math.random() * fruits.length)];
+            token5.add(randomFruit);
+            document.getElementById('test5-result').textContent = 
+                `Added: ${randomFruit.name}\nCurrent tokens: ${token5.get().map(t => t.name).join(', ')}`;
+        }
+
+        function testRemove() {
+            const tokens = token5.get();
+            if (tokens.length > 0) {
+                token5.remove(tokens[0]);
+                document.getElementById('test5-result').textContent = 
+                    `Removed: ${tokens[0].name}\nCurrent tokens: ${token5.get().map(t => t.name).join(', ') || '(none)'}`;
+            } else {
+                document.getElementById('test5-result').textContent = 'No tokens to remove';
+            }
+        }
+
+        function testClear() {
+            token5.clear();
+            document.getElementById('test5-result').textContent = 'All tokens cleared';
+        }
+
+        function testGet() {
+            const tokens = token5.get();
+            document.getElementById('test5-result').textContent = 
+                `Current tokens:\n${JSON.stringify(tokens, null, 2)}`;
+        }
+
+        let isDisabled = false;
+        function testToggleDisable() {
+            isDisabled = !isDisabled;
+            token5.toggleDisabled(isDisabled);
+            document.getElementById('test5-result').textContent = 
+                `Component is now ${isDisabled ? 'disabled' : 'enabled'}`;
+        }
+    </script>
+</body>
+</html>
