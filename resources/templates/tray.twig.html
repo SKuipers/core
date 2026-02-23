@@ -46,11 +46,59 @@ Main Menu: Displays the top-level categories and active modules.
     </script>
 {% endif %}
 
-<div id="dialog-timeout" title="{{ __('Session Timeout') }}" style="display: none">
-    <p>{{ __('Your session is about to expire: you will be logged out shortly.') }}</p>
-</div>
+<dialog id="dialog-timeout" class="mx-auto my-auto rounded-lg shadow-2xl max-w-md w-full backdrop:bg-black/50">
+    <div class="bg-white rounded-lg overflow-hidden">
+        <div class="bg-gradient-to-r from-purple-600 to-purple-500 px-6 py-4">
+            <h2 class="text-xl font-semibold text-white">{{ __('Session Timeout') }}</h2>
+        </div>
+        <div class="px-6 py-5">
+            <div class="flex items-start space-x-3">
+                <div class="flex-shrink-0">
+                    <svg class="h-6 w-6 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <p class="text-gray-700 text-sm leading-relaxed">{{ __('Your session is about to expire: you will be logged out shortly.') }}</p>
+            </div>
+        </div>
+        <div class="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
+            <button id="btn-logout-now" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors">
+                {{ __('Log Out Now') }}
+            </button>
+            <button id="btn-stay-connected" class="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors">
+                {{ __('Stay Connected') }}
+            </button>
+        </div>
+    </div>
+</dialog>
 
 <script>
+    (function() {
+        const timeoutDialog = document.getElementById('dialog-timeout');
+        const btnStayConnected = document.getElementById('btn-stay-connected');
+        const btnLogoutNow = document.getElementById('btn-logout-now');
+
+        // Handle Stay Connected button
+        btnStayConnected.addEventListener('click', function() {
+            const req = new XMLHttpRequest();
+            req.open("POST", "{{ absoluteURL }}/keepAlive.php");
+            req.send();
+            timeoutDialog.close();
+        });
+
+        // Handle Log Out Now button
+        btnLogoutNow.addEventListener('click', function() {
+            window.location = "{{ absoluteURL }}/logout.php?timeout=true";
+        });
+
+        // Close dialog when clicking outside (on backdrop)
+        timeoutDialog.addEventListener('click', function(event) {
+            if (event.target === timeoutDialog) {
+                timeoutDialog.close();
+            }
+        });
+    })();
+
     function refreshNotifications() {
         $.ajax({
             url: "index_notification_ajax.php",
@@ -94,33 +142,16 @@ Main Menu: Displays the top-level categories and active modules.
                 }
 
                 // Handle session timeout dialog
-                $("#dialog-timeout").dialog({
-                    resizable: false,
-                    height: "auto",
-                    width: 400,
-                    modal: true,
-                    autoOpen: false,
-                    buttons: {
-                        "{{ __('Stay Connected') }}": function() {
-                            const req = new XMLHttpRequest();
-                            req.open("POST", "{{ absoluteURL }}/keepAlive.php");
-                            req.send();
-                            $("#dialog-timeout").dialog("close");
-                        },
-                        "{{ __('Log Out Now') }} ": function() {
-                            window.location = "{{ absoluteURL }}/logout.php?timeout=true";
-                        },
-                    }
-                });
-
+                const timeoutDialog = document.getElementById('dialog-timeout');
+                
                 if (data.timeout == 'force') {
                     window.location = "{{ absoluteURL }}/logout.php?timeout=force";
                 } else if (data.timeout == 'expire') {
                     window.location = "{{ absoluteURL }}/logout.php?timeout=true";
                 } else if (data.timeout == 'warn') {
-                    $("#dialog-timeout").dialog("open");
-                } else if (!data.timeout && $("#dialog-timeout").dialog("isOpen")) {
-                    $("#dialog-timeout").dialog("close");
+                    timeoutDialog.showModal();
+                } else if (!data.timeout && timeoutDialog.open) {
+                    timeoutDialog.close();
                 }
             }
         });

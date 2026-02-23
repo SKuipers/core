@@ -197,9 +197,12 @@ require_once __DIR__ . '/src/MarkbookColumn.php';
     if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit.php') and $canEditThisClass) {
         echo '<script>
             function resetOrder(){
-                $( "#dialog" ).dialog();
+                const dialog = document.getElementById("dialog");
+                dialog.showModal();
             }
             function resetOrderAction(order){
+                const dialog = document.getElementById("dialog");
+                dialog.close();
                 if(order==1){
                     window.location.href = window.location.href.substr(0,window.location.href.length-1) + "&gibbonCourseClassID='.$gibbonCourseClassID.'&reset=1";
                 }else if(order==2){
@@ -207,11 +210,34 @@ require_once __DIR__ . '/src/MarkbookColumn.php';
                 }
             }
         </script>';
-        echo '<div id="dialog" title="'.__('Reset Order').'" style="display:none;">
-            '.__('Are you sure you want to reset the ordering of all the columns in this class?').'<br>
-            <button onclick="resetOrderAction(1)" class="my-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">'.__('Reset by entry order').'</button><br>
-            <button onclick="resetOrderAction(2)" class="my-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">'.__('Reset by date').'</button>
-        </div>';
+        echo '<dialog id="dialog" class="mx-auto my-auto text-left rounded-lg shadow-2xl max-w-lg w-full backdrop:bg-black/50 overflow-hidden">
+            <div class="bg-white rounded-lg overflow-hidden">
+                <div class="bg-gradient-to-r from-blue-600 to-blue-500 px-6 py-4">
+                    <h2 class="text-xl font-semibold text-white">'.__('Reset Order').'</h2>
+                </div>
+                <div class="px-6 py-5">
+                    <div class="flex items-start space-x-3">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <p class="text-gray-700 text-sm leading-relaxed">'.__('Are you sure you want to reset the ordering of all the columns in this class?').'</p>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-6 py-4 flex flex-wrap justify-end gap-3">
+                    <button onclick="document.getElementById(\'dialog\').close()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                        '.__('Cancel').'
+                    </button>
+                    <button onclick="resetOrderAction(2)" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                        '.__('Reset by date').'
+                    </button>
+                    <button onclick="resetOrderAction(1)" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                        '.__('Reset by entry order').'
+                    </button>
+                </div>
+            </div>
+        </dialog>';
 
         $form = Form::create('links', '');
 
@@ -240,12 +266,12 @@ require_once __DIR__ . '/src/MarkbookColumn.php';
                 ->displayLabel();
         }
 
-        if ($markbook->getColumnCountTotal() > $markbook->getColumnsPerPage()) {
+        // if ($markbook->getColumnCountTotal() > $markbook->getColumnsPerPage()) {
             $form->addHeaderAction('refresh', __('Reset Order'))
                 ->onClick('resetOrder()')
                 ->setURL('#')
                 ->displayLabel();
-        }
+        // }
 
         if ($markbook->getColumnCountTotal() > 0) {
             $form->addHeaderAction('export', __('Export'))
