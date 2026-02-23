@@ -109,7 +109,7 @@ class CommentEditor extends TextArea
         $output .= parent::getElement();
 
         $output .= '<script type="text/javascript">
-             $("#'.$this->getID().'").gibbonCommentEditor('.json_encode(['autosize' => true]).');
+            document.getElementById("'.$this->getID().'").gibbonCommentEditor('.json_encode(['autosize' => true]).');
              
         </script>';
 

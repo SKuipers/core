@@ -145,23 +145,26 @@ htmx.onLoad(function (content) {
     /**
      * Sidebar toggle switch
      */
-    $("#sidebarToggle").click(function () {
-        if ($("#sidebar").hasClass("lg:w-sidebar")) {
-            $("#sidebar").removeClass("lg:w-sidebar");
-            $("#sidebar").addClass("lg:hidden");
-            $(this).html("«");
+    document.querySelector("#sidebarToggle")?.addEventListener("click", function () {
+        const sidebar = document.querySelector("#sidebar");
+        if (sidebar.classList.contains("lg:w-sidebar")) {
+            sidebar.classList.remove("lg:w-sidebar");
+            sidebar.classList.add("lg:hidden");
+            this.innerHTML = "«";
         } else {
-            $("#sidebar").removeClass("lg:hidden");
-            $("#sidebar").addClass("lg:w-sidebar");
-            $(this).html("»");
+            sidebar.classList.remove("lg:hidden");
+            sidebar.classList.add("lg:w-sidebar");
+            this.innerHTML = "»";
         }
     });
 
     /**
      * Form Class: generic check All/None checkboxes
      */
-    $(document).on("click", '.checkall[type="checkbox"]', function () {
-        var checkall = this;
+    document.addEventListener("click", function(event) {
+        const checkall = event.target.closest('.checkall[type="checkbox"]');
+        if (!checkall) return;
+        
         var checked = checkall.checked;
         var parent = checkall.parentElement.parentElement.closest(
             '.bulkActionForm, .checkboxGroup'
@@ -180,7 +183,7 @@ htmx.onLoad(function (content) {
                 }
 
                 if (index == elements.length - 1) {
-                    $(element).trigger("change");
+                    element.dispatchEvent(new Event("change"));
                 }
             });
     });
@@ -188,49 +191,60 @@ htmx.onLoad(function (content) {
     /**
      * Bulk Actions: show/hide the bulk action panel, highlight selected
      */
-    $(document).on(
-        "click, change",
-        ".bulkActionForm .bulkCheckbox :checkbox",
-        function () {
-            var checkboxes = $(this)
-                .parents(".bulkActionForm")
-                .find(".bulkCheckbox :checkbox");
-            var checkedCount = checkboxes.filter(":checked").length;
+    document.addEventListener("click", function (event) {
+        const checkbox = event.target.closest(".bulkActionForm .bulkCheckbox input[type='checkbox']");
+        if (!checkbox) return;
+        
+        handleBulkCheckboxChange(checkbox);
+    });
+    
+    document.addEventListener("change", function (event) {
+        const checkbox = event.target.closest(".bulkActionForm .bulkCheckbox input[type='checkbox']");
+        if (!checkbox) return;
+        
+        handleBulkCheckboxChange(checkbox);
+    });
+    
+    function handleBulkCheckboxChange(checkbox) {
+        const bulkForm = checkbox.closest(".bulkActionForm");
+        const checkboxes = bulkForm.querySelectorAll(".bulkCheckbox input[type='checkbox']");
+        const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
 
-            if (checkedCount > 0) {
-                $(".bulkActionCount span").html(checkedCount);
+        if (checkedCount > 0) {
+            const countSpan = document.querySelector(".bulkActionCount span");
+            if (countSpan) countSpan.innerHTML = checkedCount;
 
-                if ($(".bulkActionPanel").hasClass("hidden")) {
-                    $(".bulkActionPanel").removeClass("hidden");
+            const bulkPanel = document.querySelector(".bulkActionPanel");
+            if (bulkPanel && bulkPanel.classList.contains("hidden")) {
+                bulkPanel.classList.remove("hidden");
 
-                    var header = $(this)
-                        .parents(".bulkActionForm")
-                        .find(".dataTable header");
-                    var panelHeight = $(".bulkActionPanel").innerHeight();
-                    
-                    $(".bulkActionPanel").css(
-                        "top",
-                        header.outerHeight(false) - panelHeight + 6
-                    );
-
-                    // Trigger a showhide event on any nested inputs to update their visibility & validation state
-                    $(".bulkActionPanel :input").trigger("showhide");
+                const header = bulkForm.querySelector(".dataTable header");
+                const panelHeight = bulkPanel.offsetHeight;
+                
+                if (header) {
+                    bulkPanel.style.top = (header.offsetHeight - panelHeight + 6) + "px";
                 }
-            } else {
-                $(".bulkActionPanel").addClass("hidden");
+
+                // Trigger a showhide event on any nested inputs to update their visibility & validation state
+                bulkPanel.querySelectorAll(":input").forEach(input => {
+                    input.dispatchEvent(new Event("showhide"));
+                });
             }
-
-            $(".checkall").prop("checked", checkedCount > 0);
-            $(".checkall").prop(
-                "indeterminate",
-                checkedCount > 0 && checkedCount < checkboxes.length
-            );
-
-            $(this)
-                .closest("tr")
-                .toggleClass("selected", $(this).prop("checked"));
+        } else {
+            const bulkPanel = document.querySelector(".bulkActionPanel");
+            if (bulkPanel) bulkPanel.classList.add("hidden");
         }
-    );
+
+        document.querySelectorAll(".checkall").forEach(checkall => {
+            checkall.checked = checkedCount > 0;
+            checkall.indeterminate = checkedCount > 0 && checkedCount < checkboxes.length;
+        });
+
+        const row = checkbox.closest("tr");
+        if (row) {
+            row.classList.toggle("selected", checkbox.checked);
+        }
+    }
 
     // Highlight any pre-checked rows
     document
@@ -242,78 +256,104 @@ htmx.onLoad(function (content) {
     /**
      * Column Highlighting
      */
-    var columnHighlight = $(".columnHighlight td");
-    columnHighlight
-        .on("mouseover", function () {
-            columnHighlight
-                .filter(":nth-child(" + ($(this).index() + 1) + ")")
-                .addClass("hover");
-        })
-        .on("mouseout", function () {
-            columnHighlight.removeClass("hover");
+    const columnHighlight = document.querySelectorAll(".columnHighlight td");
+    columnHighlight.forEach(td => {
+        td.addEventListener("mouseover", function () {
+            const index = Array.from(this.parentElement.children).indexOf(this) + 1;
+            document.querySelectorAll(`.columnHighlight td:nth-child(${index})`).forEach(cell => {
+                cell.classList.add("hover");
+            });
         });
+        td.addEventListener("mouseout", function () {
+            document.querySelectorAll(".columnHighlight td").forEach(cell => {
+                cell.classList.remove("hover");
+            });
+        });
+    });
 
     /**
      * Password Generator. Requires data-source, data-confirm and data-alert attributes.
      */
-    $(".generatePassword").click(function () {
-        if ($(this).data("source") == "" || $(this).data("confirm") == "")
-            return;
+    document.querySelectorAll(".generatePassword").forEach(button => {
+        button.addEventListener("click", function () {
+            const source = this.dataset.source;
+            const confirm = this.dataset.confirm;
+            
+            if (!source || !confirm) return;
 
-        var chars =
-            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789![]{}()%&*$#^~@|";
-        var text = "";
-        for (var i = 0; i < 12; i++) {
-            if (i == 0) {
-                text += chars.charAt(Math.floor(Math.random() * 26));
-            } else if (i == 1) {
-                text += chars.charAt(Math.floor(Math.random() * 26) + 26);
-            } else if (i == 2) {
-                text += chars.charAt(Math.floor(Math.random() * 10) + 52);
-            } else if (i == 3) {
-                text += chars.charAt(Math.floor(Math.random() * 19) + 62);
-            } else {
-                text += chars.charAt(Math.floor(Math.random() * chars.length));
+            var chars =
+                "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789![]{}()%&*$#^~@|";
+            var text = "";
+            for (var i = 0; i < 12; i++) {
+                if (i == 0) {
+                    text += chars.charAt(Math.floor(Math.random() * 26));
+                } else if (i == 1) {
+                    text += chars.charAt(Math.floor(Math.random() * 26) + 26);
+                } else if (i == 2) {
+                    text += chars.charAt(Math.floor(Math.random() * 10) + 52);
+                } else if (i == 3) {
+                    text += chars.charAt(Math.floor(Math.random() * 19) + 62);
+                } else {
+                    text += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
             }
-        }
-        $('input[name="' + $(this).data("source") + '"]')
-            .val(text)
-            .blur();
-        $('input[name="' + $(this).data("confirm") + '"]')
-            .val(text)
-            .blur();
-        document.getElementById($(this).data("source")).dispatchEvent(new Event('blur'));
+            
+            const sourceInput = document.querySelector(`input[name="${source}"]`);
+            const confirmInput = document.querySelector(`input[name="${confirm}"]`);
+            
+            if (sourceInput) {
+                sourceInput.value = text;
+                sourceInput.blur();
+                sourceInput.dispatchEvent(new Event('blur'));
+            }
+            if (confirmInput) {
+                confirmInput.value = text;
+                confirmInput.blur();
+            }
 
-        prompt($(this).data("alert"), text);
+            prompt(this.dataset.alert, text);
+        });
     });
 
     /**
      * Username Generator. Requires data-alert attribute.
      */
-    $(".generateUsername").click(function () {
-        var alertText = $(this).data("alert");
-        $.ajax({
-            type: "POST",
-            data: {
-                gibbonRoleID: $("#gibbonRoleIDPrimary").val(),
-                preferredName: $("#preferredName").val(),
-                firstName: $("#firstName").val(),
-                surname: $("#surname").val(),
-            },
-            url: "./modules/User Admin/user_manage_usernameAjax.php",
-            success: function (responseText) {
+    document.querySelectorAll(".generateUsername").forEach(button => {
+        button.addEventListener("click", async function () {
+            const alertText = this.dataset.alert;
+            
+            const formData = new URLSearchParams();
+            formData.append('gibbonRoleID', document.querySelector("#gibbonRoleIDPrimary").value);
+            formData.append('preferredName', document.querySelector("#preferredName").value);
+            formData.append('firstName', document.querySelector("#firstName").value);
+            formData.append('surname', document.querySelector("#surname").value);
+            
+            try {
+                const response = await fetch("./modules/User Admin/user_manage_usernameAjax.php", {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: formData.toString()
+                });
+                
+                const responseText = await response.text();
+                
                 if (responseText == 0) {
-                    $("#gibbonRoleIDPrimary").change();
-                    $("#preferredName").blur();
-                    $("#firstName").blur();
-                    $("#surname").blur();
+                    document.querySelector("#gibbonRoleIDPrimary").dispatchEvent(new Event('change'));
+                    document.querySelector("#preferredName").dispatchEvent(new Event('blur'));
+                    document.querySelector("#firstName").dispatchEvent(new Event('blur'));
+                    document.querySelector("#surname").dispatchEvent(new Event('blur'));
                     alert(alertText);
                 } else {
-                    $("#username").val(responseText);
-                    $("#username").trigger("input");
-                    $("#username").blur();
+                    const usernameInput = document.querySelector("#username");
+                    usernameInput.value = responseText;
+                    usernameInput.dispatchEvent(new Event('input'));
+                    usernameInput.dispatchEvent(new Event('blur'));
                 }
-            },
+            } catch (error) {
+                console.error('Error generating username:', error);
+            }
         });
     });
 
@@ -343,7 +383,7 @@ htmx.onLoad(function (content) {
         });
 
         // Re-enable sorting on the `htmx:afterRequest` event
-        // content.addEventListener("htmx:afterRequest", function (event) {
+        // content?.addEventListener("htmx:afterRequest", function (event) {
         //     sortableInstance.option("disabled", false);
         // });
     }
@@ -355,16 +395,16 @@ htmx.onLoad(function (content) {
 /**
  * Comment Editor
  */
-$.prototype.gibbonCommentEditor = function (settings) {
+HTMLElement.prototype.gibbonCommentEditor = function (settings) {
     var editor = this;
 
     updateComments(editor);
 
-    $(editor).on("input", function () {
+    editor.addEventListener("input", function () {
         updateComments(this);
     });
 
-    $(editor).on("paste", function () {
+    editor.addEventListener("paste", function () {
         var element = this;
         setTimeout(function () {
             updatePlaceholders(element);
@@ -372,30 +412,36 @@ $.prototype.gibbonCommentEditor = function (settings) {
         }, 0);
     });
 
-    $(editor).ready(function () {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            autosize(editor);
+        });
+    } else {
         autosize(editor);
-    });
+    }
 };
 
 function updateComments(element) {
-    var commentText = $(element).val();
+    var commentText = element.value;
 
     // Update character counter for comment length
     var currentLength = commentText.length;
-    $(".characterInfo .currentLength", $(element).parent().parent()).html(currentLength);
+    var parent = element.parentElement.parentElement;
+    var currentLengthEl = parent.querySelector(".characterInfo .currentLength");
+    if (currentLengthEl) currentLengthEl.textContent = currentLength;
 
     // Look for the student's first name somewhere in the comment
-    var preferredName = $(element).data("name") ? $(element).data("name") : "";
+    var preferredName = element.dataset.name ? element.dataset.name : "";
     if (preferredName.length > 0) {
         var nameNotFound = commentText.indexOf(preferredName) === -1;
-        $(".characterInfo .commentStatusName", $(element).parent().parent()).toggleClass(
-            "hidden",
-            !nameNotFound
-        );
+        var statusName = parent.querySelector(".characterInfo .commentStatusName");
+        if (statusName) {
+            statusName.classList.toggle("hidden", !nameNotFound);
+        }
     }
 
     // Check to ensure the pronouns match the gender of the student
-    var gender = $(element).data("gender") ? $(element).data("gender") : "";
+    var gender = element.dataset.gender ? element.dataset.gender : "";
     if (gender.length > 0) {
         var heFound =
             commentText.search(/\bhe\b/i) !== -1 ||
@@ -408,24 +454,24 @@ function updateComments(element) {
             commentText.search(/\bherself\b/i) !== -1;
         var pronounMismatch =
             (heFound && gender == "F") || (sheFound && gender == "M");
-        $(
-            ".characterInfo .commentStatusPronoun",
-            $(element).parent()
-        ).toggleClass("hidden", !pronounMismatch);
+        var statusPronoun = element.parentElement.querySelector(".characterInfo .commentStatusPronoun");
+        if (statusPronoun) {
+            statusPronoun.classList.toggle("hidden", !pronounMismatch);
+        }
     }
 }
 
 function updatePlaceholders(element) {
-    var commentText = $(element).val();
+    var commentText = element.value;
 
     // Replace {name} with the student's preferred name
-    var preferredName = $(element).data("name") ? $(element).data("name") : "";
+    var preferredName = element.dataset.name ? element.dataset.name : "";
     if (preferredName.length > 0) {
         commentText = commentText.replace(/{name}/gi, preferredName);
     }
 
     // Replace pronouns to match the student's gender
-    var gender = $(element).data("gender") ? $(element).data("gender") : "";
+    var gender = element.dataset.gender ? element.dataset.gender : "";
     if (gender.length > 0) {
         if (gender == "F") {
             commentText = commentText
@@ -453,382 +499,11 @@ function updatePlaceholders(element) {
         }
     }
 
-    $(element).val(commentText);
+    element.value = commentText;
 }
 
 /**
- * Custom Blocks
- */
-// Define the CustomBlocks behaviour
-var CustomBlocks = window.CustomBlocks || {};
-
-CustomBlocks = function (element, settings) {
-    var _ = this;
-
-    _.container = $(element);
-    _.blockTemplate = $(".blockTemplate", element);
-    _.blockCount = 0;
-    _.identifiers = [];
-    _.validation = [];
-    _.defaults = {
-        inputNameStrategy: "object", // array | object | string
-        addSelector: ".addBlock", // The selector to trigger an add block action on
-        addOnEvent: "click", // The event type to trigger an add block action on
-        deleteMessage: "Delete?", // The confirmation message when deleting a block
-        duplicateMessage: "Duplicate", // The message to display when a duplicate is added
-        animationSpeed: 600, // The speed for block animations
-        currentBlocks: [], // Blocks that should be initialized when creating is object
-        predefinedBlocks: [], // Data to add for new blocks if the identifier matches a key.
-        preventDuplicates: false, // Can the same block be added more than once?
-        sortable: false, // Enable jQuery-ui drag-drop sorting
-        orderName: "order", // Name of the variable used to hold sortable block order
-    };
-    _.settings = $.extend({}, _.defaults, settings);
-
-    _.init();
-};
-
-CustomBlocks.prototype.init = function () {
-    var _ = this;
-
-    // Setup tool actions
-    $(_.settings.addSelector, _.container).each(function () {
-        $(this).on(_.settings.addOnEvent, function () {
-            var identifier = $(this).val();
-            if (!identifier) return;
-
-            if (
-                _.settings.preventDuplicates &&
-                _.identifiers.includes(identifier)
-            ) {
-                alert(_.settings.duplicateMessage);
-                return;
-            }
-
-            var data = _.settings.predefinedBlocks[identifier] || {};
-            data.identifier = identifier;
-
-            _.addBlock(data);
-            _.identifiers.push(identifier);
-        });
-    });
-
-    // Enable sortable drag-drop
-    if (_.settings.sortable) {
-        $(".blocks", _.container)
-            .sortable({
-                placeholder: "sortHighlight",
-                handle: ".sortHandle",
-            })
-            .bind("sortstart", function (event, ui) {
-                $(_.container).trigger("hideAll");
-
-                // Suspend the TinyMCE editors before sorting
-                $("textarea.tinymce", _.container).each(function (
-                    index,
-                    element
-                ) {
-                    tinymce.EditorManager.execCommand(
-                        "mceRemoveEditor",
-                        false,
-                        $(this).prop("id")
-                    );
-                });
-            });
-
-        $(_.blockTemplate).children(".sortHandle").remove();
-        $(_.blockTemplate).prepend('<div class="sortHandle floatLeft"></div>');
-    }
-
-    $(".showHide", _.blockTemplate).hide();
-
-    // Disable all block template inputs
-    $(":input", _.blockTemplate).prop("disabled", true);
-
-    // Initialize existing blocks from JSON data
-    for (var index in _.settings.currentBlocks) {
-        _.addBlock(_.settings.currentBlocks[index]);
-        _.identifiers.push(index);
-    }
-
-    // Built-in Button Events
-    $(_.container)
-        .on("delete", function (event, block) {
-            if (confirm(_.settings.deleteMessage)) {
-                _.removeBlock(block);
-            }
-        })
-        .on("showHide", function (event, block, button) {
-            if ($(button).hasClass("showHidden")) {
-                $(button).removeClass("showHidden");
-                $("img", button).prop("src", $(button).data("off"));
-                block.find(".showHide").hide();
-            } else {
-                $(button).addClass("showHidden");
-                $("img", button).prop("src", $(button).data("on"));
-                block.find(".showHide").show();
-
-                // Restart any TinyMCE editors that are not active
-                $("textarea.tinymce", block).each(function (index, element) {
-                    tinymce.EditorManager.execCommand(
-                        "mceAddEditor",
-                        false,
-                        $(this).prop("id")
-                    );
-                });
-            }
-        })
-        .on("hideAll", function (event, block, button) {
-            $(".showHide").hide();
-            $('a.blockButton[data-event="showHide"]').each(function (
-                index,
-                element
-            ) {
-                $(element).removeClass("showHidden");
-                $("img", element).prop("src", $(element).data("off"));
-            });
-        });
-
-    _.refresh();
-};
-
-CustomBlocks.prototype.addBlock = function (data) {
-    var _ = this;
-
-    _.blockCount++;
-
-    var block = $(_.blockTemplate)
-        .clone()
-        .css("display", "block")
-        .appendTo($(".blocks", _.container));
-    $(block).append(
-        '<input type="hidden" name="' +
-            _.settings.orderName +
-            '[]" value="' +
-            _.blockCount +
-            '" />'
-    );
-
-    _.initBlock(block, data);
-    _.refresh();
-
-    $(_.container).trigger("addedBlock", [block]);
-};
-
-CustomBlocks.prototype.removeBlock = function (block) {
-    var _ = this;
-
-    _.blockCount--;
-
-    var index = _.identifiers.indexOf(block.identifier);
-    if (index !== -1) _.identifiers.splice(index, 1);
-
-
-    _.removeBlockValidation(block);
-
-    $(block).fadeOut(_.settings.animationSpeed, function () {
-        $(block).detach().remove();
-        _.refresh();
-    });
-
-    $(_.container).trigger("removedBlock", [block]);
-};
-
-CustomBlocks.prototype.initBlock = function (block, data) {
-    var _ = this;
-
-    block.blockNumber = _.blockCount;
-    block.identifier = data.identifier;
-
-    _.loadBlockInputData(block, data);
-    _.renameBlockFields(block);
-    _.addBlockValidation(block);
-    _.addBlockEvents(block);
-};
-
-CustomBlocks.prototype.loadBlockInputData = function (block, data) {
-    var _ = this;
-
-    $(":input", block).prop("disabled", false);
-
-    for (key in data) {
-        $(
-            "[name='" +
-                key +
-                "']:not([type='file']):not([type='radio']):not([type='checkbox'])",
-            block
-        ).val(data[key]);
-        $("input:radio[name='" + key + "']", block).each(function () {
-            if ($(this).val() == data[key]) {
-                $(this).attr("checked", true);
-            }
-        });
-        $(
-            "input:checkbox[name='" +
-                key +
-                "'],input:checkbox[name='" +
-                key +
-                "[]']",
-            block
-        ).each(function () {
-            var options = Array.isArray(data[key])
-                ? data[key]
-                : data[key].split(",");
-            if (options.includes($(this).val())) {
-                $(this).attr("checked", true);
-            }
-        });
-    }
-
-    var readonly = data.readonly || [];
-    readonly.forEach(function (element) {
-        $("[name='" + element + "']", block)
-            .prop("readonly", true)
-            .addClass("readonly");
-        $("select[name='" + element + "'] option:not(:selected)", block).prop(
-            "disabled",
-            true
-        );
-    });
-};
-
-CustomBlocks.prototype.renameBlockFields = function (block) {
-    var _ = this;
-
-    $("input, textarea, select", block).each(function (index, element) {
-        if ($(this).prop("name") == _.settings.orderName + "[]") return;
-
-        var name;
-        switch (_.settings.inputNameStrategy) {
-            case "object":
-                name =
-                    $(_.container).prop("id") +
-                    "[" +
-                    block.blockNumber +
-                    "][" +
-                    $(this).prop("name") +
-                    "]";
-                break;
-            case "array":
-                name = $(this).prop("name") + "[" + block.blockNumber + "]";
-                break;
-            case "string":
-                name = $(this).prop("name") + block.blockNumber;
-                break;
-        }
-
-        name = name.replace("[]]", "][]");
-
-        $(this).prop("name", name);
-        if ($(this).prop("id") != "") {
-            $(this).prop("id", $(this).prop("id") + block.blockNumber);
-        }
-    });
-
-    $("label", block).each(function (index, element) {
-        $(this).prop("for", $(this).prop("for") + block.blockNumber);
-    });
-
-    // Initialize any textareas tagged as tinymce using an AJAX load to grab a full editor
-    $("textarea[data-tinymce]", block).each(function (index, element) {
-        var isHidden = $(this).is(":hidden");
-        var data = {
-            id: $(this).prop("id"),
-            value: $(this).val(),
-            showMedia: $(this).data("media"),
-            rows: $(this).attr("rows"),
-        };
-        $(this)
-            .parent()
-            .load(
-                "./modules/Planner/planner_editorAjax.php",
-                data,
-                function (responseText, textStatus, jqXHR) {
-                    if (!isHidden) {
-                        tinymce.EditorManager.execCommand(
-                            "mceAddEditor",
-                            false,
-                            data.id
-                        );
-                    }
-                }
-            );
-    });
-};
-
-CustomBlocks.prototype.addBlockValidation = function (block) {
-    var _ = this;
-
-    $("input, textarea, select", block).each(function (index, element) {
-        if ($(this).data("validation") && !$(this).prop("readonly")) {
-            var id = $(this).prop("id");
-            eval(
-                "block." +
-                    id +
-                    "Validate = new LiveValidation('" +
-                    id +
-                    "', {});"
-            );
-            $(this)
-                .data("validation")
-                .forEach(function (item) {
-                    eval(
-                        "block." +
-                            id +
-                            "Validate.add(" +
-                            item.type +
-                            ", {" +
-                            item.params +
-                            "});"
-                    );
-                });
-        }
-    });
-};
-
-CustomBlocks.prototype.removeBlockValidation = function (block) {
-    var _ = this;
-
-    $("textarea.tinymce", block).each(function (index, element) {
-        tinymce.remove($(this).prop("id"));
-    });
-};
-
-CustomBlocks.prototype.addBlockEvents = function (block) {
-    var _ = this;
-
-    $("a.blockButton", block).each(function (index, element) {
-        $(element).click(function (event) {
-            event.preventDefault();
-            $(_.container).trigger($(this).data("event"), [block, this]);
-        });
-    });
-};
-
-CustomBlocks.prototype.refresh = function () {
-    var _ = this;
-
-    $(".blockCount", _.container).val(_.blockCount);
-    $(".blockPlaceholder", _.container).css(
-        "display",
-        _.blockCount > 0 ? "none" : "block"
-    );
-    $("select.addBlock", _.container).val(""); // Deselect after action
-};
-
-// Add the prototype method to jQuery
-$.prototype.gibbonCustomBlocks = function (settings) {
-    if ($(this).hasClass('customBlocksInit')) {
-        $('.blocks', this).empty();
-    }
-
-    this.gibbonCustomBlocks = new CustomBlocks(this, settings);
-    $(this).data("gibbonCustomBlocks", this.gibbonCustomBlocks);
-    $(this).addClass('customBlocksInit');
-};
-
-/**
- * Gibbon Data Table: a very basic implementation of jQuery + AJAX powered data tables in Gibbon
+ * Gibbon Data Table: a very basic implementation of vanilla JavaScript + AJAX powered data tables in Gibbon
  * @param string basePath
  * @param Object settings
  */
@@ -837,8 +512,8 @@ var DataTable = window.DataTable || {};
 DataTable = function (element, basePath, filters, identifier) {
     var _ = this;
 
-    _.table = $(element);
-    _.path = basePath + " #" + $(element).attr("id") + " > .dataTable";
+    _.table = element;
+    _.path = basePath + " #" + _.table.id + " > .dataTable";
     _.filters = filters;
     _.identifier = identifier;
     if (_.filters.sortBy.length == 0) _.filters.sortBy = {};
@@ -851,16 +526,22 @@ DataTable.prototype.init = function () {
     var _ = this;
 
     // Pagination
-    $(_.table).on("click", ".paginate", function () {
-        var resultCount = $(".dataTable", _.table).data("results");
+    _.table?.addEventListener("click", function (event) {
+        const paginate = event.target.closest(".paginate");
+        if (!paginate) return;
+        
+        var resultCount = _.table.querySelector(".dataTable").dataset.results;
         _.filters.pageMax = Math.ceil(resultCount / _.filters.pageSize);
-        _.filters.page = Math.min($(this).data("page"), _.filters.pageMax);
+        _.filters.page = Math.min(paginate.dataset.page, _.filters.pageMax);
         _.refresh();
     });
 
     // Sortable Columns
-    $(_.table).on("click", ".column.sortable", function (event) {
-        var columns = $(this).data("sort").split(",");
+    _.table?.addEventListener("click", function (event) {
+        const sortable = event.target.closest(".column.sortable");
+        if (!sortable) return;
+
+        var columns = sortable.dataset.sort.split(",");
 
         // Hold shift to add columns to the sort (or toggle them), otherwise clear it each time.
         var activeColumns = columns.filter(function (item) {
@@ -877,19 +558,22 @@ DataTable.prototype.init = function () {
     });
 
     // Remove Filter
-    $(_.table).on("click", ".filter", function () {
-        var filter = $(this).data("filter");
+    _.table?.addEventListener("click", function (event) {
+        const filter = event.target.closest(".filter");
+        if (!filter) return;
+        
+        var filterName = filter.dataset.filter;
 
-        if ($(this).hasClass("clear")) {
+        if (filter.classList.contains("clear")) {
             _.filters.filterBy = { "": "" };
             _.filters.searchBy.columns = [""];
-        } else if (filter in _.filters.filterBy) {
+        } else if (filterName in _.filters.filterBy) {
             // Remove columns from search criteria if removing an in: filter
-            if (filter == "in") _.filters.searchBy.columns = [""];
-            delete _.filters.filterBy[filter];
+            if (filterName == "in") _.filters.searchBy.columns = [""];
+            delete _.filters.filterBy[filterName];
         }
 
-        if (jQuery.isEmptyObject(_.filters.filterBy))
+        if (Object.keys(_.filters.filterBy).length === 0)
             _.filters.filterBy = { "": "" };
 
         _.filters.page = 1;
@@ -897,8 +581,11 @@ DataTable.prototype.init = function () {
     });
 
     // Add Filter
-    $(_.table).on("change", ".filters", function () {
-        var filterData = $(this).val().split(":");
+    _.table?.addEventListener("change", function (event) {
+        const filters = event.target.closest(".filters");
+        if (!filters) return;
+        
+        var filterData = filters.value.split(":");
         var filter = filterData[0];
         var value = filterData[1];
 
@@ -909,9 +596,12 @@ DataTable.prototype.init = function () {
     });
 
     // Page Size
-    $(_.table).on("change", ".limit", function () {
-        var resultCount = $(".dataTable", _.table).data("results");
-        _.filters.pageSize = parseInt($(this).val());
+    _.table?.addEventListener("change", function (event) {
+        const limit = event.target.closest(".limit");
+        if (!limit) return;
+        
+        var resultCount = _.table.querySelector(".dataTable").dataset.results;
+        _.filters.pageSize = parseInt(limit.value);
         _.filters.pageMax = Math.ceil(resultCount / _.filters.pageSize);
         _.filters.page = Math.min(_.filters.page, _.filters.pageMax);
         _.refresh();
@@ -922,7 +612,10 @@ DataTable.prototype.refresh = function () {
     var _ = this;
 
     var submitted = setTimeout(function () {
-        $(".pagination", _.table).prepend('<span class="submitted"></span>');
+        var pagination = _.table.querySelector(".pagination");
+        if (pagination) {
+            pagination.insertAdjacentHTML('afterbegin', '<span class="submitted"></span>');
+        }
     }, 500);
 
     var postData = {};
@@ -933,19 +626,54 @@ DataTable.prototype.refresh = function () {
         postData = _.filters;
     }
 
-    $(_.table).load(
-        _.path,
-        postData,
-        function (responseText, textStatus, jqXHR) {
-            $(".bulkActionPanel").addClass("hidden");
-            clearTimeout(submitted);
-            htmx.process(this);
-            htmx.trigger(this, 'htmx:load');
+    var formData = new URLSearchParams();
+    for (var key in postData) {
+        if (typeof postData[key] === 'object') {
+            for (const [index, value] of Object.entries(postData[key])) {
+                formData.append(key+'['+index+']', value);
+            }
+        } else {
+            formData.append(key, postData[key]);
         }
-    );
+    }
+
+    fetch(_.path.split(' ')[0], {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: formData.toString()
+    })
+    .then(response => response.text())
+    .then(html => {
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(html, 'text/html');
+        var selector = _.path.split(' ').slice(1).join(' ');
+        var newContent = doc.querySelector(selector);
+        
+        if (newContent) {
+            var targetSelector = _.path.split(' ').slice(1).join(' ');
+            var target = _.table.querySelector(targetSelector);
+
+            if (target) {
+                target.innerHTML = newContent.innerHTML;
+            }
+        }
+        
+        var bulkPanel = document.querySelector(".bulkActionPanel");
+        if (bulkPanel) bulkPanel.classList.add("hidden");
+        
+        clearTimeout(submitted);
+        htmx.process(_.table);
+        htmx.trigger(_.table, 'htmx:load');
+    })
+    .catch(error => {
+        console.error('DataTable refresh error:', error);
+        clearTimeout(submitted);
+    });
 };
 
-$.prototype.gibbonDataTable = function (basePath, filters, identifier) {
+HTMLElement.prototype.gibbonDataTable = function (basePath, filters, identifier) {
     this.gibbonDataTable = new DataTable(this, basePath, filters, identifier);
 };
 
@@ -958,11 +686,11 @@ var MultiSelect = window.MultiSelect || {};
 MultiSelect = function (element, name) {
     var _ = this;
 
-    _.container = $(element);
-    _.selectSource = $("#" + name + "Source", element);
-    _.selectDestination = $("#" + name, element);
+    _.container = element;
+    _.selectSource = _.container.querySelector("#" + name + "Source");
+    _.selectDestination = _.container.querySelector("#" + name);
     _.name = name;
-    _.sortBy = $("#" + name + "Sort", element);
+    _.sortBy = _.container.querySelector("#" + name + "Sort");
 
     _.init();
 };
@@ -970,36 +698,59 @@ MultiSelect = function (element, name) {
 MultiSelect.prototype.init = function () {
     var _ = this;
 
-    $("#" + _.name + "Add").click(function () {
+    document.getElementById(_.name + "Add")?.addEventListener("click", function () {
         _.transferOption(true);
     });
 
-    $("#" + _.name + "Remove", _.container).click(function () {
+    _.container.querySelector("#" + _.name + "Remove")?.addEventListener("click", function () {
         _.transferOption(false);
     });
 
-    var form = _.container.parents("form");
+    var form = _.container.closest("form");
 
     // Select all options on submit so we can validate this select input.
-    $("input[type='Submit'],button[type='Submit'],button[value~='Save']", form).click(function () {
-        $("option", _.selectDestination).each(function () {
-            $(this).prop("selected", true);
+    form.querySelectorAll("input[type='Submit'],button[type='Submit'],button[value~='Save']").forEach(function(button) {
+        button.addEventListener("click", function () {
+            _.selectDestination.querySelectorAll("option").forEach(function (option) {
+                option.selected = true;
+            });
+            document.getElementById(_.name).dispatchEvent(new Event('change'));
         });
-        document.getElementById(_.name).dispatchEvent(new Event('change'));
     });
 
-    _.sortBy.change(function () {
+    _.sortBy?.addEventListener("change", function () {
         _.sortSelects();
     });
 
-    $("#"+_.name+"Search",_.container).on('keyup input compositionend',function(){
-        var search = $(this).val().toLowerCase();
-        $("option", _.selectSource).each(function () {
-            var option = $(this);
-            if (option.text().toLowerCase().includes(search)) {
-                option.show();
+    _.container.querySelector("#" + _.name + "Search")?.addEventListener("keyup", function(event) {
+        var search = this.value.toLowerCase();
+        _.selectSource.querySelectorAll("option").forEach(function (option) {
+            if (option.textContent.toLowerCase().includes(search)) {
+                option.style.display = '';
             } else {
-                option.hide();
+                option.style.display = 'none';
+            }
+        });
+    });
+    
+    _.container.querySelector("#" + _.name + "Search")?.addEventListener("input", function(event) {
+        var search = this.value.toLowerCase();
+        _.selectSource.querySelectorAll("option").forEach(function (option) {
+            if (option.textContent.toLowerCase().includes(search)) {
+                option.style.display = '';
+            } else {
+                option.style.display = 'none';
+            }
+        });
+    });
+    
+    _.container.querySelector("#" + _.name + "Search")?.addEventListener("compositionend", function(event) {
+        var search = this.value.toLowerCase();
+        _.selectSource.querySelectorAll("option").forEach(function (option) {
+            if (option.textContent.toLowerCase().includes(search)) {
+                option.style.display = '';
+            } else {
+                option.style.display = 'none';
             }
         });
     });
@@ -1011,28 +762,28 @@ MultiSelect.prototype.transferOption = function (add) {
     var selectFrom = add ? _.selectSource : _.selectDestination;
     var selectTo = add ? _.selectDestination : _.selectSource;
 
-    selectFrom.find("option:selected").each(function () {
-        var opt = $(this).clone();
-        if ($(this).parent().is("optgroup")) {
-            var optgroupnew = $(
-                "optgroup[label='" + $(this).parent().attr("label") + "']",
-                selectTo
+    Array.from(selectFrom.querySelectorAll("option:checked")).forEach(function (option) {
+        var opt = option.cloneNode(true);
+        if (option.parentElement.tagName === 'OPTGROUP') {
+            var optgroupnew = selectTo.querySelector(
+                "optgroup[label='" + option.parentElement.getAttribute('label') + "']"
             );
-            if (optgroupnew.length == 0) {
-                optgroupnew = $(this).parent().clone().html("");
-                selectTo.append(optgroupnew);
+            if (!optgroupnew) {
+                optgroupnew = option.parentElement.cloneNode(false);
+                selectTo.appendChild(optgroupnew);
             }
-            opt.data("parent", optgroupnew);
-            optgroupnew.append(opt);
+            opt.dataset.parent = optgroupnew;
+            optgroupnew.appendChild(opt);
         } else {
-            selectTo.append(opt);
+            selectTo.appendChild(opt);
         }
-        $(this).detach().remove();
+        option.remove();
     });
 
     _.sortSelects();
 
-    selectTo.change().focus();
+    selectTo.dispatchEvent(new Event('change'));
+    selectTo.focus();
 };
 
 MultiSelect.prototype.sortSelects = function () {
@@ -1041,12 +792,20 @@ MultiSelect.prototype.sortSelects = function () {
     var values = null;
 
     var sortBy = null;
-    if (_.sortBy.length !== 0) {
-        sortBy = _.sortBy.val();
+    if (_.sortBy) {
+        sortBy = _.sortBy.value;
     }
 
     if (sortBy != null && sortBy != "Sort by Name") {
-        values = _.container.data("sortable")[sortBy];
+        var sortableData = _.container.dataset.sortable;
+        if (sortableData) {
+            try {
+                var parsedData = JSON.parse(sortableData);
+                values = parsedData[sortBy];
+            } catch (e) {
+                console.error('Error parsing sortable data:', e);
+            }
+        }
     }
 
     _.sortSelect(_.selectSource, values);
@@ -1056,39 +815,41 @@ MultiSelect.prototype.sortSelects = function () {
 MultiSelect.prototype.sortSelect = function (list, sortValues) {
     var _ = this;
 
-    $("optgroup", list).each(function () {
-        _.sortSelect($(this), sortValues);
+    var listEl = list;
+    
+    listEl.querySelectorAll("optgroup").forEach(function (optgroup) {
+        _.sortSelect(optgroup, sortValues);
     });
 
-    var options = $("option", list);
-    if (list.is("select")) {
-        options = options.not("optgroup option");
+    var options = Array.from(listEl.querySelectorAll("option"));
+    if (listEl.tagName === 'SELECT') {
+        options = options.filter(opt => opt.parentElement.tagName !== 'OPTGROUP');
     }
 
     if (sortValues == null) {
         sortValues = {};
     }
 
-    var arr = options
-        .map(function (_, o) {
-            return {
-                tSort: sortValues[o.value] + $(o).text(),
-                t: $(o).text(),
-                v: o.value,
-            };
-        })
-        .get();
+    var arr = options.map(function (o) {
+        return {
+            tSort: (sortValues[o.value] || '') + o.textContent,
+            t: o.textContent,
+            v: o.value,
+        };
+    });
+    
     arr.sort(function (o1, o2) {
         return o1.tSort > o2.tSort ? 1 : o1.tSort < o2.tSort ? -1 : 0;
     });
-    options.each(function (i, o) {
+    
+    options.forEach(function (o, i) {
         o.value = arr[i].v;
-        $(o).text(arr[i].t);
+        o.textContent = arr[i].t;
     });
 };
 
-// Add the prototype method to jQuery
-$.prototype.gibbonMultiSelect = function (name) {
+// Add the method to HTMLElement prototype
+HTMLElement.prototype.gibbonMultiSelect = function (name) {
     this.gibbonMultiSelect = new MultiSelect(this, name);
 };
 
@@ -1119,14 +880,18 @@ var __GIBBON_URL_DEBOUNCE_MAP = {};
  * @param {HTMLFormElement} form
  */
 function gibbonFormSubmitQuiet(form, url) {
-    var submitData = $(form).serialize();
+    var submitData = new URLSearchParams(new FormData(form)).toString();
 
     if (!__GIBBON_URL_DEBOUNCE_MAP[url]) {
         __GIBBON_URL_DEBOUNCE_MAP[url] = debounce(function (submitData) {
-            $.ajax({
-                type: "POST",
-                data: submitData,
-                url: url,
+            fetch(url, {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: submitData
+            }).catch(error => {
+                console.error('Form submit error:', error);
             });
         });
     }

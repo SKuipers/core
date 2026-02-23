@@ -200,7 +200,7 @@ class MultiSelect implements OutputableInterface, ValidatableInterface
         
         $output .= '<script type="text/javascript">
             $(function(){
-                $("#'.$this->name.'Container").gibbonMultiSelect("'.$this->name.'");
+                document.getElementById("'.$this->name.'Container").gibbonMultiSelect("'.$this->name.'");
             });
         </script>';
 

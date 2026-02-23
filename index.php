@@ -336,13 +336,15 @@ $javascriptConfig = [
  * after all content has loaded.
  */
 
+$devMode = $session->get('installType') == 'Development';
+
 // Set page scripts: head
 $page->scripts->addMultiple([
     'jquery'         => 'lib/jquery/jquery.js',
     'jquery-migrate' => 'lib/jquery/jquery-migrate.min.js',
     'jquery-ui'      => 'lib/jquery-ui/js/jquery-ui.min.js',
     'htmx'           => 'lib/htmx/htmx.min.js',
-    'core'           => 'resources/assets/js/core.min.js',
+    'core'           => 'resources/assets/js/'.($devMode ? 'core.js' : 'core.min.js'),
     
 ], ['context' => 'head']);
 
