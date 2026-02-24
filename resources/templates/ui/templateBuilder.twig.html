@@ -99,53 +99,123 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
         }
     });
 
-    $('#sections .prototype .prototypeItem').draggable({
-        helper: "clone",
-        revert: "invalid",
+    // Make prototype items draggable using native Drag and Drop API
+    var isDraggingPrototype = false;
+    
+    document.querySelectorAll('#sections .prototype .prototypeItem').forEach(element => {
+        element.draggable = true;
+        
+        element.addEventListener('dragstart', function(event) {
+            isDraggingPrototype = true;
+            event.dataTransfer.setData('text/plain', this.dataset.section);
+            event.dataTransfer.effectAllowed = 'copy';
+            this.classList.add('opacity-50');
+        });
+        
+        element.addEventListener('dragend', function(event) {
+            isDraggingPrototype = false;
+            this.classList.remove('opacity-50');
+        });
     });
 
-    var DroppableDataTable = {
-        accept: '.prototypeItem',
-        over: function(event, ui) {
-            $(this).addClass('relative');
-            $(this).append('<div id="droppable-overlay" class="absolute top-0 left-0 w-full h-full rounded-sm opacity-75 bg-transparent-600 flex items-stretch z-10"><div class="flex-1 flex justify-center items-center m-3 border-4 border-dashed border-white text-white text-xl font-bold uppercase">{{ __('Drop Here') }}</div></div>');
-        },
-        out: function(event, ui) {
-            $('#droppable-overlay').remove();
-            $(this).removeClass('relative');
-        },
-        deactivate: function(event, ui) {
-            $('#droppable-overlay').remove();
-            $(this).removeClass('relative');
-        },
-        drop: function(event, ui) {
-            var table = $(this);
-
-            var tableSelector = $(table).prop('id');
-
-            $.ajax({
-                url: '{{ absoluteURL }}/modules/Reports/templates_manage_editDropAjax.php',
-                data: {
+    // Setup drop zones for data tables
+    var setupDropZone = function(table) {
+        table.addEventListener('dragover', function(event) {
+            // Only handle dragover if we're dragging a prototype item
+            if (!isDraggingPrototype) {
+                return;
+            }
+            
+            event.preventDefault(); // Required to allow drop
+            event.dataTransfer.dropEffect = 'copy';
+            
+            if (!document.getElementById('droppable-overlay')) {
+                this.classList.add('relative');
+                const overlay = document.createElement('div');
+                overlay.id = 'droppable-overlay';
+                overlay.className = 'absolute top-0 left-0 w-full h-full rounded-sm opacity-75 bg-transparent-600 flex items-stretch z-10';
+                overlay.innerHTML = '<div class="flex-1 flex justify-center items-center m-3 border-4 border-dashed border-white text-white text-xl font-bold uppercase">{{ __('Drop Here') }}</div>';
+                this.appendChild(overlay);
+            }
+        });
+        
+        table.addEventListener('dragleave', function(event) {
+            // Only handle dragleave if we're dragging a prototype item
+            if (!isDraggingPrototype) {
+                return;
+            }
+            
+            const overlay = document.getElementById('droppable-overlay');
+            
+            // Only remove overlay if leaving the table entirely (not entering a child)
+            if (event.target === this || event.target == overlay) {
+                if (overlay) {
+                    overlay.remove();
+                }
+                this.classList.remove('relative');
+            }
+        });
+        
+        table.addEventListener('drop', function(event) {
+            // Only handle drop if we're dragging a prototype item
+            if (!isDraggingPrototype) {
+                return;
+            }
+            
+            event.preventDefault();
+            
+            const overlay = document.getElementById('droppable-overlay');
+            if (overlay) {
+                overlay.remove();
+            }
+            this.classList.remove('relative');
+            
+            const gibbonReportPrototypeSectionID = event.dataTransfer.getData('text/plain');
+            const tableSelector = this.id;
+            const type = tableSelector.replace('Table', '').toUpperCase();
+            
+            fetch('{{ absoluteURL }}/modules/Reports/templates_manage_editDropAjax.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
                     gibbonReportTemplateID: "{{ gibbonReportTemplateID }}",
-                    gibbonReportPrototypeSectionID: ui.draggable.data('section'),
-                    type: $(table).prop('id').replace('Table', '').toUpperCase(),
-                },
-                type: 'POST',
-                complete: function (data) {
-                    reloadDragDropState(table, tableSelector);
-                },
-                
+                    gibbonReportPrototypeSectionID: gibbonReportPrototypeSectionID,
+                    type: type,
+                })
+            })
+            .then(response => {
+                reloadDragDropState(this, tableSelector);
+            })
+            .catch(error => {
+                console.error('Drop error:', error);
             });
-        },
-    };
-
-    var reloadDragDropState = function(table, tableSelector) {
-        $(table).load('./fullscreen.php?q=/modules/Reports/templates_manage_edit.php&gibbonReportTemplateID={{ gibbonReportTemplateID }} #'+tableSelector, {}, function(responseText, textStatus, jqXHR) {
-            $('#'+tableSelector).droppable(DroppableDataTable);
-            htmx.process(this);
-            htmx.trigger(this, 'htmx:load');
         });
     };
 
-    $('.dataTable').droppable(DroppableDataTable);
+    var reloadDragDropState = function(table, tableSelector) {
+        fetch('./fullscreen.php?q=/modules/Reports/templates_manage_edit.php&gibbonReportTemplateID={{ gibbonReportTemplateID }}')
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newTable = doc.getElementById(tableSelector);
+                
+                if (newTable) {
+                    table.innerHTML = newTable.innerHTML;
+                    setupDropZone(table);
+                    htmx.process(table);
+                    htmx.trigger(table, 'htmx:load');
+                }
+            })
+            .catch(error => {
+                console.error('Reload error:', error);
+            });
+    };
+
+    // Initialize drop zones for all data tables
+    document.querySelectorAll('.dataTable').forEach(table => {
+        setupDropZone(table);
+    });
 </script>
