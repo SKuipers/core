@@ -1,0 +1,857 @@
+{#<!--
+Gibbon: the flexible, open school platform
+Founded by Ross Parker at ICHK Secondary. Built by Ross Parker, Sandra Kuipers and the Gibbon community (https://gibbonedu.org/about/)
+Copyright © 2010, Gibbon Foundation
+Gibbon™, Gibbon Education Ltd. (Hong Kong)
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->#}
+
+{# ============================================
+   MARKBOOK VIEW TEMPLATE
+   ============================================
+   This template renders the markbook view with student entries,
+   column headers, and class averages.
+   ============================================ #}
+
+{# ============================================
+   HEADER SECTION
+   ============================================
+   - Pagination controls
+   ============================================ #}
+
+{# Pagination controls #}
+<div class="flex-grow text-left py-1 text-sm">
+    {% if gibbonSchoolYearTermID == -1 %}
+        {{ __('All Terms') }}
+    {% else %}
+        {{ markbookTermName }}
+    {% endif %}
+    : 
+    
+    {% set start = min(max(0, pageNum * columnsPerPage) + 1, columnCountTotal) %}
+    {% set end = min(max(1, columnCountThisPage + (pageNum * columnsPerPage)), columnCountTotal) %}
+    
+    {{ __('Records') }} {{ start }}-{{ end }} {{ __('of') }} {{ columnCountTotal }}
+    
+    {% if columnCountTotal > columnCountThisPage %}
+         : 
+        {% if pageNum <= 0 %}
+            {{ __('Older') }}
+        {% else %}
+            <a href="{{ absoluteURL }}/index.php?q=/modules/{{ module }}/markbook_view.php&gibbonCourseClassID={{ gibbonCourseClassID }}&page={{ pageNum - 1 }}">{{ __('Older') }}</a>
+        {% endif %}
+         | 
+        {% if (pageNum + 1) * columnsPerPage >= columnCountTotal %}
+            {{ __('Newer') }}
+        {% else %}
+            <a href="{{ absoluteURL }}/index.php?q=/modules/{{ module }}/markbook_view.php&gibbonCourseClassID={{ gibbonCourseClassID }}&page={{ pageNum + 1 }}">{{ __('Newer') }}</a>
+        {% endif %}
+    {% endif %}
+</div>
+
+{# ============================================
+   JAVASCRIPT SECTION
+   ============================================
+   - Dragtable initialization for column reordering
+   - Reset order dialog
+   - Doublescroll initialization
+   ============================================ #}
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        // Initialize dragtable for column reordering
+        {% if canEditThisClass %}
+            $('#myTable.markbook').dragtable({
+                items: 'thead th .dragtable-drag-handle',
+                scroll: true,
+                appendTarget: ':parent',
+                persistState: function(table) {
+                    // Get the column order from data-header attributes
+                    var columnOrder = [];
+                    table.find('th[data-header]').each(function() {
+                        var headerId = $(this).attr('data-header');
+                        if (headerId) {
+                            columnOrder.push(headerId);
+                        }
+                    });
+                    
+                    // Save the new order via AJAX
+                    if (columnOrder.length > 0) {
+                        $.ajax({
+                            url: '{{ absoluteURL }}/modules/{{ module }}/markbook_viewAjax.php',
+                            type: 'POST',
+                            data: {
+                                order: columnOrder,
+                                sequence: {{ minimumSequenceNumber }}
+                            },
+                            success: function(response) {
+                                // Column order saved successfully
+                            },
+                            error: function() {
+                                console.error('Failed to save column order');
+                            }
+                        });
+                    }
+                }
+            });
+        {% endif %}
+    });
+    
+    {% if canEditThisClass %}
+        // Reset order dialog functions
+        function resetOrder(){
+            $("#dialog").dialog();
+        }
+        
+        function resetOrderAction(order){
+            if(order == 1){
+                window.location.href = window.location.href.substr(0, window.location.href.length - 1) + "&gibbonCourseClassID={{ gibbonCourseClassID }}&reset=1";
+            } else if(order == 2){
+                window.location.href = window.location.href.substr(0, window.location.href.length - 1) + "&gibbonCourseClassID={{ gibbonCourseClassID }}&reset=2";
+            }
+        }
+    {% endif %}
+    
+    // Doublescroll initialization for horizontal scrolling
+    $(window).on('load', function (e) {
+        // Matches the width of the top placeholder to the final table width
+        $('.doublescroll-top-tablewidth').width($('.doublescroll-container table').width());
+        
+        // Start scrolled to the left, where all the recent stuff is
+        $('.doublescroll-container').scrollLeft($('.doublescroll-container table').width());
+    });
+    
+    // Pairs the position of the top scrollbar with the bottom scrollbar
+    $('.doublescroll-top').scroll(function(){
+        $('.doublescroll-container')
+            .scrollLeft($('.doublescroll-top').scrollLeft());
+    });
+    $('.doublescroll-container').scroll(function(){
+        $('.doublescroll-top')
+            .scrollLeft($('.doublescroll-container').scrollLeft());
+    });
+</script>
+
+{% if canEditThisClass %}
+    {# Reset order dialog #}
+    <div id="dialog" title="{{ __('Reset Order') }}" style="display:none;">
+        {{ __('Are you sure you want to reset the ordering of all the columns in this class?') }}<br>
+        <button onclick="resetOrderAction(1)" class="my-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">{{ __('Reset by entry order') }}</button><br>
+        <button onclick="resetOrderAction(2)" class="my-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">{{ __('Reset by date') }}</button>
+    </div>
+{% endif %}
+
+{# ============================================
+   DOUBLESCROLL WRAPPER
+   ============================================
+   Enables horizontal scrolling for wide tables
+   ============================================ #}
+
+<div class="doublescroll-wrapper">
+    <div class="doublescroll-top">
+        <div class="doublescroll-top-tablewidth"></div>
+    </div>
+    <div class="doublescroll-container">
+        
+        {# ============================================
+           MAIN MARKBOOK TABLE
+           ============================================ #}
+        
+        <table id="myTable" class="mini markbook colorOddEven" cellspacing="0">
+            
+            {# ============================================
+               TABLE HEADER
+               ============================================
+               - Student column header
+               - Baseline column header (conditional)
+               - Target column header (conditional)
+               - Markbook column headers (loop)
+               - Average column headers (conditional)
+               ============================================ #}
+            
+            <thead>
+                <tr class="head">
+                    {# Student column header #}
+                    <th style="vertical-align: top; text-align: left; min-width: 120px;">
+                        {{ __('Student') }}
+                    </th>
+                    
+                    {# Baseline column header (conditional) #}
+                    {% if hasExternalAssessments %}
+                        <th rowspan="2" style="width: 20px;">
+                            {% set title = __(externalAssessmentFields[2]) ~ ' | ' %}
+                            {% set title = title ~ __(externalAssessmentFields[3]|slice((externalAssessmentFields[3]|split('_')|length > 1 ? externalAssessmentFields[3]|split('_')[0]|length + 1 : 0))) ~ ' | ' %}
+                            {% set title = title ~ __(externalAssessmentFields[1]) %}
+                            {% set title = title ~ ' | ' ~ externalAssessmentFields[4] ~ ' ' ~ __('Scale') %}
+                            <div style="-webkit-transform: rotate(-90deg); -moz-transform: rotate(-90deg); -ms-transform: rotate(-90deg); -o-transform: rotate(-90deg); transform: rotate(-90deg);" title="{{ title }}">
+                                {{ __('Baseline') }}
+                            </div>
+                        </th>
+                    {% endif %}
+                    
+                    {# Target column header (conditional) #}
+                    {% if hasPersonalizedTargets %}
+                        <th rowspan="2" style="width: 20px;">
+                            <div style="-webkit-transform: rotate(-90deg); -moz-transform: rotate(-90deg); -ms-transform: rotate(-90deg); -o-transform: rotate(-90deg); transform: rotate(-90deg);">
+                                {{ __('Target') }}
+                            </div>
+                        </th>
+                    {% endif %}
+                    
+                    {# Markbook column headers loop #}
+                    {% for column in columns %}
+                        {% set columnType = column.getData('type') %}
+                        {% set columnColor = column.getData('columnColor') %}
+                        {# Column color is already sanitized by PHP backend (preg_replace in markbook_edit_*Process.php) #}
+                        {% set columnColorStyle = (columnColor and columnColor|lower != '#ffffff') ? 'background-color: ' ~ columnColor ~ '88;' : '' %}
+                        
+                        {# Build tooltip info #}
+                        {% set info %}
+                            <div class="font-bold text-sm leading-6 mb-2">{{ column.getData('description') }}</div>
+                            <ul class="m-0 ml-4 w-48 text-xs">
+                                <li>{{ __('Type') }} - {{ markbook.getTypeDescription(columnType) }}</li>
+                                {% if column.getData('gibbonUnitID') %}
+                                    {# TODO: Add unit information when available #}
+                                {% endif %}
+                                {% if enableGroupByTerm == 'Y' and column.getData('date') %}
+                                    <li>{{ __('Assigned on') }} {{ formatUsing('date', column.getData('date')) }}</li>
+                                {% endif %}
+                                {% if column.getData('completeDate') %}
+                                    <li>{{ __('Marked on') }} {{ formatUsing('date', column.getData('completeDate')) }}</li>
+                                {% else %}
+                                    <li>{{ __('Unmarked') }}</li>
+                                {% endif %}
+                                {% if enableColumnWeighting == 'Y' %}
+                                    <li>{{ __('Column Weighting') }} {{ column.getData('attainmentWeighting')|number_format(1) }}</li>
+                                {% endif %}
+                                {% if enableTypeWeighting == 'Y' %}
+                                    <li>{{ __('Type Weighting') }} {{ markbook.getWeightingByType(columnType)|number_format(1) }}</li>
+                                {% endif %}
+                            </ul>
+                        {% endset %}
+                        
+                        <th class="marksColumn notdraggable" data-header="{{ column.gibbonMarkbookColumnID }}" style="padding: 0px 0px 30px 0px !important; text-align: center; vertical-align: top; {{ columnColorStyle }}">
+                            {% if canEditThisClass %}
+                                <div class="dragtable-drag-handle"></div>
+                            {% else %}
+                                <br/>
+                            {% endif %}
+                            
+                            <span x-tooltip.bottom="{{ info|e('html_attr') }}">{{ column.getData('name') }}</span><br/>
+                            <span class="details">
+                                {{ markbook.getTypeDescription(column.getData('type')) }}
+                                
+                                {% if column.hasAttachment(absolutePath) %}
+                                     | <a title="{{ __('Download more information') }}" href="{{ absoluteURL }}/{{ column.getData('attachment') }}" target="_blank">{{ __('More Info') }}</a><br/>
+                                {% else %}
+                                    <br/>
+                                {% endif %}
+                                
+                                {# TODO: Add unit display when available #}
+                                <br/>
+                            </span>
+                            
+                            {# Action links for editing #}
+                            {% if canEditThisClass %}
+                                <div class="columnActions flex items-center justify-center gap-2">
+                                    <a class="inline-block text-gray-600 hover:text-gray-800" title="{{ __('Edit') }}" href="{{ absoluteURL }}/index.php?q=/modules/{{ module }}/markbook_edit_edit.php&gibbonCourseClassID={{ gibbonCourseClassID }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}">
+                                        {# SAFE: icon() function generates trusted SVG HTML from Gibbon framework #}
+                                        {{ icon('solid', 'edit', 'size-6')|raw }}
+                                    </a>
+                                    <a class="inline-block text-gray-600 hover:text-gray-800" title="{{ __('Enter Data') }}" href="{{ absoluteURL }}/index.php?q=/modules/{{ module }}/markbook_edit_data.php&gibbonCourseClassID={{ gibbonCourseClassID }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}">
+                                        {# SAFE: icon() function generates trusted SVG HTML from Gibbon framework #}
+                                        {{ icon('solid', 'markbook', 'size-6')|raw }}
+                                        
+                                        {# Check/cross indicator for marked columns #}
+                                        {% set includeMarks = column.getData('completeDate') and column.hasAttainmentWeighting() and (enableTypeWeighting != 'Y' or markbook.getWeightingByType(columnType)) and markbook.getReportableByType(columnType) != 'N' %}
+                                        {% if includeMarks %}
+                                            {% set weightInfo = __('Marked on') ~ ' ' ~ formatUsing('date', column.getData('completeDate')) %}
+                                            <div class="absolute right-0 bottom-0 -mr-1 -mb-1" title="{{ weightInfo }}">
+                                                {# SAFE: icon() function generates trusted SVG HTML from Gibbon framework #}
+                                                {{ icon('solid', 'check', 'size-4 text-green-600 bg-gray-150 rounded-full')|raw }}
+                                            </div>
+                                        {% else %}
+                                            {# Build weight info without HTML tags for proper escaping #}
+                                            {% set weightInfoLines = [] %}
+                                            {% if not column.getData('completeDate') %}
+                                                {% set weightInfoLines = weightInfoLines|merge([__('Unmarked')]) %}
+                                            {% endif %}
+                                            {% if enableColumnWeighting == 'Y' and not column.hasAttainmentWeighting() %}
+                                                {% set weightInfoLines = weightInfoLines|merge([__('Column Weighting') ~ ' ' ~ column.getData('attainmentWeighting')|number_format(1)]) %}
+                                            {% endif %}
+                                            {% if enableTypeWeighting == 'Y' and not markbook.getWeightingByType(columnType) %}
+                                                {% set weightInfoLines = weightInfoLines|merge([__('Type Weighting') ~ ' ' ~ markbook.getWeightingByType(columnType)|number_format(1)]) %}
+                                            {% endif %}
+                                            {% if markbook.getReportableByType(columnType) == 'N' %}
+                                                {% set weightInfoLines = weightInfoLines|merge([__('Reportable') ~ '? ' ~ markbook.getReportableByType(columnType)]) %}
+                                            {% endif %}
+                                            {% if enableColumnWeighting == 'Y' %}
+                                                {% set weightInfo = __('Excluded from averages') ~ ': ' ~ weightInfoLines|join(', ') %}
+                                            {% else %}
+                                                {% set weightInfo = weightInfoLines|join(', ') %}
+                                            {% endif %}
+                                            <div class="absolute right-0 bottom-0 -mr-1 -mb-1" title="{{ weightInfo }}">
+                                                {# SAFE: icon() function generates trusted SVG HTML from Gibbon framework #}
+                                                {{ icon('solid', 'cross', 'size-4 text-red-700 bg-gray-150 rounded-full')|raw }}
+                                            </div>
+                                        {% endif %}
+                                    </a>
+                                    <a class="thickbox inline-block text-gray-600 hover:text-gray-800" title="{{ __('Delete') }}" href="{{ absoluteURL }}/fullscreen.php?q=/modules/{{ module }}/markbook_edit_delete.php&gibbonCourseClassID={{ gibbonCourseClassID }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}&width=650&height=135">
+                                        {# SAFE: icon() function generates trusted SVG HTML from Gibbon framework #}
+                                        {{ icon('solid', 'delete', 'size-6')|raw }}
+                                    </a>
+                                    <a class="inline-block text-gray-600 hover:text-gray-800" title="{{ __('Export to Excel') }}" href="{{ absoluteURL }}/modules/Markbook/markbook_viewExport.php?gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}&gibbonCourseClassID={{ gibbonCourseClassID }}&return=markbook_view.php">
+                                        {# SAFE: icon() function generates trusted SVG HTML from Gibbon framework #}
+                                        {{ icon('solid', 'download', 'size-6')|raw }}
+                                    </a>
+                                </div>
+                            {% endif %}
+                            
+                            {# Sub-headers for attainment, effort, comment, etc. #}
+                            <table class="columnLabels blank rounded-t-none" cellspacing="0">
+                                <tr>
+                                    {% if enableModifiedAssessment == 'Y' %}
+                                        <th class="columnLabel smallColumn" style="{{ columnColorStyle }}">
+                                            <span title="{{ __('Modified') }}">{{ __('Mod') }}</span>
+                                        </th>
+                                    {% endif %}
+                                    
+                                    {% if column.displayAttainment() %}
+                                        <th class="columnLabel medColumn" style="{{ columnColorStyle }}">
+                                            {% set scale = '' %}
+                                            {% if enableRawAttainment == 'Y' and columnFilter == 'raw' and column.displayRawMarks() and column.hasAttainmentRawMax() %}
+                                                {% set scale = ' - ' ~ __('Raw Marks') ~ ' ' ~ __('out of') ~ ': ' ~ column.getData('attainmentRawMax')|number_format(1) %}
+                                            {% endif %}
+                                            
+                                            {# TODO: Add scale lookup from database if needed #}
+                                            
+                                            <span title="{{ attainmentName ~ scale }}">{{ attainmentAbrev }}</span>
+                                        </th>
+                                    {% endif %}
+                                    
+                                    {% if column.displayEffort() %}
+                                        <th class="columnLabel medColumn" style="{{ columnColorStyle }}">
+                                            {# TODO: Add effort scale lookup if needed #}
+                                            <span title="{{ effortName }}">{{ effortAbrev }}</span>
+                                        </th>
+                                    {% endif %}
+                                    
+                                    {% if column.displayComment() %}
+                                        <th class="columnLabel largeColumn" style="{{ columnColorStyle }}">
+                                            <span title="{{ __('Comment') }}">{{ __('Com') }}</span>
+                                        </th>
+                                    {% endif %}
+                                    
+                                    {% if column.displayUploadedResponse() %}
+                                        <th class="columnLabel medColumn" style="{{ columnColorStyle }}">
+                                            <span title="{{ __('Response') }}">{{ __('Upl') }}</span>
+                                        </th>
+                                    {% endif %}
+                                    
+                                    {% if column.displaySubmission() %}
+                                        <th class="columnLabel medColumn" style="{{ columnColorStyle }}">
+                                            <span title="{{ __('Submission') }}">{{ __('Sub') }}</span>
+                                        </th>
+                                    {% endif %}
+                                </tr>
+                            </table>
+                        </th>
+                    {% endfor %}
+                    
+                    {# Average column headers (conditional) #}
+                    {% if enableColumnWeighting == 'Y' %}
+                        {# Type average headers #}
+                        {% if enableGroupByTerm == 'Y' and gibbonSchoolYearTermID > 0 %}
+                            {% if enableTypeWeighting == 'Y' %}
+                                {% for type in markbook.getGroupedMarkbookTypes('term') %}
+                                    <th rowspan="2" class="averageColumn" style="width: 20px;">
+                                        <div style="-webkit-transform: rotate(-90deg); -moz-transform: rotate(-90deg); -ms-transform: rotate(-90deg); -o-transform: rotate(-90deg); transform: rotate(-90deg);">
+                                            {{ markbook.getTypeDescription(type) }}
+                                        </div>
+                                    </th>
+                                {% endfor %}
+                            {% endif %}
+                        {% elseif markbook.getGroupedMarkbookTypes('year')|length > 0 and gibbonSchoolYearTermID > 0 %}
+                            {% for type in markbook.getGroupedMarkbookTypes('year') %}
+                                <th rowspan="2" class="averageColumn" style="width: 20px;">
+                                    <div style="-webkit-transform: rotate(-90deg); -moz-transform: rotate(-90deg); -ms-transform: rotate(-90deg); -o-transform: rotate(-90deg); transform: rotate(-90deg);">
+                                        {{ markbook.getTypeDescription(type) }}
+                                    </div>
+                                </th>
+                            {% endfor %}
+                        {% endif %}
+                        
+                        {# Term average headers #}
+                        {% if enableGroupByTerm == 'Y' and gibbonSchoolYearTermID <= 0 %}
+                            {% for term in markbook.getCurrentTerms() %}
+                                <th rowspan="2" class="averageColumn" style="width: 20px;">
+                                    <div style="-webkit-transform: rotate(-90deg); -moz-transform: rotate(-90deg); -ms-transform: rotate(-90deg); -o-transform: rotate(-90deg); transform: rotate(-90deg);">
+                                        {{ term.name }}
+                                    </div>
+                                </th>
+                            {% endfor %}
+                        {% endif %}
+                        
+                        {# Cumulative average header #}
+                        <th rowspan="2" class="averageColumn" style="width: 20px;">
+                            <div style="-webkit-transform: rotate(-90deg); -moz-transform: rotate(-90deg); -ms-transform: rotate(-90deg); -o-transform: rotate(-90deg); transform: rotate(-90deg);">
+                                {{ __('Cumulative Average') }}
+                            </div>
+                        </th>
+                        
+                        {# Final grade average header (for year view with type weighting) #}
+                        {% if enableTypeWeighting == 'Y' and markbook.getGroupedMarkbookTypes('year')|length > 0 and gibbonSchoolYearTermID <= 0 %}
+                            {% if columnFilter == 'averages' %}
+                                {% for type in markbook.getGroupedMarkbookTypes('year') %}
+                                    <th rowspan="2" class="averageColumn" style="width: 20px;">
+                                        <div style="-webkit-transform: rotate(-90deg); -moz-transform: rotate(-90deg); -ms-transform: rotate(-90deg); -o-transform: rotate(-90deg); transform: rotate(-90deg);">
+                                            {{ markbook.getTypeDescription(type) }} ({{ __('Final') }})
+                                        </div>
+                                    </th>
+                                {% endfor %}
+                                <th rowspan="2" class="averageColumn" style="width: 20px;">
+                                    <div style="-webkit-transform: rotate(-90deg); -moz-transform: rotate(-90deg); -ms-transform: rotate(-90deg); -o-transform: rotate(-90deg); transform: rotate(-90deg);">
+                                        {{ __('Final Grade') }}
+                                    </div>
+                                </th>
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                </tr>
+            </thead>
+            
+            {# ============================================
+               TABLE BODY - STUDENT ROWS
+               ============================================
+               - Loop over students
+               - Display student name
+               - Display baseline (conditional)
+               - Display target (conditional)
+               - Loop over entries for each student
+               - Display averages (conditional)
+               ============================================ #}
+            
+            <tbody>
+                {# Loop over students #}
+                {% for student in students %}
+                    <tr class="{{ loop.index is odd ? 'odd' : 'even' }}">
+                        {# Student name cell #}
+                        <td style="text-align: left; vertical-align: top;">
+                            {% if student.dateStart %}
+                                <span title="{{ __('Enrolled') }}: {{ formatUsing('date', student.dateStart) }}">
+                                    {{ formatUsing('name', student.title, student.preferredName, student.surname, 'Student', true) }}
+                                </span>
+                            {% else %}
+                                {{ formatUsing('name', student.title, student.preferredName, student.surname, 'Student', true) }}
+                            {% endif %}
+                        </td>
+                        
+                        {# Baseline cell (conditional) #}
+                        {% if hasExternalAssessments %}
+                            <td style="text-align: center; vertical-align: top;">
+                                {% if student.baseline %}
+                                    <span title="{{ formatUsing('date', student.baseline.date) }}">
+                                        {{ student.baseline.value }}<br/>
+                                        <span class="details">{{ student.baseline.descriptor }}</span>
+                                    </span>
+                                {% endif %}
+                            </td>
+                        {% endif %}
+                        
+                        {# Target cell (conditional) #}
+                        {% if hasPersonalizedTargets %}
+                            <td style="text-align: center; vertical-align: top;">
+                                {% if student.target %}
+                                    {{ student.target }}
+                                {% endif %}
+                            </td>
+                        {% endif %}
+                        
+                        {# Entry loop for each student #}
+                        {% for entry in student.entries %}
+                            <td class="columnLabel" style="padding: 0 !important;">
+                            <table class="columnLabels blank rounded-t-none" cellspacing="0">
+                            <tr>
+
+                            {% set column = columns[entry.columnIndex] %}
+                            {% set columnColor = column.getData('columnColor') %}
+                            {# Column color is already sanitized by PHP backend (preg_replace in markbook_edit_*Process.php) #}
+                            {% set columnColorStyle = (columnColor and columnColor|lower != '#ffffff') ? 'background-color: ' ~ columnColor ~ '88;' : '' %}
+                            
+                            {# Check if this is a new enrollment (student joined after assessment) #}
+                            {% if entry.newEnrollment %}
+                                <td colspan="{{ column.getSpanCount() }}" style="text-align: center; vertical-align: top; {{ columnColorStyle }}">
+                                    <i>{{ __('NA') }}</i>
+                                </td>
+                            {% else %}
+                                {# Modified assessment indicator #}
+                                {% if enableModifiedAssessment == 'Y' %}
+                                    <td style="text-align: center; vertical-align: top; {{ columnColorStyle }}">
+                                        {% if entry.modifiedAssessment == 'Y' %}
+                                            <img title="{{ __('Modified') }}" src="{{ absoluteURL }}/themes/{{ session.get('gibbonThemeName') }}/img/iconModified.png" style="width: 16px; height: 16px;"/>
+                                        {% endif %}
+                                    </td>
+                                {% endif %}
+                                
+                                {# Attainment value and descriptor #}
+                                {% if column.displayAttainment() %}
+                                    <td style="text-align: center; vertical-align: top; {{ columnColorStyle }}">
+                                        {% if entry.attainmentValue or entry.attainmentValueRaw %}
+                                            {% set attainmentDisplay = entry.attainmentValue %}
+                                            
+                                            {# Display raw marks if enabled and filter is set to raw #}
+                                            {% if enableRawAttainment == 'Y' and columnFilter == 'raw' and column.displayRawMarks() and column.hasAttainmentRawMax() and entry.attainmentValueRaw %}
+                                                {% set attainmentDisplay = entry.attainmentValueRaw %}
+                                            {% endif %}
+                                            
+                                            {# Apply concern styling #}
+                                            {% if entry.attainmentConcern == 'Y' %}
+                                                <span class="markbookConcern">
+                                                    <b>{{ attainmentDisplay }}</b>
+                                                </span>
+                                            {% elseif entry.attainmentConcern == 'P' %}
+                                                <span class="markbookPraise">
+                                                    <b>{{ attainmentDisplay }}</b>
+                                                </span>
+                                            {% else %}
+                                                {{ attainmentDisplay }}
+                                            {% endif %}
+                                            
+                                            {# Display descriptor if present #}
+                                            {% if entry.attainmentDescriptor %}
+                                                <br/>
+                                                <span class="details">{{ entry.attainmentDescriptor }}</span>
+                                            {% endif %}
+                                            
+                                            {# Display rubric link if enabled #}
+                                            {% if enableRubrics == 'Y' and column.hasAttainmentRubric() %}
+                                                <br/>
+                                                <a class="thickbox" href="{{ absoluteURL }}/fullscreen.php?q=/modules/Markbook/markbook_view_rubric.php&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}&gibbonPersonID={{ student.gibbonPersonID }}&gibbonCourseClassID={{ gibbonCourseClassID }}&mark={{ entry.attainmentValue|url_encode }}&type=attainment&width=1100&height=550">
+                                                    {{ __('Rubric') }}
+                                                </a>
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                {% endif %}
+                                
+                                {# Effort value and descriptor #}
+                                {% if column.displayEffort() %}
+                                    <td style="text-align: center; vertical-align: top; {{ columnColorStyle }}">
+                                        {% if entry.effortValue %}
+                                            {# Apply concern styling #}
+                                            {% if entry.effortConcern == 'Y' %}
+                                                <span class="markbookConcern">
+                                                    <b>{{ entry.effortValue }}</b>
+                                                </span>
+                                            {% elseif entry.effortConcern == 'P' %}
+                                                <span class="markbookPraise">
+                                                    <b>{{ entry.effortValue }}</b>
+                                                </span>
+                                            {% else %}
+                                                {{ entry.effortValue }}
+                                            {% endif %}
+                                            
+                                            {# Display descriptor if present #}
+                                            {% if entry.effortDescriptor %}
+                                                <br/>
+                                                <span class="details">{{ entry.effortDescriptor }}</span>
+                                            {% endif %}
+                                            
+                                            {# Display rubric link if enabled #}
+                                            {% if enableRubrics == 'Y' and column.hasEffortRubric() %}
+                                                <br/>
+                                                <a class="thickbox" href="{{ absoluteURL }}/fullscreen.php?q=/modules/Markbook/markbook_view_rubric.php&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}&gibbonPersonID={{ student.gibbonPersonID }}&gibbonCourseClassID={{ gibbonCourseClassID }}&mark={{ entry.effortValue|url_encode }}&type=effort&width=1100&height=550">
+                                                    {{ __('Rubric') }}
+                                                </a>
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                {% endif %}
+                                
+                                {# Comment with proper escaping #}
+                                {% if column.displayComment() %}
+                                    <td style="text-align: left; vertical-align: top; {{ columnColorStyle }}">
+                                        {% if entry.comment %}
+                                            <script type="text/javascript">
+                                                $(document).ready(function(){
+                                                    $(".comment-{{ student.gibbonPersonID }}-{{ column.gibbonMarkbookColumnID }}").hide();
+                                                    $(".show_hide-{{ student.gibbonPersonID }}-{{ column.gibbonMarkbookColumnID }}").show();
+                                                    
+                                                    $('.show_hide-{{ student.gibbonPersonID }}-{{ column.gibbonMarkbookColumnID }}').click(function(){
+                                                        $(".comment-{{ student.gibbonPersonID }}-{{ column.gibbonMarkbookColumnID }}").slideToggle(1000);
+                                                    });
+                                                });
+                                            </script>
+                                            <a title="{{ __('View Description') }}" class="show_hide-{{ student.gibbonPersonID }}-{{ column.gibbonMarkbookColumnID }}" onclick="return false;" href="#">
+                                                {# SAFE: icon() function generates trusted SVG HTML from Gibbon framework #}
+                                                {{ icon('solid', 'plus', 'size-4')|raw }}
+                                            </a>
+                                            <div class="comment-{{ student.gibbonPersonID }}-{{ column.gibbonMarkbookColumnID }}" style="width: 300px; margin-top: 5px">
+                                                {{ entry.comment|nl2br }}
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                {% endif %}
+                                
+                                {# Uploaded response links #}
+                                {% if column.displayUploadedResponse() %}
+                                    <td style="text-align: center; vertical-align: top; {{ columnColorStyle }}">
+                                        {% if entry.response %}
+                                            <a title="{{ __('Uploaded Response') }}" href="{{ absoluteURL }}/{{ entry.response }}" target="_blank">
+                                                {# SAFE: icon() function generates trusted SVG HTML from Gibbon framework #}
+                                                {{ icon('solid', 'attachment', 'size-4')|raw }}
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                {% endif %}
+                                
+                                {# Submission status and links #}
+                                {% if column.displaySubmission() %}
+                                    <td style="text-align: center; vertical-align: top; {{ columnColorStyle }}">
+                                        {% if entry.submission %}
+                                            {% set submission = entry.submission %}
+                                            
+                                            {# Display submission status #}
+                                            {% if submission.status == 'Exemption' %}
+                                                <span title="{{ __('Exemption') }}">{{ __('Exe') }}</span>
+                                            {% elseif submission.status == 'Submitted' %}
+                                                {% if submission.version == 'Final' %}
+                                                    <span title="{{ __('Submitted') }}">{{ __('Y') }}</span>
+                                                {% else %}
+                                                    <span title="{{ __('Submitted') }} - {{ __('Draft') }}">{{ __('D') }}</span>
+                                                {% endif %}
+                                            {% elseif submission.status == 'Late' %}
+                                                <span class="error" title="{{ __('Late') }}">{{ __('L') }}</span>
+                                            {% elseif submission.status == 'Incomplete' %}
+                                                <span class="error" title="{{ __('Incomplete') }}">{{ __('I') }}</span>
+                                            {% else %}
+                                                <span title="{{ __('Not Submitted Online') }}">{{ __('N') }}</span>
+                                            {% endif %}
+                                            
+                                            {# Display submission link if files exist #}
+                                            {% if submission.count > 0 %}
+                                                <br/>
+                                                {% if submission.type == 'File' %}
+                                                    <a title="{{ __('Submitted Work') }}" href="{{ absoluteURL }}/{{ submission.location }}" target="_blank">
+                                                        {# SAFE: icon() function generates trusted SVG HTML from Gibbon framework #}
+                                                        {{ icon('solid', 'attachment', 'size-4')|raw }}
+                                                    </a>
+                                                {% elseif submission.type == 'Link' %}
+                                                    <a title="{{ __('Submitted Work') }}" href="{{ submission.location }}" target="_blank">
+                                                        {# SAFE: icon() function generates trusted SVG HTML from Gibbon framework #}
+                                                        {{ icon('solid', 'link', 'size-4')|raw }}
+                                                    </a>
+                                                {% endif %}
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                {% endif %}
+                            {% endif %}
+                            </tr>
+                            </table>
+                            </td>
+                        {% endfor %}
+                        
+                        {# Average cells per student (conditional) #}
+                        {% if enableColumnWeighting == 'Y' %}
+                            {# Type average cells #}
+                            {% if enableGroupByTerm == 'Y' and gibbonSchoolYearTermID > 0 %}
+                                {% if enableTypeWeighting == 'Y' %}
+                                    {% for type in markbook.getGroupedMarkbookTypes('term') %}
+                                        <td class="averageColumn" style="text-align: center; vertical-align: top;">
+                                            {% if student.averages.typeAverages[type] is defined %}
+                                                {{ markbook.getFormattedAverage(student.averages.typeAverages[type]) }}
+                                            {% endif %}
+                                        </td>
+                                    {% endfor %}
+                                {% endif %}
+                            {% elseif markbook.getGroupedMarkbookTypes('year')|length > 0 and gibbonSchoolYearTermID > 0 %}
+                                {% for type in markbook.getGroupedMarkbookTypes('year') %}
+                                    <td class="averageColumn" style="text-align: center; vertical-align: top;">
+                                        {% if student.averages.typeAverages[type] is defined %}
+                                            {{ markbook.getFormattedAverage(student.averages.typeAverages[type]) }}
+                                        {% endif %}
+                                    </td>
+                                {% endfor %}
+                            {% endif %}
+                            
+                            {# Term average cells #}
+                            {% if enableGroupByTerm == 'Y' and gibbonSchoolYearTermID <= 0 %}
+                                {% for term in markbook.getCurrentTerms() %}
+                                    <td class="averageColumn" style="text-align: center; vertical-align: top;">
+                                        {% if student.averages.termAverages[term.gibbonSchoolYearTermID] is defined %}
+                                            {{ markbook.getFormattedAverage(student.averages.termAverages[term.gibbonSchoolYearTermID]) }}
+                                        {% endif %}
+                                    </td>
+                                {% endfor %}
+                            {% endif %}
+                            
+                            {# Cumulative average cell #}
+                            <td class="averageColumn" style="text-align: center; vertical-align: top;">
+                                {% if student.averages.cumulativeAverage %}
+                                    {{ markbook.getFormattedAverage(student.averages.cumulativeAverage) }}
+                                {% endif %}
+                            </td>
+                            
+                            {# Final grade average cells (for year view with type weighting) #}
+                            {% if enableTypeWeighting == 'Y' and markbook.getGroupedMarkbookTypes('year')|length > 0 and gibbonSchoolYearTermID <= 0 %}
+                                {% if columnFilter == 'averages' %}
+                                    {% for type in markbook.getGroupedMarkbookTypes('year') %}
+                                        <td class="averageColumn" style="text-align: center; vertical-align: top;">
+                                            {% if student.averages.finalTypeAverages[type] is defined %}
+                                                {{ markbook.getFormattedAverage(student.averages.finalTypeAverages[type]) }}
+                                            {% endif %}
+                                        </td>
+                                    {% endfor %}
+                                    <td class="averageColumn" style="text-align: center; vertical-align: top;">
+                                        {% if student.averages.finalGradeAverage %}
+                                            {{ markbook.getFormattedAverage(student.averages.finalGradeAverage) }}
+                                        {% endif %}
+                                    </td>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+                
+                {# ============================================
+                   CLASS AVERAGE ROW
+                   ============================================
+                   Display class-wide averages (conditional)
+                   ============================================ #}
+                
+                {% if enableColumnWeighting == 'Y' %}
+                    <tr class="{{ students|length is odd ? 'even' : 'odd' }}">
+                        {# Class Average label cell #}
+                        <td style="text-align: left; vertical-align: top;">
+                            <b>{{ __('Class Average') }}</b>
+                        </td>
+                        
+                        {# Empty baseline cell (conditional) #}
+                        {% if hasExternalAssessments %}
+                            <td></td>
+                        {% endif %}
+                        
+                        {# Empty target cell (conditional) #}
+                        {% if hasPersonalizedTargets %}
+                            <td></td>
+                        {% endif %}
+                        
+                        {# Loop over columns to display class averages #}
+                        {% for i, column in columns %}
+                            {% set columnColor = column.getData('columnColor') %}
+                            {# Column color is already sanitized by PHP backend (preg_replace in markbook_edit_*Process.php) #}
+                            {% set columnColorStyle = (columnColor and columnColor|lower != '#ffffff') ? 'background-color: ' ~ columnColor ~ '88;' : '' %}
+                            
+                            {# Empty modified assessment cell #}
+                            {% if enableModifiedAssessment == 'Y' %}
+                                <td style="text-align: center; vertical-align: top; {{ columnColorStyle }}"></td>
+                            {% endif %}
+                            
+                            {# Attainment average cell #}
+                            {% if column.displayAttainment() %}
+                                <td style="text-align: center; vertical-align: top; {{ columnColorStyle }}">
+                                    {% if totals.attainment[i] is defined and totals.attainment[i].count > 0 %}
+                                        {{ (totals.attainment[i].total / totals.attainment[i].count)|number_format(1) }}%
+                                    {% endif %}
+                                </td>
+                            {% endif %}
+                            
+                            {# Empty effort cell #}
+                            {% if column.displayEffort() %}
+                                <td style="text-align: center; vertical-align: top; {{ columnColorStyle }}"></td>
+                            {% endif %}
+                            
+                            {# Empty comment cell #}
+                            {% if column.displayComment() %}
+                                <td style="text-align: center; vertical-align: top; {{ columnColorStyle }}"></td>
+                            {% endif %}
+                            
+                            {# Empty uploaded response cell #}
+                            {% if column.displayUploadedResponse() %}
+                                <td style="text-align: center; vertical-align: top; {{ columnColorStyle }}"></td>
+                            {% endif %}
+                            
+                            {# Empty submission cell #}
+                            {% if column.displaySubmission() %}
+                                <td style="text-align: center; vertical-align: top; {{ columnColorStyle }}"></td>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {# Weighted average cells #}
+                        {# Type average cells #}
+                        {% if enableGroupByTerm == 'Y' and gibbonSchoolYearTermID > 0 %}
+                            {% if enableTypeWeighting == 'Y' %}
+                                {% for type in markbook.getGroupedMarkbookTypes('term') %}
+                                    <td class="averageColumn" style="text-align: center; vertical-align: top;">
+                                        {% if totals.typeAverage[type] is defined and count > 0 %}
+                                            {{ markbook.getFormattedAverage(totals.typeAverage[type] / count) }}
+                                        {% endif %}
+                                    </td>
+                                {% endfor %}
+                            {% endif %}
+                        {% elseif markbook.getGroupedMarkbookTypes('year')|length > 0 and gibbonSchoolYearTermID > 0 %}
+                            {% for type in markbook.getGroupedMarkbookTypes('year') %}
+                                <td class="averageColumn" style="text-align: center; vertical-align: top;">
+                                    {% if totals.typeAverage[type] is defined and count > 0 %}
+                                        {{ markbook.getFormattedAverage(totals.typeAverage[type] / count) }}
+                                    {% endif %}
+                                </td>
+                            {% endfor %}
+                        {% endif %}
+                        
+                        {# Term average cells #}
+                        {% if enableGroupByTerm == 'Y' and gibbonSchoolYearTermID <= 0 %}
+                            {% for term in markbook.getCurrentTerms() %}
+                                <td class="averageColumn" style="text-align: center; vertical-align: top;">
+                                    {% if totals.termAverage[term.gibbonSchoolYearTermID] is defined and count > 0 %}
+                                        {{ markbook.getFormattedAverage(totals.termAverage[term.gibbonSchoolYearTermID] / count) }}
+                                    {% endif %}
+                                </td>
+                            {% endfor %}
+                        {% endif %}
+                        
+                        {# Cumulative average cell #}
+                        <td class="averageColumn" style="text-align: center; vertical-align: top;">
+                            {% if totals.cumulativeAverage is defined and totals.count > 0 %}
+                                {{ markbook.getFormattedAverage(totals.cumulativeAverage / totals.count) }}
+                            {% endif %}
+                        </td>
+                        
+                        {# Final grade average cells (for year view with type weighting) #}
+                        {% if enableTypeWeighting == 'Y' and markbook.getGroupedMarkbookTypes('year')|length > 0 and gibbonSchoolYearTermID <= 0 %}
+                            {% if columnFilter == 'averages' %}
+                                {% for type in markbook.getGroupedMarkbookTypes('year') %}
+                                    <td class="averageColumn" style="text-align: center; vertical-align: top;">
+                                        {% if totals[type] is defined and count > 0 %}
+                                            {{ markbook.getFormattedAverage(totals[type] / count) }}
+                                        {% endif %}
+                                    </td>
+                                {% endfor %}
+                                <td class="averageColumn" style="text-align: center; vertical-align: top;">
+                                    {% if totals.finalGrade is defined and count > 0 %}
+                                        {{ markbook.getFormattedAverage(totals.finalGrade / count) }}
+                                    {% endif %}
+                                </td>
+                            {% endif %}
+                        {% endif %}
+                    </tr>
+                {% endif %}
+            </tbody>
+            
+        </table>
+        
+    </div>
+</div>
