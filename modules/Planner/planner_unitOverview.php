@@ -195,34 +195,36 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_unitOvervi
                                 ++$multiCount;
                             }
                             $whereMulti = substr($whereMulti, 0, -4).')';
-                            ?>
-							<script type='text/javascript'>
-								$(function() {
-									$( "#tabs" ).tabs({
-										ajaxOptions: {
-											error: function( xhr, status, index, anchor ) {
-												$( anchor.hash ).html(
-													"Couldn't load this tab." );
-											}
-										}
-									});
-								});
-							</script>
-							<?php
 
-                            echo "<div id='tabs' style='margin: 20px 0'>";
+                            echo "<div id='tabs' x-data=\"{
+                                tabSelected: 1,
+                                tabId: \$id('tabs'),
+                                tabButtonClicked(tabButton){
+                                    this.tabSelected = tabButton.id.replace(this.tabId + '-', '');
+                                },
+                                tabActive(tab){
+                                    return this.tabSelected == tab.id.replace(this.tabId + '-', '');
+                                },
+                                tabContentActive(tabContent){
+                                    return this.tabSelected == tabContent.id.replace(this.tabId + '-content-', '');
+                                }
+                            }\" style='margin: 20px 0'>";
 							//Tab links
-							echo '<ul>';
-                            echo "<li><a href='#tabs1'>".__('Unit Overview').'</a></li>';
-                            echo "<li><a href='#tabs2'>".__('Smart Blocks').'</a></li>';
-                            echo "<li><a href='#tabs3'>".__('Outcomes').'</a></li>';
-                            echo "<li><a href='#tabs4'>".__('Lessons').'</a></li>';
-                            echo "<li><a href='#tabs5'>".__('Resources').'</a></li>';
-                            echo '</ul>';
+							echo '<div class="overflow-y-hidden w-full">';
+                            echo '<div x-ref="tabButtons" @keydown.right.prevent="$focus.wrap().next()" @keydown.left.prevent="$focus.wrap().previous()" class="flex flex-wrap justify-start items-end border-b border-gray-400" role="tablist" aria-label="tab options">';
+                            
+                            echo '<button :id="$id(tabId)" @click="tabButtonClicked($el);" :aria-selected="tabActive($el)" type="button" :class="tabActive($el) ? \'text-gray-900 border border-gray-400 border-b-white z-10 bg-white shadow\' : \'text-gray-800 hover:bg-gray-200 border border-transparent hover:border-b-gray-400 bg-transparent\'" class="inline-flex items-center px-4 sm:px-5 xl:px-6 py-2 -mr-1 sm:-mr-2 font-normal rounded-t-md -mb-px" role="tab">'.__('Unit Overview').'</button>';
+                            echo '<button :id="$id(tabId)" @click="tabButtonClicked($el);" :aria-selected="tabActive($el)" type="button" :class="tabActive($el) ? \'text-gray-900 border border-gray-400 border-b-white z-10 bg-white shadow\' : \'text-gray-800 hover:bg-gray-200 border border-transparent hover:border-b-gray-400 bg-transparent\'" class="inline-flex items-center px-4 sm:px-5 xl:px-6 py-2 -mr-1 sm:-mr-2 font-normal rounded-t-md -mb-px" role="tab">'.__('Smart Blocks').'</button>';
+                            echo '<button :id="$id(tabId)" @click="tabButtonClicked($el);" :aria-selected="tabActive($el)" type="button" :class="tabActive($el) ? \'text-gray-900 border border-gray-400 border-b-white z-10 bg-white shadow\' : \'text-gray-800 hover:bg-gray-200 border border-transparent hover:border-b-gray-400 bg-transparent\'" class="inline-flex items-center px-4 sm:px-5 xl:px-6 py-2 -mr-1 sm:-mr-2 font-normal rounded-t-md -mb-px" role="tab">'.__('Outcomes').'</button>';
+                            echo '<button :id="$id(tabId)" @click="tabButtonClicked($el);" :aria-selected="tabActive($el)" type="button" :class="tabActive($el) ? \'text-gray-900 border border-gray-400 border-b-white z-10 bg-white shadow\' : \'text-gray-800 hover:bg-gray-200 border border-transparent hover:border-b-gray-400 bg-transparent\'" class="inline-flex items-center px-4 sm:px-5 xl:px-6 py-2 -mr-1 sm:-mr-2 font-normal rounded-t-md -mb-px" role="tab">'.__('Lessons').'</button>';
+                            echo '<button :id="$id(tabId)" @click="tabButtonClicked($el);" :aria-selected="tabActive($el)" type="button" :class="tabActive($el) ? \'text-gray-900 border border-gray-400 border-b-white z-10 bg-white shadow\' : \'text-gray-800 hover:bg-gray-200 border border-transparent hover:border-b-gray-400 bg-transparent\'" class="inline-flex items-center px-4 sm:px-5 xl:px-6 py-2 -mr-1 sm:-mr-2 font-normal rounded-t-md -mb-px" role="tab">'.__('Resources').'</button>';
+                            
+                            echo '</div>';
+                            echo '</div>';
 
 							//Tab content
 							//UNIT OVERVIEW
-							echo "<div id='tabs1'>";
+							echo "<div :id=\"tabId + '-content-1'\" x-show=\"tabContentActive(\$el)\" class=\"-mt-px p-4 border border-gray-400\">";
                             $shareUnitOutline = $container->get(SettingGateway::class)->getSettingByScope('Planner', 'shareUnitOutline');
                             echo '<h2>';
                             echo __('Description');
@@ -251,7 +253,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_unitOvervi
                             }
                             echo '</div>';
                             //SMART BLOCKS
-                            echo "<div id='tabs2'>";
+                            echo "<div :id=\"tabId + '-content-2'\" x-show=\"tabContentActive(\$el)\" class=\"-mt-px p-4 border border-gray-400\">";
 
                                 $dataBlocks = array('gibbonUnitID' => $row['gibbonUnitID']);
                                 $sqlBlocks = 'SELECT * FROM gibbonUnitBlock WHERE gibbonUnitID=:gibbonUnitID ORDER BY sequenceNumber';
@@ -294,7 +296,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_unitOvervi
                             }
                             echo '</div>';
                             //OUTCOMES
-							echo "<div id='tabs3'>";
+							echo "<div :id=\"tabId + '-content-3'\" x-show=\"tabContentActive(\$el)\" class=\"-mt-px p-4 border border-gray-400\">";
 
                                 $dataOutcomes = $dataMulti;
                                 $dataOutcomes['gibbonUnitID'] = $row['gibbonUnitID'];
@@ -391,7 +393,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_unitOvervi
                             }
                             echo '</div>';
                             //LESSONS
-                            echo "<div id='tabs4'>";
+                            echo "<div :id=\"tabId + '-content-4'\" x-show=\"tabContentActive(\$el)\" class=\"-mt-px p-4 border border-gray-400\">";
                             $resourceContents = '';
 
                                 $dataLessons = $dataMulti;
@@ -452,7 +454,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_unitOvervi
                             }
                             echo '</div>';
                             //RESOURCES
-                            echo "<div id='tabs5'>";
+                            echo "<div :id=\"tabId + '-content-5'\" x-show=\"tabContentActive(\$el)\" class=\"-mt-px p-4 border border-gray-400\">";
                             $noReosurces = true;
 
                             if (!empty($resourceContents)) {

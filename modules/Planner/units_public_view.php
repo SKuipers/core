@@ -55,25 +55,25 @@ if ($makeUnitsPublic != 'Y') {
         } else {
             //Let's go!
             $row = $result->fetch(); ?>
-			<script type='text/javascript'>
-				$(function() {
-					$( "#tabs" ).tabs({
-						ajaxOptions: {
-							error: function( xhr, status, index, anchor ) {
-								$( anchor.hash ).html(
-									"Couldn't load this tab." );
-							}
-						}
-					});
-				});
-			</script>
 
 			<?php
             echo '<h2>';
             echo $row['name'];
             echo '</h2>';
 
-            echo "<div id='tabs' style='width: 100%; margin: 20px 0'>";
+            echo "<div id='tabs' x-data=\"{
+                tabSelected: 1,
+                tabId: \$id('tabs'),
+                tabButtonClicked(tabButton){
+                    this.tabSelected = tabButton.id.replace(this.tabId + '-', '');
+                },
+                tabActive(tab){
+                    return this.tabSelected == tab.id.replace(this.tabId + '-', '');
+                },
+                tabContentActive(tabContent){
+                    return this.tabSelected == tabContent.id.replace(this.tabId + '-content-', '');
+                }
+            }\" style='width: 100%; margin: 20px 0'>";
                 //Prep classes in this unit
 
                     $dataClass = array('gibbonUnitID' => $gibbonUnitID);
@@ -82,15 +82,19 @@ if ($makeUnitsPublic != 'Y') {
                     $resultClass->execute($dataClass);
 
                 //Tab links
-                echo '<ul>';
-            echo "<li><a href='#tabs1'>".__('Overview').'</a></li>';
-            echo "<li><a href='#tabs2'>".__('Content').'</a></li>';
-            echo "<li><a href='#tabs3'>".__('Resources').'</a></li>';
-            echo "<li><a href='#tabs4'>".__('Outcomes').'</a></li>';
-            echo '</ul>';
+                echo '<div class="overflow-y-hidden w-full">';
+                echo '<div x-ref="tabButtons" @keydown.right.prevent="$focus.wrap().next()" @keydown.left.prevent="$focus.wrap().previous()" class="flex flex-wrap justify-start items-end border-b border-gray-400" role="tablist" aria-label="tab options">';
+                
+                echo '<button :id="$id(tabId)" @click="tabButtonClicked($el);" :aria-selected="tabActive($el)" type="button" :class="tabActive($el) ? \'text-gray-900 border border-gray-400 border-b-white z-10 bg-white shadow\' : \'text-gray-800 hover:bg-gray-200 border border-transparent hover:border-b-gray-400 bg-transparent\'" class="inline-flex items-center px-4 sm:px-5 xl:px-6 py-2 -mr-1 sm:-mr-2 font-normal rounded-t-md -mb-px" role="tab">'.__('Overview').'</button>';
+                echo '<button :id="$id(tabId)" @click="tabButtonClicked($el);" :aria-selected="tabActive($el)" type="button" :class="tabActive($el) ? \'text-gray-900 border border-gray-400 border-b-white z-10 bg-white shadow\' : \'text-gray-800 hover:bg-gray-200 border border-transparent hover:border-b-gray-400 bg-transparent\'" class="inline-flex items-center px-4 sm:px-5 xl:px-6 py-2 -mr-1 sm:-mr-2 font-normal rounded-t-md -mb-px" role="tab">'.__('Content').'</button>';
+                echo '<button :id="$id(tabId)" @click="tabButtonClicked($el);" :aria-selected="tabActive($el)" type="button" :class="tabActive($el) ? \'text-gray-900 border border-gray-400 border-b-white z-10 bg-white shadow\' : \'text-gray-800 hover:bg-gray-200 border border-transparent hover:border-b-gray-400 bg-transparent\'" class="inline-flex items-center px-4 sm:px-5 xl:px-6 py-2 -mr-1 sm:-mr-2 font-normal rounded-t-md -mb-px" role="tab">'.__('Resources').'</button>';
+                echo '<button :id="$id(tabId)" @click="tabButtonClicked($el);" :aria-selected="tabActive($el)" type="button" :class="tabActive($el) ? \'text-gray-900 border border-gray-400 border-b-white z-10 bg-white shadow\' : \'text-gray-800 hover:bg-gray-200 border border-transparent hover:border-b-gray-400 bg-transparent\'" class="inline-flex items-center px-4 sm:px-5 xl:px-6 py-2 -mr-1 sm:-mr-2 font-normal rounded-t-md -mb-px" role="tab">'.__('Outcomes').'</button>';
+                
+                echo '</div>';
+                echo '</div>';
 
                 //Tabs
-                echo "<div id='tabs1'>";
+                echo "<div :id=\"tabId + '-content-1'\" x-show=\"tabContentActive(\$el)\" class=\"-mt-px p-4 border border-gray-400\">";
             echo '<h4>';
             echo __('Description');
             echo '</h4>';
@@ -111,7 +115,7 @@ if ($makeUnitsPublic != 'Y') {
                 echo '</p>';
             }
             echo '</div>';
-            echo "<div id='tabs2'>";
+            echo "<div :id=\"tabId + '-content-2'\" x-show=\"tabContentActive(\$el)\" class=\"-mt-px p-4 border border-gray-400\">";
 
                 $dataBlocks = array('gibbonUnitID' => $gibbonUnitID);
                 $sqlBlocks = 'SELECT * FROM gibbonUnitBlock WHERE gibbonUnitID=:gibbonUnitID ORDER BY sequenceNumber';
@@ -157,7 +161,7 @@ if ($makeUnitsPublic != 'Y') {
                 }
             }
             echo '</div>';
-            echo "<div id='tabs3'>";
+            echo "<div :id=\"tabId + '-content-3'\" x-show=\"tabContentActive(\$el)\" class=\"-mt-px p-4 border border-gray-400\">";
 			//Resources
 			$noReosurces = true;
 
@@ -256,7 +260,7 @@ if ($makeUnitsPublic != 'Y') {
 				echo $page->getBlankSlate();
 			}
             echo '</div>';
-            echo "<div id='tabs4'>";
+            echo "<div :id=\"tabId + '-content-4'\" x-show=\"tabContentActive(\$el)\" class=\"-mt-px p-4 border border-gray-400\">";
 				//Spit out outcomes
 
 					$dataBlocks = array('gibbonUnitID' => $gibbonUnitID);

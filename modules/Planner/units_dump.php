@@ -78,23 +78,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_dump.php') =
                         echo sprintf(__('This page allows you to view all of the content of a selected unit (%1$s). If you wish to take this unit out of Gibbon, simply copy and paste the contents into a word processing application.'), '<b><u>'.$row['courseName'].' - '.$row['name'].'</u></b>');
                         echo '</p>';
 
-                        ?>
-                        <script type='text/javascript'>
-                            $(function() {
-                                $( "#tabs" ).tabs({
-                                    ajaxOptions: {
-                                        error: function( xhr, status, index, anchor ) {
-                                            $( anchor.hash ).html(
-                                                "Couldn't load this tab." );
-                                        }
-                                    }
-                                });
-                            });
-                        </script>
-
-                        <?php
-
-                        echo "<div id='tabs' style='margin: 20px 0'>";
+                        echo "<div id='tabs' x-data=\"{
+                            tabSelected: 1,
+                            tabId: \$id('tabs'),
+                            tabButtonClicked(tabButton){
+                                this.tabSelected = tabButton.id.replace(this.tabId + '-', '');
+                            },
+                            tabActive(tab){
+                                return this.tabSelected == tab.id.replace(this.tabId + '-', '');
+                            },
+                            tabContentActive(tabContent){
+                                return this.tabSelected == tabContent.id.replace(this.tabId + '-content-', '');
+                            }
+                        }\" style='margin: 20px 0'>";
                         //Prep classes in this unit
                         $dataClass = array('gibbonUnitID' => $gibbonUnitID);
                         $sqlClass = 'SELECT gibbonUnitClass.gibbonCourseClassID, gibbonCourseClass.nameShort FROM gibbonUnitClass JOIN gibbonCourseClass ON (gibbonUnitClass.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID) WHERE gibbonUnitID=:gibbonUnitID ORDER BY nameShort';
@@ -102,23 +98,27 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_dump.php') =
                         $resultClass->execute($dataClass);
 
                         //Tab links
-                        echo '<ul>';
-                        echo "<li><a href='#tabs1'>".__('Unit Overview').'</a></li>';
-                        echo "<li><a href='#tabs2'>".__('Smart Blocks').'</a></li>';
-                        echo "<li><a href='#tabs3'>".__('Resources').'</a></li>';
-                        echo "<li><a href='#tabs4'>".__('Outcomes').'</a></li>';
+                        echo '<div class="overflow-y-hidden w-full">';
+                        echo '<div x-ref="tabButtons" @keydown.right.prevent="$focus.wrap().next()" @keydown.left.prevent="$focus.wrap().previous()" class="flex flex-wrap justify-start items-end border-b border-gray-400" role="tablist" aria-label="tab options">';
+                        
+                        echo '<button :id="$id(tabId)" @click="tabButtonClicked($el);" :aria-selected="tabActive($el)" type="button" :class="tabActive($el) ? \'text-gray-900 border border-gray-400 border-b-white z-10 bg-white shadow\' : \'text-gray-800 hover:bg-gray-200 border border-transparent hover:border-b-gray-400 bg-transparent\'" class="inline-flex items-center px-4 sm:px-5 xl:px-6 py-2 -mr-1 sm:-mr-2 font-normal rounded-t-md -mb-px" role="tab">'.__('Unit Overview').'</button>';
+                        echo '<button :id="$id(tabId)" @click="tabButtonClicked($el);" :aria-selected="tabActive($el)" type="button" :class="tabActive($el) ? \'text-gray-900 border border-gray-400 border-b-white z-10 bg-white shadow\' : \'text-gray-800 hover:bg-gray-200 border border-transparent hover:border-b-gray-400 bg-transparent\'" class="inline-flex items-center px-4 sm:px-5 xl:px-6 py-2 -mr-1 sm:-mr-2 font-normal rounded-t-md -mb-px" role="tab">'.__('Smart Blocks').'</button>';
+                        echo '<button :id="$id(tabId)" @click="tabButtonClicked($el);" :aria-selected="tabActive($el)" type="button" :class="tabActive($el) ? \'text-gray-900 border border-gray-400 border-b-white z-10 bg-white shadow\' : \'text-gray-800 hover:bg-gray-200 border border-transparent hover:border-b-gray-400 bg-transparent\'" class="inline-flex items-center px-4 sm:px-5 xl:px-6 py-2 -mr-1 sm:-mr-2 font-normal rounded-t-md -mb-px" role="tab">'.__('Resources').'</button>';
+                        echo '<button :id="$id(tabId)" @click="tabButtonClicked($el);" :aria-selected="tabActive($el)" type="button" :class="tabActive($el) ? \'text-gray-900 border border-gray-400 border-b-white z-10 bg-white shadow\' : \'text-gray-800 hover:bg-gray-200 border border-transparent hover:border-b-gray-400 bg-transparent\'" class="inline-flex items-center px-4 sm:px-5 xl:px-6 py-2 -mr-1 sm:-mr-2 font-normal rounded-t-md -mb-px" role="tab">'.__('Outcomes').'</button>';
+                        
                         $classes = array();
                         $classCount = 0;
                         while ($rowClass = $resultClass->fetch()) {
-                            echo "<li><a href='#tabs".($classCount + 5)."'>".$row['courseName'].'.'.$rowClass['nameShort'].'</a></li>';
+                            echo '<button :id="$id(tabId)" @click="tabButtonClicked($el);" :aria-selected="tabActive($el)" type="button" :class="tabActive($el) ? \'text-gray-900 border border-gray-400 border-b-white z-10 bg-white shadow\' : \'text-gray-800 hover:bg-gray-200 border border-transparent hover:border-b-gray-400 bg-transparent\'" class="inline-flex items-center px-4 sm:px-5 xl:px-6 py-2 -mr-1 sm:-mr-2 font-normal rounded-t-md -mb-px" role="tab">'.$row['courseName'].'.'.$rowClass['nameShort'].'</button>';
                             $classes[$classCount][0] = $rowClass['nameShort'];
                             $classes[$classCount][1] = $rowClass['gibbonCourseClassID'];
                             ++$classCount;
                         }
-                        echo '</ul>';
+                        echo '</div>';
+                        echo '</div>';
 
                         //Tabs
-                        echo "<div id='tabs1'>";
+                        echo "<div :id=\"tabId + '-content-1'\" x-show=\"tabContentActive(\$el)\" class=\"-mt-px p-4 border border-gray-400\">";
                         if ($row['details'] == '') {
                             echo $page->getBlankSlate();
                         } else {
@@ -147,7 +147,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_dump.php') =
                             }
                         }
                         echo '</div>';
-                        echo "<div id='tabs2'>";
+                        echo "<div :id=\"tabId + '-content-2'\" x-show=\"tabContentActive(\$el)\" class=\"-mt-px p-4 border border-gray-400\">";
 
                         $dataBlocks = array('gibbonUnitID' => $gibbonUnitID);
                         $sqlBlocks = 'SELECT * FROM gibbonUnitBlock WHERE gibbonUnitID=:gibbonUnitID ORDER BY sequenceNumber';
@@ -197,7 +197,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_dump.php') =
                         }
 
                         echo '</div>';
-                        echo "<div id='tabs3'>";
+                        echo "<div :id=\"tabId + '-content-3'\" x-show=\"tabContentActive(\$el)\" class=\"-mt-px p-4 border border-gray-400\">";
                         //Resources
                         $noReosurces = true;
 
@@ -296,7 +296,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_dump.php') =
                             echo $page->getBlankSlate();
                         }
                         echo '</div>';
-                        echo "<div id='tabs4'>";
+                        echo "<div :id=\"tabId + '-content-4'\" x-show=\"tabContentActive(\$el)\" class=\"-mt-px p-4 border border-gray-400\">";
                             //Spit out outcomes
                             $dataBlocks = array('gibbonUnitID' => $gibbonUnitID);
                             $sqlBlocks = "SELECT gibbonUnitOutcome.*, scope, name, nameShort, category, gibbonYearGroupIDList FROM gibbonUnitOutcome JOIN gibbonOutcome ON (gibbonUnitOutcome.gibbonOutcomeID=gibbonOutcome.gibbonOutcomeID) WHERE gibbonUnitID=:gibbonUnitID AND active='Y' ORDER BY sequenceNumber";
@@ -388,7 +388,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_dump.php') =
                             echo '</div>';
                             $classCount = 0;
                             foreach ($classes as $class) {
-                                echo "<div id='tabs".($classCount + 5)."'>";
+                                echo "<div :id=\"tabId + '-content-".($classCount + 5)."'\" x-show=\"tabContentActive(\$el)\" class=\"-mt-px p-4 border border-gray-400\">";
 
                                 //Print Lessons
                                 echo '<h2>'.__('Lessons').'</h2>';
