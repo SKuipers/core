@@ -179,12 +179,31 @@ require_once __DIR__ . '/src/MarkbookColumn.php';
         $columnsArray[] = $markbook->getColumn($i);
     }
 
+    // Load and cache data
+    if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_view.php') ) {
+
+        // Cache all personalized target data
+        $markbook->cachePersonalizedTargets( $gibbonCourseClassID );
+
+        // Cache all weighting data for efficient use below
+        if ($markbook->getSetting('enableColumnWeighting') == 'Y') {
+            $markbook->cacheWeightings( );
+        }
+
+        // Work out details for external assessment display
+        // TODO: Test this more?
+        if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/externalAssessment_details.php')) {
+            $markbook->cacheExternalAssessments( $courseName, $gibbonYearGroupIDList );
+        }
+
+
+    }
+
     // Initialize template data array structure
     $templateData = [
         // Session and URLs
         'absoluteURL' => $session->get('absoluteURL'),
         'absolutePath' => $session->get('absolutePath'),
-        'module' => $session->get('module'),
         'guid' => $guid,
         'connection2' => $connection2,
         
@@ -243,6 +262,7 @@ require_once __DIR__ . '/src/MarkbookColumn.php';
         'totals' => [],
         'count' => 0,
     ];
+
 
     // Display Pagination
     echo "<div class='linkTop flex justify-between items-center mt-4'>";
@@ -335,24 +355,7 @@ require_once __DIR__ . '/src/MarkbookColumn.php';
         return;
     } else {
 
-        if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_view.php') ) {
-
-            // Cache all personalized target data
-            $markbook->cachePersonalizedTargets( $gibbonCourseClassID );
-
-            // Cache all weighting data for efficient use below
-            if ($markbook->getSetting('enableColumnWeighting') == 'Y') {
-                $markbook->cacheWeightings( );
-            }
-
-            // Work out details for external assessment display
-            // TODO: Test this more?
-            if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/externalAssessment_details.php')) {
-                $markbook->cacheExternalAssessments( $courseName, $gibbonYearGroupIDList );
-            }
-
-    
-        }
+        
 
         // Check to see if we have no columns to display. This can happen if the page number is incorrect.
         // Do this here so users still have access to buttons.
