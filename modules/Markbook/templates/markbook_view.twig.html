@@ -184,19 +184,19 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
             <thead>
                 <tr class="head">
                     {# Student column header #}
-                    <th style="vertical-align: top; text-align: left; min-width: 120px;">
-                        {{ __('Student') }}
+                    <th class="notdraggable firstColumn dragtable-drag-boundary" data-header="student">
+                        <span>{{ __('Student') }}</span>
                     </th>
                     
                     {# Baseline column header (conditional) #}
                     {% if hasExternalAssessments %}
-                        <th rowspan="2" style="width: 20px;">
+                        <th data-header="assessment" class="dataColumn notdraggable dragtable-drag-boundary">
                             {% set title = __(externalAssessmentFields[2]) ~ ' | ' %}
                             {% set title = title ~ __(externalAssessmentFields[3]|slice((externalAssessmentFields[3]|split('_')|length > 1 ? externalAssessmentFields[3]|split('_')[0]|length + 1 : 0))) ~ ' | ' %}
                             {% set title = title ~ __(externalAssessmentFields[1]) %}
-                            {% set title = title ~ ' | ' ~ externalAssessmentFields[4] ~ ' ' ~ __('Scale') %}
-                            <div style="-webkit-transform: rotate(-90deg); -moz-transform: rotate(-90deg); -ms-transform: rotate(-90deg); -o-transform: rotate(-90deg); transform: rotate(-90deg);" title="{{ title }}">
-                                {{ __('Baseline') }}
+                            {% set title = title ~ ' | ' ~ externalAssessmentFields[4] ~ ' ' ~ __('Scale') ~ ' ' %}
+                            <div class="verticalText" title="{{ title }}">
+                                {{ __('Baseline') }}<br>
                             </div>
                         </th>
                     {% endif %}
@@ -259,8 +259,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                     <br/>
                                 {% endif %}
                                 
-                                {# TODO: Add unit display when available #}
-                                <br/>
+                                {# Display unit information if available #}
+                                {% if column.getData('gibbonUnitID') and columnMetadata[loop.index0].unit[0] is defined %}
+                                    {{ __('Unit') }} - {{ columnMetadata[loop.index0].unit[0] }}<br/>
+                                {% else %}
+                                    <br/>
+                                {% endif %}
                             </span>
                             
                             {# Action links for editing #}
@@ -321,51 +325,58 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                             
                             {# Sub-headers for attainment, effort, comment, etc. #}
                             <table class="columnLabels blank rounded-t-none" cellspacing="0">
-                                <tr>
-                                    {% if enableModifiedAssessment == 'Y' %}
+                                <tbody>
+                                    <tr>
+                                        {% if enableModifiedAssessment == 'Y' %}
                                         <th class="columnLabel smallColumn" style="{{ columnColorStyle }}">
                                             <span title="{{ __('Modified') }}">{{ __('Mod') }}</span>
                                         </th>
-                                    {% endif %}
-                                    
-                                    {% if column.displayAttainment() %}
-                                        <th class="columnLabel medColumn" style="{{ columnColorStyle }}">
-                                            {% set scale = '' %}
-                                            {% if enableRawAttainment == 'Y' and columnFilter == 'raw' and column.displayRawMarks() and column.hasAttainmentRawMax() %}
-                                                {% set scale = ' - ' ~ __('Raw Marks') ~ ' ' ~ __('out of') ~ ': ' ~ column.getData('attainmentRawMax')|number_format(1) %}
-                                            {% endif %}
-                                            
-                                            {# TODO: Add scale lookup from database if needed #}
-                                            
+                                        {% endif %}
+                                        
+                                        {% if column.displayAttainment() %}
+                                            <th class="columnLabel medColumn" style="{{ columnColorStyle }}">
+                                                {% set scale = '' %}
+                                                {% if enableRawAttainment == 'Y' and columnFilter == 'raw' and column.displayRawMarks() and column.hasAttainmentRawMax() %}
+                                                    {% set scale = ' - ' ~ __('Raw Marks') ~ ' ' ~ __('out of') ~ ': ' ~ column.getData('attainmentRawMax')|number_format(1) %}
+                                                {% endif %}
+                                                
+                                                {% if columnMetadata[loop.parent.loop.index0].attainmentScale is defined %}
+                                                    {% set scale = columnMetadata[loop.parent.loop.index0].attainmentScale %}
+                                                {% endif %}
+                                                
                                             <span title="{{ attainmentName ~ scale }}">{{ attainmentAbrev }}</span>
-                                        </th>
-                                    {% endif %}
-                                    
-                                    {% if column.displayEffort() %}
-                                        <th class="columnLabel medColumn" style="{{ columnColorStyle }}">
-                                            {# TODO: Add effort scale lookup if needed #}
-                                            <span title="{{ effortName }}">{{ effortAbrev }}</span>
-                                        </th>
-                                    {% endif %}
-                                    
-                                    {% if column.displayComment() %}
-                                        <th class="columnLabel largeColumn" style="{{ columnColorStyle }}">
-                                            <span title="{{ __('Comment') }}">{{ __('Com') }}</span>
-                                        </th>
-                                    {% endif %}
-                                    
-                                    {% if column.displayUploadedResponse() %}
-                                        <th class="columnLabel medColumn" style="{{ columnColorStyle }}">
-                                            <span title="{{ __('Response') }}">{{ __('Upl') }}</span>
-                                        </th>
-                                    {% endif %}
-                                    
-                                    {% if column.displaySubmission() %}
-                                        <th class="columnLabel medColumn" style="{{ columnColorStyle }}">
-                                            <span title="{{ __('Submission') }}">{{ __('Sub') }}</span>
-                                        </th>
-                                    {% endif %}
-                                </tr>
+                                            </th>
+                                        {% endif %}
+                                        
+                                        {% if column.displayEffort() %}
+                                            <th class="columnLabel medColumn" style="{{ columnColorStyle }}">
+                                                {% set effortScale = '' %}
+                                                {% if columnMetadata[loop.parent.loop.index0].effortScale is defined %}
+                                                    {% set effortScale = columnMetadata[loop.parent.loop.index0].effortScale %}
+                                                {% endif %}
+                                                <span title="{{ effortName ~ effortScale }}">{{ effortAbrev }}</span>
+                                            </th>
+                                        {% endif %}
+                                        
+                                        {% if column.displayComment() %}
+                                            <th class="columnLabel largeColumn" style="{{ columnColorStyle }}">
+                                                <span title="{{ __('Comment') }}">{{ __('Com') }}</span>
+                                            </th>
+                                        {% endif %}
+                                        
+                                        {% if column.displayUploadedResponse() %}
+                                            <th class="columnLabel medColumn" style="{{ columnColorStyle }}">
+                                                <span title="{{ __('Response') }}">{{ __('Upl') }}</span>
+                                            </th>
+                                        {% endif %}
+                                        
+                                        {% if column.displaySubmission() %}
+                                            <th class="columnLabel smallColumn" style="{{ columnColorStyle }}">
+                                                <span title="{{ __('Submitted Work') }}">{{ __('Sub') }}</span>
+                                            </th>
+                                        {% endif %}
+                                    </tr>
+                                </tbody>
                             </table>
                         </th>
                     {% endfor %}
@@ -446,26 +457,20 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
             <tbody>
                 {# Loop over students #}
                 {% for student in students %}
-                    <tr class="{{ loop.index is odd ? 'odd' : 'even' }}">
+                    <tr>
                         {# Student name cell #}
-                        <td style="text-align: left; vertical-align: top;">
-                            {% if student.dateStart %}
-                                <span title="{{ __('Enrolled') }}: {{ formatUsing('date', student.dateStart) }}">
-                                    {{ formatUsing('name', student.title, student.preferredName, student.surname, 'Student', true) }}
-                                </span>
-                            {% else %}
-                                {{ formatUsing('name', student.title, student.preferredName, student.surname, 'Student', true) }}
-                            {% endif %}
+                        <td class="firstColumn text-left {{ loop.index is odd ? 'odd' : 'even' }}">
+                            <a class="studentName" href="index.php?q=/modules/Students/student_view_details.php&gibbonPersonID={{ student.gibbonPersonID }}&subpage=Markbook#{{ gibbonCourseClassID }}">
+                                {{ formatUsing('name', student.title, student.preferredName, student.surname, 'Student', false) }}
+                            </a>
                         </td>
                         
                         {# Baseline cell (conditional) #}
                         {% if hasExternalAssessments %}
-                            <td style="text-align: center; vertical-align: top;">
+                            <td class="dataColumn">
                                 {% if student.baseline %}
-                                    <span title="{{ formatUsing('date', student.baseline.date) }}">
-                                        {{ student.baseline.value }}<br/>
-                                        <span class="details">{{ student.baseline.descriptor }}</span>
-                                    </span>
+                                    {{ student.baseline.value }}<br/>
+                                    <span class="details">{{ student.baseline.descriptor }}</span>
                                 {% endif %}
                             </td>
                         {% endif %}
@@ -482,7 +487,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                         {# Entry loop for each student #}
                         {% for entry in student.entries %}
                             <td class="columnLabel" style="padding: 0 !important;">
-                            <table class="columnLabels blank rounded-t-none" cellspacing="0">
+                            <table class="columnLabels blank" cellspacing="0">
+                            <tbody>
                             <tr>
 
                             {% set column = columns[entry.columnIndex] %}
@@ -495,51 +501,51 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                 <td colspan="{{ column.getSpanCount() }}" style="text-align: center; vertical-align: top; {{ columnColorStyle }}">
                                     <i>{{ __('NA') }}</i>
                                 </td>
-                            {% else %}
+                            {% elseif entry.exists %}
                                 {# Modified assessment indicator #}
                                 {% if enableModifiedAssessment == 'Y' %}
-                                    <td style="text-align: center; vertical-align: top; {{ columnColorStyle }}">
+                                    <td class="medColumn">
                                         {% if entry.modifiedAssessment == 'Y' %}
-                                            <img title="{{ __('Modified') }}" src="{{ absoluteURL }}/themes/{{ session.get('gibbonThemeName') }}/img/iconModified.png" style="width: 16px; height: 16px;"/>
+                                            {{ __('N') }}
                                         {% endif %}
                                     </td>
                                 {% endif %}
                                 
                                 {# Attainment value and descriptor #}
                                 {% if column.displayAttainment() %}
-                                    <td style="text-align: center; vertical-align: top; {{ columnColorStyle }}">
+                                    <td class="medColumn">
                                         {% if entry.attainmentValue or entry.attainmentValueRaw %}
-                                            {% set attainmentDisplay = entry.attainmentValue %}
-                                            
-                                            {# Display raw marks if enabled and filter is set to raw #}
-                                            {% if enableRawAttainment == 'Y' and columnFilter == 'raw' and column.displayRawMarks() and column.hasAttainmentRawMax() and entry.attainmentValueRaw %}
-                                                {% set attainmentDisplay = entry.attainmentValueRaw %}
-                                            {% endif %}
-                                            
-                                            {# Apply concern styling #}
-                                            {% if entry.attainmentConcern == 'Y' %}
-                                                <span class="markbookConcern">
-                                                    <b>{{ attainmentDisplay }}</b>
-                                                </span>
-                                            {% elseif entry.attainmentConcern == 'P' %}
-                                                <span class="markbookPraise">
-                                                    <b>{{ attainmentDisplay }}</b>
-                                                </span>
-                                            {% else %}
-                                                {{ attainmentDisplay }}
-                                            {% endif %}
-                                            
-                                            {# Display descriptor if present #}
-                                            {% if entry.attainmentDescriptor %}
-                                                <br/>
-                                                <span class="details">{{ entry.attainmentDescriptor }}</span>
-                                            {% endif %}
-                                            
-                                            {# Display rubric link if enabled #}
-                                            {% if enableRubrics == 'Y' and column.hasAttainmentRubric() %}
-                                                <br/>
-                                                <a class="thickbox" href="{{ absoluteURL }}/fullscreen.php?q=/modules/Markbook/markbook_view_rubric.php&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}&gibbonPersonID={{ student.gibbonPersonID }}&gibbonCourseClassID={{ gibbonCourseClassID }}&mark={{ entry.attainmentValue|url_encode }}&type=attainment&width=1100&height=550">
-                                                    {{ __('Rubric') }}
+                                            <div title="{{ entry.attainmentDescriptor }}">
+                                                {% set attainmentDisplay = entry.attainmentValue %}
+                                                
+                                                {# Display raw marks if enabled and filter is set to raw #}
+                                                {% if enableRawAttainment == 'Y' and columnFilter == 'raw' and column.displayRawMarks() and column.hasAttainmentRawMax() and entry.attainmentValueRaw %}
+                                                    {% set attainmentDisplay = entry.attainmentValueRaw %}
+                                                {% endif %}
+                                                
+                                                {# Apply concern styling #}
+                                                {% if entry.attainmentConcern == 'Y' %}
+                                                    <span class="border-2 border-orange-500 bg-orange-200 text-orange-500 px-1 py-0.5">
+                                                        <b>{{ attainmentDisplay }}</b>
+                                                    </span>
+                                                {% else %}
+                                                    {{ attainmentDisplay }}
+                                                {% endif %}
+                                                
+                                                {# Display rubric link if enabled #}
+                                                {% if enableRubrics == 'Y' and column.hasAttainmentRubric() %}
+                                                <a class="thickbox rubricIcon text-gray-600 hover:text-gray-800 inline-block ml-2 align-middle" href="{{ absoluteURL }}/fullscreen.php?q=/modules/Markbook/markbook_view_rubric.php&gibbonRubricID={{ column.getData('gibbonRubricIDAttainment') }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}&gibbonPersonID={{ student.gibbonPersonID }}&gibbonCourseClassID={{ gibbonCourseClassID }}&mark=FALSE&type=attainment&width=1100&height=550">
+                                                        {# SAFE: icon() function generates trusted SVG HTML from Gibbon framework #}
+                                                        {{ icon('solid', 'markbook', 'size-4')|raw }}
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                        {% else %}
+                                            {# Show quick edit link for empty attainment when no rubric #}
+                                            {% if not column.hasAttainmentRubric() and canEditThisClass %}
+                                                <a title="{{ __('Edit') }}" class="markbookQuickEdit text-gray-600 hover:text-gray-800 inline-block ml-2 align-middle" href="{{ absoluteURL }}/index.php?q=/modules/{{ module }}/markbook_edit_data.php&gibbonCourseClassID={{ gibbonCourseClassID }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}#{{ student.gibbonPersonID }}">
+                                                    {# SAFE: icon() function generates trusted SVG HTML from Gibbon framework #}
+                                                    {{ icon('solid', 'edit', 'size-4')|raw }}
                                                 </a>
                                             {% endif %}
                                         {% endif %}
@@ -548,32 +554,36 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                 
                                 {# Effort value and descriptor #}
                                 {% if column.displayEffort() %}
-                                    <td style="text-align: center; vertical-align: top; {{ columnColorStyle }}">
+                                    <td class="medColumn">
                                         {% if entry.effortValue %}
-                                            {# Apply concern styling #}
-                                            {% if entry.effortConcern == 'Y' %}
-                                                <span class="markbookConcern">
-                                                    <b>{{ entry.effortValue }}</b>
-                                                </span>
-                                            {% elseif entry.effortConcern == 'P' %}
-                                                <span class="markbookPraise">
-                                                    <b>{{ entry.effortValue }}</b>
-                                                </span>
-                                            {% else %}
-                                                {{ entry.effortValue }}
-                                            {% endif %}
-                                            
-                                            {# Display descriptor if present #}
-                                            {% if entry.effortDescriptor %}
-                                                <br/>
-                                                <span class="details">{{ entry.effortDescriptor }}</span>
-                                            {% endif %}
-                                            
-                                            {# Display rubric link if enabled #}
-                                            {% if enableRubrics == 'Y' and column.hasEffortRubric() %}
-                                                <br/>
-                                                <a class="thickbox" href="{{ absoluteURL }}/fullscreen.php?q=/modules/Markbook/markbook_view_rubric.php&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}&gibbonPersonID={{ student.gibbonPersonID }}&gibbonCourseClassID={{ gibbonCourseClassID }}&mark={{ entry.effortValue|url_encode }}&type=effort&width=1100&height=550">
-                                                    {{ __('Rubric') }}
+                                            <div title="{{ entry.effortDescriptor }}">
+                                                {# Apply concern styling #}
+                                                {% if entry.effortConcern == 'Y' %}
+                                                    <div class="border-2 border-orange-500 bg-orange-200 text-orange-500 px-1 py-0.5">
+                                                        {{ entry.effortValue }}
+                                                    </div>
+                                                {% elseif entry.effortConcern == 'P' %}
+                                                    <span class="markbookPraise">
+                                                        <b>{{ entry.effortValue }}</b>
+                                                    </span>
+                                                {% else %}
+                                                    {{ entry.effortValue }}
+                                                {% endif %}
+                                                
+                                                {# Display rubric link if enabled #}
+                                                {% if enableRubrics == 'Y' and column.hasEffortRubric() %}
+                                                    <br/>
+                                                    <a class="thickbox" href="{{ absoluteURL }}/fullscreen.php?q=/modules/Markbook/markbook_view_rubric.php&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}&gibbonPersonID={{ student.gibbonPersonID }}&gibbonCourseClassID={{ gibbonCourseClassID }}&mark={{ entry.effortValue|url_encode }}&type=effort&width=1100&height=550">
+                                                        {{ __('Rubric') }}
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                        {% else %}
+                                            {# Show quick edit link for empty effort when no rubric #}
+                                            {% if not column.hasEffortRubric() and canEditThisClass %}
+                                                <a title="{{ __('Edit') }}" class="markbookQuickEdit text-gray-600 hover:text-gray-800 inline-block ml-2 align-middle" href="{{ absoluteURL }}/index.php?q=/modules/{{ module }}/markbook_edit_data.php&gibbonCourseClassID={{ gibbonCourseClassID }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}#{{ student.gibbonPersonID }}">
+                                                    {# SAFE: icon() function generates trusted SVG HTML from Gibbon framework #}
+                                                    {{ icon('solid', 'edit', 'size-4')|raw }}
                                                 </a>
                                             {% endif %}
                                         {% endif %}
@@ -582,7 +592,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                 
                                 {# Comment with proper escaping #}
                                 {% if column.displayComment() %}
-                                    <td style="text-align: left; vertical-align: top; {{ columnColorStyle }}">
+                                    <td class="largeColumn">
                                         {% if entry.comment %}
                                             <script type="text/javascript">
                                                 $(document).ready(function(){
@@ -594,13 +604,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                                     });
                                                 });
                                             </script>
-                                            <a title="{{ __('View Description') }}" class="show_hide-{{ student.gibbonPersonID }}-{{ column.gibbonMarkbookColumnID }}" onclick="return false;" href="#">
-                                                {# SAFE: icon() function generates trusted SVG HTML from Gibbon framework #}
-                                                {{ icon('solid', 'plus', 'size-4')|raw }}
-                                            </a>
-                                            <div class="comment-{{ student.gibbonPersonID }}-{{ column.gibbonMarkbookColumnID }}" style="width: 300px; margin-top: 5px">
-                                                {{ entry.comment|nl2br }}
-                                            </div>
+                                            <span title="{{ entry.comment }}">{{ entry.comment|slice(0, 10) }}...</span>
                                         {% endif %}
                                     </td>
                                 {% endif %}
@@ -619,47 +623,82 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                 
                                 {# Submission status and links #}
                                 {% if column.displaySubmission() %}
-                                    <td style="text-align: center; vertical-align: top; {{ columnColorStyle }}">
+                                    <td class="smallColumn">
                                         {% if entry.submission %}
                                             {% set submission = entry.submission %}
                                             
-                                            {# Display submission status #}
-                                            {% if submission.status == 'Exemption' %}
-                                                <span title="{{ __('Exemption') }}">{{ __('Exe') }}</span>
-                                            {% elseif submission.status == 'Submitted' %}
-                                                {% if submission.version == 'Final' %}
-                                                    <span title="{{ __('Submitted') }}">{{ __('Y') }}</span>
+                                            {# Display submission status with tooltip #}
+                                            <span title="{{ submission.status }}. {{ submission.version }}. {{ submission.timestamp }}">
+                                                {% if submission.status == 'Exemption' %}
+                                                    {{ __('Exe') }}
+                                                {% elseif submission.status == 'Submitted' %}
+                                                    {% if submission.version == 'Final' %}
+                                                        <a target="_blank" href="{{ submission.location }}">{{ __('Fin') }}</a>
+                                                    {% else %}
+                                                        <a target="_blank" href="{{ submission.location }}">{{ __('Dra') }}</a>
+                                                    {% endif %}
+                                                {% elseif submission.status == 'Late' %}
+                                                    <a target="_blank" href="{{ submission.location }}" class="border-2 border-orange-500 px-1 py-0.5">{{ __('Fin') }}</a>
+                                                {% elseif submission.status == 'Incomplete' %}
+                                                    <span title="{{ __('Incomplete') }}" class="border-2 border-red-700 text-red-700 px-1 py-0.5">{{ __('Inc') }}</span>
                                                 {% else %}
-                                                    <span title="{{ __('Submitted') }} - {{ __('Draft') }}">{{ __('D') }}</span>
+                                                    <a target="_blank" href="{{ submission.location }}">{{ __('Fin') }}</a>
                                                 {% endif %}
-                                            {% elseif submission.status == 'Late' %}
-                                                <span class="error" title="{{ __('Late') }}">{{ __('L') }}</span>
-                                            {% elseif submission.status == 'Incomplete' %}
-                                                <span class="error" title="{{ __('Incomplete') }}">{{ __('I') }}</span>
-                                            {% else %}
-                                                <span title="{{ __('Not Submitted Online') }}">{{ __('N') }}</span>
-                                            {% endif %}
-                                            
-                                            {# Display submission link if files exist #}
-                                            {% if submission.count > 0 %}
-                                                <br/>
-                                                {% if submission.type == 'File' %}
-                                                    <a title="{{ __('Submitted Work') }}" href="{{ absoluteURL }}/{{ submission.location }}" target="_blank">
-                                                        {# SAFE: icon() function generates trusted SVG HTML from Gibbon framework #}
-                                                        {{ icon('solid', 'attachment', 'size-4')|raw }}
-                                                    </a>
-                                                {% elseif submission.type == 'Link' %}
-                                                    <a title="{{ __('Submitted Work') }}" href="{{ submission.location }}" target="_blank">
-                                                        {# SAFE: icon() function generates trusted SVG HTML from Gibbon framework #}
-                                                        {{ icon('solid', 'link', 'size-4')|raw }}
-                                                    </a>
-                                                {% endif %}
+                                            </span>
+                                        {% else %}
+                                            {% if student.dateStart > column.getData('homeworkDueDateTime') %}
+                                                <span title="{{ __('Pending') }}" class="border-2 border-red-700 px-1 py-0.5">{{ __('Pen') }}</span>
+                                            {% elseif column.getData('homeworkSubmissionRequired') == 'Required' %}
+                                                <span title="{{ __('Incomplete') }}" class="border-2 border-red-700 text-red-700 px-1 py-0.5">{{ __('Inc') }}</span>
                                             {% endif %}
                                         {% endif %}
                                     </td>
                                 {% endif %}
+                            {% else %}
+                                {# No entry data - show Add links in each cell #}
+                                {% if canEditThisClass %}
+                                    {% set editLink %}
+                                        <a title="{{ __('Add') }}" class="markbookQuickEdit inline-block" href="{{ absoluteURL }}/index.php?q=/modules/{{ module }}/markbook_edit_data.php&gibbonCourseClassID={{ gibbonCourseClassID }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}#{{ student.gibbonPersonID }}">
+                                            {# SAFE: icon() function generates trusted SVG HTML from Gibbon framework #}
+                                            {{ icon('solid', 'add', 'size-4 text-green-600 mt-1')|raw }}
+                                        </a>
+                                    {% endset %}
+                                {% else %}
+                                    {% set editLink = '' %}
+                                {% endif %}
+                                
+                                {# Modified assessment cell with Add link #}
+                                {% if enableModifiedAssessment == 'Y' %}
+                                    <td class="medColumn">{{ editLink|raw }}</td>
+                                {% endif %}
+                                
+                                {# Attainment cell with Add link #}
+                                {% if column.displayAttainment() %}
+                                    <td class="medColumn">{{ editLink|raw }}</td>
+                                {% endif %}
+                                
+                                {# Effort cell with Add link #}
+                                {% if column.displayEffort() %}
+                                    <td class="medColumn">{{ editLink|raw }}</td>
+                                {% endif %}
+                                
+                                {# Comment cell with Add link #}
+                                {% if column.displayComment() %}
+                                    <td class="largeColumn">{{ editLink|raw }}</td>
+                                {% endif %}
+                                
+                                {# Uploaded response cell with Add link #}
+                                {% if column.displayUploadedResponse() %}
+                                    <td class="medColumn">{{ editLink|raw }}</td>
+                                {% endif %}
+                                
+                                {# Submission cell with Add link #}
+                                {% if column.displaySubmission() %}
+                                    <td class="smallColumn">{{ editLink|raw }}</td>
+                                {% endif %}
                             {% endif %}
                             </tr>
+                            </tbody>
                             </table>
                             </td>
                         {% endfor %}
@@ -735,13 +774,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                 {% if enableColumnWeighting == 'Y' %}
                     <tr class="{{ students|length is odd ? 'even' : 'odd' }}">
                         {# Class Average label cell #}
-                        <td style="text-align: left; vertical-align: top;">
+                        <td class="firstColumn text-left">
                             <b>{{ __('Class Average') }}</b>
                         </td>
                         
                         {# Empty baseline cell (conditional) #}
                         {% if hasExternalAssessments %}
-                            <td></td>
+                            <td class="dataColumn"></td>
                         {% endif %}
                         
                         {# Empty target cell (conditional) #}
@@ -751,18 +790,22 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                         
                         {# Loop over columns to display class averages #}
                         {% for i, column in columns %}
+                            <td class="columnLabel" style="padding: 0 !important;">
+                            <table class="columnLabels blank" cellspacing="0">
+                            <tbody>
+                            <tr>
                             {% set columnColor = column.getData('columnColor') %}
                             {# Column color is already sanitized by PHP backend (preg_replace in markbook_edit_*Process.php) #}
                             {% set columnColorStyle = (columnColor and columnColor|lower != '#ffffff') ? 'background-color: ' ~ columnColor ~ '88;' : '' %}
                             
                             {# Empty modified assessment cell #}
                             {% if enableModifiedAssessment == 'Y' %}
-                                <td style="text-align: center; vertical-align: top; {{ columnColorStyle }}"></td>
+                                <td class="medColumn"></td>
                             {% endif %}
                             
                             {# Attainment average cell #}
                             {% if column.displayAttainment() %}
-                                <td style="text-align: center; vertical-align: top; {{ columnColorStyle }}">
+                                <td class="medColumn">
                                     {% if totals.attainment[i] is defined and totals.attainment[i].count > 0 %}
                                         {{ (totals.attainment[i].total / totals.attainment[i].count)|number_format(1) }}%
                                     {% endif %}
@@ -771,23 +814,27 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                             
                             {# Empty effort cell #}
                             {% if column.displayEffort() %}
-                                <td style="text-align: center; vertical-align: top; {{ columnColorStyle }}"></td>
+                                <td class="medColumn"></td>
                             {% endif %}
                             
                             {# Empty comment cell #}
                             {% if column.displayComment() %}
-                                <td style="text-align: center; vertical-align: top; {{ columnColorStyle }}"></td>
+                                <td class="largeColumn"></td>
                             {% endif %}
                             
                             {# Empty uploaded response cell #}
                             {% if column.displayUploadedResponse() %}
-                                <td style="text-align: center; vertical-align: top; {{ columnColorStyle }}"></td>
+                                <td class="medColumn"></td>
                             {% endif %}
                             
                             {# Empty submission cell #}
                             {% if column.displaySubmission() %}
-                                <td style="text-align: center; vertical-align: top; {{ columnColorStyle }}"></td>
+                                <td class="smallColumn"></td>
                             {% endif %}
+                            </tr>
+                            </tbody>
+                            </table>
+                            </td>
                         {% endfor %}
                         
                         {# Weighted average cells #}

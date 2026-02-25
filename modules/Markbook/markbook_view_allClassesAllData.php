@@ -198,8 +198,8 @@ require_once __DIR__ . '/src/MarkbookColumn.php';
         // Markbook instance and settings
         'markbook' => $markbook,
         'enableColumnWeighting' => $markbook->getSetting('enableColumnWeighting'),
-        'enableModifiedAssessment' => $markbook->getSetting('enableModifiedAssessment'),
-        'enableRubrics' => $markbook->getSetting('enableRubrics'),
+        'enableModifiedAssessment' => $enableModifiedAssessment ?? $markbook->getSetting('enableModifiedAssessment'),
+        'enableRubrics' => $enableRubrics ?? $markbook->getSetting('enableRubrics'),
         'enableRawAttainment' => $markbook->getSetting('enableRawAttainment'),
         'enableGroupByTerm' => $markbook->getSetting('enableGroupByTerm'),
         'enableTypeWeighting' => $markbook->getSetting('enableTypeWeighting'),
@@ -620,6 +620,12 @@ require_once __DIR__ . '/src/MarkbookColumn.php';
                         $entryData['effortConcern'] = $rowEntry['effortConcern'] ?? null;
                         $entryData['comment'] = $rowEntry['comment'] ?? null;
                         $entryData['response'] = $rowEntry['response'] ?? null;
+
+                        if ($entryData['attainmentValue'] == 'Complete') $entryData['attainmentValue'] = __('Com');
+                        if ($entryData['attainmentValue'] == 'Incomplete') $entryData['attainmentValue'] = __('Inc');
+                        
+                        if ($entryData['effortValue'] == 'Complete') $entryData['effortValue'] = __('Com');
+                        if ($entryData['effortValue'] == 'Incomplete') $entryData['effortValue'] = __('Inc');
 
                         // Calculate totals for attainment
                         if ($column->hasAttainmentGrade()) {
