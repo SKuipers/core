@@ -452,21 +452,8 @@ class FormBuilder implements ContainerAwareInterface, FormBuilderInterface
 
     public function getJavascript()
     {
-        if (!empty($_GET['return']) && stripos($_GET['return'], 'success') !== false) {
-            $output = "";
-        } else {
-            $output = "
-            document.querySelectorAll('input,textarea,select').forEach(function(element) {
-                element.addEventListener('input', function() {
-                    window.onbeforeunload = function(event) {
-                        if (event.explicitOriginalTarget && (event.explicitOriginalTarget.value=='Submit' || event.explicitOriginalTarget.value=='Next')) return;
-                        return '".__('There are unsaved changes on this page.')."';
-                    };
-                });
-            });
-        ";
-        }
 
-        return "<script type='text/javascript'>{$output}</script>";
+
+        return "";
     }
 }
