@@ -31,7 +31,7 @@ Main Menu: Displays the top-level categories and active modules.
             </a>
 
         <script type="text/javascript">
-            $(document).ready(function() {
+            document.addEventListener('DOMContentLoaded', function() {
                 setInterval(function() {
                     refreshNotifications();
                 }, {{ statusTray.notifications.interval }});
@@ -42,9 +42,9 @@ Main Menu: Displays the top-level categories and active modules.
 
 {% if statusTray.alarm %}
     <script>
-        $(document).ready(function() {
+        document.addEventListener('DOMContentLoaded', function() {
             refreshNotifications();
-        }) ;
+        });
     </script>
 {% endif %}
 
@@ -102,32 +102,49 @@ Main Menu: Displays the top-level categories and active modules.
     })();
 
     function refreshNotifications() {
-        $.ajax({
-            url: "index_notification_ajax.php",
-            dataType: "json",
-            success: function(data) {
+        fetch("index_notification_ajax.php")
+            .then(response => response.json())
+            .then(data => {
                 // Update notification count
+                const notificationCounter = document.querySelector("#notifications .notificationCounter");
+                const notificationIcon = document.querySelector("#notifications .notificationIcon");
+                
                 if (data.count > 0) {
-                    $("#notifications .notificationCounter").removeClass('hidden').html(data.count);
-                    $("#notifications .notificationIcon").removeClass('opacity-25').addClass('opacity-75');
+                    if (notificationCounter) {
+                        notificationCounter.classList.remove('hidden');
+                        notificationCounter.textContent = data.count;
+                    }
+                    if (notificationIcon) {
+                        notificationIcon.classList.remove('opacity-25');
+                        notificationIcon.classList.add('opacity-75');
+                    }
                 } else {
-                    $("#notifications .notificationCounter").html('').addClass('hidden');
-                    $("#notifications .notificationIcon").removeClass('opacity-75').addClass('opacity-25');
+                    if (notificationCounter) {
+                        notificationCounter.textContent = '';
+                        notificationCounter.classList.add('hidden');
+                    }
+                    if (notificationIcon) {
+                        notificationIcon.classList.remove('opacity-75');
+                        notificationIcon.classList.add('opacity-25');
+                    }
                 }
 
                 // Handle alarm display / cancel
+                const tbWindow = document.querySelector('#TB_window');
                 if (data.alarm != false) {
-                    if ($('#TB_window').is(':visible') == true && $('#TB_window').hasClass('alarm') == false) {
-                        $("#TB_window").remove();
-                        $("body").append("<div id='TB_window'></div>");
+                    if (tbWindow && tbWindow.offsetParent !== null && !tbWindow.classList.contains('alarm')) {
+                        tbWindow.remove();
+                        const newTbWindow = document.createElement('div');
+                        newTbWindow.id = 'TB_window';
+                        document.body.appendChild(newTbWindow);
                     }
-                    if ($('#TB_window').is(':visible') == false) {
-                        var url = '{{ absoluteURL }}/index_notification_ajax_alarm.php?type='+ data.alarm +'&KeepThis=true&TB_iframe=true&width=1000&height=500';
+                    if (tbWindow && tbWindow.offsetParent === null) {
+                        const url = '{{ absoluteURL }}/index_notification_ajax_alarm.php?type='+ data.alarm +'&KeepThis=true&TB_iframe=true&width=1000&height=500';
                         tb_show('', url);
-                        $('#TB_window').addClass('alarm') ;
+                        document.querySelector('#TB_window').classList.add('alarm');
                     }
                 } else {
-                    if ($('#TB_window').is(':visible')==true && $('#TB_window').hasClass('alarm') ) {
+                    if (tbWindow && tbWindow.offsetParent !== null && tbWindow.classList.contains('alarm')) {
                         tb_remove();
                     }
                 }
@@ -144,7 +161,9 @@ Main Menu: Displays the top-level categories and active modules.
                 } else if (!data.timeout && timeoutDialog.open) {
                     timeoutDialog.close();
                 }
-            }
-        });
+            })
+            .catch(error => {
+                console.error('Error refreshing notifications:', error);
+            });
     }
 </script>

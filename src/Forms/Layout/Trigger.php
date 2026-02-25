@@ -156,7 +156,7 @@ class Trigger implements OutputableInterface
         // Build a set of value comparisons for the source input
         $comparisons = array();
         foreach ($this->elementValue as $value) {
-            $comparisons[] = "$('{$this->sourceValueSelector}').val() == '{$value}'";
+            $comparisons[] = "document.querySelector('{$this->sourceValueSelector}').value == '{$value}'";
         }
 
         // Join into a string, and negate the comparison for use with whenNot()
@@ -166,23 +166,44 @@ class Trigger implements OutputableInterface
         // Change target visibility if source value equals trigger value
         // Handles validation by also disabling/enabling inputs
         // The change() call activates any nested triggers
-        $output .= "$(document).on('change showhide', '{$this->sourceSelector}', function(event){ \n";
-            $output .= "if ($('{$this->sourceSelector}').prop('disabled') == false && {$comparisons}) { \n";
-                $output .= "$('{$this->targetSelector}').slideDown('fast'); \n";
-                $output .= "$('{$this->targetSelector} :input:not(button)').each(function(index, element){ if ($(this).is(':visible, .tinymce, .finderInput, [type=\"hidden\"], [x-model], .hidden, .invisible')) { $(this).prop('disabled', element.disabledState !== undefined ? element.disabledState : false); } });";
-            $output .= "} else { \n";
-                $output .= "$('{$this->targetSelector}').hide(); \n";
-                $output .= "$('{$this->targetSelector} :input:not(button)').prop('disabled', true).change(); \n";
+        $output .= "document.addEventListener('change', function(event) { \n";
+            $output .= "if (event.target.matches('{$this->sourceSelector}') || event.type === 'showhide') { \n";
+                $output .= "const sourceEl = document.querySelector('{$this->sourceSelector}'); \n";
+                $output .= "if (sourceEl && sourceEl.disabled === false && {$comparisons}) { \n";
+                    $output .= "document.querySelectorAll('{$this->targetSelector}').forEach(function(target) { \n";
+                        $output .= "target.style.display = 'block'; \n";
+                        $output .= "target.querySelectorAll(':scope :is(input, select, textarea):not(button)').forEach(function(input) { \n";
+                            $output .= "if (input.matches(':not([style*=\"display: none\"]):not([style*=\"display:none\"]), .tinymce, .finderInput, [type=\"hidden\"], [x-model], .hidden, .invisible') || getComputedStyle(input).display !== 'none') { \n";
+                                $output .= "input.disabled = input.disabledState !== undefined ? input.disabledState : false; \n";
+                            $output .= "} \n";
+                        $output .= "}); \n";
+                    $output .= "}); \n";
+                $output .= "} else { \n";
+                    $output .= "document.querySelectorAll('{$this->targetSelector}').forEach(function(target) { \n";
+                        $output .= "target.style.display = 'none'; \n";
+                        $output .= "target.querySelectorAll(':scope :is(input, select, textarea):not(button)').forEach(function(input) { \n";
+                            $output .= "input.disabled = true; \n";
+                            $output .= "input.dispatchEvent(new Event('change', { bubbles: true })); \n";
+                        $output .= "}); \n";
+                    $output .= "}); \n";
+                $output .= "} \n";
             $output .= "} \n";
         $output .= "}); \n";
 
         // Save the initial disabled state for all inputs targeted by this trigger
-        $output .= "$('{$this->targetSelector} :input:not(button)').each(function(index, element){ if (element.disabledState === undefined) element.disabledState = $(this).prop('disabled') ?? false; });";
+        $output .= "document.querySelectorAll('{$this->targetSelector} :is(input, select, textarea):not(button)').forEach(function(input) { \n";
+            $output .= "if (input.disabledState === undefined) input.disabledState = input.disabled ?? false; \n";
+        $output .= "}); \n";
 
         // Hide all initial targets if the source value does not equal the trigger value
         $output .= "if ( !({$comparisons}) ) { \n";
-        $output .= "$('{$this->targetSelector}').hide(); \n";
-        $output .= "$('{$this->targetSelector} :input:not(button)').each(function(index, element){ $(element).prop('disabled', true).change(); });";
+            $output .= "document.querySelectorAll('{$this->targetSelector}').forEach(function(target) { \n";
+                $output .= "target.style.display = 'none'; \n";
+                $output .= "target.querySelectorAll(':scope :is(input, select, textarea):not(button)').forEach(function(input) { \n";
+                    $output .= "input.disabled = true; \n";
+                    $output .= "input.dispatchEvent(new Event('change', { bubbles: true })); \n";
+                $output .= "}); \n";
+            $output .= "}); \n";
         $output .= "}\n\n";
 
         return $output;

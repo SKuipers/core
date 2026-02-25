@@ -555,7 +555,7 @@ class Form implements OutputableInterface
      */
     public function enableAutoSave(string $formId, string $autoSaveUrl)
     {
-        $keydownJS = "gibbonFormSubmitQuiet($('#$formId'), '$autoSaveUrl')";
+        $keydownJS = "gibbonFormSubmitQuiet(document.getElementById('{$formId}'), '{$autoSaveUrl}')";
         $this->setAttribute('onkeydown', $keydownJS);
         return $this;
     }

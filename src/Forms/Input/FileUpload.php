@@ -227,7 +227,7 @@ class FileUpload extends Input
                             $output .= icon('solid', 'delete', 'size-6 sm:size-5');
                             $output .= '</a>';
                         } else {
-                            $output .= "<div title='".__('Delete')."' class='inline-button text-gray-600' onclick='if(confirm(\"".__('Are you sure you want to delete this record?').' '.__('Changes will be saved when you submit this form.')."\")) { $(\"#".$attachmentNameEscaped."\").val(\"\"); $(\"#".$idEscaped."\").show(); $(\"#".$idEscaped." + .max-upload\").show(); $(\"#".$idEscaped."\").prop(\"disabled\", false); $(this).parent().detach().remove(); };'>";
+                            $output .= "<div title='".__('Delete')."' class='inline-button text-gray-600' onclick='if(confirm(\"".__('Are you sure you want to delete this record?').' '.__('Changes will be saved when you submit this form.')."\")) { document.querySelector(\"#".$attachmentNameEscaped."\").value = \"\"; document.querySelector(\"#".$idEscaped."\").style.display = \"block\"; document.querySelector(\"#".$idEscaped." + .max-upload\").style.display = \"block\"; document.querySelector(\"#".$idEscaped."\").disabled = false; this.parentElement.remove(); };'>";
                             $output .= icon('solid', 'delete', 'size-6 sm:size-5');
                             $output .= '</div>';
                         }
@@ -241,7 +241,7 @@ class FileUpload extends Input
 
             if ($this->getAttribute('multiple') == true) {
                 $output .= '<div class="input-box-meta standardWidth right">';
-                $output .= '<a onClick="$(\'#'.$idEscaped.'\').show(); $(\'#'.$idEscaped.' + .max-upload\').show(); $(\'#'.$idEscaped.'\').prop(\'disabled\', false);">'.__('Upload File').'</a>';
+                $output .= '<a onClick="const el = document.querySelector(\'#'.$idEscaped.'\'); el.style.display = \'block\'; el.disabled = false; const maxUpload = document.querySelector(\'#'.$idEscaped.' + .max-upload\'); if (maxUpload) maxUpload.style.display = \'block\';">'.__('Upload File').'</a>';
                 $output .= '</div>';
             }
 

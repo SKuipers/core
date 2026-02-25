@@ -456,11 +456,13 @@ class FormBuilder implements ContainerAwareInterface, FormBuilderInterface
             $output = "";
         } else {
             $output = "
-            $('input,textarea,select').on('input', function() {
-                window.onbeforeunload = function(event) {
-                    if (event.explicitOriginalTarget.value=='Submit' || event.explicitOriginalTarget.value=='Next') return;
-                    return '".__('There are unsaved changes on this page.')."';
-                };
+            document.querySelectorAll('input,textarea,select').forEach(function(element) {
+                element.addEventListener('input', function() {
+                    window.onbeforeunload = function(event) {
+                        if (event.explicitOriginalTarget && (event.explicitOriginalTarget.value=='Submit' || event.explicitOriginalTarget.value=='Next')) return;
+                        return '".__('There are unsaved changes on this page.')."';
+                    };
+                });
             });
         ";
         }

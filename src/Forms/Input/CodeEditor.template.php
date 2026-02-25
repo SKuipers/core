@@ -14,7 +14,7 @@
         var editor = ace.edit("editor<?= $id; ?>");
         editor.getSession().setUseWrapMode(true);
         editor.getSession().on("change", function(e) {
-            $("#<?= $id; ?>").val(editor.getSession().getValue());
+            document.getElementById("<?= $id; ?>").value = editor.getSession().getValue();
         });
 
         editor.getSession().setMode("ace/mode/<?= !empty($mode)? $mode : 'html'; ?>");

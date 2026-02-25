@@ -37,13 +37,36 @@ function getDate() {
 	return datestring ;
 }
 
-jQuery(function($){
+document.addEventListener('DOMContentLoaded', function() {
 
 	// Select all tool for Attendance by Class/Form Group
-	$('#set-all').click( function() {
-		$('select[name$="-type"]').val(  $('select[name="set-all-type"]').val() );
-		$('select[name$="-reason"]').val(  $('select[name="set-all-reason"]').val() );
-		$('input[name$="-comment"]').val(  $('input[name="set-all-comment"]').val() );
-		$('#set-all-note').show();
-	});
+	const setAllButton = document.querySelector('#set-all');
+	if (setAllButton) {
+		setAllButton.addEventListener('click', function() {
+			const setAllType = document.querySelector('select[name="set-all-type"]');
+			const setAllReason = document.querySelector('select[name="set-all-reason"]');
+			const setAllComment = document.querySelector('input[name="set-all-comment"]');
+			
+			// Set all type selects
+			document.querySelectorAll('select[name$="-type"]').forEach(function(select) {
+				select.value = setAllType ? setAllType.value : '';
+			});
+			
+			// Set all reason selects
+			document.querySelectorAll('select[name$="-reason"]').forEach(function(select) {
+				select.value = setAllReason ? setAllReason.value : '';
+			});
+			
+			// Set all comment inputs
+			document.querySelectorAll('input[name$="-comment"]').forEach(function(input) {
+				input.value = setAllComment ? setAllComment.value : '';
+			});
+			
+			// Show note
+			const setAllNote = document.querySelector('#set-all-note');
+			if (setAllNote) {
+				setAllNote.style.display = 'block';
+			}
+		});
+	}
 });

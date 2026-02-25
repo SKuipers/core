@@ -203,22 +203,25 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
     function recalculateGroups() {
 
-        $('#generateGroups .enrolmentGroup').each(function (element) {
-            var maxParticipants = $(this).data('max');
-            var enrolmentCount = $(this).parent().find('.enrolmentPerson:not(.ui-sortable-helper)').length;
+        document.querySelectorAll('#generateGroups .enrolmentGroup').forEach(function(element) {
+            const maxParticipants = element.dataset.max;
+            const enrolmentCount = element.parentElement.querySelectorAll('.enrolmentPerson:not(.sortable-ghost)').length;
 
-            $(this).parent().find('.enrolmentCount').first().html(enrolmentCount);
+            const enrolmentCountEl = element.parentElement.querySelector('.enrolmentCount');
+            if (enrolmentCountEl) {
+                enrolmentCountEl.textContent = enrolmentCount;
+            }
 
-            var enrolmentStatus = '';
-            var enrolmentStatusClass = '';
+            let enrolmentStatus = '';
+            let enrolmentStatusClass = '';
 
-            if (enrolmentCount < $(this).data('min')) {
+            if (enrolmentCount < parseInt(element.dataset.min || 0)) {
                 enrolmentStatus = 'Low';
                 enrolmentStatusClass = 'warning';
-            } else if (enrolmentCount == $(this).data('max')) {
+            } else if (enrolmentCount == parseInt(element.dataset.max)) {
                 enrolmentStatus = 'Full';
                 enrolmentStatusClass = 'success';
-            } else if (enrolmentCount > $(this).data('max')) {
+            } else if (enrolmentCount > parseInt(element.dataset.max)) {
                 enrolmentStatus = 'Over';
                 enrolmentStatusClass = 'error';
             } else {
@@ -226,50 +229,76 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
                 enrolmentStatusClass = 'dull';
             }
 
-            $(this).parent().find('.enrolmentStatus').removeClass('warning error success dull').addClass(enrolmentStatusClass);
-            $(this).parent().find('.enrolmentStatus').first().html(enrolmentStatus);
+            const statusEl = element.parentElement.querySelector('.enrolmentStatus');
+            if (statusEl) {
+                statusEl.classList.remove('warning', 'error', 'success', 'dull');
+                statusEl.classList.add(enrolmentStatusClass);
+                statusEl.textContent = enrolmentStatus;
+            }
         });
     }
 
     function recalculateStatus(person, group) {
-        var person = $(person);
-        var personChoice = person.find('input[name^="person"]').first();
-        personChoice.val($(group).data('group'));
+        const personChoice = person.querySelector('input[name^="person"]');
+        if (personChoice) {
+            personChoice.value = group.dataset.group;
+        }
 
         // Update the display of the person itself 
-        if ($(group).data('group') == $(person).data('choice1') && $(person).data('choice1') != 0) {
-            $('span.choiceTag', person).removeClass('dull message warning error success').addClass('success').html('1st');
-        } else if ($(group).data('group') == $(person).data('choice2') && $(person).data('choice2') != 0) {
-            $('span.choiceTag', person).removeClass('dull message warning error success').addClass('message').html('2nd');
-        } else if ($(group).data('group') == $(person).data('choice3') && $(person).data('choice3') != 0) {
-            $('span.choiceTag', person).removeClass('dull message warning error success').addClass('warning').html('3rd');
-        } else if ($(group).data('group') == $(person).data('choice4') && $(person).data('choice4') != 0) {
-            $('span.choiceTag', person).removeClass('dull message warning error success').addClass('warning').html('4th');
-        } else if ($(group).data('group') == $(person).data('choice5') && $(person).data('choice5') != 0) {
-            $('span.choiceTag', person).removeClass('dull message warning error success').addClass('warning').html('5th');
+        const choiceTag = person.querySelector('span.choiceTag');
+        if (!choiceTag) return;
+        
+        const groupId = parseInt(group.dataset.group);
+        const choice1 = parseInt(person.dataset.choice1 || 0);
+        const choice2 = parseInt(person.dataset.choice2 || 0);
+        const choice3 = parseInt(person.dataset.choice3 || 0);
+        const choice4 = parseInt(person.dataset.choice4 || 0);
+        const choice5 = parseInt(person.dataset.choice5 || 0);
+        
+        choiceTag.classList.remove('dull', 'message', 'warning', 'error', 'success');
+        
+        if (groupId == choice1 && choice1 != 0) {
+            choiceTag.classList.add('success');
+            choiceTag.textContent = '1st';
+        } else if (groupId == choice2 && choice2 != 0) {
+            choiceTag.classList.add('message');
+            choiceTag.textContent = '2nd';
+        } else if (groupId == choice3 && choice3 != 0) {
+            choiceTag.classList.add('warning');
+            choiceTag.textContent = '3rd';
+        } else if (groupId == choice4 && choice4 != 0) {
+            choiceTag.classList.add('warning');
+            choiceTag.textContent = '4th';
+        } else if (groupId == choice5 && choice5 != 0) {
+            choiceTag.classList.add('warning');
+            choiceTag.textContent = '5th';
         } else {
-            if ($(person).data('choice1') + $(person).data('choice2') + $(person).data('choice3') + $(person).data('choice4') + $(person).data('choice5') < 1) {
-                $('span.choiceTag', person).removeClass('dull message warning error success').addClass('error').html('None');
+            if (choice1 + choice2 + choice3 + choice4 + choice5 < 1) {
+                choiceTag.classList.add('error');
+                choiceTag.textContent = 'None';
             } else {
-                $('span.choiceTag', person).removeClass('dull message warning error success').addClass('dull').html('N/A');
+                choiceTag.classList.add('dull');
+                choiceTag.textContent = 'N/A';
             }
-
         }
     }
 
 {% elseif mode == 'staff' %}
 
     function recalculateGroups() {
-        $('#generateGroups .enrolmentGroup').each(function (element) {
-            var enrolmentCount = $(this).data('count');
-            var groupCount = $(this).parent().find('.groupStaff:not(.ui-sortable-helper)').length;
+        document.querySelectorAll('#generateGroups .enrolmentGroup').forEach(function(element) {
+            const enrolmentCount = parseInt(element.dataset.count || 0);
+            const groupCount = element.parentElement.querySelectorAll('.groupStaff:not(.sortable-ghost)').length;
 
-            $(this).parent().find('.groupCount').first().html(groupCount);
+            const groupCountEl = element.parentElement.querySelector('.groupCount');
+            if (groupCountEl) {
+                groupCountEl.textContent = groupCount;
+            }
 
-            var staffRatio = enrolmentCount > 0 ? Math.ceil( groupCount / enrolmentCount) : groupCount;
-            var enrolmentRatio = groupCount > 0 ? Math.ceil( enrolmentCount / groupCount ) : enrolmentCount; 
+            const staffRatio = enrolmentCount > 0 ? Math.ceil(groupCount / enrolmentCount) : groupCount;
+            const enrolmentRatio = groupCount > 0 ? Math.ceil(enrolmentCount / groupCount) : enrolmentCount; 
             
-            var enrolmentRatioClass = 'dull';
+            let enrolmentRatioClass = 'dull';
 
             if (staffRatio == 0 || enrolmentRatio >= 14) {
                 enrolmentRatioClass = 'error';
@@ -277,44 +306,55 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
                 enrolmentRatioClass = 'warning';
             }
 
-            $(this).parent().find('.enrolmentRatio').first().html('Ratio '+( staffRatio+':'+enrolmentRatio ));
-            $(this).parent().find('.enrolmentRatio').removeClass('warning error success dull').addClass(enrolmentRatioClass);
+            const ratioEl = element.parentElement.querySelector('.enrolmentRatio');
+            if (ratioEl) {
+                ratioEl.textContent = 'Ratio ' + (staffRatio + ':' + enrolmentRatio);
+                ratioEl.classList.remove('warning', 'error', 'success', 'dull');
+                ratioEl.classList.add(enrolmentRatioClass);
+            }
         });
     }
 
     function recalculateStatus(person, group) {
-        var person = $(person);
-        var personChoice = person.find('input[name^="person"]').first();
-        personChoice.val($(group).data('group'));
+        const personChoice = person.querySelector('input[name^="person"]');
+        if (personChoice) {
+            personChoice.value = group.dataset.group;
+        }
 
-        var personRole = person.find('select[name^="role"]').first();
-        var personType = person.find('.personType').first();
-        if ($(group).data('group') > 0) {
-            $(personRole).show();
-            $(personType).hide();
+        const personRole = person.querySelector('select[name^="role"]');
+        const personType = person.querySelector('.personType');
+        
+        if (parseInt(group.dataset.group) > 0) {
+            if (personRole) personRole.style.display = 'block';
+            if (personType) personType.style.display = 'none';
         } else {
-            $(personRole).hide();
-            $(personType).show();
+            if (personRole) personRole.style.display = 'none';
+            if (personType) personType.style.display = 'block';
         }
     }
 
 {% endif %}
 
-    $(document).ready(function () {
+    document.addEventListener('DOMContentLoaded', function() {
         recalculateGroups();
 
-        $('#generateGroups .enrolmentPerson').each(function (element) {
-            recalculateStatus(this, $(this).parent());
+        document.querySelectorAll('#generateGroups .enrolmentPerson').forEach(function(element) {
+            recalculateStatus(element, element.parentElement);
         });
     });
 
-    // $(document).on('change', 'select[name^="role"]', function() {
-    //     if ($(this).val() == 'Organiser') {
-    //         $(this).removeClass('message bg-purple-200 text-purple-700').addClass('success');
-    //     } else if ($(this).val() == 'Teacher') {
-    //         $(this).removeClass('success bg-purple-200 text-purple-700').addClass('message');
-    //     } else if ($(this).val() == 'Support') {
-    //         $(this).removeClass('success message').addClass('bg-purple-200 text-purple-700');
+    // document.addEventListener('change', function(e) {
+    //     if (e.target.matches('select[name^="role"]')) {
+    //         if (e.target.value == 'Organiser') {
+    //             e.target.classList.remove('message', 'bg-purple-200', 'text-purple-700');
+    //             e.target.classList.add('success');
+    //         } else if (e.target.value == 'Teacher') {
+    //             e.target.classList.remove('success', 'bg-purple-200', 'text-purple-700');
+    //             e.target.classList.add('message');
+    //         } else if (e.target.value == 'Support') {
+    //             e.target.classList.remove('success', 'message');
+    //             e.target.classList.add('bg-purple-200', 'text-purple-700');
+    //         }
     //     }
     // });
 

@@ -142,11 +142,26 @@ class Documents extends Input
 
         $output .= "
         <script>
-            $('.document-omit').click(function () {
-                $(this).parents('.document').find('.document-details').toggle($(this).checked);
+            document.querySelectorAll('.document-omit').forEach(function(checkbox) {
+                checkbox.addEventListener('click', function() {
+                    const document = this.closest('.document');
+                    if (document) {
+                        const details = document.querySelector('.document-details');
+                        if (details) {
+                            details.style.display = this.checked ? 'block' : 'none';
+                        }
+                    }
+                });
             });
-            $('.document-omit:checked').each(function () {
-                $(this).parents('.document').find('.document-details').hide();
+            
+            document.querySelectorAll('.document-omit:checked').forEach(function(checkbox) {
+                const document = checkbox.closest('.document');
+                if (document) {
+                    const details = document.querySelector('.document-details');
+                    if (details) {
+                        details.style.display = 'none';
+                    }
+                }
             });
         </script>
         ";

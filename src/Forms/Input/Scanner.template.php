@@ -8,48 +8,78 @@
 
 <script type="text/javascript">
 function scanner(self) {
-    if ($("#preview").length > 0) {
-        document.getElementById("preview").remove();
-        document.getElementById("cameraButton").remove();
+    const preview = document.getElementById("preview");
+    const cameraButton = document.getElementById("cameraButton");
+    
+    if (preview) {
+        preview.remove();
+        if (cameraButton) cameraButton.remove();
     } else {
-        $(self).parent().parent().append('<video id="preview" class="w-64"></video>');
+        const video = document.createElement('video');
+        video.id = 'preview';
+        video.className = 'w-64';
+        self.parentElement.parentElement.appendChild(video);
     }
+    
     let scanner = new Instascan.Scanner({ video: document.getElementById("preview") });
-        scanner.addListener("scan", function (content) {
-        scanner.stop()
-        $("input", $(self).parent()).val(content);
-        document.getElementById("preview").remove()
-        document.getElementById("cameraButton").remove();
-        });
-        Instascan.Camera.getCameras().then(function (cameras) {
-        count = 0;
+    scanner.addListener("scan", function (content) {
+        scanner.stop();
+        const input = self.parentElement.querySelector("input");
+        if (input) input.value = content;
+        
+        const previewEl = document.getElementById("preview");
+        const cameraButtonEl = document.getElementById("cameraButton");
+        if (previewEl) previewEl.remove();
+        if (cameraButtonEl) cameraButtonEl.remove();
+    });
+    
+    Instascan.Camera.getCameras().then(function (cameras) {
+        let count = 0;
         if (cameras.length > 0) {
             scanner.start(cameras[count]);
             if (cameras.length > 1) {
-            if ($("#cameraButton").length < 1 && $("#preview").length > 0) {
-                $(self).parent().parent().append('<button type="button" class="button border rounded-r-md text-sm text-gray-600" id="cameraButton" style="height: 36px;">Change Camera</button>');
-            }
-            $("#cameraButton").on("click", function(){
-                count++;
-                if (count > cameras.length) {
-                    count = 0;
+                const existingButton = document.getElementById("cameraButton");
+                const previewExists = document.getElementById("preview");
+                
+                if (!existingButton && previewExists) {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'button border rounded-r-md text-sm text-gray-600';
+                    button.id = 'cameraButton';
+                    button.style.height = '36px';
+                    button.textContent = 'Change Camera';
+                    self.parentElement.parentElement.appendChild(button);
                 }
-                scanner.start(cameras[count]);
-            });
+                
+                const cameraBtn = document.getElementById("cameraButton");
+                if (cameraBtn) {
+                    cameraBtn.addEventListener("click", function() {
+                        count++;
+                        if (count >= cameras.length) {
+                            count = 0;
+                        }
+                        scanner.start(cameras[count]);
+                    });
+                }
             }
         } else {
-            scanner.stop()
-            $("input", $(self).parent()).val("No camera available");
+            scanner.stop();
+            const input = self.parentElement.querySelector("input");
+            if (input) input.value = "No camera available";
         }
-        }).catch(function (e) {
-        $("input", $(self).parent()).val("Camera Error");
-        });   
+    }).catch(function (e) {
+        const input = self.parentElement.querySelector("input");
+        if (input) input.value = "Camera Error";
+    });   
 }
 </script>
 
 
 <?php if (!empty($autocomplete)) { ?>
     <script type="text/javascript">
-    $("#<?= $id; ?>").autocomplete({source: [<?= $autocomplete; ?>]});
+    const autocompleteEl = document.getElementById("<?= $id; ?>");
+    if (autocompleteEl && typeof autocompleteEl.autocomplete === 'function') {
+        autocompleteEl.autocomplete({source: [<?= $autocomplete; ?>]});
+    }
     </script>
 <?php } ?>
