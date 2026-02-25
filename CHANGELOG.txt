@@ -31,6 +31,7 @@ v31.0.00
     Security
 
     Changes With Important Notices
+        System: jQuery has been removed from the core, please use modern JavaScript code instead
 
     Tweaks & Additions
         System: updated TinyMCE to version 8 and added a minimal mode to Editor fields

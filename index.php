@@ -338,9 +338,6 @@ $javascriptConfig = [
 
 // Set page scripts: head
 $page->scripts->addMultiple([
-    'jquery'         => 'lib/jquery/jquery.js',
-    'jquery-migrate' => 'lib/jquery/jquery-migrate.min.js',
-    'jquery-ui'      => 'lib/jquery-ui/js/jquery-ui.min.js',
     'htmx'           => 'lib/htmx/htmx.min.js',
     'core'           => 'resources/assets/js/core.min.js',
     
@@ -374,9 +371,6 @@ $page->addHeadExtra($session->get('analytics'));
 /**
  * STYLESHEETS & CSS
  */
-$page->stylesheets->addMultiple([
-    'jquery-ui'    => 'lib/jquery-ui/css/jquery-ui.min.css',
-], ['weight' => -1]);
 
 // Add right-to-left stylesheet
 if ($session->get('i18n')['rtl'] == 'Y') {
