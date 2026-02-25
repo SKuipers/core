@@ -50,13 +50,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
         {% if pageNum <= 0 %}
             {{ __('Older') }}
         {% else %}
-            <a href="{{ absoluteURL }}/index.php?q=/modules/{{ module }}/markbook_view.php&gibbonCourseClassID={{ gibbonCourseClassID }}&page={{ pageNum - 1 }}">{{ __('Older') }}</a>
+            <a href="{{ absoluteURL }}/index.php?q=/modules/Markbook/markbook_view.php&gibbonCourseClassID={{ gibbonCourseClassID }}&page={{ pageNum - 1 }}">{{ __('Older') }}</a>
         {% endif %}
          | 
         {% if (pageNum + 1) * columnsPerPage >= columnCountTotal %}
             {{ __('Newer') }}
         {% else %}
-            <a href="{{ absoluteURL }}/index.php?q=/modules/{{ module }}/markbook_view.php&gibbonCourseClassID={{ gibbonCourseClassID }}&page={{ pageNum + 1 }}">{{ __('Newer') }}</a>
+            <a href="{{ absoluteURL }}/index.php?q=/modules/Markbook/markbook_view.php&gibbonCourseClassID={{ gibbonCourseClassID }}&page={{ pageNum + 1 }}">{{ __('Newer') }}</a>
         {% endif %}
     {% endif %}
 </div>
@@ -77,33 +77,34 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                 items: 'thead th .dragtable-drag-handle',
                 scroll: true,
                 appendTarget: ':parent',
-                persistState: function(table) {
-                    // Get the column order from data-header attributes
-                    var columnOrder = [];
-                    table.find('th[data-header]').each(function() {
-                        var headerId = $(this).attr('data-header');
-                        if (headerId) {
-                            columnOrder.push(headerId);
+            });
+
+            $("#myTable").on('dragtablestop', function( event ) {
+                // Get the column order from data-header attributes
+                var columnOrder = [];
+                this.querySelectorAll('th[data-header]').forEach(function(item) {
+                    var headerId = item.getAttribute('data-header');
+                    if (headerId) {
+                        columnOrder.push(headerId);
+                    }
+                });
+
+                // Save the new order via AJAX
+                if (columnOrder.length > 0) {
+                    $.ajax({
+                        url: '{{ absoluteURL }}/modules/Markbook/markbook_viewAjax.php',
+                        type: 'POST',
+                        data: {
+                            order: columnOrder,
+                            sequence: {{ minimumSequenceNumber }}
+                        },
+                        success: function(response) {
+                            // Column order saved successfully
+                        },
+                        error: function() {
+                            console.error('Failed to save column order');
                         }
                     });
-                    
-                    // Save the new order via AJAX
-                    if (columnOrder.length > 0) {
-                        $.ajax({
-                            url: '{{ absoluteURL }}/modules/{{ module }}/markbook_viewAjax.php',
-                            type: 'POST',
-                            data: {
-                                order: columnOrder,
-                                sequence: {{ minimumSequenceNumber }}
-                            },
-                            success: function(response) {
-                                // Column order saved successfully
-                            },
-                            error: function() {
-                                console.error('Failed to save column order');
-                            }
-                        });
-                    }
                 }
             });
         {% endif %}
@@ -270,11 +271,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                             {# Action links for editing #}
                             {% if canEditThisClass %}
                                 <div class="columnActions flex items-center justify-center gap-2">
-                                    <a class="inline-block text-gray-600 hover:text-gray-800" title="{{ __('Edit') }}" href="{{ absoluteURL }}/index.php?q=/modules/{{ module }}/markbook_edit_edit.php&gibbonCourseClassID={{ gibbonCourseClassID }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}">
+                                    <a class="inline-block text-gray-600 hover:text-gray-800" title="{{ __('Edit') }}" href="{{ absoluteURL }}/index.php?q=/modules/Markbook/markbook_edit_edit.php&gibbonCourseClassID={{ gibbonCourseClassID }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}">
                                         {# SAFE: icon() function generates trusted SVG HTML from Gibbon framework #}
                                         {{ icon('solid', 'edit', 'size-6')|raw }}
                                     </a>
-                                    <a class="inline-block text-gray-600 hover:text-gray-800" title="{{ __('Enter Data') }}" href="{{ absoluteURL }}/index.php?q=/modules/{{ module }}/markbook_edit_data.php&gibbonCourseClassID={{ gibbonCourseClassID }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}">
+                                    <a class="inline-block text-gray-600 hover:text-gray-800" title="{{ __('Enter Data') }}" href="{{ absoluteURL }}/index.php?q=/modules/Markbook/markbook_edit_data.php&gibbonCourseClassID={{ gibbonCourseClassID }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}">
                                         {# SAFE: icon() function generates trusted SVG HTML from Gibbon framework #}
                                         {{ icon('solid', 'markbook', 'size-6')|raw }}
                                         
@@ -312,7 +313,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                             </div>
                                         {% endif %}
                                     </a>
-                                    <a class="thickbox inline-block text-gray-600 hover:text-gray-800" title="{{ __('Delete') }}" href="{{ absoluteURL }}/fullscreen.php?q=/modules/{{ module }}/markbook_edit_delete.php&gibbonCourseClassID={{ gibbonCourseClassID }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}&width=650&height=135">
+                                    <a class="thickbox inline-block text-gray-600 hover:text-gray-800" title="{{ __('Delete') }}" href="{{ absoluteURL }}/fullscreen.php?q=/modules/Markbook/markbook_edit_delete.php&gibbonCourseClassID={{ gibbonCourseClassID }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}&width=650&height=135">
                                         {# SAFE: icon() function generates trusted SVG HTML from Gibbon framework #}
                                         {{ icon('solid', 'delete', 'size-6')|raw }}
                                     </a>
@@ -505,9 +506,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                 {# Modified assessment indicator #}
                                 {% if enableModifiedAssessment == 'Y' %}
                                     <td class="medColumn">
-                                        {% if entry.modifiedAssessment == 'Y' %}
-                                            {{ __('N') }}
-                                        {% endif %}
+                                        {{ entry.modifiedAssessment }}
                                     </td>
                                 {% endif %}
                                 
@@ -543,7 +542,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                         {% else %}
                                             {# Show quick edit link for empty attainment when no rubric #}
                                             {% if not column.hasAttainmentRubric() and canEditThisClass %}
-                                                <a title="{{ __('Edit') }}" class="markbookQuickEdit text-gray-600 hover:text-gray-800 inline-block ml-2 align-middle" href="{{ absoluteURL }}/index.php?q=/modules/{{ module }}/markbook_edit_data.php&gibbonCourseClassID={{ gibbonCourseClassID }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}#{{ student.gibbonPersonID }}">
+                                                <a title="{{ __('Edit') }}" class="markbookQuickEdit text-gray-600 hover:text-gray-800 inline-block ml-2 align-middle" href="{{ absoluteURL }}/index.php?q=/modules/Markbook/markbook_edit_data.php&gibbonCourseClassID={{ gibbonCourseClassID }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}#{{ student.gibbonPersonID }}">
                                                     {# SAFE: icon() function generates trusted SVG HTML from Gibbon framework #}
                                                     {{ icon('solid', 'edit', 'size-4')|raw }}
                                                 </a>
@@ -581,7 +580,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                         {% else %}
                                             {# Show quick edit link for empty effort when no rubric #}
                                             {% if not column.hasEffortRubric() and canEditThisClass %}
-                                                <a title="{{ __('Edit') }}" class="markbookQuickEdit text-gray-600 hover:text-gray-800 inline-block ml-2 align-middle" href="{{ absoluteURL }}/index.php?q=/modules/{{ module }}/markbook_edit_data.php&gibbonCourseClassID={{ gibbonCourseClassID }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}#{{ student.gibbonPersonID }}">
+                                                <a title="{{ __('Edit') }}" class="markbookQuickEdit text-gray-600 hover:text-gray-800 inline-block ml-2 align-middle" href="{{ absoluteURL }}/index.php?q=/modules/Markbook/markbook_edit_data.php&gibbonCourseClassID={{ gibbonCourseClassID }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}#{{ student.gibbonPersonID }}">
                                                     {# SAFE: icon() function generates trusted SVG HTML from Gibbon framework #}
                                                     {{ icon('solid', 'edit', 'size-4')|raw }}
                                                 </a>
@@ -658,7 +657,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                 {# No entry data - show Add links in each cell #}
                                 {% if canEditThisClass %}
                                     {% set editLink %}
-                                        <a title="{{ __('Add') }}" class="markbookQuickEdit inline-block" href="{{ absoluteURL }}/index.php?q=/modules/{{ module }}/markbook_edit_data.php&gibbonCourseClassID={{ gibbonCourseClassID }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}#{{ student.gibbonPersonID }}">
+                                        <a title="{{ __('Add') }}" class="markbookQuickEdit inline-block" href="{{ absoluteURL }}/index.php?q=/modules/Markbook/markbook_edit_data.php&gibbonCourseClassID={{ gibbonCourseClassID }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}#{{ student.gibbonPersonID }}">
                                             {# SAFE: icon() function generates trusted SVG HTML from Gibbon framework #}
                                             {{ icon('solid', 'add', 'size-4 text-green-600 mt-1')|raw }}
                                         </a>

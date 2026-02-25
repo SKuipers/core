@@ -20,33 +20,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 jQuery(function($){
 
-
-	$(window).on('load', function (e) {
-        // Matches the width of the top placeholder to the final table width
-	    $('.doublescroll-top-tablewidth').width($('.doublescroll-container table').width());
-
-        // Start scrolled to the left, where all the recent stuff is
-        $('.doublescroll-container').scrollLeft($('.doublescroll-container table').width());
-	});
-
-	// Pairs the position of the top scrollbar with the bottom scrollbar
-    $('.doublescroll-top').scroll(function(){
-        $('.doublescroll-container')
-            .scrollLeft($('.doublescroll-top').scrollLeft());
-    });
-    $('.doublescroll-container').scroll(function(){
-        $('.doublescroll-top')
-            .scrollLeft($('.doublescroll-container').scrollLeft());
-    });
-
-
-    // Add dragtable functionality to the markbook table
-    $('#myTable.markbook').dragtable({
-		items: 'thead th .dragtable-drag-handle',
-		scroll: true,
-		appendTarget: ':parent',
-	});
-
     // In markbook_edit_data.php, update the attainment value to match raw score
     // But not the other way around, in case teachers need to adjust the value
 	$('input[id$="attainmentValueRaw"]').change( function() {
