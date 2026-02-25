@@ -302,8 +302,17 @@ if (isActionAccessible($guid, $connection2, "/modules/Attendance/attendance_take
 
 <script type="text/javascript">
     // When changing classes, hide the period selector
-    $(document).on('change', '#gibbonCourseClassID', function () {
-        $('#gibbonTTDayRowClassID').val('').prop('disabled', true);
-        $('.selectPeriod, .message').addClass('hidden');
+    document.addEventListener('change', function(event) {
+        if (event.target.id === 'gibbonCourseClassID') {
+            const gibbonTTDayRowClassID = document.getElementById('gibbonTTDayRowClassID');
+            if (gibbonTTDayRowClassID) {
+                gibbonTTDayRowClassID.value = '';
+                gibbonTTDayRowClassID.disabled = true;
+            }
+            
+            document.querySelectorAll('.selectPeriod, .message').forEach(el => {
+                el.classList.add('hidden');
+            });
+        }
     });
 </script>

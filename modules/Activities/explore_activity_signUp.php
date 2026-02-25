@@ -149,13 +149,35 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/explore_activit
 ?>
 
 <script>
-$(document).on('change input', '.signUpChoice', function () {
-    var currentChoice = this;
+document.addEventListener('change', function(event) {
+    if (event.target.classList.contains('signUpChoice')) {
+        const currentChoice = event.target;
+        const currentValue = currentChoice.value;
+        
+        document.querySelectorAll('.signUpChoice').forEach(function(choice) {
+            if (choice !== currentChoice && choice.value === currentValue) {
+                const firstOption = choice.querySelector("option:first-child");
+                if (firstOption) {
+                    choice.value = firstOption.value;
+                }
+            }
+        });
+    }
+});
 
-    $('.signUpChoice').not(this).each(function() {
-        if ($(currentChoice).val() == $(this).val()) {
-            $(this).val($(this).find("option:first-child").val());
-        }
-    });
+document.addEventListener('input', function(event) {
+    if (event.target.classList.contains('signUpChoice')) {
+        const currentChoice = event.target;
+        const currentValue = currentChoice.value;
+        
+        document.querySelectorAll('.signUpChoice').forEach(function(choice) {
+            if (choice !== currentChoice && choice.value === currentValue) {
+                const firstOption = choice.querySelector("option:first-child");
+                if (firstOption) {
+                    choice.value = firstOption.value;
+                }
+            }
+        });
+    }
 });
 </script>

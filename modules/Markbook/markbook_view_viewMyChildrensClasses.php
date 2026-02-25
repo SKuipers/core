@@ -194,16 +194,27 @@ if (empty($children)) {
         ?>
         <script type="text/javascript">
             /* Show/Hide detail control */
-            $(document).ready(function(){
+            document.addEventListener('DOMContentLoaded', function(){
                 var updateDetails = function (){
-                    if ($('input[name=details]:checked').val()=="Yes" ) {
-                        $(".detailItem").slideDown("fast", $(".detailItem").css("{'display' : 'table-row'}"));
+                    const detailsChecked = document.querySelector('input[name=details]:checked');
+                    const detailItems = document.querySelectorAll(".detailItem");
+                    
+                    if (detailsChecked && detailsChecked.value == "Yes") {
+                        detailItems.forEach(item => {
+                            item.style.display = 'table-row';
+                        });
                     }
                     else {
-                        $(".detailItem").slideUp("fast");
+                        detailItems.forEach(item => {
+                            item.style.display = 'none';
+                        });
                     }
                 }
-                $(".details").click(updateDetails);
+                
+                document.querySelectorAll(".details").forEach(detail => {
+                    detail.addEventListener('click', updateDetails);
+                });
+                
                 updateDetails();
             });
         </script>
@@ -394,12 +405,16 @@ if (empty($children)) {
                             if ($rowEntry['comment'] != '') {
                                 if (mb_strlen($rowEntry['comment']) > 200) {
                                     echo "<script type='text/javascript'>";
-                                    echo '$(document).ready(function(){';
-                                    echo "\$(\".comment-$entryCount\").hide();";
-                                    echo "\$(\".show_hide-$entryCount\").fadeIn(1000);";
-                                    echo "\$(\".show_hide-$entryCount\").click(function(){";
-                                    echo "\$(\".comment-$entryCount\").fadeToggle(1000);";
+                                    echo 'document.addEventListener("DOMContentLoaded", function(){';
+                                    echo "const comment = document.querySelector(\".comment-$entryCount\");";
+                                    echo "const showHide = document.querySelector(\".show_hide-$entryCount\");";
+                                    echo "if (comment) comment.style.display = 'none';";
+                                    echo "if (showHide) {";
+                                    echo "showHide.style.display = 'inline';";
+                                    echo "showHide.addEventListener('click', function(){";
+                                    echo "if (comment) comment.style.display = comment.style.display === 'none' ? 'block' : 'none';";
                                     echo '});';
+                                    echo '}';
                                     echo '});';
                                     echo '</script>';
                                     echo '<span>'.mb_substr($rowEntry['comment'], 0, 200).'...<br/>';

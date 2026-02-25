@@ -155,18 +155,23 @@ class Visualise
                     'duration' => 0,
                     'onComplete' => $chart->addFunction('function(e) {
                         var img = visualisation'.$this->gibbonPersonID.'.toDataURL("image/png");
-                        $.ajax({
-                            url: ' . json_encode($ajaxUrl) . ',
-                            type: "POST",
-                            data: {
+                        fetch(' . json_encode($ajaxUrl) . ', {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/x-www-form-urlencoded",
+                            },
+                            body: new URLSearchParams({
                                 img: img,
                                 gibbonPersonID: '.json_encode($this->gibbonPersonID).',
                                 path: '.json_encode($path).'
-                            },
-                            dataType: "html",
-                            success: function (data) {
-                                '.( $id ? '$("#'.$id.'").val(data);' : '' ).'
-                            }
+                            })
+                        })
+                        .then(response => response.text())
+                        .then(data => {
+                            '.( $id ? 'const el = document.getElementById("'.$id.'"); if (el) el.value = data;' : '' ).'
+                        })
+                        .catch(error => {
+                            console.error("Error saving chart image:", error);
                         });
                         this.options.animation.onComplete = null;
                     }'),

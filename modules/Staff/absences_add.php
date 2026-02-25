@@ -246,65 +246,142 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/absences_add.php') =
 
 <script>
 
-$(document).ready(function() {
+document.addEventListener('DOMContentLoaded', function() {
     // ABSENCE
-    $('#dateStart, #dateEnd').on('change', function() {
-        $.ajax({
-            url: "./modules/Staff/absences_addAjax.php",
-            data: {
-                'dateStart': $('#dateStart').val(),
-                'dateEnd': $('#dateEnd').val(),
-            },
-            type: 'POST',
-            success: function(data) {
+    const dateStart = document.getElementById('dateStart');
+    const dateEnd = document.getElementById('dateEnd');
+    
+    function checkSchoolClosed() {
+        const dateStartVal = dateStart ? dateStart.value : '';
+        const dateEndVal = dateEnd ? dateEnd.value : '';
+        
+        if (dateStartVal && dateEndVal) {
+            fetch("./modules/Staff/absences_addAjax.php", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'dateStart': dateStartVal,
+                    'dateEnd': dateEndVal
+                })
+            })
+            .then(response => response.text())
+            .then(data => {
+                const schoolClosedOverride = document.querySelector('.schoolClosedOverride');
+                const schoolClosedCheckbox = document.getElementById('schoolClosedOverride');
+                
                 if (data === '0') {
-                    $('.schoolClosedOverride').removeClass('hidden');
-                    $('#schoolClosedOverride').prop('disabled', false);
+                    if (schoolClosedOverride) schoolClosedOverride.classList.remove('hidden');
+                    if (schoolClosedCheckbox) schoolClosedCheckbox.disabled = false;
                 } else {
-                    $('.schoolClosedOverride').addClass('hidden');
-                    $('#schoolClosedOverride').prop('disabled', true);
+                    if (schoolClosedOverride) schoolClosedOverride.classList.add('hidden');
+                    if (schoolClosedCheckbox) schoolClosedCheckbox.disabled = true;
                 }
-            }
-        });
-    });
+            })
+            .catch(error => {
+                console.error('Error checking school closed dates:', error);
+            });
+        }
+    }
+    
+    if (dateStart) dateStart.addEventListener('change', checkSchoolClosed);
+    if (dateEnd) dateEnd.addEventListener('change', checkSchoolClosed);
 
     // COVERAGE
-    $('#coverageRequired, .coverageField').on('change', function() {
-        if ($('#coverageRequired').val() == 'Y') {
-            $('.coverageRequestForm').removeClass('hidden').html('<div class="w-full flex items-center justify-center h-32"><img class="align-middle w-56 -mt-px" src="./themes/Default/img/loading.gif"></div>');
-            $('.coverageRequestForm').load('./modules/Staff/coverage_requestAjax.php', {
-                'gibbonStaffAbsenceTypeID': $('#gibbonStaffAbsenceTypeID').val(),
-                'gibbonPersonID': $('#gibbonPersonID').val() ?? "<?php echo $gibbonPersonID; ?>",
-                'dateStart': $('#dateStart').val(),
-                'dateEnd': $('#dateEnd').val(),
-                'allDay': $('input[name=allDay]:checked').val(),
-                'timeStart': $('#timeStart').val(),
-                'timeEnd': $('#timeEnd').val(),
-            }, function(result) {
-                $('input[name="timetableClasses[]"]').trigger('change');
-                $('input[name="requestDates[]"]').trigger('change');
+    function updateCoverageForm() {
+        const coverageRequired = document.getElementById('coverageRequired');
+        const coverageRequestForm = document.querySelector('.coverageRequestForm');
+        
+        if (coverageRequired && coverageRequired.value == 'Y' && coverageRequestForm) {
+            coverageRequestForm.classList.remove('hidden');
+            coverageRequestForm.innerHTML = '<div class="w-full flex items-center justify-center h-32"><img class="align-middle w-56 -mt-px" src="./themes/Default/img/loading.gif"></div>';
+            
+            const gibbonPersonIDField = document.getElementById('gibbonPersonID');
+            const allDayCheckbox = document.querySelector('input[name=allDay]:checked');
+            
+            const formData = new URLSearchParams({
+                'gibbonStaffAbsenceTypeID': document.getElementById('gibbonStaffAbsenceTypeID')?.value || '',
+                'gibbonPersonID': gibbonPersonIDField ? gibbonPersonIDField.value : "<?php echo $gibbonPersonID; ?>",
+                'dateStart': dateStart ? dateStart.value : '',
+                'dateEnd': dateEnd ? dateEnd.value : '',
+                'allDay': allDayCheckbox ? allDayCheckbox.value : '',
+                'timeStart': document.getElementById('timeStart')?.value || '',
+                'timeEnd': document.getElementById('timeEnd')?.value || ''
             });
-        } else {
-            $('.coverageRequestForm').addClass('hidden').html('');
+            
+            fetch('./modules/Staff/coverage_requestAjax.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: formData
+            })
+            .then(response => response.text())
+            .then(html => {
+                coverageRequestForm.innerHTML = html;
+                // Trigger change events on dynamically loaded checkboxes
+                document.querySelectorAll('input[name="timetableClasses[]"]').forEach(cb => {
+                    cb.dispatchEvent(new Event('change'));
+                });
+                document.querySelectorAll('input[name="requestDates[]"]').forEach(cb => {
+                    cb.dispatchEvent(new Event('change'));
+                });
+            })
+            .catch(error => {
+                console.error('Error loading coverage form:', error);
+                coverageRequestForm.innerHTML = '<div class="error">Error loading coverage form</div>';
+            });
+        } else if (coverageRequestForm) {
+            coverageRequestForm.classList.add('hidden');
+            coverageRequestForm.innerHTML = '';
+        }
+    }
+    
+    const coverageRequired = document.getElementById('coverageRequired');
+    if (coverageRequired) {
+        coverageRequired.addEventListener('change', updateCoverageForm);
+    }
+    
+    // Listen for changes on coverage fields
+    document.querySelectorAll('.coverageField').forEach(field => {
+        field.addEventListener('change', updateCoverageForm);
+    });
+
+    // Handle dynamically loaded checkbox changes
+    document.addEventListener('change', function(event) {
+        if (event.target.matches('input[name="timetableClasses[]"]') || 
+            event.target.matches('input[name="requestDates[]"]')) {
+            const checkbox = event.target;
+            const row = checkbox.closest('tr');
+            
+            if (row) {
+                const isChecked = checkbox.checked;
+                row.querySelectorAll('.individualOptions.personSelect').forEach(elem => {
+                    elem.style.display = isChecked ? '' : 'none';
+                });
+                row.querySelectorAll('.coverageNotes').forEach(elem => {
+                    elem.style.display = isChecked ? '' : 'none';
+                });
+            }
+        }
+        
+        if (event.target.matches('#requestType')) {
+            document.querySelectorAll('input[name="timetableClasses[]"]').forEach(cb => {
+                cb.dispatchEvent(new Event('change'));
+            });
+            document.querySelectorAll('input[name="requestDates[]"]').forEach(cb => {
+                cb.dispatchEvent(new Event('change'));
+            });
         }
     });
 
-    $(document).on('change', 'input[name="timetableClasses[]"],input[name="requestDates[]"]', function() {
-        var checkbox = this;
-        $(this).parents('tr').find('.individualOptions.personSelect').each(function() {
-            $(this).toggle($(checkbox).prop("checked"));
-        });
-
-        $(this).parents('tr').find('.coverageNotes').each(function() {
-            $(this).toggle($(checkbox).prop("checked"));
-        });
-
+    // Initial trigger for pre-loaded checkboxes
+    document.querySelectorAll('input[name="timetableClasses[]"]').forEach(cb => {
+        cb.dispatchEvent(new Event('change'));
     });
-
-    $('input[name="timetableClasses[]"],input[name="requestDates[]"]').trigger('change');
-
-    $(document).on('change', '#requestType', function() {
-        $('input[name="timetableClasses[]"],input[name="requestDates[]"]').trigger('change');
+    document.querySelectorAll('input[name="requestDates[]"]').forEach(cb => {
+        cb.dispatchEvent(new Event('change'));
     });
-}) ;
+});
 </script>

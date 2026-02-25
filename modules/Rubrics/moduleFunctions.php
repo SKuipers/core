@@ -403,19 +403,24 @@ function rubricView($guid, $connection2, $gibbonRubricID, $mark, $gibbonPersonID
 
                     if ($mark == true) {
                         $output .= "<script type='text/javascript'>";
-                        $output .= '$(document).ready(function(){';
-                        $output .= '$(".markableCell").parent().click(function(){';
+                        $output .= 'document.addEventListener("DOMContentLoaded", function(){';
+                        $output .= 'document.addEventListener("click", function(event){';
+                        $output .= 'const markableCell = event.target.closest(".markableCell");';
+                        $output .= 'if (markableCell && markableCell.parentElement) {';
+                            $output .= 'const parent = markableCell.parentElement;';
                             $output .= "var mode = '';";
-                            $output .= "var cellID = $(this).find('.cellID').data('cell');";
-                            $output .= "if ($(this).hasClass('rubricCellHighlight') == false ) {";
-                                $output .= "$(this).addClass('rubricCellHighlight');";
+                            $output .= "const cellIDEl = parent.querySelector('.cellID');";
+                            $output .= "var cellID = cellIDEl ? cellIDEl.dataset.cell : '';";
+                            $output .= "if (!parent.classList.contains('rubricCellHighlight')) {";
+                                $output .= "parent.classList.add('rubricCellHighlight');";
                                 $output .= "mode = 'Add';";
                             $output .= '} else {';
-                                $output .= "$(this).removeClass('rubricCellHighlight');";
+                                $output .= "parent.classList.remove('rubricCellHighlight');";
                                 $output .= "mode = 'Remove';";
                             $output .= '}';
-                            $output .= 'var request=$.ajax({ url: "'.$session->get('absoluteURL').'/modules/Rubrics/rubrics_data_saveAjax.php", type: "GET", data: {mode: mode, gibbonRubricID : "' . $gibbonRubricID.'", gibbonPersonID : "'.$gibbonPersonID.'", gibbonRubricCellID : cellID, contextDBTable : "'.$contextDBTable.'",contextDBTableID : "'.$contextDBTableID.'"}, dataType: "html"});';
-                            $output .= '});';
+                            $output .= 'fetch("'.$session->get('absoluteURL').'/modules/Rubrics/rubrics_data_saveAjax.php?" + new URLSearchParams({mode: mode, gibbonRubricID: "' . $gibbonRubricID.'", gibbonPersonID: "'.$gibbonPersonID.'", gibbonRubricCellID: cellID, contextDBTable: "'.$contextDBTable.'", contextDBTableID: "'.$contextDBTableID.'"}), {method: "GET"}).catch(error => console.error("Error saving rubric data:", error));';
+                            $output .= '}';
+                        $output .= '});';
                         $output .= '});';
                         $output .= '</script>';
                     }
@@ -440,16 +445,29 @@ function rubricView($guid, $connection2, $gibbonRubricID, $mark, $gibbonPersonID
 
             //Function to show/hide rubric/visualisation
             $output .= "<script type='text/javascript'>
-                 $(document).ready(function(){
-                    $('#rubricTypeSelect').change(function () {
-                        if ($(this).val() == 'Current' || $(this).val() == 'Historical') {
-                            $('#rubric').slideDown('fast', $('#rubric').css('display','block'));
-                            $('#visualise').css('display','none');
-                        } else {
-                            $('#visualise').slideDown('fast', $('#visualise').css('display','block'));
-                            $('#rubric').css('display','none');
-                        }
-                    });
+                 document.addEventListener('DOMContentLoaded', function(){
+                    const rubricTypeSelect = document.getElementById('rubricTypeSelect');
+                    if (rubricTypeSelect) {
+                        rubricTypeSelect.addEventListener('change', function() {
+                            const rubricDiv = document.getElementById('rubric');
+                            const visualiseDiv = document.getElementById('visualise');
+                            if (this.value == 'Current' || this.value == 'Historical') {
+                                if (rubricDiv) {
+                                    rubricDiv.style.display = 'block';
+                                }
+                                if (visualiseDiv) {
+                                    visualiseDiv.style.display = 'none';
+                                }
+                            } else {
+                                if (visualiseDiv) {
+                                    visualiseDiv.style.display = 'block';
+                                }
+                                if (rubricDiv) {
+                                    rubricDiv.style.display = 'none';
+                                }
+                            }
+                        });
+                    }
                 });
             </script>";
 
@@ -472,8 +490,12 @@ function rubricView($guid, $connection2, $gibbonRubricID, $mark, $gibbonPersonID
 
         // Append the Rubric stylesheet to the current page - for Markbook view of Rubric (only if it's not already included)
         $output .= '<script>';
-        $output .= "if (!$('link[href*=\"./modules/Rubrics/css/module.css\"]').length) {";
-        $output .= "$('<link>').appendTo('head').attr({type: 'text/css', rel: 'stylesheet', href: './modules/Rubrics/css/module.css'})";
+        $output .= "if (!document.querySelector('link[href*=\"./modules/Rubrics/css/module.css\"]')) {";
+        $output .= "const link = document.createElement('link');";
+        $output .= "link.type = 'text/css';";
+        $output .= "link.rel = 'stylesheet';";
+        $output .= "link.href = './modules/Rubrics/css/module.css';";
+        $output .= "document.head.appendChild(link);";
         $output .= '}';
         $output .= '</script>';
     }

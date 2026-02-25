@@ -22,71 +22,84 @@ function stopRKey(evt) {
     var evt = (evt) ? evt : ((event) ? event : null); var node = (evt.target) ? evt.target : ((evt.srcElement) ? evt.srcElement : null); if ((evt.keyCode == 13) && (node.type == "text")) { return false; }
 }
 
-$.prototype.loadGoogleBookData = function (settings) {
+function loadGoogleBookData(settings) {
 
-    $(document).on('click', '.gbooks', function () {
-        var isbn = $("#fieldISBN10").val() ? $("#fieldISBN10").val() : $("#fieldISBN13").val();
+    document.addEventListener('click', function(event) {
+        if (event.target.classList.contains('gbooks')) {
+            var isbn10 = document.getElementById("fieldISBN10");
+            var isbn13 = document.getElementById("fieldISBN13");
+            var isbn = isbn10 && isbn10.value ? isbn10.value : (isbn13 ? isbn13.value : '');
 
-        if (isbn) {
-            $.get(("https://www.googleapis.com/books/v1/volumes?q=isbn:" + isbn), function (data) {
-                var obj = (data.constructor === String) ? jQuery.parseJSON(data) : data;
+            if (isbn) {
+                fetch("https://www.googleapis.com/books/v1/volumes?q=isbn:" + isbn)
+                    .then(response => response.json())
+                    .then(data => {
+                        var obj = data;
 
-                if (obj['totalItems'] == 0) {
-                    alert(settings.notFound);
-                } else {
-                    // SET FIELDS
-                    if ($("#name").val() != '') {
-                        if (confirm(settings.confirmation) == true) {
-                            $("#name").val(obj['items'][0]['volumeInfo']['title']);
+                        if (obj['totalItems'] == 0) {
+                            alert(settings.notFound);
+                        } else {
+                            // SET FIELDS
+                            var nameField = document.getElementById("name");
+                            if (nameField.value != '') {
+                                if (confirm(settings.confirmation) == true) {
+                                    nameField.value = obj['items'][0]['volumeInfo']['title'];
+                                }
+                            } else {
+                                nameField.value = obj['items'][0]['volumeInfo']['title'];
+                            }
+
+                            var authors = '';
+                            for (var i = 0; i < obj['items'][0]['volumeInfo']['authors'].length; i++) {
+                                authors = authors + obj['items'][0]['volumeInfo']['authors'][i] + ', ';
+                            }
+                            document.getElementById("producer").value = authors.substring(0, (authors.length - 2));
+                            document.getElementById("fieldPublisher").value = obj['items'][0]['volumeInfo']['publisher'];
+                            if (obj['items'][0]['volumeInfo']['publishedDate'].length == 10) {
+                                document.getElementById("fieldPublicationDate").value = obj['items'][0]['volumeInfo']['publishedDate'].substring(8, 10) + '/' + obj['items'][0]['volumeInfo']['publishedDate'].substring(5, 7) + '/' + obj['items'][0]['volumeInfo']['publishedDate'].substring(0, 4);
+                            } else if (obj['items'][0]['volumeInfo']['publishedDate'].length == 7) {
+                                document.getElementById("fieldPublicationDate").value = obj['items'][0]['volumeInfo']['publishedDate'].substring(5, 7) + '/' + obj['items'][0]['volumeInfo']['publishedDate'].substring(0, 4);
+                            } else if (obj['items'][0]['volumeInfo']['publishedDate'].length == 4) {
+                                document.getElementById("fieldPublicationDate").value = obj['items'][0]['volumeInfo']['publishedDate'].substring(0, 4);
+                            }
+                            document.getElementById("fieldDescription").value = obj['items'][0]['volumeInfo']['description'];
+                            for (var i = 0; i < obj['items'][0]['volumeInfo']['industryIdentifiers'].length; i++) {
+                                if (obj['items'][0]['volumeInfo']['industryIdentifiers'][i]['type'] == 'ISBN_13') {
+                                    document.getElementById("fieldISBN13").value = obj['items'][0]['volumeInfo']['industryIdentifiers'][i]['identifier'];
+                                }
+                                if (obj['items'][0]['volumeInfo']['industryIdentifiers'][i]['type'] == 'ISBN_10') {
+                                    document.getElementById("fieldISBN10").value = obj['items'][0]['volumeInfo']['industryIdentifiers'][i]['identifier'];
+                                }                    
+                            }
+
+                            document.getElementById("fieldPageCount").value = obj['items'][0]['volumeInfo']['pageCount'];
+                            var format = obj['items'][0]['volumeInfo']['printType'].toLowerCase();
+                            format = format.charAt(0).toUpperCase() + format.slice(1);
+                            document.getElementById("fieldFormat").value = format;
+                            document.getElementById("fieldLink").value = obj['items'][0]['volumeInfo']['infoLink'];
+                            var image = obj['items'][0]['volumeInfo']['imageLinks']['thumbnail'];
+                            if (image) {
+                                var imageType = document.getElementById("imageType");
+                                imageType.value = 'Link';
+                                document.getElementById("imageLink").value = image;
+                                imageType.dispatchEvent(new Event('change'));
+                            }
+                            document.getElementById("fieldLanguage").value = obj['items'][0]['volumeInfo']['language'];
+                            var subjects = '';
+                            for (var i = 0; i < obj['items'][0]['volumeInfo']['categories'].length; i++) {
+                                subjects = subjects + obj['items'][0]['volumeInfo']['categories'][i] + ', ';
+                            }
+                            document.getElementById("fieldSubjects").value = subjects.substring(0, (subjects.length - 2));
                         }
-                    } else {
-                        $("#name").val(obj['items'][0]['volumeInfo']['title']);
-                    }
-
-                    var authors = '';
-                    for (var i = 0; i < obj['items'][0]['volumeInfo']['authors'].length; i++) {
-                        authors = authors + obj['items'][0]['volumeInfo']['authors'][i] + ', ';
-                    }
-                    $("#producer").val(authors.substring(0, (authors.length - 2)));
-                    $("#fieldPublisher").val(obj['items'][0]['volumeInfo']['publisher']);
-                    if (obj['items'][0]['volumeInfo']['publishedDate'].length == 10) {
-                        $("#fieldPublicationDate").val(obj['items'][0]['volumeInfo']['publishedDate'].substring(8, 10) + '/' + obj['items'][0]['volumeInfo']['publishedDate'].substring(5, 7) + '/' + obj['items'][0]['volumeInfo']['publishedDate'].substring(0, 4));
-                    } else if (obj['items'][0]['volumeInfo']['publishedDate'].length == 7) {
-                        $("#fieldPublicationDate").val(obj['items'][0]['volumeInfo']['publishedDate'].substring(5, 7) + '/' + obj['items'][0]['volumeInfo']['publishedDate'].substring(0, 4));
-                    } else if (obj['items'][0]['volumeInfo']['publishedDate'].length == 4) {
-                        $("#fieldPublicationDate").val(obj['items'][0]['volumeInfo']['publishedDate'].substring(0, 4));
-                    }
-                    $("#fieldDescription").val(obj['items'][0]['volumeInfo']['description']);
-                    for (var i = 0; i < obj['items'][0]['volumeInfo']['industryIdentifiers'].length; i++) {
-                        if (obj['items'][0]['volumeInfo']['industryIdentifiers'][i]['type'] == 'ISBN_13') {
-                            $("#fieldISBN13").val(obj['items'][0]['volumeInfo']['industryIdentifiers'][i]['identifier']);
-                        }
-                        if (obj['items'][0]['volumeInfo']['industryIdentifiers'][i]['type'] == 'ISBN_10') {
-                            $("#fieldISBN10").val(obj['items'][0]['volumeInfo']['industryIdentifiers'][i]['identifier']);
-                        }                    
-                    }
-
-                    $("#fieldPageCount").val(obj['items'][0]['volumeInfo']['pageCount']);
-                    var format = obj['items'][0]['volumeInfo']['printType'].toLowerCase();
-                    format = format.charAt(0).toUpperCase() + format.slice(1);
-                    $("#fieldFormat").val(format);
-                    $("#fieldLink").val(obj['items'][0]['volumeInfo']['infoLink']);
-                    var image = obj['items'][0]['volumeInfo']['imageLinks']['thumbnail'];
-                    if (image) {
-                        $("#imageType").val('Link');
-                        $("#imageLink").val(image);
-                        $("#imageType").change();
-                    }
-                    $("#fieldLanguage").val(obj['items'][0]['volumeInfo']['language']);
-                    var subjects = '';
-                    for (var i = 0; i < obj['items'][0]['volumeInfo']['categories'].length; i++) {
-                        subjects = subjects + obj['items'][0]['volumeInfo']['categories'][i] + ', ';
-                    }
-                    $("#fieldSubjects").val(subjects.substring(0, (subjects.length - 2)));
-                }
-            });
-        } else {
-            alert(settings.dataRequired);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching Google Books data:', error);
+                        alert(settings.notFound);
+                    });
+            } else {
+                alert(settings.dataRequired);
+            }
         }
     });
-};
+}
+

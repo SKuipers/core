@@ -83,7 +83,7 @@ class PaginatedRenderer extends SimpleRenderer implements RendererInterface
         // Initialize the jQuery Data Table functionality
         $output .="
         <script>
-        $(function(){
+        document.addEventListener('DOMContentLoaded', function(){
             document.getElementById('".$table->getID()."').gibbonDataTable('.".str_replace(' ', '%20', $this->path)."', ".$jsonData.", '".$this->criteria->getIdentifier()."');
         });
         </script>";

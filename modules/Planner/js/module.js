@@ -18,39 +18,60 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-jQuery(function($){
+document.addEventListener('DOMContentLoaded', function() {
 
 	// Show the reason/comment when the attendance dropdown is changed
-	$('select[name$="-type"]').change( function() {
-
-		// Get the data-id from the preceding hidden input
-		var id = $(this).prev('input').data('id');
-
-		// Show/hide the div container
-		$('#'+id+'-hideReasons').show();
-    });
+	document.querySelectorAll('select[name$="-type"]').forEach(function(select) {
+		select.addEventListener('change', function() {
+			// Get the data-id from the preceding hidden input
+			var prevInput = this.previousElementSibling;
+			if (prevInput && prevInput.tagName === 'INPUT') {
+				var id = prevInput.dataset.id;
+				// Show/hide the div container
+				var hideReasons = document.getElementById(id + '-hideReasons');
+				if (hideReasons) {
+					hideReasons.style.display = 'block';
+				}
+			}
+		});
+	});
 
 });
 
 // Handle checkbox toggles for student homework
-$(document).on('click', '.mark-complete', function () {
-    var complete = $(this).is(":checked");
-    $(this).parent().parent().toggleClass('success', complete);
+document.addEventListener('click', function(event) {
+	if (event.target.classList.contains('mark-complete')) {
+		var checkbox = event.target;
+		var complete = checkbox.checked;
+		var parentRow = checkbox.closest('tr') || checkbox.parentElement.parentElement;
+		
+		if (complete) {
+			parentRow.classList.add('success');
+		} else {
+			parentRow.classList.remove('success');
+		}
 
-    $.ajax({
-        url: './modules/Planner/planner_deadlinesAjax.php',
-        data: {
-            complete: complete ? 'Y' : 'N',    
-            type: $(this).data('type'),    
-            gibbonPlannerEntryID: $(this).data('id')
-        },
-        type: 'POST',
-        success: function(data) {
-            if (data == 'error0') {
-                window.location = location.href += "&return=error0";
-            } else if (data == 'error1') {
-                window.location = location.href += "&return=error1";
-            }
-        },
-    });
+		fetch('./modules/Planner/planner_deadlinesAjax.php', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+			},
+			body: new URLSearchParams({
+				complete: complete ? 'Y' : 'N',
+				type: checkbox.dataset.type,
+				gibbonPlannerEntryID: checkbox.dataset.id
+			})
+		})
+		.then(response => response.text())
+		.then(data => {
+			if (data == 'error0') {
+				window.location = location.href + "&return=error0";
+			} else if (data == 'error1') {
+				window.location = location.href + "&return=error1";
+			}
+		})
+		.catch(error => {
+			console.error('Error updating homework completion:', error);
+		});
+	}
 });

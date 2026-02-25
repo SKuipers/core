@@ -808,33 +808,40 @@ class MessageForm extends Form
     {
         // Set up JS to deal with canned response selection
         echo "<script type=\"text/javascript\">" ;
-        echo "$(document).ready(function(){" ;
-            echo "$(\"#cannedResponse\").change(function(){" ;
+        echo "document.addEventListener('DOMContentLoaded', function(){" ;
+            echo "const cannedResponseSelect = document.getElementById('cannedResponse');" ;
+            echo "if (cannedResponseSelect) {" ;
+            echo "cannedResponseSelect.addEventListener('change', function(){" ;
                 echo "if (confirm(\"Are you sure you want to insert these records.\")==1) {" ;
-                    echo "if ($('#cannedResponse').val()==\"\" ) {" ;
-                        echo "$('#subject').val('');" ;
-                        echo "tinyMCE.execCommand('mceRemoveEditor', false, 'body') ;" ;
-                        echo "$('#body').val('');" ;
-                        echo "tinyMCE.execCommand('mceAddEditor', false, 'body') ;" ;
+                    echo "const subjectField = document.getElementById('subject');" ;
+                    echo "const bodyField = document.getElementById('body');" ;
+                    echo "if (this.value == '') {" ;
+                        echo "if (subjectField) subjectField.value = '';" ;
+                        echo "if (typeof tinyMCE !== 'undefined') tinyMCE.execCommand('mceRemoveEditor', false, 'body');" ;
+                        echo "if (bodyField) bodyField.value = '';" ;
+                        echo "if (typeof tinyMCE !== 'undefined') tinyMCE.execCommand('mceAddEditor', false, 'body');" ;
                     echo "}" ;
                     foreach ($cannedResponses AS $rowSelect) {
-                        echo "if ($('#cannedResponse').val()==\"" . $rowSelect["gibbonMessengerCannedResponseID"] . "\" ) {" ;
-                            echo "$('#subject').val('" . htmlPrep($rowSelect["subject"]) . "');" ;
-                            echo "tinyMCE.execCommand('mceRemoveEditor', false, 'body') ;" ;
+                        echo "if (this.value == \"" . $rowSelect["gibbonMessengerCannedResponseID"] . "\") {" ;
+                            echo "if (subjectField) subjectField.value = '" . htmlPrep($rowSelect["subject"]) . "';" ;
+                            echo "if (typeof tinyMCE !== 'undefined') tinyMCE.execCommand('mceRemoveEditor', false, 'body');" ;
                             echo "
-                                $.get('./modules/Messenger/messenger_post_ajax.php?gibbonMessengerCannedResponseID=" . $rowSelect["gibbonMessengerCannedResponseID"] . "', function(response) {
-                                     var result = response;
-                                    $('#body').val(result);
-                                    tinyMCE.execCommand('mceAddEditor', false, 'body') ;
-                                });
+                                fetch('./modules/Messenger/messenger_post_ajax.php?gibbonMessengerCannedResponseID=" . $rowSelect["gibbonMessengerCannedResponseID"] . "')
+                                    .then(response => response.text())
+                                    .then(result => {
+                                        if (bodyField) bodyField.value = result;
+                                        if (typeof tinyMCE !== 'undefined') tinyMCE.execCommand('mceAddEditor', false, 'body');
+                                    })
+                                    .catch(error => console.error('Error loading canned response:', error));
                             " ;
                         echo "}" ;
                     }
                     echo "}" ;
                     echo "else {" ;
-                        echo "$('#cannedResponse').val('')" ;
+                        echo "this.value = '';" ;
                     echo "}" ;
                 echo "});" ;
+            echo "}" ;
             echo "});" ;
         echo "</script>" ;
     }

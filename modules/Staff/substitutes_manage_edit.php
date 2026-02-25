@@ -147,21 +147,30 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/substitutes_manage_e
 ?>
 
 <script>
-$(document).ready(function() {
-    $('.testSMS').on('click', function() {
-        if (confirm("<?php echo __('Test SMS').'?'; ?>")) {
-            $.ajax({
-                url: './modules/Staff/substitutes_manage_edit_smsAjax.php',
-                data: {
-                    from: "<?php echo $session->get('preferredName').' '.$session->get('surname'); ?>",    
-                    phoneNumber: "<?php echo $person['phone1CountryCode'].$person['phone1']; ?>"
-                },
-                type: 'POST',
-                success: function(data) {
+document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('click', function(event) {
+        if (event.target.classList.contains('testSMS')) {
+            if (confirm("<?php echo __('Test SMS').'?'; ?>")) {
+                fetch('./modules/Staff/substitutes_manage_edit_smsAjax.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        from: "<?php echo $session->get('preferredName').' '.$session->get('surname'); ?>",
+                        phoneNumber: "<?php echo $person['phone1CountryCode'].$person['phone1']; ?>"
+                    })
+                })
+                .then(response => response.text())
+                .then(data => {
                     alert(data);
-                }
-            });
+                })
+                .catch(error => {
+                    console.error('Error testing SMS:', error);
+                    alert('<?php echo __('An error occurred while testing SMS.'); ?>');
+                });
+            }
         }
     });
-}) ;
+});
 </script>

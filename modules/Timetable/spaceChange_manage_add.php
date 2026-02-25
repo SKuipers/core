@@ -180,20 +180,36 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable/spaceChange_mana
 
 <script>
 
-$(document).ready(function() {
-    $('#gibbonSpaceID').on('change', function() {
-        $.ajax({
-            url: './modules/Timetable/spaceChange_manage_addAjax.php',
-            data: {
-                gibbonTTDayRowClassID: $('#gibbonTTDayRowClassID').val(),    
-                gibbonSpaceID: $('#gibbonSpaceID').val(),
-            },
-            type: 'POST',
-            success: function(data) {
-                $('#facilityStatus').html(data);
+document.addEventListener('DOMContentLoaded', function() {
+    const gibbonSpaceID = document.getElementById('gibbonSpaceID');
+    
+    if (gibbonSpaceID) {
+        gibbonSpaceID.addEventListener('change', function() {
+            const gibbonTTDayRowClassID = document.getElementById('gibbonTTDayRowClassID');
+            const facilityStatus = document.getElementById('facilityStatus');
+            
+            if (facilityStatus) {
+                fetch('./modules/Timetable/spaceChange_manage_addAjax.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        gibbonTTDayRowClassID: gibbonTTDayRowClassID ? gibbonTTDayRowClassID.value : '',
+                        gibbonSpaceID: gibbonSpaceID.value
+                    })
+                })
+                .then(response => response.text())
+                .then(data => {
+                    facilityStatus.innerHTML = data;
+                })
+                .catch(error => {
+                    console.error('Error checking facility status:', error);
+                    facilityStatus.innerHTML = '<div class="error">Error loading facility status</div>';
+                });
             }
         });
-    });
-}) ;
+    }
+});
 
 </script>

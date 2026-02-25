@@ -343,20 +343,35 @@ require_once __DIR__ . '/src/MarkbookColumn.php';
         // Hook up the Ajax call to the dragtable event - done here to make use of PHP variables
         ?>
         <script type='text/javascript'>
-            $(document).ready(function(){
-                $("#myTable").on('dragtablestop', function( event ) {
-                    $.ajax({
-                        url: "<?php echo $session->get('absoluteURL') ?>/modules/Markbook/markbook_viewAjax.php",
-                        data: { order: $(this).dragtable('order'), sequence: <?php echo $markbook->getMinimumSequenceNumber(); ?> },
-                        method: "POST",
-                    })
-                    .done(function( data ) {
-                        if (data != '') alert( data );
-                    })
-                    .fail(function() {
-                        //alert( '<?php echo __('Error'); ?>'  );
+            document.addEventListener('DOMContentLoaded', function(){
+                const myTable = document.getElementById("myTable");
+                if (myTable) {
+                    myTable.addEventListener('dragtablestop', function(event) {
+                        const table = event.target;
+                        const dragtableOrder = table.dragtable ? table.dragtable('order') : null;
+                        
+                        if (dragtableOrder) {
+                            fetch("<?php echo $session->get('absoluteURL') ?>/modules/Markbook/markbook_viewAjax.php", {
+                                method: "POST",
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                },
+                                body: new URLSearchParams({
+                                    order: dragtableOrder,
+                                    sequence: <?php echo $markbook->getMinimumSequenceNumber(); ?>
+                                })
+                            })
+                            .then(response => response.text())
+                            .then(data => {
+                                if (data != '') alert(data);
+                            })
+                            .catch(error => {
+                                console.error('Error saving column order:', error);
+                                //alert('<?php echo __('Error'); ?>');
+                            });
+                        }
                     });
-                });
+                }
             });
         </script>
         <?php

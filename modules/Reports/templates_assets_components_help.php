@@ -117,15 +117,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/templates_assets_c
 ?>
 
 <script type="text/javascript">
-    $( document ).ready(function() {
-        $('#helpFilter').keyup(function() {
-            var value = $(this).val();
-            var exp = new RegExp(value, 'i');
+    document.addEventListener('DOMContentLoaded', function() {
+        const helpFilter = document.getElementById('helpFilter');
+        if (helpFilter) {
+            helpFilter.addEventListener('keyup', function() {
+                const value = this.value;
+                const exp = new RegExp(value, 'i');
 
-            $('.source').each(function() {
-                var isMatch = exp.test($('.sourceName', this).text());
-                $(this).toggle(isMatch);
+                document.querySelectorAll('.source').forEach(function(source) {
+                    const sourceName = source.querySelector('.sourceName');
+                    const isMatch = sourceName ? exp.test(sourceName.textContent) : false;
+                    source.style.display = isMatch ? '' : 'none';
+                });
             });
-        });
+        }
     });
 </script>

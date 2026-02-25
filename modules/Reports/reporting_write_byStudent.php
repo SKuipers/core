@@ -352,47 +352,72 @@ var readonly = <?php echo !empty($canWriteReport) && $canWriteReport ? 'false' :
 updateStatus();
 
 function save() {
-    $('[name="gibbonPersonIDNext"]').val('');
+    const nextField = document.querySelector('[name="gibbonPersonIDNext"]');
+    if (nextField) nextField.value = '';
     document.getElementById('reportingWrite').submit()
 }
 
-$('.reportCriteria').on('input', function() {
-    edited = true;
-    updateStatus();
+document.querySelectorAll('.reportCriteria').forEach(function(element) {
+    element.addEventListener('input', function() {
+        edited = true;
+        updateStatus();
 
-    window.onbeforeunload = function(event) {
-        if (event.explicitOriginalTarget.value=='Save' || event.explicitOriginalTarget.value=='Save & Next') return;
-        return "<?php echo __('There are unsaved changes on this page.') ?>";
-    };
+        window.onbeforeunload = function(event) {
+            if (event.explicitOriginalTarget && (event.explicitOriginalTarget.value=='Save' || event.explicitOriginalTarget.value=='Save & Next')) return;
+            return "<?php echo __('There are unsaved changes on this page.') ?>";
+        };
+    });
 });
 
 function updateStatus() {
-    complete = $('#complete:checked').length > 0;
+    const completeCheckbox = document.querySelector('#complete:checked');
+    complete = completeCheckbox ? true : false;
     displayStatus();
 }
 
 function displayStatus(){
+    const reportStatusDiv = document.querySelector('div.reportStatus div');
+    const reportStatusH4 = document.querySelector('div.reportStatus h4');
+    const reportStatusSection = document.querySelector('section.reportStatus');
+    const saveNextButton = document.querySelector('button[value="Save & Next"]');
+    const unsavedChanges = document.querySelector('.unsavedChanges');
+    
     if (readonly) {
-        $('div.reportStatus div').removeClass('empty').addClass('dull');
-        $('div.reportStatus h4').html('<?php echo __('Read-only') ?>');
+        if (reportStatusDiv) {
+            reportStatusDiv.classList.remove('empty');
+            reportStatusDiv.classList.add('dull');
+        }
+        if (reportStatusH4) reportStatusH4.innerHTML = '<?php echo __('Read-only') ?>';
     } else if (complete) {
-        $('section.reportStatus').removeClass('border-blue-600').addClass('border-green-600');
-        $('div.reportStatus div').removeClass('empty message').addClass('success');
-        $('div.reportStatus h4').html('<?php echo __('Complete') ?>');
+        if (reportStatusSection) {
+            reportStatusSection.classList.remove('border-blue-600');
+            reportStatusSection.classList.add('border-green-600');
+        }
+        if (reportStatusDiv) {
+            reportStatusDiv.classList.remove('empty', 'message');
+            reportStatusDiv.classList.add('success');
+        }
+        if (reportStatusH4) reportStatusH4.innerHTML = '<?php echo __('Complete') ?>';
     } else if (edited) {
-        $('section.reportStatus').removeClass('border-green-600').addClass('border-blue-600');
-        $('div.reportStatus div').removeClass('empty success').addClass('message');
-        $('div.reportStatus h4').html('<?php echo __('Editing') ?>');
+        if (reportStatusSection) {
+            reportStatusSection.classList.remove('border-green-600');
+            reportStatusSection.classList.add('border-blue-600');
+        }
+        if (reportStatusDiv) {
+            reportStatusDiv.classList.remove('empty', 'success');
+            reportStatusDiv.classList.add('message');
+        }
+        if (reportStatusH4) reportStatusH4.innerHTML = '<?php echo __('Editing') ?>';
     } else {
-        $('section.reportStatus').removeClass('border-green-600');
-        $('div.reportStatus div').removeClass('success');
+        if (reportStatusSection) reportStatusSection.classList.remove('border-green-600');
+        if (reportStatusDiv) reportStatusDiv.classList.remove('success');
     }
 
-    $('button[value="Save & Next"]').toggle(complete);
+    if (saveNextButton) saveNextButton.style.display = complete ? '' : 'none';
 
-    if (edited) {
-        $('.unsavedChanges').show();
-        $('div.reportStatus h4').html($('div.reportStatus h4').html() + '<span class="inline-block pl-4 normal-case font-normal text-gray-700 text-xs"><?php echo __('There are unsaved changes on this page.') ?></span>');
+    if (edited && unsavedChanges) {
+        unsavedChanges.style.display = 'block';
+        if (reportStatusH4) reportStatusH4.innerHTML = reportStatusH4.innerHTML + '<span class="inline-block pl-4 normal-case font-normal text-gray-700 text-xs"><?php echo __('There are unsaved changes on this page.') ?></span>';
     }
 }
 

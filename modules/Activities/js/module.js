@@ -18,21 +18,29 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-jQuery(function($){
+document.addEventListener('DOMContentLoaded', function() {
 
 	// Matches the width of the top placeholder to the final table width
-	$(window).on('load', function (e) {
-	    $('.doublescroll-top-tablewidth').width($('.doublescroll-container table').width());
+	window.addEventListener('load', function(e) {
+		var topWidth = document.querySelector('.doublescroll-top-tablewidth');
+		var containerTable = document.querySelector('.doublescroll-container table');
+		if (topWidth && containerTable) {
+			topWidth.style.width = containerTable.offsetWidth + 'px';
+		}
 	});
 	
 	// Pairs the position of the top scrollbar with the bottom scrollbar
-    $(".doublescroll-top").scroll(function(){
-        $(".doublescroll-container")
-            .scrollLeft($(".doublescroll-top").scrollLeft());
-    });
-    $(".doublescroll-container").scroll(function(){
-        $(".doublescroll-top")
-            .scrollLeft($(".doublescroll-container").scrollLeft());
-    });
+	var topScroll = document.querySelector(".doublescroll-top");
+	var containerScroll = document.querySelector(".doublescroll-container");
+	
+	if (topScroll && containerScroll) {
+		topScroll.addEventListener('scroll', function() {
+			containerScroll.scrollLeft = topScroll.scrollLeft;
+		});
+		
+		containerScroll.addEventListener('scroll', function() {
+			topScroll.scrollLeft = containerScroll.scrollLeft;
+		});
+	}
 
-}); 
+});

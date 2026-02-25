@@ -351,44 +351,49 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
                 //All of this javascript is due to limitations of CustomBlocks. If these limitaions are fixed in the future, the corresponding block of code should be removed.
                 var radio = 'input[type="radio"][name$="[location]"]';
 
-                $(document).ready(function () {
+                document.addEventListener('DOMContentLoaded', function () {
 
-                    $('input[id^=fileUpload][name^=photos]').each(function() {
-                        var inputName = this.name.replace('fileUpload', 'filePath');
-                        var filePath = $('input[name="'+inputName+'"]');
-                        if (filePath != undefined) {
+                    document.querySelectorAll('input[id^=fileUpload][name^=photos]').forEach(function(input) {
+                        var inputName = input.name.replace('fileUpload', 'filePath');
+                        var filePath = document.querySelector('input[name="'+inputName+'"]');
+                        if (filePath != undefined && filePath.value) {
                             var img = document.createElement("img");
-                            img.src = "<?php echo $session->get('absoluteURL'); ?>/"+filePath.val();
+                            img.src = "<?php echo $session->get('absoluteURL'); ?>/"+filePath.value;
                             img.style.height = '100px';
                             img.style.maxWidth = '200px';
 
-                            $(this).parent().append(img);
+                            input.parentElement.appendChild(img);
 
-                            $('.input-box-meta', $(this).parent()).hide();
-                            $(this).parent().parent().attr('title', '');
-                            $(this).hide();
+                            var metaElements = input.parentElement.querySelectorAll('.input-box-meta');
+                            metaElements.forEach(el => el.style.display = 'none');
+                            input.parentElement.parentElement.setAttribute('title', '');
+                            input.style.display = 'none';
                         }
                     });
                 });
 
                 function locationSwap() {
-                    var block = $(this).closest('tbody');
-                    if ($(this).prop('id').startsWith('location0')) {
-                        block.find('.showHide').hide();
-                        block.find('.hideShow').show();
+                    var block = this.closest('tbody');
+                    if (this.id.startsWith('location0')) {
+                        block.querySelectorAll('.showHide').forEach(el => el.style.display = 'none');
+                        block.querySelectorAll('.hideShow').forEach(el => el.style.display = 'block');
                     } else {
-                        block.find('.showHide').show();
-                        block.find('.hideShow').hide();
+                        block.querySelectorAll('.showHide').forEach(el => el.style.display = 'block');
+                        block.querySelectorAll('.hideShow').forEach(el => el.style.display = 'none');
                     }
                 }
 
-                $(document).ready(function(){
+                document.addEventListener('DOMContentLoaded', function(){
                     //This is to ensure that loaded blocks have the correct state.
-                    $(radio + ':checked').each(locationSwap);
+                    document.querySelectorAll(radio + ':checked').forEach(locationSwap);
                 });
 
                 //This supplements triggers for the Internal and External Locations
-                $(document).on('change', radio, locationSwap);
+                document.addEventListener('change', function(event) {
+                    if (event.target.matches(radio)) {
+                        locationSwap.call(event.target);
+                    }
+                });
             </script>
 
             <?php

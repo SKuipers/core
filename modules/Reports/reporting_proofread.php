@@ -407,31 +407,45 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reporting_proofrea
 ?>
 
 <script>
-$('.statusInput input[type="radio"]').change(function() {
-    var details = $(this).parents('details').first();
-    var textarea = details.find('textarea.commentEditor');
-    
-    if ($(this).val() == 'Done' || $(this).val() == 'Accepted') {
-        details.removeClass('message bg-blue-100').removeClass('error bg-red-100').removeClass('bg-gray-100');
-        details.addClass('success bg-green-100');
-        textarea.attr('readonly', true);
-        textarea.addClass('border-dashed text-gray-600 cursor-not-allowed :ring-0 focus:border-gray-400');
-    } else if ($(this).val() == 'Edited' || $(this).val() == 'Revised') {
-        details.removeClass('success bg-green-100').removeClass('error bg-red-100').removeClass('bg-gray-100');;
-        details.addClass('message bg-blue-100');
-        textarea.attr('readonly', false);
-        textarea.removeClass('border-dashed text-gray-600 cursor-not-allowed :ring-0 focus:border-gray-400');
-    } else if ($(this).val() == 'Declined') {
-        details.removeClass('success bg-green-100').removeClass('message bg-blue-100');
-        details.addClass('error bg-red-100');
-        textarea.attr('readonly', false);
-        textarea.removeClass('border-dashed text-gray-600 cursor-not-allowed :ring-0 focus:border-gray-400');
-    }
+document.querySelectorAll('.statusInput input[type="radio"]').forEach(function(radio) {
+    radio.addEventListener('change', function() {
+        const details = this.closest('details');
+        const textarea = details ? details.querySelector('textarea.commentEditor') : null;
+        
+        if (this.value == 'Done' || this.value == 'Accepted') {
+            if (details) {
+                details.classList.remove('message', 'bg-blue-100', 'error', 'bg-red-100', 'bg-gray-100');
+                details.classList.add('success', 'bg-green-100');
+            }
+            if (textarea) {
+                textarea.setAttribute('readonly', true);
+                textarea.classList.add('border-dashed', 'text-gray-600', 'cursor-not-allowed', ':ring-0', 'focus:border-gray-400');
+            }
+        } else if (this.value == 'Edited' || this.value == 'Revised') {
+            if (details) {
+                details.classList.remove('success', 'bg-green-100', 'error', 'bg-red-100', 'bg-gray-100');
+                details.classList.add('message', 'bg-blue-100');
+            }
+            if (textarea) {
+                textarea.removeAttribute('readonly');
+                textarea.classList.remove('border-dashed', 'text-gray-600', 'cursor-not-allowed', ':ring-0', 'focus:border-gray-400');
+            }
+        } else if (this.value == 'Declined') {
+            if (details) {
+                details.classList.remove('success', 'bg-green-100', 'message', 'bg-blue-100');
+                details.classList.add('error', 'bg-red-100');
+            }
+            if (textarea) {
+                textarea.removeAttribute('readonly');
+                textarea.classList.remove('border-dashed', 'text-gray-600', 'cursor-not-allowed', ':ring-0', 'focus:border-gray-400');
+            }
+        }
 
-    window.onbeforeunload = function(event) {
-        if (event.explicitOriginalTarget.value=='Save') return;
-        return "<?php echo __('There are unsaved changes on this page.') ?>";
-    };
+        window.onbeforeunload = function(event) {
+            if (event.explicitOriginalTarget && event.explicitOriginalTarget.value=='Save') return;
+            return "<?php echo __('There are unsaved changes on this page.') ?>";
+        };
+    });
 });
 
 </script>

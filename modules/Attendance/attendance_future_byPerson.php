@@ -469,14 +469,27 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_futu
 ?>
 
 <script type='text/javascript'>
-    $("#absenceType").change(function(){
-        if ($("#scope").val() != 'multiple') {
-            $("#attendanceLog").css("display","none");
-            $("#attendanceSet").css("display","none");
+    document.addEventListener('DOMContentLoaded', function() {
+        const absenceType = document.getElementById("absenceType");
+        const scope = document.getElementById("scope");
+        const attendanceLog = document.getElementById("attendanceLog");
+        const attendanceSet = document.getElementById("attendanceSet");
+        
+        if (absenceType) {
+            absenceType.addEventListener('change', function() {
+                const scopeEl = document.getElementById("scope");
+                if (scopeEl && scopeEl.value != 'multiple') {
+                    if (attendanceLog) attendanceLog.style.display = "none";
+                    if (attendanceSet) attendanceSet.style.display = "none";
+                }
+            });
         }
-    });
-    $("#scope").change(function(){
-        $("#attendanceLog").css("display","none");
-        $("#attendanceSet").css("display","none");
+        
+        if (scope) {
+            scope.addEventListener('change', function() {
+                if (attendanceLog) attendanceLog.style.display = "none";
+                if (attendanceSet) attendanceSet.style.display = "none";
+            });
+        }
     });
 </script>

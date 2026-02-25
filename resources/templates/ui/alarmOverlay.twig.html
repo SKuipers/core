@@ -8,9 +8,6 @@ This is a Gibbon template file, written in HTML and Twig syntax.
 For info about editing, see: https://twig.symfony.com/doc/2.x/
 -->#}
 
-<script type="text/javascript" src="{{ absoluteURL }}/lib/jquery/jquery.js"></script>
-<script type="text/javascript" src="{{ absoluteURL }}/lib/jquery/jquery-migrate.min.js"></script>
-
 <link rel="stylesheet" type="text/css" href="{{ absoluteURL }}/resources/assets/css/theme.min.css" />
 <link rel="stylesheet" type="text/css" href="{{ absoluteURL }}/resources/assets/css/core.min.css" />
 
@@ -80,23 +77,35 @@ html, body {
                 {% else %}
 
                 <script type="text/javascript">
-                $(document).ready(function(){
+                document.addEventListener('DOMContentLoaded', function() {
                     setInterval(function() {
-                        $.ajax({
-                            url: "{{ absoluteURL }}/index_notification_ajax_alarm_tickUpdate.php",
-                            data: {
-                                gibbonAlarmID: "{{ alarm.gibbonAlarmID }}",
+                        fetch("{{ absoluteURL }}/index_notification_ajax_alarm_tickUpdate.php", {
+                            method: "POST",
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
                             },
-                            type: "POST",
-                            dataType: "json",
-                            success: function(data) {
-                                for (var index in data) {
-                                    if (data[index].gibbonAlarmConfirmID != null) {
-                                        $("#staff"+data[index].gibbonPersonID+" .alarm-confirm").removeClass("hidden");
-                                        $("#staff"+data[index].gibbonPersonID+" .alarm-action").remove();
+                            body: "gibbonAlarmID={{ alarm.gibbonAlarmID }}"
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            for (var index in data) {
+                                if (data[index].gibbonAlarmConfirmID != null) {
+                                    const staffRow = document.querySelector("#staff" + data[index].gibbonPersonID);
+                                    if (staffRow) {
+                                        const confirmIcon = staffRow.querySelector(".alarm-confirm");
+                                        const actionIcon = staffRow.querySelector(".alarm-action");
+                                        if (confirmIcon) {
+                                            confirmIcon.classList.remove("hidden");
+                                        }
+                                        if (actionIcon) {
+                                            actionIcon.remove();
+                                        }
                                     }
                                 }
                             }
+                        })
+                        .catch(error => {
+                            console.error('Error updating alarm confirmations:', error);
                         });
                     }, 7500);
                 });

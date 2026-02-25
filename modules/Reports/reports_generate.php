@@ -77,14 +77,29 @@ if (isActionAccessible($guid, $connection2, '/modules/Reports/reports_generate.p
 }
 ?>
 <script>
-$('.statusBar').each(function(index, element) {
+document.querySelectorAll('.statusBar').forEach(function(element, index) {
     var refresh = setInterval(function () {
         var path = "<?php echo $session->get('absoluteURL') ?>/modules/Reports/reports_generate_ajax.php";
-        var postData = { gibbonLogID: $(element).data('id') };
-        $(element).load(path, postData, function(responseText, textStatus, jqXHR) {
+        var postData = new URLSearchParams({
+            gibbonLogID: element.dataset.id
+        });
+        
+        fetch(path, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: postData
+        })
+        .then(response => response.text())
+        .then(responseText => {
+            element.innerHTML = responseText;
             if (responseText.indexOf('Complete') >= 0) {
                 clearInterval(refresh);
             }
+        })
+        .catch(error => {
+            console.error('Error loading status:', error);
         });
     }, 3000);
 });

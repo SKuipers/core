@@ -427,7 +427,7 @@ class Chart
         $output .= sprintf('var chart_config_%s = %s;', $key, $config);
         $output .= sprintf('var chart_context_%s = document.getElementById("%s").getContext("2d");', $key, $this->getElementID());
         $loaderScript = sprintf('window.chart_%s = new Chart(chart_context_%s, chart_config_%s);', $key, $key, $key);
-        $output .= sprintf("\n$(function() {\n%s\n});", $loaderScript) . "\n";
+        $output .= sprintf("\ndocument.addEventListener('DOMContentLoaded', function() {\n%s\n});", $loaderScript) . "\n";
 
         return $output;
     }

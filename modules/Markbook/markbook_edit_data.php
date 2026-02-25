@@ -56,52 +56,52 @@ $gradeScaleGateway = $container->get(GradeScaleGateway::class);
 // This script makes entering raw marks easier, by capturing the enter key and moving to the next field insted of submitting
 echo "<script type='text/javascript'>";
 ?>
-    $(document).ready(function(){
+    document.addEventListener('DOMContentLoaded', function(){
 
     // Map [Enter] key to work like the [Tab] key
     // Daniel P. Clark 2014
     // Modified for Gibbon Markbook Edit Data
 
-    $(window).keydown(function(e) {
+    window.addEventListener('keydown', function(e) {
 
         // Set self as the current item in focus
-        var self = $(':focus'),
-          // Set the form by the current item in focus
-          form = self.parents('form:eq(0)'),
-          focusable;
-
-        // Sometimes :focus selector doesnt work (in Chrome specifically)
-        if (self.length == false) {
-            self = e.target.value;
-        }
+        var self = document.activeElement;
+        
+        // Set the form by the current item in focus
+        var form = self.closest('form');
 
         function enterKey(){
 
-            if (e.which === 13 && !self.is('textarea,div[contenteditable=true]')) { // [Enter] key
+            if (e.which === 13 && self.tagName !== 'TEXTAREA' && !self.hasAttribute('contenteditable')) { // [Enter] key
 
-                var index = self.attr('name').substr(0, self.attr('name').indexOf('-'));
-                var attainmentNext = $( '#' + (parseInt(index) + 1) + '-attainmentValueRaw');
+                var nameAttr = self.getAttribute('name');
+                if (nameAttr && nameAttr.indexOf('-') > -1) {
+                    var index = nameAttr.substr(0, nameAttr.indexOf('-'));
+                    var attainmentNext = document.getElementById((parseInt(index) + 1) + '-attainmentValueRaw');
 
-                //If not a regular hyperlink/button/textarea
-                if ($.inArray(self, focusable) && (!self.is('a,button'))){
-                    // Then prevent the default [Enter] key behaviour from submitting the form
-                    e.preventDefault();
-                } // Otherwise follow the link/button as by design, or put new line in textarea
+                    //If not a regular hyperlink/button/textarea
+                    if (self.tagName !== 'A' && self.tagName !== 'BUTTON'){
+                        // Then prevent the default [Enter] key behaviour from submitting the form
+                        e.preventDefault();
+                    } // Otherwise follow the link/button as by design, or put new line in textarea
 
-                self.change();
+                    self.dispatchEvent(new Event('change', { bubbles: true }));
 
-                if (attainmentNext.length) {
+                    if (attainmentNext) {
 
-                    attainmentNext.focus();
-                    attainmentNext.select();
+                        attainmentNext.focus();
+                        attainmentNext.select();
 
-                    // Scroll to the next raw score
-                    $('html,body').animate( {
-                        scrollTop: $(document).scrollTop() + ( attainmentNext.offset().top - self.offset().top ),
-                    }, 250);
+                        // Scroll to the next raw score
+                        var scrollOffset = attainmentNext.getBoundingClientRect().top - self.getBoundingClientRect().top;
+                        window.scrollBy({
+                            top: scrollOffset,
+                            behavior: 'smooth'
+                        });
+                    }
+
+                    return false;
                 }
-
-                return false;
             }
         }
 

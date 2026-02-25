@@ -371,12 +371,16 @@ class ParentDashboard implements OutputableInterface, ContainerAwareInterface
                         if ($rowEntry['comment'] != '') {
                             if (mb_strlen($rowEntry['comment']) > 50) {
                                 $gradesOutput .= "<script type='text/javascript'>";
-                                $gradesOutput .= '$(document).ready(function(){';
-                                $gradesOutput .= "\$(\".comment-$entryCount-$gibbonPersonID\").hide();";
-                                $gradesOutput .= "\$(\".show_hide-$entryCount-$gibbonPersonID\").fadeIn(1000);";
-                                $gradesOutput .= "\$(\".show_hide-$entryCount-$gibbonPersonID\").click(function(){";
-                                $gradesOutput .= "\$(\".comment-$entryCount-$gibbonPersonID\").fadeToggle(1000);";
+                                $gradesOutput .= 'document.addEventListener("DOMContentLoaded", function(){';
+                                $gradesOutput .= "const comment = document.querySelector(\".comment-$entryCount-$gibbonPersonID\");";
+                                $gradesOutput .= "const showHide = document.querySelector(\".show_hide-$entryCount-$gibbonPersonID\");";
+                                $gradesOutput .= "if (comment) comment.style.display = 'none';";
+                                $gradesOutput .= "if (showHide) {";
+                                $gradesOutput .= "showHide.style.display = 'inline';";
+                                $gradesOutput .= "showHide.addEventListener('click', function(){";
+                                $gradesOutput .= "if (comment) comment.style.display = comment.style.display === 'none' ? 'block' : 'none';";
                                 $gradesOutput .= '});';
+                                $gradesOutput .= '}';
                                 $gradesOutput .= '});';
                                 $gradesOutput .= '</script>';
                                 $gradesOutput .= '<span>'.mb_substr($rowEntry['comment'], 0, 50).'...<br/>';

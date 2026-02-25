@@ -247,13 +247,28 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_take
 ?>
 
 <script type='text/javascript'>
-    $("#target").change(function(){
-        $("#attendanceAdHoc").css("display","none");
-    });
-    $("#gibbonActivityID").change(function(){
-        $("#attendanceAdHoc").css("display","none");
-    });
-    $("#gibbonGroupID").change(function(){
-        $("#attendanceAdHoc").css("display","none");
+    document.addEventListener('DOMContentLoaded', function() {
+        const target = document.getElementById("target");
+        const gibbonActivityID = document.getElementById("gibbonActivityID");
+        const gibbonGroupID = document.getElementById("gibbonGroupID");
+        const attendanceAdHoc = document.getElementById("attendanceAdHoc");
+        
+        if (target && attendanceAdHoc) {
+            target.addEventListener('change', function() {
+                attendanceAdHoc.style.display = "none";
+            });
+        }
+        
+        if (gibbonActivityID && attendanceAdHoc) {
+            gibbonActivityID.addEventListener('change', function() {
+                attendanceAdHoc.style.display = "none";
+            });
+        }
+        
+        if (gibbonGroupID && attendanceAdHoc) {
+            gibbonGroupID.addEventListener('change', function() {
+                attendanceAdHoc.style.display = "none";
+            });
+        }
     });
 </script>

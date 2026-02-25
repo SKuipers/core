@@ -96,20 +96,30 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
 				?>
 
 				<script type="text/javascript">
-				$("#gibbonStudentNoteCategoryID").change(function() {
-					if ($("#gibbonStudentNoteCategoryID").val() != "Please select...") {
-						$.get('<?php echo $session->get('absoluteURL').'/modules/Students/student_view_details_notes_addAjax.php?gibbonStudentNoteCategoryID=' ?>' + $("#gibbonStudentNoteCategoryID").val(), function(data){
-							if (tinyMCE.activeEditor==null) {
-								if ($("textarea#note").val()=="") {
-									$("textarea#note").val(data) ;
-								}
-							} else {
-								if (tinyMCE.get('note').getContent()=="") {
-									tinyMCE.get('note').setContent(data) ;
-								}
+				document.addEventListener('DOMContentLoaded', function() {
+					const categorySelect = document.getElementById("gibbonStudentNoteCategoryID");
+					if (categorySelect) {
+						categorySelect.addEventListener('change', function() {
+							if (this.value != "Please select...") {
+								fetch('<?php echo $session->get('absoluteURL').'/modules/Students/student_view_details_notes_addAjax.php?gibbonStudentNoteCategoryID=' ?>' + this.value)
+									.then(response => response.text())
+									.then(data => {
+										const noteTextarea = document.querySelector("textarea#note");
+										if (typeof tinyMCE !== 'undefined' && tinyMCE.activeEditor == null) {
+											if (noteTextarea && noteTextarea.value == "") {
+												noteTextarea.value = data;
+											}
+										} else if (typeof tinyMCE !== 'undefined' && tinyMCE.get('note')) {
+											if (tinyMCE.get('note').getContent() == "") {
+												tinyMCE.get('note').setContent(data);
+											}
+										}
+									})
+									.catch(error => {
+										console.error('Error loading note template:', error);
+									});
 							}
 						});
-					
 					}
 				});
 				</script>

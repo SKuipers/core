@@ -100,17 +100,23 @@ Main Menu: Displays the top-level categories and active modules.
     })();
 
     function refreshNotifications() {
-        $.ajax({
-            url: "index_notification_ajax.php",
-            dataType: "json",
-            success: function(data) {
+        fetch("index_notification_ajax.php")
+            .then(response => response.json())
+            .then(data => {
                 // Update notification count
+                const notificationCounter = document.querySelector("#notifications .notificationCounter");
+                const notificationIcon = document.querySelector("#notifications .notificationIcon");
+                
                 if (data.count > 0) {
-                    $("#notifications .notificationCounter").removeClass('hidden').html(data.count);
-                    $("#notifications .notificationIcon").removeClass('opacity-25').addClass('opacity-75');
+                    notificationCounter.classList.remove('hidden');
+                    notificationCounter.textContent = data.count;
+                    notificationIcon.classList.remove('opacity-25');
+                    notificationIcon.classList.add('opacity-75');
                 } else {
-                    $("#notifications .notificationCounter").html('').addClass('hidden');
-                    $("#notifications .notificationIcon").removeClass('opacity-75').addClass('opacity-25');
+                    notificationCounter.textContent = '';
+                    notificationCounter.classList.add('hidden');
+                    notificationIcon.classList.remove('opacity-75');
+                    notificationIcon.classList.add('opacity-25');
                 }
 
                 // Handle alarm display / cancel
@@ -153,7 +159,9 @@ Main Menu: Displays the top-level categories and active modules.
                 } else if (!data.timeout && timeoutDialog.open) {
                     timeoutDialog.close();
                 }
-            }
-        });
+            })
+            .catch(error => {
+                console.error('Error refreshing notifications:', error);
+            });
     }
 </script>

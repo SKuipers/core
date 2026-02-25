@@ -319,50 +319,61 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_atte
 
 <script type="text/javascript">
 	// Fills the column with checkboxes to create the attenance formdata (naming pattern --> $_POST data)
-    $("button.editColumn").click( function(){
-    	var editing = $(this).parent().data('editing');
+    document.addEventListener('click', function(event) {
+        if (event.target.matches('button.editColumn')) {
+            const button = event.target;
+            const parent = button.parentElement;
+            const editing = parent.dataset.editing;
 
-    	if (!editing || editing == false) {
-    		$(this).parent().data('editing', true);
+            if (!editing || editing == 'false') {
+                parent.dataset.editing = 'true';
 
-    		var date = $(this).data('date');
-	    	var column = $(this).data('column');
-	    	var checkedDefault = $(this).data('checked');
+                const date = button.dataset.date;
+                const column = button.dataset.column;
+                const checkedDefault = button.dataset.checked;
 
-	    	var rows = $(this).parents('table').find("td.col" + column).each(function(){
-	    		
-	    		var checked = ( $(this).html() != "")? "checked" : checkedDefault;
-                if ($(this).hasClass('unchecked')) checked = '';
-                
-		    	$(this).html("<input type='checkbox' name='attendance["+ column +"]["+ $(this).parent().data('student') +"]' "+ checked +">");
-		    	$(this).addClass('bg-purple-100');
-		    });
+                const table = button.closest('table');
+                if (table) {
+                    table.querySelectorAll("td.col" + column).forEach(function(cell) {
+                        const checked = (cell.innerHTML.trim() != "") ? "checked" : checkedDefault;
+                        const finalChecked = cell.classList.contains('unchecked') ? '' : checked;
+                        const studentId = cell.parentElement.dataset.student;
+                        
+                        cell.innerHTML = "<input type='checkbox' name='attendance["+ column +"]["+ studentId +"]' "+ finalChecked +">";
+                        cell.classList.add('bg-purple-100');
+                    });
+                }
 
-			$(this).parent().parent().addClass('bg-purple-100');
-			$(this).parent().parent().append("<input type='hidden' name='sessions["+ column +"]' value='" + date + "'>");
+                parent.parentElement.classList.add('bg-purple-100');
+                parent.parentElement.insertAdjacentHTML('beforeend', "<input type='hidden' name='sessions["+ column +"]' value='" + date + "'>");
 
-		    $(this).addClass('hidden');
-			$(this).parent().parent().find('.clearColumn').removeClass('hidden');
-	    }
+                button.classList.add('hidden');
+                parent.parentElement.querySelectorAll('.clearColumn').forEach(el => el.classList.remove('hidden'));
+            }
+        }
+        
+        // Clears the column checkboxes
+        if (event.target.matches('button.clearColumn')) {
+            const button = event.target;
+            
+            if (confirm("Are you sure you want to clear the attendance recorded for this date?")) {
 
-    } );
+                button.parentElement.dataset.editing = 'false';
 
-    // Clears the column checkboxes
-    $("button.clearColumn").click(function(){
-    	
-    	if (confirm("Are you sure you want to clear the attendance recorded for this date?")) {
+                const column = button.dataset.column;
+                const table = button.closest('table');
+                if (table) {
+                    table.querySelectorAll("td.col" + column).forEach(function(cell) {
+                        const studentId = cell.parentElement.dataset.student;
+                        cell.innerHTML = "<input name='attendance["+ column +"]["+ studentId +"]' type='checkbox'>";
+                    });
+                }
 
-    		$(this).parent().data('editing', false);
-
-	    	var column = $(this).data('column');
-			var rows = $(this).parent().parents('table').find("td.col" + column).each(function(){
-	    		$(this).html("<input name='attendance["+ column +"]["+ $(this).parent().data('student') +"]' type='checkbox'>");
-	    	});
-
-	    	$(this).addClass('hidden');
-			$(this).parent().parent().find('.editColumn').removeClass('hidden');
-			$(this).parent().parent().find('.addColumn').removeClass('hidden');
-	    }
+                button.classList.add('hidden');
+                button.parentElement.parentElement.querySelectorAll('.editColumn').forEach(el => el.classList.remove('hidden'));
+                button.parentElement.parentElement.querySelectorAll('.addColumn').forEach(el => el.classList.remove('hidden'));
+            }
+        }
     });
 
 </script>

@@ -1,12 +1,12 @@
 (function () {
-    $(document).ready(function() {
+    document.addEventListener('DOMContentLoaded', function() {
 
         // If an element with id "status" is found, do the version check
         // Supposed to only have one "#status" in the page, so this is only run once.
-        $("#status").first().each(function () {
-            var $status = $(this);
-            var $edgeIndicator = $('#cuttingEdgeCode');
-            var $edgeHiddenInput = $("input[name=cuttingEdgeCodeHidden]");
+        const statusElement = document.querySelector("#status");
+        if (statusElement) {
+            const edgeIndicator = document.querySelector('#cuttingEdgeCode');
+            const edgeHiddenInput = document.querySelector("input[name=cuttingEdgeCodeHidden]");
 
             // environment check
             var gibboninstallerError = false;
@@ -21,34 +21,40 @@
                 gibboninstallerError = true;
             }
             if (gibboninstallerError) {
-                $status.attr("class", "error");
-                $status.html("Cutting Edge Code check: Unexpected javascript error.");
+                statusElement.setAttribute("class", "error");
+                statusElement.innerHTML = "Cutting Edge Code check: Unexpected javascript error.";
                 return;
             }
 
             // cutting edge code check
-            $.ajax({
-                crossDomain: true,
-                type:"GET",
-                url: "https://gibbonedu.org/services/version/devCheck.php?version=" + gibboninstaller.version + "&callback=?",
-                dataType: "jsonp",
-                jsonpCallback: 'fnsuccesscallback',
-                jsonpResult: 'jsonpResult',
-                success: function(data) {
-                    $status.attr("class", "success");
-                    if (data['status'] === 'false') {
-                        $status.html(gibboninstaller.msg('__edge_code_check_success__')) ;
-                    } else {
-                        $status.html(gibboninstaller.msg('__edge_code_check_success__')) ;
-                        $edgeIndicator.val('Yes');
-                        $edgeHiddenInput.val('Y');
-                    }
-                },
-                error: function(data, textStatus, errorThrown) {
-                    $status.attr("class", "error");
-                    $status.html(gibboninstaller.msg('__edge_code_check_failed__')) ;
+            fetch("https://gibbonedu.org/services/version/devCheck.php?version=" + gibboninstaller.version + "&callback=fnsuccesscallback", {
+                method: "GET",
+                mode: "cors"
+            })
+            .then(response => response.text())
+            .then(text => {
+                // Parse JSONP response by extracting JSON from callback
+                const jsonMatch = text.match(/fnsuccesscallback\((.*)\)/);
+                if (jsonMatch && jsonMatch[1]) {
+                    return JSON.parse(jsonMatch[1]);
                 }
+                throw new Error('Invalid JSONP response');
+            })
+            .then(data => {
+                statusElement.setAttribute("class", "success");
+                if (data['status'] === 'false') {
+                    statusElement.innerHTML = gibboninstaller.msg('__edge_code_check_success__');
+                } else {
+                    statusElement.innerHTML = gibboninstaller.msg('__edge_code_check_success__');
+                    edgeIndicator.value = 'Yes';
+                    edgeHiddenInput.value = 'Y';
+                }
+            })
+            .catch(error => {
+                statusElement.setAttribute("class", "error");
+                statusElement.innerHTML = gibboninstaller.msg('__edge_code_check_failed__');
+                console.error('Version check error:', error);
             });
-        });
+        }
     });
 })();
