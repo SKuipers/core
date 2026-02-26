@@ -1,0 +1,943 @@
+{#<!--
+Gibbon: the flexible, open school platform
+Founded by Ross Parker at ICHK Secondary. Built by Ross Parker, Sandra Kuipers and the Gibbon community (https://gibbonedu.org/about/)
+Copyright © 2010, Gibbon Foundation
+Gibbon™, Gibbon Education Ltd. (Hong Kong)
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->#}
+
+{# ============================================
+   MARKBOOK VIEW TEMPLATE (DIV-BASED LAYOUT)
+   ============================================
+   This template renders the markbook view using CSS Grid
+   with div-based columns for drag-drop support via SortableJS.
+   ============================================ #}
+
+<style>
+/* Minimal custom styles - most styling uses Tailwind classes */
+
+/* Grid auto-flow for horizontal columns */
+.markbook-grid-container {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: auto;
+}
+
+/* Grid columns use CSS Grid for vertical alignment */
+.markbook-column {
+    display: grid;
+    grid-auto-rows: minmax(40px, auto);
+}
+
+/* Header row has fixed height */
+.markbook-column > .header-row {
+    height: 160px;
+}
+
+/* Vertical text for narrow columns */
+.vertical-text {
+    writing-mode: sideways-lr;
+    text-orientation: mixed;
+    white-space: nowrap;
+}
+
+/* Drag handle icon */
+.dragtable-drag-handle:before {
+    font-size: 14px;
+}
+
+/* SortableJS ghost/drag states */
+.sortable-ghost {
+    opacity: 0.4;
+}
+
+.sortable-drag {
+    opacity: 0.8;
+}
+</style>
+
+{# ============================================
+   PAGINATION CONTROLS
+   ============================================ #}
+
+<div class="flex-grow text-left py-1 text-sm">
+    {% if gibbonSchoolYearTermID == -1 %}
+        {{ __('All Terms') }}
+    {% else %}
+        {{ markbookTermName }}
+    {% endif %}
+    : 
+    
+    {% set start = min(max(0, pageNum * columnsPerPage) + 1, columnCountTotal) %}
+    {% set end = min(max(1, columnCountThisPage + (pageNum * columnsPerPage)), columnCountTotal) %}
+    
+    {{ __('Records') }} {{ start }}-{{ end }} {{ __('of') }} {{ columnCountTotal }}
+    
+    {% if columnCountTotal > columnCountThisPage %}
+         : 
+        {% if pageNum <= 0 %}
+            {{ __('Older') }}
+        {% else %}
+            <a href="{{ absoluteURL }}/index.php?q=/modules/Markbook/markbook_view.php&gibbonCourseClassID={{ gibbonCourseClassID }}&page={{ pageNum - 1 }}">{{ __('Older') }}</a>
+        {% endif %}
+         | 
+        {% if (pageNum + 1) * columnsPerPage >= columnCountTotal %}
+            {{ __('Newer') }}
+        {% else %}
+            <a href="{{ absoluteURL }}/index.php?q=/modules/Markbook/markbook_view.php&gibbonCourseClassID={{ gibbonCourseClassID }}&page={{ pageNum + 1 }}">{{ __('Newer') }}</a>
+        {% endif %}
+    {% endif %}
+</div>
+
+{# ============================================
+   JAVASCRIPT SECTION
+   ============================================
+   - SortableJS initialization for column reordering
+   - Reset order dialog
+   - Doublescroll initialization
+   ============================================ #}
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        // Initialize SortableJS for column reordering
+        {% if canEditThisClass %}
+            var markbookGrid = document.getElementById('markbookGrid');
+            if (markbookGrid && typeof Sortable !== 'undefined') {
+                var sortable = Sortable.create(markbookGrid, {
+                    animation: 150,
+                    handle: '.dragtable-drag-handle',
+                    draggable: '.cursor-move[data-header]',
+                    ghostClass: 'sortable-ghost',
+                    dragClass: 'sortable-drag',
+                    onEnd: function(evt) {
+                        // Get the column order from data-header attributes
+                        var columnOrder = [];
+                        markbookGrid.querySelectorAll('.cursor-move[data-header]').forEach(function(item) {
+                            var headerId = item.getAttribute('data-header');
+                            if (headerId && headerId !== 'student' && headerId !== 'assessment' && headerId !== 'target') {
+                                columnOrder.push(headerId);
+                            }
+                        });
+
+                        // Save the new order via AJAX
+                        if (columnOrder.length > 0) {
+                            $.ajax({
+                                url: '{{ absoluteURL }}/modules/Markbook/markbook_viewAjax.php',
+                                type: 'POST',
+                                data: {
+                                    order: columnOrder,
+                                    sequence: {{ minimumSequenceNumber }}
+                                },
+                                success: function(response) {
+                                    // Column order saved successfully
+                                },
+                                error: function() {
+                                    console.error('Failed to save column order');
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        {% endif %}
+    });
+    
+    {% if canEditThisClass %}
+        // Reset order dialog functions
+        function resetOrder(){
+            $("#dialog").dialog();
+        }
+        
+        function resetOrderAction(order){
+            if(order == 1){
+                window.location.href = window.location.href.substr(0, window.location.href.length - 1) + "&gibbonCourseClassID={{ gibbonCourseClassID }}&reset=1";
+            } else if(order == 2){
+                window.location.href = window.location.href.substr(0, window.location.href.length - 1) + "&gibbonCourseClassID={{ gibbonCourseClassID }}&reset=2";
+            }
+        }
+    {% endif %}
+    
+    // Doublescroll initialization for horizontal scrolling
+    $(window).on('load', function (e) {
+        // Matches the width of the top placeholder to the final grid width
+        $('.doublescroll-top-tablewidth').width($('.markbook-grid-container').width());
+        
+        // Start scrolled to the left, where all the recent stuff is
+        $('.doublescroll-container').scrollLeft($('.markbook-grid-container').width());
+    });
+    
+    // Pairs the position of the top scrollbar with the bottom scrollbar
+    $('.doublescroll-top').scroll(function(){
+        $('.doublescroll-container')
+            .scrollLeft($('.doublescroll-top').scrollLeft());
+    });
+    $('.doublescroll-container').scroll(function(){
+        $('.doublescroll-top')
+            .scrollLeft($('.doublescroll-container').scrollLeft());
+    });
+</script>
+
+{% if canEditThisClass %}
+    {# Reset order dialog #}
+    <div id="dialog" title="{{ __('Reset Order') }}" style="display:none;">
+        {{ __('Are you sure you want to reset the ordering of all the columns in this class?') }}<br>
+        <button onclick="resetOrderAction(1)" class="my-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">{{ __('Reset by entry order') }}</button><br>
+        <button onclick="resetOrderAction(2)" class="my-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">{{ __('Reset by date') }}</button>
+    </div>
+{% endif %}
+
+{# ============================================
+   DOUBLESCROLL WRAPPER
+   ============================================
+   Enables horizontal scrolling for wide grids
+   ============================================ #}
+
+<div class=" flex">
+    
+
+    <div id="markbookStudents" class="markbook-grid-container border border-gray-300 text-sm w-[200px]">
+        
+        {# ============================================
+            STUDENT NAME COLUMN (FIXED)
+            ============================================ #}
+         
+         <div class="markbook-column border-r border-gray-300 min-w-[200px] z-10 bg-white" data-header="student">
+             {# Header cell #}
+             <div class="header-row p-2 pb-8 border-b border-gray-300 flex items-center justify-center bg-gray-100 font-bold text-center">
+                 <span>{{ __('Student') }}</span>
+             </div>
+             
+             {# Student name cells #}
+             {% for student in students %}
+                 <div class="p-2 border-b border-gray-300 flex items-center justify-start text-left {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}">
+                     <a class="studentName" href="index.php?q=/modules/Students/student_view_details.php&gibbonPersonID={{ student.gibbonPersonID }}&subpage=Markbook#{{ gibbonCourseClassID }}">
+                         {{ formatUsing('name', student.title, student.preferredName, student.surname, 'Student', false) }}
+                     </a>
+                 </div>
+             {% endfor %}
+             
+             {# Class average row #}
+             {% if enableColumnWeighting == 'Y' %}
+                 <div class="p-2 border-b border-gray-300 flex items-center justify-start text-left font-bold {{ students|length is odd ? 'bg-white' : 'bg-gray-50' }}">
+                     {{ __('Class Average') }}
+                 </div>
+             {% endif %}
+         </div>
+
+    </div>
+
+    <div class="doublescroll-wrapper">
+
+    <div class="doublescroll-top">
+        <div class="doublescroll-top-tablewidth"></div>
+    </div>
+
+    <div class="doublescroll-container">
+        
+        {# ============================================
+           MAIN MARKBOOK GRID
+           ============================================ #}
+        
+        <div id="markbookGrid" class="markbook-grid-container overflow-x-auto border border-gray-300 text-sm">
+            
+            
+            
+            {# ============================================
+               BASELINE COLUMN (CONDITIONAL)
+               ============================================ #}
+            
+            {% if hasExternalAssessments %}
+                <div class="markbook-column border-r border-gray-300 min-w-[40px]" data-header="assessment">
+                    {# Header cell #}
+                    <div class="header-row p-1 border-b border-gray-300 flex items-center justify-center bg-gray-100 font-bold text-center">
+                        {% set title = __(externalAssessmentFields[2]) ~ ' | ' %}
+                        {% set title = title ~ __(externalAssessmentFields[3]|slice((externalAssessmentFields[3]|split('_')|length > 1 ? externalAssessmentFields[3]|split('_')[0]|length + 1 : 0))) ~ ' | ' %}
+                        {% set title = title ~ __(externalAssessmentFields[1]) %}
+                        {% set title = title ~ ' | ' ~ externalAssessmentFields[4] ~ ' ' ~ __('Scale') ~ ' ' %}
+                        <div class="absolute vertical-text" title="{{ title }}">
+                            {{ __('Baseline') }}<br>
+                        </div>
+                    </div>
+                    
+                    {# Baseline data cells #}
+                    {% for student in students %}
+                        <div class="p-2 border-b border-gray-300 flex items-center justify-center {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}">
+                            {% if student.baseline %}
+                                {{ student.baseline.value }}<br/>
+                                <span class="details">{{ student.baseline.descriptor }}</span>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    
+                    {# Class average row - empty for baseline #}
+                    {% if enableColumnWeighting == 'Y' %}
+                        <div class="p-2 border-b border-gray-300 flex items-center justify-center {{ students|length is odd ? 'bg-white' : 'bg-gray-50' }}"></div>
+                    {% endif %}
+                </div>
+            {% endif %}
+            
+            {# ============================================
+               TARGET COLUMN (CONDITIONAL)
+               ============================================ #}
+            
+            {% if hasPersonalizedTargets %}
+                <div class="markbook-column border-r border-gray-300 min-w-[60px]" data-header="target">
+                    {# Header cell #}
+                    <div class="header-row p-2 pb-8 border-b border-gray-300 flex items-center justify-center bg-gray-100 font-bold text-center">
+                        <div class="vertical-text">
+                            {{ __('Target') }}
+                        </div>
+                    </div>
+                    
+                    {# Target data cells #}
+                    {% for student in students %}
+                        <div class="p-2 border-b border-gray-300 flex items-center justify-center {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}">
+                            {% if student.target %}
+                                {{ student.target }}
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    
+                    {# Class average row - empty for target #}
+                    {% if enableColumnWeighting == 'Y' %}
+                        <div class="p-2 border-b border-gray-300 flex items-center justify-center {{ students|length is odd ? 'bg-white' : 'bg-gray-50' }}"></div>
+                    {% endif %}
+                </div>
+            {% endif %}
+            
+            {# ============================================
+               MARKBOOK ASSESSMENT COLUMNS (DRAGGABLE)
+               ============================================ #}
+            
+            {% for column in columns %}
+                {% set columnType = column.getData('type') %}
+                {% set columnColor = column.getData('columnColor') %}
+                {# Column color is already sanitized by PHP backend #}
+                {% set columnColorStyle = (columnColor and columnColor|lower != '#ffffff') ? 'background-color: ' ~ columnColor ~ '88;' : '' %}
+                
+                <div class="markbook-column border-r border-gray-300 min-w-[60px] cursor-move" data-header="{{ column.gibbonMarkbookColumnID }}" style="{{ columnColorStyle }}">
+                    
+                    {# ============================================
+                       COLUMN HEADER
+                       ============================================ #}
+                    
+                    <div class="header-row p-2 pb-8 border-b border-gray-300 flex flex-col items-center justify-start bg-gray-100 font-bold text-center" style="{{ columnColorStyle }}">
+                        {% if canEditThisClass %}
+                            <div class="dragtable-drag-handle"></div>
+                        {% else %}
+                            <br/>
+                        {% endif %}
+                        
+                        {# Build tooltip info #}
+                        {% set info %}
+                            <div class="font-bold text-sm leading-6 mb-2">{{ column.getData('description') }}</div>
+                            <ul class="m-0 ml-4 w-48 text-xs">
+                                <li>{{ __('Type') }} - {{ markbook.getTypeDescription(columnType) }}</li>
+                                {% if column.getData('gibbonUnitID') %}
+                                    <li>{{ __('Unit') }} - {{ columnMetadata[loop.index0].unit[0] }}</li>
+                                {% endif %}
+                                {% if enableGroupByTerm == 'Y' and column.getData('date') %}
+                                    <li>{{ __('Assigned on') }} {{ formatUsing('date', column.getData('date')) }}</li>
+                                {% endif %}
+                                {% if column.getData('completeDate') %}
+                                    <li>{{ __('Marked on') }} {{ formatUsing('date', column.getData('completeDate')) }}</li>
+                                {% else %}
+                                    <li>{{ __('Unmarked') }}</li>
+                                {% endif %}
+                                {% if enableColumnWeighting == 'Y' %}
+                                    <li>{{ __('Column Weighting') }} {{ column.getData('attainmentWeighting')|number_format(1) }}</li>
+                                {% endif %}
+                                {% if enableTypeWeighting == 'Y' %}
+                                    <li>{{ __('Type Weighting') }} {{ markbook.getWeightingByType(columnType)|number_format(1) }}</li>
+                                {% endif %}
+                            </ul>
+                        {% endset %}
+                        
+                        <span x-tooltip.bottom="{{ info|e('html_attr') }}">{{ column.getData('name') }}</span><br/>
+                        <span class="details">
+                            {{ markbook.getTypeDescription(column.getData('type')) }}
+                            
+                            {% if column.hasAttachment(absolutePath) %}
+                                 | <a title="{{ __('Download more information') }}" href="{{ absoluteURL }}/{{ column.getData('attachment') }}" target="_blank">{{ __('More Info') }}</a><br/>
+                            {% else %}
+                                <br/>
+                            {% endif %}
+                            
+                            {# Display unit information if available #}
+                            {% if column.getData('gibbonUnitID') and columnMetadata[loop.index0].unit[0] is defined %}
+                                {{ __('Unit') }} - {{ columnMetadata[loop.index0].unit[0] }}<br/>
+                            {% else %}
+                                <br/>
+                            {% endif %}
+                        </span>
+                        
+                        {# Action links for editing #}
+                        {% if canEditThisClass %}
+                            <div class="columnActions flex items-center justify-center gap-2">
+                                <a class="inline-block text-gray-600 hover:text-gray-800" title="{{ __('Edit') }}" href="{{ absoluteURL }}/index.php?q=/modules/Markbook/markbook_edit_edit.php&gibbonCourseClassID={{ gibbonCourseClassID }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}">
+                                    {# SAFE: icon() function generates trusted SVG HTML #}
+                                    {{ icon('solid', 'edit', 'size-6')|raw }}
+                                </a>
+                                <a class="inline-block text-gray-600 hover:text-gray-800" title="{{ __('Enter Data') }}" href="{{ absoluteURL }}/index.php?q=/modules/Markbook/markbook_edit_data.php&gibbonCourseClassID={{ gibbonCourseClassID }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}">
+                                    {# SAFE: icon() function generates trusted SVG HTML #}
+                                    {{ icon('solid', 'markbook', 'size-6')|raw }}
+                                    
+                                    {# Check/cross indicator for marked columns #}
+                                    {% set includeMarks = column.getData('completeDate') and column.hasAttainmentWeighting() and (enableTypeWeighting != 'Y' or markbook.getWeightingByType(columnType)) and markbook.getReportableByType(columnType) != 'N' %}
+                                    {% if includeMarks %}
+                                        {% set weightInfo = __('Marked on') ~ ' ' ~ formatUsing('date', column.getData('completeDate')) %}
+                                        <div class="absolute right-0 bottom-0 -mr-1 -mb-1" title="{{ weightInfo }}">
+                                            {# SAFE: icon() function generates trusted SVG HTML #}
+                                            {{ icon('solid', 'check', 'size-4 text-green-600 bg-gray-150 rounded-full')|raw }}
+                                        </div>
+                                    {% else %}
+                                        {# Build weight info #}
+                                        {% set weightInfoLines = [] %}
+                                        {% if not column.getData('completeDate') %}
+                                            {% set weightInfoLines = weightInfoLines|merge([__('Unmarked')]) %}
+                                        {% endif %}
+                                        {% if enableColumnWeighting == 'Y' and not column.hasAttainmentWeighting() %}
+                                            {% set weightInfoLines = weightInfoLines|merge([__('Column Weighting') ~ ' ' ~ column.getData('attainmentWeighting')|number_format(1)]) %}
+                                        {% endif %}
+                                        {% if enableTypeWeighting == 'Y' and not markbook.getWeightingByType(columnType) %}
+                                            {% set weightInfoLines = weightInfoLines|merge([__('Type Weighting') ~ ' ' ~ markbook.getWeightingByType(columnType)|number_format(1)]) %}
+                                        {% endif %}
+                                        {% if markbook.getReportableByType(columnType) == 'N' %}
+                                            {% set weightInfoLines = weightInfoLines|merge([__('Reportable') ~ '? ' ~ markbook.getReportableByType(columnType)]) %}
+                                        {% endif %}
+                                        {% if enableColumnWeighting == 'Y' %}
+                                            {% set weightInfo = __('Excluded from averages') ~ ': ' ~ weightInfoLines|join(', ') %}
+                                        {% else %}
+                                            {% set weightInfo = weightInfoLines|join(', ') %}
+                                        {% endif %}
+                                        <div class="absolute right-0 bottom-0 -mr-1 -mb-1" title="{{ weightInfo }}">
+                                            {# SAFE: icon() function generates trusted SVG HTML #}
+                                            {{ icon('solid', 'cross', 'size-4 text-red-700 bg-gray-150 rounded-full')|raw }}
+                                        </div>
+                                    {% endif %}
+                                </a>
+                                <a class="thickbox inline-block text-gray-600 hover:text-gray-800" title="{{ __('Delete') }}" href="{{ absoluteURL }}/fullscreen.php?q=/modules/Markbook/markbook_edit_delete.php&gibbonCourseClassID={{ gibbonCourseClassID }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}&width=650&height=135">
+                                    {# SAFE: icon() function generates trusted SVG HTML #}
+                                    {{ icon('solid', 'delete', 'size-6')|raw }}
+                                </a>
+                                <a class="inline-block text-gray-600 hover:text-gray-800" title="{{ __('Export to Excel') }}" href="{{ absoluteURL }}/modules/Markbook/markbook_viewExport.php?gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}&gibbonCourseClassID={{ gibbonCourseClassID }}&return=markbook_view.php">
+                                    {# SAFE: icon() function generates trusted SVG HTML #}
+                                    {{ icon('solid', 'download', 'size-6')|raw }}
+                                </a>
+                            </div>
+                        {% endif %}
+                        
+                        {# Sub-header labels for attainment, effort, comment, etc. #}
+                        <div class="flex flex-row w-full" style="{{ columnColorStyle }}">
+                            {% if enableModifiedAssessment == 'Y' %}
+                                <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[30px] max-w-[40px]" title="{{ __('Modified') }}">
+                                    {{ __('Mod') }}
+                                </div>
+                            {% endif %}
+                            
+                            {% if column.displayAttainment() %}
+                                <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[60px]">
+                                    {% set scale = '' %}
+                                    {% if enableRawAttainment == 'Y' and columnFilter == 'raw' and column.displayRawMarks() and column.hasAttainmentRawMax() %}
+                                        {% set scale = ' - ' ~ __('Raw Marks') ~ ' ' ~ __('out of') ~ ': ' ~ column.getData('attainmentRawMax')|number_format(1) %}
+                                    {% endif %}
+                                    
+                                    {% if columnMetadata[loop.parent.loop.index0].attainmentScale is defined %}
+                                        {% set scale = columnMetadata[loop.parent.loop.index0].attainmentScale %}
+                                    {% endif %}
+                                    
+                                    <span title="{{ attainmentName ~ scale }}">{{ attainmentAbrev }}</span>
+                                </div>
+                            {% endif %}
+                            
+                            {% if column.displayEffort() %}
+                                <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[60px]">
+                                    {% set effortScale = '' %}
+                                    {% if columnMetadata[loop.parent.loop.index0].effortScale is defined %}
+                                        {% set effortScale = columnMetadata[loop.parent.loop.index0].effortScale %}
+                                    {% endif %}
+                                    <span title="{{ effortName ~ effortScale }}">{{ effortAbrev }}</span>
+                                </div>
+                            {% endif %}
+                            
+                            {% if column.displayComment() %}
+                                <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[120px]" title="{{ __('Comment') }}">
+                                    {{ __('Com') }}
+                                </div>
+                            {% endif %}
+                            
+                            {% if column.displayUploadedResponse() %}
+                                <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[40px] max-w-[60px]" title="{{ __('Response') }}">
+                                    {{ __('Upl') }}
+                                </div>
+                            {% endif %}
+                            
+                            {% if column.displaySubmission() %}
+                                <div class="flex-1 p-1 text-center min-w-[30px] max-w-[40px]" title="{{ __('Submitted Work') }}">
+                                    {{ __('Sub') }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {# ============================================
+                       STUDENT ENTRY CELLS
+                       ============================================ #}
+                    
+                    {% for student in students %}
+                        {% set entry = student.entries[loop.parent.loop.index0] %}
+                        
+                        <div class="p-2 border-b border-gray-300 flex items-center justify-center {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}" style="{{ columnColorStyle }}">
+                            
+                            {# Check if this is a new enrollment (student joined after assessment) #}
+                            {% if entry.newEnrollment %}
+                                <div style="text-align: center;">
+                                    <i>{{ __('NA') }}</i>
+                                </div>
+                            {% elseif entry.exists %}
+                                <div class="flex flex-row w-full">
+                                    {# Modified assessment indicator #}
+                                    {% if enableModifiedAssessment == 'Y' %}
+                                        <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[30px] max-w-[40px]">
+                                            {{ entry.modifiedAssessment }}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {# Attainment value and descriptor #}
+                                    {% if column.displayAttainment() %}
+                                        <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[60px]">
+                                            {% if entry.attainmentValue or entry.attainmentValueRaw %}
+                                                <div title="{{ entry.attainmentDescriptor }}" class="flex">
+                                                    {% set attainmentDisplay = entry.attainmentValue %}
+                                                    
+                                                    {# Display raw marks if enabled #}
+                                                    {% if enableRawAttainment == 'Y' and columnFilter == 'raw' and column.displayRawMarks() and column.hasAttainmentRawMax() and entry.attainmentValueRaw %}
+                                                        {% set attainmentDisplay = entry.attainmentValueRaw %}
+                                                    {% endif %}
+                                                    
+                                                    {# Apply concern styling #}
+                                                    {% if entry.attainmentConcern == 'Y' %}
+                                                        <span class="border-2 border-orange-500 bg-orange-200 text-orange-500 px-1 py-0.5">
+                                                            <b>{{ attainmentDisplay }}</b>
+                                                        </span>
+                                                    {% else %}
+                                                        {{ attainmentDisplay }}
+                                                    {% endif %}
+                                                    
+                                                    {# Display rubric link if enabled #}
+                                                    {% if enableRubrics == 'Y' and column.hasAttainmentRubric() %}
+                                                        <a class="thickbox rubricIcon text-gray-600 hover:text-gray-800 inline-block ml-2 align-middle" href="{{ absoluteURL }}/fullscreen.php?q=/modules/Markbook/markbook_view_rubric.php&gibbonRubricID={{ column.getData('gibbonRubricIDAttainment') }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}&gibbonPersonID={{ student.gibbonPersonID }}&gibbonCourseClassID={{ gibbonCourseClassID }}&mark=FALSE&type=attainment&width=1100&height=550">
+                                                            {# SAFE: icon() function generates trusted SVG HTML #}
+                                                            {{ icon('solid', 'markbook', 'size-4')|raw }}
+                                                        </a>
+                                                    {% endif %}
+                                                </div>
+                                            {% else %}
+                                                {# Show quick edit link for empty attainment when no rubric #}
+                                                {% if not column.hasAttainmentRubric() and canEditThisClass %}
+                                                    <a title="{{ __('Edit') }}" class="markbookQuickEdit text-gray-600 hover:text-gray-800 inline-block ml-2 align-middle" href="{{ absoluteURL }}/index.php?q=/modules/Markbook/markbook_edit_data.php&gibbonCourseClassID={{ gibbonCourseClassID }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}#{{ student.gibbonPersonID }}">
+                                                        {# SAFE: icon() function generates trusted SVG HTML #}
+                                                        {{ icon('solid', 'edit', 'size-4')|raw }}
+                                                    </a>
+                                                {% endif %}
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {# Effort value and descriptor #}
+                                    {% if column.displayEffort() %}
+                                        <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[60px]">
+                                            {% if entry.effortValue %}
+                                                <div title="{{ entry.effortDescriptor }}" class="flex">
+                                                    {# Apply concern styling #}
+                                                    {% if entry.effortConcern == 'Y' %}
+                                                        <div class="border-2 border-orange-500 bg-orange-200 text-orange-500 px-1 py-0.5">
+                                                            {{ entry.effortValue }}
+                                                        </div>
+                                                    {% elseif entry.effortConcern == 'P' %}
+                                                        <span class="markbookPraise">
+                                                            <b>{{ entry.effortValue }}</b>
+                                                        </span>
+                                                    {% else %}
+                                                        {{ entry.effortValue }}
+                                                    {% endif %}
+                                                    
+                                                    {# Display rubric link if enabled #}
+                                                    {% if enableRubrics == 'Y' and column.hasEffortRubric() %}
+                                                        <br/>
+                                                        <a class="thickbox" href="{{ absoluteURL }}/fullscreen.php?q=/modules/Markbook/markbook_view_rubric.php&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}&gibbonPersonID={{ student.gibbonPersonID }}&gibbonCourseClassID={{ gibbonCourseClassID }}&mark={{ entry.effortValue|url_encode }}&type=effort&width=1100&height=550">
+                                                            {{ __('Rubric') }}
+                                                        </a>
+                                                    {% endif %}
+                                                </div>
+                                            {% else %}
+                                                {# Show quick edit link for empty effort when no rubric #}
+                                                {% if not column.hasEffortRubric() and canEditThisClass %}
+                                                    <a title="{{ __('Edit') }}" class="markbookQuickEdit text-gray-600 hover:text-gray-800 inline-block ml-2 align-middle" href="{{ absoluteURL }}/index.php?q=/modules/Markbook/markbook_edit_data.php&gibbonCourseClassID={{ gibbonCourseClassID }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}#{{ student.gibbonPersonID }}">
+                                                        {# SAFE: icon() function generates trusted SVG HTML #}
+                                                        {{ icon('solid', 'edit', 'size-4')|raw }}
+                                                    </a>
+                                                {% endif %}
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {# Comment with proper escaping #}
+                                    {% if column.displayComment() %}
+                                        <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[120px]">
+                                            {% if entry.comment %}
+                                                <script type="text/javascript">
+                                                    $(document).ready(function(){
+                                                        $(".comment-{{ student.gibbonPersonID }}-{{ column.gibbonMarkbookColumnID }}").hide();
+                                                        $(".show_hide-{{ student.gibbonPersonID }}-{{ column.gibbonMarkbookColumnID }}").show();
+                                                        
+                                                        $('.show_hide-{{ student.gibbonPersonID }}-{{ column.gibbonMarkbookColumnID }}').click(function(){
+                                                            $(".comment-{{ student.gibbonPersonID }}-{{ column.gibbonMarkbookColumnID }}").slideToggle(1000);
+                                                        });
+                                                    });
+                                                </script>
+                                                <span title="{{ entry.comment }}">{{ entry.comment|slice(0, 10) }}...</span>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {# Uploaded response links #}
+                                    {% if column.displayUploadedResponse() %}
+                                        <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[40px] max-w-[60px]">
+                                            {% if entry.response %}
+                                                <a title="{{ __('Uploaded Response') }}" href="{{ absoluteURL }}/{{ entry.response }}" target="_blank">
+                                                    {# SAFE: icon() function generates trusted SVG HTML #}
+                                                    {{ icon('solid', 'attachment', 'size-4')|raw }}
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {# Submission status and links #}
+                                    {% if column.displaySubmission() %}
+                                        <div class="flex-1 p-1 text-center min-w-[30px] max-w-[40px]">
+                                            {% if entry.submission %}
+                                                {% set submission = entry.submission %}
+                                                
+                                                {# Display submission status with tooltip #}
+                                                <span title="{{ submission.status }}. {{ submission.version }}. {{ submission.timestamp }}">
+                                                    {% if submission.status == 'Exemption' %}
+                                                        {{ __('Exe') }}
+                                                    {% elseif submission.status == 'Submitted' %}
+                                                        {% if submission.version == 'Final' %}
+                                                            <a target="_blank" href="{{ submission.location }}">{{ __('Fin') }}</a>
+                                                        {% else %}
+                                                            <a target="_blank" href="{{ submission.location }}">{{ __('Dra') }}</a>
+                                                        {% endif %}
+                                                    {% elseif submission.status == 'Late' %}
+                                                        <a target="_blank" href="{{ submission.location }}" class="border-2 border-orange-500 px-1 py-0.5">{{ __('Fin') }}</a>
+                                                    {% elseif submission.status == 'Incomplete' %}
+                                                        <span title="{{ __('Incomplete') }}" class="border-2 border-red-700 text-red-700 px-1 py-0.5">{{ __('Inc') }}</span>
+                                                    {% else %}
+                                                        <a target="_blank" href="{{ submission.location }}">{{ __('Fin') }}</a>
+                                                    {% endif %}
+                                                </span>
+                                            {% else %}
+                                                {% if student.dateStart > column.getData('homeworkDueDateTime') %}
+                                                    <span title="{{ __('Pending') }}" class="border-2 border-red-700 px-1 py-0.5">{{ __('Pen') }}</span>
+                                                {% elseif column.getData('homeworkSubmissionRequired') == 'Required' %}
+                                                    <span title="{{ __('Incomplete') }}" class="border-2 border-red-700 text-red-700 px-1 py-0.5">{{ __('Inc') }}</span>
+                                                {% endif %}
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                {# No entry data - show Add links in each cell #}
+                                {% if canEditThisClass %}
+                                    {% set editLink %}
+                                        <a title="{{ __('Add') }}" class="markbookQuickEdit inline-block" href="{{ absoluteURL }}/index.php?q=/modules/Markbook/markbook_edit_data.php&gibbonCourseClassID={{ gibbonCourseClassID }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}#{{ student.gibbonPersonID }}">
+                                            {# SAFE: icon() function generates trusted SVG HTML #}
+                                            {{ icon('solid', 'add', 'size-4 text-green-600 mt-1')|raw }}
+                                        </a>
+                                    {% endset %}
+                                {% else %}
+                                    {% set editLink = '' %}
+                                {% endif %}
+                                
+                                <div class="flex flex-row w-full">
+                                    {# Modified assessment cell with Add link #}
+                                    {% if enableModifiedAssessment == 'Y' %}
+                                        <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[30px] max-w-[40px]">{{ editLink|raw }}</div>
+                                    {% endif %}
+                                    
+                                    {# Attainment cell with Add link #}
+                                    {% if column.displayAttainment() %}
+                                        <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[40px] max-w-[60px]">{{ editLink|raw }}</div>
+                                    {% endif %}
+                                    
+                                    {# Effort cell with Add link #}
+                                    {% if column.displayEffort() %}
+                                        <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[40px] max-w-[60px]">{{ editLink|raw }}</div>
+                                    {% endif %}
+                                    
+                                    {# Comment cell with Add link #}
+                                    {% if column.displayComment() %}
+                                        <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[120px]">{{ editLink|raw }}</div>
+                                    {% endif %}
+                                    
+                                    {# Uploaded response cell with Add link #}
+                                    {% if column.displayUploadedResponse() %}
+                                        <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[40px] max-w-[60px]">{{ editLink|raw }}</div>
+                                    {% endif %}
+                                    
+                                    {# Submission cell with Add link #}
+                                    {% if column.displaySubmission() %}
+                                        <div class="flex-1 p-1 text-center min-w-[30px] max-w-[40px]">{{ editLink|raw }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    
+                    {# ============================================
+                       CLASS AVERAGE CELL
+                       ============================================ #}
+                    
+                    {% if enableColumnWeighting == 'Y' %}
+                        <div class="p-2 border-b border-gray-300 flex items-center justify-center font-bold {{ students|length is odd ? 'bg-white' : 'bg-gray-50' }}" style="{{ columnColorStyle }}">
+                            <div class="flex flex-row w-full">
+                                {# Empty modified assessment cell #}
+                                {% if enableModifiedAssessment == 'Y' %}
+                                    <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[30px] max-w-[40px]"></div>
+                                {% endif %}
+                                
+                                {# Attainment average cell #}
+                                {% if column.displayAttainment() %}
+                                    <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[40px] max-w-[60px]">
+                                        {% if totals.attainment[loop.parent.loop.index0] is defined and totals.attainment[loop.parent.loop.index0].count > 0 %}
+                                            {{ (totals.attainment[loop.parent.loop.index0].total / totals.attainment[loop.parent.loop.index0].count)|number_format(1) }}%
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                                
+                                {# Empty effort cell #}
+                                {% if column.displayEffort() %}
+                                    <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[40px] max-w-[60px]"></div>
+                                {% endif %}
+                                
+                                {# Empty comment cell #}
+                                {% if column.displayComment() %}
+                                    <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[120px]"></div>
+                                {% endif %}
+                                
+                                {# Empty uploaded response cell #}
+                                {% if column.displayUploadedResponse() %}
+                                    <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[40px] max-w-[60px]"></div>
+                                {% endif %}
+                                
+                                {# Empty submission cell #}
+                                {% if column.displaySubmission() %}
+                                    <div class="flex-1 p-1 text-center min-w-[30px] max-w-[40px]"></div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                </div>
+            {% endfor %}
+            
+            {# ============================================
+               AVERAGE COLUMNS (CONDITIONAL)
+               ============================================ #}
+            
+            {% if enableColumnWeighting == 'Y' %}
+                
+                {# Type average columns #}
+                {% if enableGroupByTerm == 'Y' and gibbonSchoolYearTermID > 0 %}
+                    {% if enableTypeWeighting == 'Y' %}
+                        {% for type in markbook.getGroupedMarkbookTypes('term') %}
+                            <div class="markbook-column border-r border-gray-300 min-w-[60px]">
+                                {# Header #}
+                                <div class="header-row p-2 pb-8 border-b border-gray-300 flex items-center justify-center bg-gray-100 font-bold text-center">
+                                    <div class="vertical-text">
+                                        {{ markbook.getTypeDescription(type) }}
+                                    </div>
+                                </div>
+                                
+                                {# Student averages #}
+                                {% for student in students %}
+                                    <div class="p-2 border-b border-gray-300 flex items-center justify-center {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}">
+                                        {% if student.averages.typeAverages[type] is defined %}
+                                            {{ markbook.getFormattedAverage(student.averages.typeAverages[type]) }}
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                                
+                                {# Class average #}
+                                <div class="p-2 border-b border-gray-300 flex items-center justify-center font-bold {{ students|length is odd ? 'bg-white' : 'bg-gray-50' }}">
+                                    {% if totals.typeAverage[type] is defined and count > 0 %}
+                                        {{ markbook.getFormattedAverage(totals.typeAverage[type] / count) }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% elseif markbook.getGroupedMarkbookTypes('year')|length > 0 and gibbonSchoolYearTermID > 0 %}
+                    {% for type in markbook.getGroupedMarkbookTypes('year') %}
+                        <div class="markbook-column border-r border-gray-300 min-w-[60px]">
+                            {# Header #}
+                            <div class="header-row p-2 pb-8 border-b border-gray-300 flex items-center justify-center bg-gray-100 font-bold text-center">
+                                <div class="vertical-text">
+                                    {{ markbook.getTypeDescription(type) }}
+                                </div>
+                            </div>
+                            
+                            {# Student averages #}
+                            {% for student in students %}
+                                <div class="p-2 border-b border-gray-300 flex items-center justify-center {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}">
+                                    {% if student.averages.typeAverages[type] is defined %}
+                                        {{ markbook.getFormattedAverage(student.averages.typeAverages[type]) }}
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                            
+                            {# Class average #}
+                            <div class="p-2 border-b border-gray-300 flex items-center justify-center font-bold {{ students|length is odd ? 'bg-white' : 'bg-gray-50' }}">
+                                {% if totals.typeAverage[type] is defined and count > 0 %}
+                                    {{ markbook.getFormattedAverage(totals.typeAverage[type] / count) }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                {# Term average columns #}
+                {% if enableGroupByTerm == 'Y' and gibbonSchoolYearTermID <= 0 %}
+                    {% for term in markbook.getCurrentTerms() %}
+                        <div class="markbook-column border-r border-gray-300 min-w-[60px]">
+                            {# Header #}
+                            <div class="header-row p-2 pb-8 border-b border-gray-300 flex items-center justify-center bg-gray-100 font-bold text-center">
+                                <div class="vertical-text">
+                                    {{ term.name }}
+                                </div>
+                            </div>
+                            
+                            {# Student averages #}
+                            {% for student in students %}
+                                <div class="p-2 border-b border-gray-300 flex items-center justify-center {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}">
+                                    {% if student.averages.termAverages[term.gibbonSchoolYearTermID] is defined %}
+                                        {{ markbook.getFormattedAverage(student.averages.termAverages[term.gibbonSchoolYearTermID]) }}
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                            
+                            {# Class average #}
+                            <div class="p-2 border-b border-gray-300 flex items-center justify-center font-bold {{ students|length is odd ? 'bg-white' : 'bg-gray-50' }}">
+                                {% if totals.termAverage[term.gibbonSchoolYearTermID] is defined and count > 0 %}
+                                    {{ markbook.getFormattedAverage(totals.termAverage[term.gibbonSchoolYearTermID] / count) }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                {# Cumulative average column #}
+                <div class="markbook-column border-r border-gray-300 min-w-[60px]">
+                    {# Header #}
+                    <div class="header-row p-2 pb-8 border-b border-gray-300 flex items-center justify-center bg-gray-100 font-bold text-center">
+                        <div class="vertical-text">
+                            {{ __('Cumulative Average') }}
+                        </div>
+                    </div>
+                    
+                    {# Student averages #}
+                    {% for student in students %}
+                        <div class="p-2 border-b border-gray-300 flex items-center justify-center {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}">
+                            {% if student.averages.cumulativeAverage %}
+                                {{ markbook.getFormattedAverage(student.averages.cumulativeAverage) }}
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    
+                    {# Class average #}
+                    <div class="p-2 border-b border-gray-300 flex items-center justify-center font-bold {{ students|length is odd ? 'bg-white' : 'bg-gray-50' }}">
+                        {% if totals.cumulativeAverage is defined and totals.count > 0 %}
+                            {{ markbook.getFormattedAverage(totals.cumulativeAverage / totals.count) }}
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {# Final grade average columns (for year view with type weighting) #}
+                {% if enableTypeWeighting == 'Y' and markbook.getGroupedMarkbookTypes('year')|length > 0 and gibbonSchoolYearTermID <= 0 %}
+                    {% if columnFilter == 'averages' %}
+                        {% for type in markbook.getGroupedMarkbookTypes('year') %}
+                            <div class="markbook-column border-r border-gray-300 min-w-[60px]">
+                                {# Header #}
+                                <div class="header-row p-2 pb-8 border-b border-gray-300 flex items-center justify-center bg-gray-100 font-bold text-center">
+                                    <div class="vertical-text">
+                                        {{ markbook.getTypeDescription(type) }} ({{ __('Final') }})
+                                    </div>
+                                </div>
+                                
+                                {# Student averages #}
+                                {% for student in students %}
+                                    <div class="p-2 border-b border-gray-300 flex items-center justify-center {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}">
+                                        {% if student.averages.finalTypeAverages[type] is defined %}
+                                            {{ markbook.getFormattedAverage(student.averages.finalTypeAverages[type]) }}
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                                
+                                {# Class average #}
+                                <div class="p-2 border-b border-gray-300 flex items-center justify-center font-bold {{ students|length is odd ? 'bg-white' : 'bg-gray-50' }}">
+                                    {% if totals[type] is defined and count > 0 %}
+                                        {{ markbook.getFormattedAverage(totals[type] / count) }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                        
+                        {# Final grade column #}
+                        <div class="markbook-column border-r border-gray-300 min-w-[60px]">
+                            {# Header #}
+                            <div class="header-row p-2 pb-8 border-b border-gray-300 flex items-center justify-center bg-gray-100 font-bold text-center">
+                                <div class="vertical-text">
+                                    {{ __('Final Grade') }}
+                                </div>
+                            </div>
+                            
+                            {# Student averages #}
+                            {% for student in students %}
+                                <div class="p-2 border-b border-gray-300 flex items-center justify-center {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}">
+                                    {% if student.averages.finalGradeAverage %}
+                                        {{ markbook.getFormattedAverage(student.averages.finalGradeAverage) }}
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                            
+                            {# Class average #}
+                            <div class="p-2 border-b border-gray-300 flex items-center justify-center font-bold {{ students|length is odd ? 'bg-white' : 'bg-gray-50' }}">
+                                {% if totals.finalGrade is defined and count > 0 %}
+                                    {{ markbook.getFormattedAverage(totals.finalGrade / count) }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endif %}
+                
+            {% endif %}
+            
+        </div>
+        
+    </div>
+
+    </div>
+</div>
