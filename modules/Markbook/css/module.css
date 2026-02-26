@@ -35,6 +35,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
  * Markbook Stuff
  */
 
+ tr:target td {
+	background: #EDF7FF !important;
+}
+
 
 /* Data Edit input fields*/
 
@@ -92,6 +96,16 @@ select[id$="effortValue"] {
  * Double-scroll 
  * 
  */
+
+.doublescroll-top {
+	
+    height: 0.1px;
+}
+
+.doublescroll-top-tablewidth {
+	
+}
+
 /* 
 .doublescroll-wrapper {
 	display: inline-block;
@@ -178,12 +192,12 @@ select[id$="effortValue"] {
 
 .dragtable-drag-handle{
 	cursor: move;
-	height: 8px;
+	height: 7px;
 	width: 31px;
 	max-width: 31px;
 	min-width: 31px;
 	background: transparent;
-	margin: 4px auto 10px auto;
+	margin: 10px auto 6px auto;
 	border-color: #bbbbbb;
 	border-style: dotted;
 	border-width: 3px 0px 3px 0px;

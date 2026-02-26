@@ -554,6 +554,7 @@ require_once __DIR__ . '/src/MarkbookColumn.php';
                     $resultEntry->execute($dataEntry);
                     if ($resultEntry->rowCount() >= 1) {
                         $rowEntry = $resultEntry->fetch();
+                        
                         $studentData['baseline'] = [
                             'value' => $rowEntry['value'],
                             'descriptor' => $rowEntry['descriptor'],
@@ -691,15 +692,16 @@ require_once __DIR__ . '/src/MarkbookColumn.php';
                                 $studentData['averages']['typeAverages'][$type] = $typeAverage;
                             }
                         }
+                    }
 
-                        if ( ($markbook->getSetting('enableGroupByTerm') == 'Y' && $gibbonSchoolYearTermID <= 0) ) {
-                            foreach ($markbook->getCurrentTerms() as $term) {
-                                $termAverage = $markbook->getTermAverage($rowStudents['gibbonPersonID'], $term['gibbonSchoolYearTermID']);
-                                $studentData['averages']['termAverages'][$term['gibbonSchoolYearTermID']] = $termAverage;
-                                @$totals['termAverage'][$term['gibbonSchoolYearTermID']] += floatval($termAverage);
-                            }
+                    if ( ($markbook->getSetting('enableGroupByTerm') == 'Y' && $gibbonSchoolYearTermID <= 0) ) {
+                        foreach ($markbook->getCurrentTerms() as $term) {
+                            $termAverage = $markbook->getTermAverage($rowStudents['gibbonPersonID'], $term['gibbonSchoolYearTermID']);
+                            $studentData['averages']['termAverages'][$term['gibbonSchoolYearTermID']] = $termAverage;
+                            @$totals['termAverage'][$term['gibbonSchoolYearTermID']] += floatval($termAverage);
                         }
                     }
+                    
 
                     if ($markbook->getSetting('enableGroupByTerm') == 'Y' && $gibbonSchoolYearTermID > 0) {
                         $termAverage = $markbook->getTermAverage($rowStudents['gibbonPersonID'], $gibbonSchoolYearTermID);
@@ -740,6 +742,6 @@ require_once __DIR__ . '/src/MarkbookColumn.php';
         $templateData['count'] = $count;
 
         // Render the template
-        echo $page->fetchFromTemplate('markbook_view_divs.twig.html', $templateData);
+        echo $page->fetchFromTemplate('markbook_view.twig.html', $templateData);
 
     }
