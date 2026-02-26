@@ -38,13 +38,30 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 /* Grid columns use CSS Grid for vertical alignment */
 .markbook-column {
     display: grid;
-    grid-auto-rows: minmax(40px, auto);
+    grid-template-rows: 160px;
+    grid-auto-rows: 40px;
 }
 
 /* Header row has fixed height */
 .markbook-column > .header-row {
     height: 160px;
 }
+
+/* Sub-cell grid for assessment columns */
+.subcell-grid {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(40px, auto);
+    width: 100%;
+}
+
+/* Specific column widths - only applied to columns that exist */
+.subcell-grid > .col-mod { width: 40px; min-width: 40px; max-width: 40px; }
+.subcell-grid > .col-att { width: 60px; min-width: 60px; max-width: 60px; }
+.subcell-grid > .col-eff { width: 60px; min-width: 60px; max-width: 60px; }
+.subcell-grid > .col-com { min-width: 80px; } /* Comment expands to fill space */
+.subcell-grid > .col-upl { width: 60px; min-width: 60px; max-width: 60px; }
+.subcell-grid > .col-sub { width: 40px; min-width: 40px; max-width: 40px; }
 
 /* Vertical text for narrow columns */
 .vertical-text {
@@ -250,7 +267,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
            MAIN MARKBOOK GRID
            ============================================ #}
         
-        <div id="markbookGrid" class="markbook-grid-container overflow-x-auto border border-gray-300 text-sm">
+        <div id="markbookGrid" class="markbook-grid-container overflow-x-auto overflow-y-hidden border border-gray-300 text-sm">
             
             
             
@@ -293,7 +310,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                ============================================ #}
             
             {% if hasPersonalizedTargets %}
-                <div class="markbook-column border-r border-gray-300 min-w-[60px]" data-header="target">
+                <div class="markbook-column border-r border-gray-300 " data-header="target">
                     {# Header cell #}
                     <div class="header-row p-2 pb-8 border-b border-gray-300 flex items-center justify-center bg-gray-100 font-bold text-center">
                         <div class="vertical-text">
@@ -327,7 +344,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                 {# Column color is already sanitized by PHP backend #}
                 {% set columnColorStyle = (columnColor and columnColor|lower != '#ffffff') ? 'background-color: ' ~ columnColor ~ '88;' : '' %}
                 
-                <div class="markbook-column border-r border-gray-300 min-w-[60px] cursor-move" data-header="{{ column.gibbonMarkbookColumnID }}" style="{{ columnColorStyle }}">
+                <div class="markbook-column border-r border-gray-300  cursor-move" data-header="{{ column.gibbonMarkbookColumnID }}" style="{{ columnColorStyle }}">
                     
                     {# ============================================
                        COLUMN HEADER
@@ -440,15 +457,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                         {% endif %}
                         
                         {# Sub-header labels for attainment, effort, comment, etc. #}
-                        <div class="flex flex-row w-full" style="{{ columnColorStyle }}">
+                        <div class="subcell-grid" style="{{ columnColorStyle }}">
                             {% if enableModifiedAssessment == 'Y' %}
-                                <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[30px] max-w-[40px]" title="{{ __('Modified') }}">
+                                <div class="col-mod p-1 border-r border-gray-200 text-center" title="{{ __('Modified') }}">
                                     {{ __('Mod') }}
                                 </div>
                             {% endif %}
                             
                             {% if column.displayAttainment() %}
-                                <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[60px]">
+                                <div class="col-att p-1 border-r border-gray-200 text-center">
                                     {% set scale = '' %}
                                     {% if enableRawAttainment == 'Y' and columnFilter == 'raw' and column.displayRawMarks() and column.hasAttainmentRawMax() %}
                                         {% set scale = ' - ' ~ __('Raw Marks') ~ ' ' ~ __('out of') ~ ': ' ~ column.getData('attainmentRawMax')|number_format(1) %}
@@ -463,7 +480,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                             {% endif %}
                             
                             {% if column.displayEffort() %}
-                                <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[60px]">
+                                <div class="col-eff p-1 border-r border-gray-200 text-center">
                                     {% set effortScale = '' %}
                                     {% if columnMetadata[loop.parent.loop.index0].effortScale is defined %}
                                         {% set effortScale = columnMetadata[loop.parent.loop.index0].effortScale %}
@@ -473,19 +490,19 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                             {% endif %}
                             
                             {% if column.displayComment() %}
-                                <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[120px]" title="{{ __('Comment') }}">
+                                <div class="col-com p-1 border-r border-gray-200 text-center" title="{{ __('Comment') }}">
                                     {{ __('Com') }}
                                 </div>
                             {% endif %}
                             
                             {% if column.displayUploadedResponse() %}
-                                <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[40px] max-w-[60px]" title="{{ __('Response') }}">
+                                <div class="col-upl p-1 border-r border-gray-200 text-center" title="{{ __('Response') }}">
                                     {{ __('Upl') }}
                                 </div>
                             {% endif %}
                             
                             {% if column.displaySubmission() %}
-                                <div class="flex-1 p-1 text-center min-w-[30px] max-w-[40px]" title="{{ __('Submitted Work') }}">
+                                <div class="col-sub p-1 text-center" title="{{ __('Submitted Work') }}">
                                     {{ __('Sub') }}
                                 </div>
                             {% endif %}
@@ -499,7 +516,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                     {% for student in students %}
                         {% set entry = student.entries[loop.parent.loop.index0] %}
                         
-                        <div class="p-2 border-b border-gray-300 flex items-center justify-center {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}" style="{{ columnColorStyle }}">
+                        <div class="p-2 border-b border-gray-300 subcell-grid {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}" style="{{ columnColorStyle }}">
                             
                             {# Check if this is a new enrollment (student joined after assessment) #}
                             {% if entry.newEnrollment %}
@@ -507,17 +524,17 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                     <i>{{ __('NA') }}</i>
                                 </div>
                             {% elseif entry.exists %}
-                                <div class="flex flex-row w-full">
+                                
                                     {# Modified assessment indicator #}
                                     {% if enableModifiedAssessment == 'Y' %}
-                                        <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[30px] max-w-[40px]">
+                                        <div class="col-mod p-1 border-r border-gray-200 text-center">
                                             {{ entry.modifiedAssessment }}
                                         </div>
                                     {% endif %}
                                     
                                     {# Attainment value and descriptor #}
                                     {% if column.displayAttainment() %}
-                                        <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[60px]">
+                                        <div class="col-att p-1 border-r border-gray-200 text-center">
                                             {% if entry.attainmentValue or entry.attainmentValueRaw %}
                                                 <div title="{{ entry.attainmentDescriptor }}" class="flex">
                                                     {% set attainmentDisplay = entry.attainmentValue %}
@@ -558,7 +575,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                     
                                     {# Effort value and descriptor #}
                                     {% if column.displayEffort() %}
-                                        <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[60px]">
+                                        <div class="col-eff p-1 border-r border-gray-200 text-center">
                                             {% if entry.effortValue %}
                                                 <div title="{{ entry.effortDescriptor }}" class="flex">
                                                     {# Apply concern styling #}
@@ -596,7 +613,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                     
                                     {# Comment with proper escaping #}
                                     {% if column.displayComment() %}
-                                        <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[120px]">
+                                        <div class="col-com p-1 border-r border-gray-200 text-center">
                                             {% if entry.comment %}
                                                 <script type="text/javascript">
                                                     $(document).ready(function(){
@@ -615,7 +632,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                     
                                     {# Uploaded response links #}
                                     {% if column.displayUploadedResponse() %}
-                                        <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[40px] max-w-[60px]">
+                                        <div class="col-upl p-1 border-r border-gray-200 text-center">
                                             {% if entry.response %}
                                                 <a title="{{ __('Uploaded Response') }}" href="{{ absoluteURL }}/{{ entry.response }}" target="_blank">
                                                     {# SAFE: icon() function generates trusted SVG HTML #}
@@ -627,7 +644,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                     
                                     {# Submission status and links #}
                                     {% if column.displaySubmission() %}
-                                        <div class="flex-1 p-1 text-center min-w-[30px] max-w-[40px]">
+                                        <div class="col-sub p-1 text-center">
                                             {% if entry.submission %}
                                                 {% set submission = entry.submission %}
                                                 
@@ -658,7 +675,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                             {% endif %}
                                         </div>
                                     {% endif %}
-                                </div>
+                                
                             {% else %}
                                 {# No entry data - show Add links in each cell #}
                                 {% if canEditThisClass %}
@@ -672,37 +689,37 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                     {% set editLink = '' %}
                                 {% endif %}
                                 
-                                <div class="flex flex-row w-full">
+                                
                                     {# Modified assessment cell with Add link #}
                                     {% if enableModifiedAssessment == 'Y' %}
-                                        <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[30px] max-w-[40px]">{{ editLink|raw }}</div>
+                                        <div class="col-mod p-1 border-r border-gray-200 text-center">{{ editLink|raw }}</div>
                                     {% endif %}
                                     
                                     {# Attainment cell with Add link #}
                                     {% if column.displayAttainment() %}
-                                        <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[40px] max-w-[60px]">{{ editLink|raw }}</div>
+                                        <div class="col-att p-1 border-r border-gray-200 text-center">{{ editLink|raw }}</div>
                                     {% endif %}
                                     
                                     {# Effort cell with Add link #}
                                     {% if column.displayEffort() %}
-                                        <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[40px] max-w-[60px]">{{ editLink|raw }}</div>
+                                        <div class="col-eff p-1 border-r border-gray-200 text-center">{{ editLink|raw }}</div>
                                     {% endif %}
                                     
                                     {# Comment cell with Add link #}
                                     {% if column.displayComment() %}
-                                        <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[120px]">{{ editLink|raw }}</div>
+                                        <div class="col-com p-1 border-r border-gray-200 text-center">{{ editLink|raw }}</div>
                                     {% endif %}
                                     
                                     {# Uploaded response cell with Add link #}
                                     {% if column.displayUploadedResponse() %}
-                                        <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[40px] max-w-[60px]">{{ editLink|raw }}</div>
+                                        <div class="col-upl p-1 border-r border-gray-200 text-center">{{ editLink|raw }}</div>
                                     {% endif %}
                                     
                                     {# Submission cell with Add link #}
                                     {% if column.displaySubmission() %}
-                                        <div class="flex-1 p-1 text-center min-w-[30px] max-w-[40px]">{{ editLink|raw }}</div>
+                                        <div class="col-sub p-1 text-center">{{ editLink|raw }}</div>
                                     {% endif %}
-                                </div>
+                                
                             {% endif %}
                         </div>
                     {% endfor %}
@@ -713,15 +730,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                     
                     {% if enableColumnWeighting == 'Y' %}
                         <div class="p-2 border-b border-gray-300 flex items-center justify-center font-bold {{ students|length is odd ? 'bg-white' : 'bg-gray-50' }}" style="{{ columnColorStyle }}">
-                            <div class="flex flex-row w-full">
+                            <div class="subcell-grid">
                                 {# Empty modified assessment cell #}
                                 {% if enableModifiedAssessment == 'Y' %}
-                                    <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[30px] max-w-[40px]"></div>
+                                    <div class="col-mod p-1 border-r border-gray-200 text-center"></div>
                                 {% endif %}
                                 
                                 {# Attainment average cell #}
                                 {% if column.displayAttainment() %}
-                                    <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[40px] max-w-[60px]">
+                                    <div class="col-att p-1 border-r border-gray-200 text-center">
                                         {% if totals.attainment[loop.parent.loop.index0] is defined and totals.attainment[loop.parent.loop.index0].count > 0 %}
                                             {{ (totals.attainment[loop.parent.loop.index0].total / totals.attainment[loop.parent.loop.index0].count)|number_format(1) }}%
                                         {% endif %}
@@ -730,22 +747,22 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                 
                                 {# Empty effort cell #}
                                 {% if column.displayEffort() %}
-                                    <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[40px] max-w-[60px]"></div>
+                                    <div class="col-eff p-1 border-r border-gray-200 text-center"></div>
                                 {% endif %}
                                 
                                 {# Empty comment cell #}
                                 {% if column.displayComment() %}
-                                    <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[120px]"></div>
+                                    <div class="col-com p-1 border-r border-gray-200 text-center"></div>
                                 {% endif %}
                                 
                                 {# Empty uploaded response cell #}
                                 {% if column.displayUploadedResponse() %}
-                                    <div class="flex-1 p-1 border-r border-gray-200 text-center min-w-[40px] max-w-[60px]"></div>
+                                    <div class="col-upl p-1 border-r border-gray-200 text-center"></div>
                                 {% endif %}
                                 
                                 {# Empty submission cell #}
                                 {% if column.displaySubmission() %}
-                                    <div class="flex-1 p-1 text-center min-w-[30px] max-w-[40px]"></div>
+                                    <div class="col-sub p-1 text-center"></div>
                                 {% endif %}
                             </div>
                         </div>
@@ -764,7 +781,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                 {% if enableGroupByTerm == 'Y' and gibbonSchoolYearTermID > 0 %}
                     {% if enableTypeWeighting == 'Y' %}
                         {% for type in markbook.getGroupedMarkbookTypes('term') %}
-                            <div class="markbook-column border-r border-gray-300 min-w-[60px]">
+                            <div class="markbook-column border-r border-gray-300 ">
                                 {# Header #}
                                 <div class="header-row p-2 pb-8 border-b border-gray-300 flex items-center justify-center bg-gray-100 font-bold text-center">
                                     <div class="vertical-text">
@@ -792,7 +809,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                     {% endif %}
                 {% elseif markbook.getGroupedMarkbookTypes('year')|length > 0 and gibbonSchoolYearTermID > 0 %}
                     {% for type in markbook.getGroupedMarkbookTypes('year') %}
-                        <div class="markbook-column border-r border-gray-300 min-w-[60px]">
+                        <div class="markbook-column border-r border-gray-300 ">
                             {# Header #}
                             <div class="header-row p-2 pb-8 border-b border-gray-300 flex items-center justify-center bg-gray-100 font-bold text-center">
                                 <div class="vertical-text">
@@ -822,7 +839,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                 {# Term average columns #}
                 {% if enableGroupByTerm == 'Y' and gibbonSchoolYearTermID <= 0 %}
                     {% for term in markbook.getCurrentTerms() %}
-                        <div class="markbook-column border-r border-gray-300 min-w-[60px]">
+                        <div class="markbook-column border-r border-gray-300 ">
                             {# Header #}
                             <div class="header-row p-2 pb-8 border-b border-gray-300 flex items-center justify-center bg-gray-100 font-bold text-center">
                                 <div class="vertical-text">
@@ -850,7 +867,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                 {% endif %}
                 
                 {# Cumulative average column #}
-                <div class="markbook-column border-r border-gray-300 min-w-[60px]">
+                <div class="markbook-column border-r border-gray-300 ">
                     {# Header #}
                     <div class="header-row p-2 pb-8 border-b border-gray-300 flex items-center justify-center bg-gray-100 font-bold text-center">
                         <div class="vertical-text">
@@ -879,7 +896,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                 {% if enableTypeWeighting == 'Y' and markbook.getGroupedMarkbookTypes('year')|length > 0 and gibbonSchoolYearTermID <= 0 %}
                     {% if columnFilter == 'averages' %}
                         {% for type in markbook.getGroupedMarkbookTypes('year') %}
-                            <div class="markbook-column border-r border-gray-300 min-w-[60px]">
+                            <div class="markbook-column border-r border-gray-300 ">
                                 {# Header #}
                                 <div class="header-row p-2 pb-8 border-b border-gray-300 flex items-center justify-center bg-gray-100 font-bold text-center">
                                     <div class="vertical-text">
@@ -906,7 +923,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                         {% endfor %}
                         
                         {# Final grade column #}
-                        <div class="markbook-column border-r border-gray-300 min-w-[60px]">
+                        <div class="markbook-column border-r border-gray-300">
                             {# Header #}
                             <div class="header-row p-2 pb-8 border-b border-gray-300 flex items-center justify-center bg-gray-100 font-bold text-center">
                                 <div class="vertical-text">
