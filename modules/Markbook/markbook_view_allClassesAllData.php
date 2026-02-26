@@ -740,6 +740,6 @@ require_once __DIR__ . '/src/MarkbookColumn.php';
         $templateData['count'] = $count;
 
         // Render the template
-        echo $page->fetchFromTemplate('markbook_view.twig.html', $templateData);
+        echo $page->fetchFromTemplate('markbook_view_divs.twig.html', $templateData);
 
     }

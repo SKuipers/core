@@ -19,23 +19,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-/**
- * Stuff for the Core?
- */
-
-.linkTop a img {
-	margin-left: 5px;
-}
-
-tr:target td {
-	background: #EDF7FF !important;
-}
-
-.details {
-	font-size: 90%;
-	font-style: italic;
-	font-weight: normal;
-}
 
 .verticalText {
 	-webkit-transform: rotate(-90deg);
@@ -52,103 +35,6 @@ tr:target td {
  * Markbook Stuff
  */
 
-table.markbook {
-	margin-top: 0px;
-}
-
-table.markbook thead tr.head {
-	min-height: 140px;
-}
-
-th.dataColumn {
-    height: 100px;
-	width: 40px;
-	min-width: 40px;
-	max-width: 40px;
-	vertical-align: bottom;
-	padding-bottom: 25px !important;
-}
-
-.dataColumn.dataDivider {
-	border-left: 1px solid #666;
-}
-
-.dataColumn.dataDividerTop {
-	border-top: 2px solid #bbbbbb;
-	background: #FBFBFB;
-}
-
-.marksColumn {
-	padding: 0px 0px 30px 0px !important;
-	text-align: center;
-    min-width: 140px;
-    position: relative;
-    vertical-align: top;
-    height: 130px;
-}
-
-.marksColumn .columnActions {
-    margin-top: 6px;
-}
-
-.marksColumn .columnLabels {
-    margin-top: 2px;
-    position: absolute;
-    bottom: 0px;
-    left: 0px;
-    width: 100%;
-}
-
-
-table.columnLabels {
-	width: 100%;
-	height: 25px;
-}
-
-th.columnLabel {
-	text-align: center !important;
-}
-
-td.columnLabel,
-th.columnLabel:first-of-type {
-	border-left: 1px solid #666;
-}
-
-.smallColumn {
-	min-width:20px;
-	width: 30px;
-	white-space: nowrap;
-}
-
-.medColumn {
-	min-width:50px;
-	width: 65px;
-	white-space: nowrap;
-}
-
-.largeColumn {
-	min-width:40px;
-	width: 80px;
-	white-space: nowrap;
-}
-
-.rubricIcon img {
-	margin-bottom: -3px;
-	margin-left: 3px;
-	
-}
-
-.studentName {
-	display: inline-block;
-	font-weight: bold;
-	height: 15px;
-}
-
-
-table.blank td {
-	text-align: center;
-	padding: 0px 5px !important;
-}
 
 /* Data Edit input fields*/
 
@@ -206,20 +92,17 @@ select[id$="effortValue"] {
  * Double-scroll 
  * 
  */
-
+/* 
 .doublescroll-wrapper {
 	display: inline-block;
 	max-width: 100%;
 	position: relative;
 	background: #FBFBFB none repeat scroll 0% 0%;
-	border: 1px solid #CCC;
-	border-radius: 3px;
 	margin-bottom: 20px;
 }
 
 .doublescroll-top {
 	overflow-x:auto;
-	margin-left:175px;
 }
 
 .doublescroll-top-tablewidth {
@@ -229,7 +112,6 @@ select[id$="effortValue"] {
 .doublescroll-container {
 	overflow-x: auto;
 	overflow-y:visible;
-	margin-left:175px;
 }
 
 .doublescroll-container table {
@@ -245,7 +127,6 @@ select[id$="effortValue"] {
 
 .doublescroll-container tr.head th.firstColumn {
 	position:absolute; 
-    width:174px; 
     height: 130px;
     left:1px;
     top:0;
@@ -262,7 +143,6 @@ select[id$="effortValue"] {
 
 .doublescroll-container td.firstColumn {
 	position:absolute; 
-    width:175px; 
     left:1px;
     top:auto;
     padding: 5px 12px 5px !important;
@@ -280,12 +160,11 @@ select[id$="effortValue"] {
 	content: "";
 	position: absolute;
 	top: 0px;
-	left: 175px;
 	background: #666666 none repeat scroll 0% 0%;
 	height: calc(100% );
 	width: 1px;
 	z-index: 1;
-}
+} */
 
 
 /* -------------------------------------------------------
@@ -299,7 +178,7 @@ select[id$="effortValue"] {
 
 .dragtable-drag-handle{
 	cursor: move;
-	height: 7px;
+	height: 8px;
 	width: 31px;
 	max-width: 31px;
 	min-width: 31px;
