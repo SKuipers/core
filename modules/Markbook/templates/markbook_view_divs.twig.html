@@ -59,7 +59,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 .subcell-grid > .col-mod { width: 40px; min-width: 40px; max-width: 40px; }
 .subcell-grid > .col-att { width: 60px; min-width: 60px; max-width: 60px; }
 .subcell-grid > .col-eff { width: 60px; min-width: 60px; max-width: 60px; }
-.subcell-grid > .col-com { min-width: 80px; } /* Comment expands to fill space */
+.subcell-grid > .col-com { min-width: 120px; } 
 .subcell-grid > .col-upl { width: 60px; min-width: 60px; max-width: 60px; }
 .subcell-grid > .col-sub { width: 40px; min-width: 40px; max-width: 40px; }
 
@@ -232,7 +232,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
          
          <div class="markbook-column border-r border-gray-300 min-w-[200px] z-10 bg-white" data-header="student">
              {# Header cell #}
-             <div class="header-row p-2 pb-8 border-b border-gray-300 flex items-center justify-center bg-gray-100 font-bold text-center">
+             <div class="header-row p-2 border-b border-gray-300 flex items-center justify-center bg-gray-100 font-bold text-center">
                  <span>{{ __('Student') }}</span>
              </div>
              
@@ -344,13 +344,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                 {# Column color is already sanitized by PHP backend #}
                 {% set columnColorStyle = (columnColor and columnColor|lower != '#ffffff') ? 'background-color: ' ~ columnColor ~ '88;' : '' %}
                 
-                <div class="markbook-column border-r border-gray-300  cursor-move" data-header="{{ column.gibbonMarkbookColumnID }}" style="{{ columnColorStyle }}">
+                <div class="markbook-column border-r border-gray-300 " data-header="{{ column.gibbonMarkbookColumnID }}" style="{{ columnColorStyle }}">
                     
                     {# ============================================
                        COLUMN HEADER
                        ============================================ #}
                     
-                    <div class="header-row p-2 pb-8 border-b border-gray-300 flex flex-col items-center justify-start bg-gray-100 font-bold text-center" style="{{ columnColorStyle }}">
+                    <div class="header-row p-2 border-b border-gray-300 flex flex-col items-center justify-start bg-gray-100 font-bold text-center" style="{{ columnColorStyle }}">
                         {% if canEditThisClass %}
                             <div class="dragtable-drag-handle"></div>
                         {% else %}
