@@ -56,9 +56,12 @@ class MarkbookView
     /**
      * Cache markbook values to reduce queries
      */
-    protected $defaultAssessmentScale;
-    protected $externalAssessmentFields;
-    protected $personalizedTargets;
+    protected $defaultAssessmentScale = [];
+    protected $externalAssessmentFields = [];
+    protected $personalizedTargets = [];
+
+    protected $markbookEntries = [];
+    protected $externalAssessments = [];
 
     
     /**
@@ -383,7 +386,7 @@ class MarkbookView
         $DAS = $this->settingGateway->getSettingByScope('System', 'defaultAssessmentScale');
         try {
             $data = array('gibbonScaleID' => $DAS);
-            $sql = 'SELECT `name`, `nameShort`, `numeric` FROM gibbonScale WHERE gibbonScaleID=:gibbonScaleID';
+            $sql = 'SELECT `name`, `nameShort`, `numeric`, `gibbonScaleID` FROM gibbonScale WHERE gibbonScaleID=:gibbonScaleID';
             $result = $this->pdo->select($sql, $data);
         } catch (\PDOException $e) {
             $this->error($e->getMessage());
@@ -412,6 +415,27 @@ class MarkbookView
     }
 
     /**
+     * Get Markbook Entry from cached values
+     *
+     * @return  array
+     */
+    public function getMarkbookEntryByColumnAndStudent($gibbonMarkbookColumnID, $gibbonPersonID)
+    {
+        $key = $gibbonMarkbookColumnID.'-'.$gibbonPersonID;
+        return $this->markbookEntries[$key] ?? [];
+    }
+
+    /**
+     * Get External Assessment from cached values
+     *
+     * @return  array
+     */
+    public function getExternalAssessmentByStudent($gibbonPersonID)
+    {
+        return $this->externalAssessments[$gibbonPersonID] ?? [];
+    }
+
+    /**
      * Do we have Personalized Targets? Used to hide the Target column
      * @version 7th May 2016
      * @since   7th May 2016
@@ -430,22 +454,29 @@ class MarkbookView
      */
     public function cachePersonalizedTargets()
     {
+        $data = ['gibbonCourseClassID' => $this->gibbonCourseClassID];
+        $sql = 'SELECT gibbonPersonIDStudent, value FROM gibbonMarkbookTarget JOIN gibbonScaleGrade ON (gibbonMarkbookTarget.gibbonScaleGradeID=gibbonScaleGrade.gibbonScaleGradeID) WHERE gibbonCourseClassID=:gibbonCourseClassID';
 
-        $this->personalizedTargets = array();
+        $this->personalizedTargets = $this->pdo->select($sql, $data)->fetchKeyPair();
+    }
 
-        try {
-            $data = array('gibbonCourseClassID' => $this->gibbonCourseClassID);
-            $sql = 'SELECT gibbonPersonIDStudent, value FROM gibbonMarkbookTarget JOIN gibbonScaleGrade ON (gibbonMarkbookTarget.gibbonScaleGradeID=gibbonScaleGrade.gibbonScaleGradeID) WHERE gibbonCourseClassID=:gibbonCourseClassID';
-            $result = $this->pdo->select($sql, $data);
-        } catch (\PDOException $e) {
-            $this->error($e->getMessage());
-        }
+    /**
+     * Cache Personalized Targets
+     *
+     * @version 7th May 2016
+     * @since   7th May 2016
+     */
+    public function cacheMarkbookEntries()
+    {
+        $data = ['gibbonCourseClassID' => $this->gibbonCourseClassID];
+        $sql = "SELECT CONCAT(gibbonMarkbookColumn.gibbonMarkbookColumnID, '-', gibbonMarkbookEntry.gibbonPersonIDStudent) as groupBy, gibbonMarkbookEntry.*, gibbonScale.numeric, gibbonScale.gibbonScaleID, gibbonMarkbookColumn.complete, gibbonMarkbookColumn.attainmentWeighting, gibbonMarkbookColumn.type, gibbonMarkbookColumn.attainmentRaw
+            FROM gibbonMarkbookEntry 
+            JOIN gibbonMarkbookColumn ON (gibbonMarkbookEntry.gibbonMarkbookColumnID=gibbonMarkbookColumn.gibbonMarkbookColumnID) 
+            LEFT JOIN gibbonScale ON (gibbonMarkbookColumn.gibbonScaleIDAttainment=gibbonScale.gibbonScaleID) 
+            WHERE gibbonCourseClassID=:gibbonCourseClassID
+            ORDER BY gibbonPersonIDStudent, completeDate";
 
-        if ($result->rowCount() > 0) {
-            while ($row = $result->fetch()) {
-                $this->personalizedTargets[$row['gibbonPersonIDStudent']] = $row['value'];
-            }
-        }
+        $this->markbookEntries = $this->pdo->select($sql, $data)->fetchGroupedUnique();
     }
 
     /**
@@ -795,82 +826,73 @@ class MarkbookView
         $typesUsed = array();
         $termsUsed = array();
 
-        // Lookup a single student
+        $DAS = $this->getDefaultAssessmentScale();
+        $entries = array_filter($this->markbookEntries, function ($item) use ($DAS) {
+            return $item['numeric'] == 'Y' && $item['complete'] == 'Y' && $item['gibbonScaleID'] == $DAS['gibbonScaleID'];
+        });
+        
         if (!empty($gibbonPersonIDStudent)) {
             $gibbonPersonIDStudent = str_pad($gibbonPersonIDStudent, 10, '0', STR_PAD_LEFT);
-
-            try {
-                $data = array('gibbonCourseClassID' => $this->gibbonCourseClassID, 'gibbonPersonIDStudent' => $gibbonPersonIDStudent);
-                $sql = "SELECT attainmentWeighting, attainmentRaw, attainmentRawMax, attainmentValue, attainmentValueRaw, type, gibbonSchoolYearTermID, gibbonPersonIDStudent FROM gibbonMarkbookEntry JOIN gibbonMarkbookColumn ON (gibbonMarkbookEntry.gibbonMarkbookColumnID=gibbonMarkbookColumn.gibbonMarkbookColumnID) JOIN gibbonScale ON (gibbonMarkbookColumn.gibbonScaleIDAttainment=gibbonScale.gibbonScaleID) WHERE gibbonCourseClassID=:gibbonCourseClassID AND gibbonScale.numeric='Y' AND gibbonScaleID=(SELECT value FROM gibbonSetting WHERE scope='System' AND name='defaultAssessmentScale') AND complete='Y' AND NOT attainmentValue='' AND gibbonPersonIDStudent=:gibbonPersonIDStudent ORDER BY gibbonPersonIDStudent, completeDate";
-                $result = $this->pdo->select($sql, $data);
-            } catch (\PDOException $e) {
-                $this->error($e->getMessage());
-            }
-        } else {
-            try {
-                $data = array('gibbonCourseClassID' => $this->gibbonCourseClassID);
-                $sql = "SELECT attainmentWeighting, attainmentRaw, attainmentRawMax, attainmentValue, attainmentValueRaw, type, gibbonSchoolYearTermID, gibbonPersonIDStudent FROM gibbonMarkbookEntry JOIN gibbonMarkbookColumn ON (gibbonMarkbookEntry.gibbonMarkbookColumnID=gibbonMarkbookColumn.gibbonMarkbookColumnID) JOIN gibbonScale ON (gibbonMarkbookColumn.gibbonScaleIDAttainment=gibbonScale.gibbonScaleID) WHERE gibbonCourseClassID=:gibbonCourseClassID AND gibbonScale.numeric='Y' AND gibbonScaleID=(SELECT value FROM gibbonSetting WHERE scope='System' AND name='defaultAssessmentScale') AND complete='Y' AND NOT attainmentValue='' ORDER BY gibbonPersonIDStudent, completeDate";
-                $result = $this->pdo->select($sql, $data);
-            } catch (\PDOException $e) {
-                $this->error($e->getMessage());
-            }
+            $entries = array_filter($entries, function ($item) use ($gibbonPersonIDStudent) {
+                return $item['gibbonPersonIDStudent'] == $gibbonPersonIDStudent;
+            });
         }
 
-        if ($result->rowCount() > 0) {
-            while ($entry = $result->fetch()) {
-                // Exclude incomplete values -- maybe make this a setting later?
-                if (!is_numeric(rtrim($entry['attainmentValue'], "%"))) {
-                    continue;
-                }
+        foreach ($entries as $entry) {
 
-                $gibbonPersonID = $entry['gibbonPersonIDStudent'];
+            // Exclude incomplete values -- maybe make this a setting later?
+            if (!is_numeric(rtrim($entry['attainmentValue'], "%"))) {
+                continue;
+            }
 
-                // floatval these to reduce them to numeric info only
-                $weight = floatval($entry['attainmentWeighting']);
-                $value = floatval($entry['attainmentValue']);
+            $gibbonPersonID = $entry['gibbonPersonIDStudent'];
 
-                // Use the raw percent rather than the rounded values for higher accuracy, if they're available
-                if ($this->settings['enableRawAttainment'] == 'Y' && stripos($entry['attainmentValue'], '%') !== false) {
-                    if ($entry['attainmentRaw'] == 'Y' && $entry['attainmentValueRaw'] > 0 && $entry['attainmentRawMax'] > 0) {
-                        $value = floatval(($entry['attainmentValueRaw'] / $entry['attainmentRawMax']) * 100);
-                    }
-                }
+            // floatval these to reduce them to numeric info only
+            $weight = floatval($entry['attainmentWeighting']);
+            $value = floatval($entry['attainmentValue']);
 
-                if (isset($entry['type'])) {
-                    $type = $entry['type'];
-                    if ($weight > 0) {
-                        $typesUsed[] = $type;
-                    }
-                } else {
-                    $type = 'Unknown';
-                }
-
-                if ($this->settings['enableGroupByTerm'] == 'Y' && isset($entry['gibbonSchoolYearTermID'])) {
-                    $term = $entry['gibbonSchoolYearTermID'];
-                    $termsUsed[] = $term;
-                } else {
-                    $term = 'all';
-                }
-
-                // Group the end-of-course weightings in a specifically named 'term'
-                if ($this->settings['enableTypeWeighting'] == 'Y') {
-                    if (isset($this->markbookWeights[$type]) && $this->markbookWeights[$type]['calculate'] == 'year') {
-                        $term = 'final';
-                    }
-                }
-
-                // Sum up the raw averages for each entry as we go
-                if (isset($this->rawAverages[$gibbonPersonID][$term][$type])) {
-                    $this->rawAverages[$gibbonPersonID][$term][$type]['total'] += $weight;
-                    $this->rawAverages[$gibbonPersonID][$term][$type]['cumulative'] += ($value * $weight);
-                } else {
-                    $this->rawAverages[$gibbonPersonID][$term][$type] = array(
-                        'total' => $weight,
-                        'cumulative' => ($value * $weight),
-                    );
+            // Use the raw percent rather than the rounded values for higher accuracy, if they're available
+            if ($this->settings['enableRawAttainment'] == 'Y' && stripos($entry['attainmentValue'], '%') !== false) {
+                if ($entry['attainmentRaw'] == 'Y' && $entry['attainmentValueRaw'] > 0 && $entry['attainmentRawMax'] > 0) {
+                    $value = floatval(($entry['attainmentValueRaw'] / $entry['attainmentRawMax']) * 100);
                 }
             }
-        }
+
+            if (isset($entry['type'])) {
+                $type = $entry['type'];
+                if ($weight > 0) {
+                    $typesUsed[] = $type;
+                }
+            } else {
+                $type = 'Unknown';
+            }
+
+            if ($this->settings['enableGroupByTerm'] == 'Y' && isset($entry['gibbonSchoolYearTermID'])) {
+                $term = $entry['gibbonSchoolYearTermID'];
+                $termsUsed[] = $term;
+            } else {
+                $term = 'all';
+            }
+
+            // Group the end-of-course weightings in a specifically named 'term'
+            if ($this->settings['enableTypeWeighting'] == 'Y') {
+                if (isset($this->markbookWeights[$type]) && $this->markbookWeights[$type]['calculate'] == 'year') {
+                    $term = 'final';
+                }
+            }
+
+            // Sum up the raw averages for each entry as we go
+            if (isset($this->rawAverages[$gibbonPersonID][$term][$type])) {
+                $this->rawAverages[$gibbonPersonID][$term][$type]['total'] += $weight;
+                $this->rawAverages[$gibbonPersonID][$term][$type]['cumulative'] += ($value * $weight);
+            } else {
+                $this->rawAverages[$gibbonPersonID][$term][$type] = array(
+                    'total' => $weight,
+                    'cumulative' => ($value * $weight),
+                );
+            }
+        
+    }
 
         // Group the used Markbook Types together, if nessesary
         if (count($typesUsed) > 0) {
@@ -955,8 +977,6 @@ class MarkbookView
                 return;
             }
 
-            
-
             if ($primaryExternalAssessmentByYearGroup[$gibbonYearGroupIDListArray[0]] != '' and $primaryExternalAssessmentByYearGroup[$gibbonYearGroupIDListArray[0]] != '-') {
                 $gibbonExternalAssessmentID = substr($primaryExternalAssessmentByYearGroup[$gibbonYearGroupIDListArray[0]], 0, strpos($primaryExternalAssessmentByYearGroup[$gibbonYearGroupIDListArray[0]], '-'));
                 $gibbonExternalAssessmentIDCategory = substr($primaryExternalAssessmentByYearGroup[$gibbonYearGroupIDListArray[0]], (strpos($primaryExternalAssessmentByYearGroup[$gibbonYearGroupIDListArray[0]], '-') + 1));
@@ -999,6 +1019,18 @@ class MarkbookView
                     $this->externalAssessmentFields[4] = $rowExternalAssessment['scale'];
                 }
             }
+        }
+
+        if (!empty($this->externalAssessmentFields[0])) {
+            $data = ['gibbonExternalAssessmentFieldID' => $this->externalAssessmentFields[0]];
+            $sql = "SELECT gibbonExternalAssessmentStudent.gibbonPersonID, gibbonScaleGrade.value, gibbonScaleGrade.descriptor, gibbonExternalAssessmentStudent.date
+                FROM gibbonExternalAssessmentStudentEntry
+                    JOIN gibbonExternalAssessmentStudent ON (gibbonExternalAssessmentStudentEntry.gibbonExternalAssessmentStudentID=gibbonExternalAssessmentStudent.gibbonExternalAssessmentStudentID)
+                    JOIN gibbonScaleGrade ON (gibbonExternalAssessmentStudentEntry.gibbonScaleGradeID=gibbonScaleGrade.gibbonScaleGradeID)
+                WHERE gibbonExternalAssessmentFieldID=:gibbonExternalAssessmentFieldID
+                    AND NOT gibbonExternalAssessmentStudentEntry.gibbonScaleGradeID=''
+                ORDER BY date DESC";
+            $this->externalAssessments = $this->pdo->select($sql, $data)->fetchGroupedUnique();
         }
     }
 

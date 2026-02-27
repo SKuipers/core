@@ -21,8 +21,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 include '../../gibbon.php';
 
-include './moduleFunctions.php';
-
 $order =  $_POST['order'] ?? [];
 $minSequence = $_POST['sequence'] ?? 0;
 
@@ -30,8 +28,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit.php
     echo __('Your request failed because you do not have access to this action.');
 } else {
 
+    $order = is_string($order) ? explode(',', $order) : $order;
+
     for ($i = 0; $i < count($order); $i++) {
 
+        
         // Re-order the sequenceNumber based off the new column order, using the minimum value to preserve pagination / filters
         try {
             $data = array('gibbonMarkbookColumnID' => $order[$i], 'sequenceNumber' => $i + $minSequence );

@@ -468,7 +468,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_dat
 
                         $col = $row->onlyIf($hasAttainment)->addColumn();
                         $col->addSelectGradeScaleGrade($count.'-attainmentValue', $values['gibbonScaleIDAttainment'])
-                            ->setClass('w-auto gradeSelect inline-block')
+                            ->setClass('w-auto w-4 whitespace-nowrap inline-block')
                             ->selected($student['attainmentValue'], false);
 
                         if ($hasAttainment && $hasAttainmentRubric) {
@@ -482,7 +482,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_dat
                         if ($hasEffort) {
                             $col = $row->onlyIf($hasAttainment)->addColumn();
                             $effort = $col->addSelectGradeScaleGrade($count.'-effortValue', $values['gibbonScaleIDEffort'])
-                                ->setClass('w-auto gradeSelect inline-block')
+                                ->setClass('w-auto w-4 whitespace-nowrap inline-block')
                                 ->selected($student['effortValue'], false);
 
                             if ($hasEffort && $hasEffortRubric) {

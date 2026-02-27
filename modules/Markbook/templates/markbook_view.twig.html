@@ -19,73 +19,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 -->#}
 
 {# ============================================
-   MARKBOOK VIEW TEMPLATE (DIV-BASED LAYOUT)
-   ============================================
-   This template renders the markbook view using CSS Grid
-   with div-based columns for drag-drop support via SortableJS.
-   ============================================ #}
-
-<style>
-/* Minimal custom styles - most styling uses Tailwind classes */
-
-/* Grid auto-flow for horizontal columns */
-.markbook-grid-container {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: max-content;
-}
-
-/* Grid columns use CSS Grid for vertical alignment */
-.markbook-column {
-    display: grid;
-    grid-template-rows: 160px;
-    grid-auto-rows: 40px;
-}
-
-/* Header row has fixed height */
-.markbook-column > .header-row {
-    height: 160px;
-}
-
-/* Sub-cell grid for assessment columns */
-.subcell-grid {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(40px, auto);
-    width: 100%;
-}
-
-/* Specific column widths - only applied to columns that exist */
-.subcell-grid > .col-mod { width: 40px; max-width: 40px; }
-.subcell-grid > .col-att { width: 60px; max-width: 60px; }
-.subcell-grid > .col-eff { width: 60px; max-width: 60px; }
-.subcell-grid > .col-com { width: 120px; max-width: 120px; overflow: hidden; } 
-.subcell-grid > .col-upl { width: 60px; max-width: 60px; }
-.subcell-grid > .col-sub { width: 40px; max-width: 40px; }
-
-/* Vertical text for narrow columns */
-.vertical-text {
-    writing-mode: sideways-lr;
-    text-orientation: mixed;
-    white-space: nowrap;
-}
-
-/* Drag handle icon */
-.dragtable-drag-handle:before {
-    font-size: 14px;
-}
-
-/* SortableJS ghost/drag states */
-.sortable-ghost {
-    opacity: 0.4;
-}
-
-.sortable-drag {
-    opacity: 0.8;
-}
-</style>
-
-{# ============================================
    PAGINATION CONTROLS
    ============================================ #}
 
@@ -127,14 +60,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
    ============================================ #}
 
 <script type="text/javascript">
-    $(document).ready(function(){
+    document.addEventListener('DOMContentLoaded', function(){
         // Initialize SortableJS for column reordering
         {% if canEditThisClass %}
             var markbookGrid = document.getElementById('markbookGrid');
             if (markbookGrid && typeof Sortable !== 'undefined') {
                 var sortable = Sortable.create(markbookGrid, {
                     animation: 150,
-                    handle: '.dragtable-drag-handle',
+                    handle: '.markbook-drag-handle',
                     draggable: '.markbook-column[data-header]',
                     ghostClass: 'sortable-ghost',
                     dragClass: 'sortable-drag',
@@ -150,19 +83,24 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
                         // Save the new order via AJAX
                         if (columnOrder.length > 0) {
-                            $.ajax({
-                                url: '{{ absoluteURL }}/modules/Markbook/markbook_viewAjax.php',
-                                type: 'POST',
-                                data: {
+                            fetch('{{ absoluteURL }}/modules/Markbook/markbook_viewAjax.php', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                },
+                                body: new URLSearchParams({
                                     order: columnOrder,
                                     sequence: {{ minimumSequenceNumber }}
-                                },
-                                success: function(response) {
-                                    // Column order saved successfully
-                                },
-                                error: function() {
-                                    console.error('Failed to save column order');
+                                })
+                            })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('Network response was not ok');
                                 }
+                                // Column order saved successfully
+                            })
+                            .catch(error => {
+                                console.error('Failed to save column order:', error);
                             });
                         }
                     }
@@ -174,7 +112,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
     {% if canEditThisClass %}
         // Reset order dialog functions
         function resetOrder(){
-            $("#dialog").dialog();
+            var dialog = document.getElementById('dialog');
+            if (dialog) {
+                dialog.style.display = 'block';
+                // Note: This assumes jQuery UI dialog is still available
+                // If you want to remove jQuery UI completely, you'll need a custom modal solution
+                if (typeof jQuery !== 'undefined' && jQuery.fn.dialog) {
+                    jQuery("#dialog").dialog();
+                }
+            }
         }
         
         function resetOrderAction(order){
@@ -187,26 +133,37 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
     {% endif %}
     
     // Doublescroll initialization for horizontal scrolling
-    $(window).on('load', function (e) {
+    window.addEventListener('load', function (e) {
+        var markbookGrid = document.getElementById('markbookGrid');
         var totalWidth = 0;
-        Array.from(document.getElementById('markbookGrid').children).forEach(element => totalWidth += element.offsetWidth)
-        console.log(totalWidth);
-        // Matches the width of the top placeholder to the final grid width
         
-        $('.doublescroll-top-tablewidth').width(totalWidth);
-        
-        // Start scrolled to the left, where all the recent stuff is
-        $('.doublescroll-container').scrollLeft(totalWidth);
+        if (markbookGrid) {
+            Array.from(markbookGrid.children).forEach(element => totalWidth += element.offsetWidth); 
+            
+            // Matches the width of the top placeholder to the final grid width
+            var topTableWidth = document.querySelector('.doublescroll-top-tablewidth');
+            if (topTableWidth) {
+                topTableWidth.style.width = totalWidth + 'px';
+            }
+            
+            // Start scrolled to the left, where all the recent stuff is
+            var doublescrollContainer = document.querySelector('.doublescroll-container');
+            if (doublescrollContainer) {
+                doublescrollContainer.scrollLeft = totalWidth;
+            }
 
-        // Pairs the position of the top scrollbar with the bottom scrollbar
-        $('.doublescroll-top').scroll(function(){
-            $('.doublescroll-container')
-                .scrollLeft($('.doublescroll-top').scrollLeft());
-        });
-        $('.doublescroll-container').scroll(function(){
-            $('.doublescroll-top')
-                .scrollLeft($('.doublescroll-container').scrollLeft());
-        });
+            // Pairs the position of the top scrollbar with the bottom scrollbar
+            var doublescrollTop = document.querySelector('.doublescroll-top');
+            if (doublescrollTop && doublescrollContainer) {
+                doublescrollTop.addEventListener('scroll', function(){
+                    doublescrollContainer.scrollLeft = doublescrollTop.scrollLeft;
+                });
+                
+                doublescrollContainer.addEventListener('scroll', function(){
+                    doublescrollTop.scrollLeft = doublescrollContainer.scrollLeft;
+                });
+            }
+        }
     });
     
     
@@ -227,8 +184,19 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
    Enables horizontal scrolling for wide grids
    ============================================ #}
 
-<div class="w-full grid" style="grid-template-columns: max-content minmax(0px, 2fr);">
-    
+<div class="w-full grid" style="grid-template-columns: max-content minmax(0px, 2fr);"
+
+    x-data="{
+        student: '',
+        studentPin: '',
+        highlightStudent(id) {
+            return id == this.student;
+        },
+        toggleStudent(id) {
+            return id != this.studentPin && this.studentPin != '';
+        },
+    }"
+>
 
     <div id="markbookStudents" class="markbook-grid-container rounded-tl-md border-t text-sm w-max">
         
@@ -236,18 +204,30 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
             STUDENT NAME COLUMN (FIXED)
             ============================================ #}
          
-         <div class="markbook-column border-r z-10" >
+         <div class="markbook-column min-w-40 border-r z-10" @click.outside="studentPin = ''">
              {# Header cell #}
-             <div class="header-row bg-gray-100 p-2 border-b border-l rounded-tl-md flex items-center justify-start font-bold">
+             <div class="header-row bg-gray-100 p-2 border-b border-l rounded-tl-md flex items-center justify-start font-bold text-gray-800">
                  <span>{{ __('Student') }}</span>
              </div>
              
              {# Student name cells #}
              {% for student in students %}
-                 <div class="p-2 border-b border-l flex items-center justify-start text-left {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}">
+                 <div @mouseover="student = '{{ student.gibbonPersonID }}'" @mouseleave="student = ''"   
+                    :class="{'!bg-amber-100' : highlightStudent('{{ student.gibbonPersonID }}'), 'hidden': toggleStudent('{{ student.gibbonPersonID }}') }"
+                    class="p-2 border-b border-l flex items-center justify-between text-left {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}">
                      <a class="studentName pr-4" href="index.php?q=/modules/Students/student_view_details.php&gibbonPersonID={{ student.gibbonPersonID }}&subpage=Markbook#{{ gibbonCourseClassID }}">
                          {{ formatUsing('name', student.title, student.preferredName, student.surname, 'Student', true) }}
                      </a>
+
+                     <div class="h-7 w-5">
+                        <div x-cloak x-show="student == '{{ student.gibbonPersonID }}' && studentPin == ''" @click="studentPin = '{{ student.gibbonPersonID }}'" class="p-1 cursor-pointer text-gray-500 hover:text-gray-700">
+                            {{ icon('basic', 'eye', 'size-3') }}
+                        </div>
+
+                        <div x-cloak x-show="studentPin == '{{ student.gibbonPersonID }}'" @click="studentPin = ''" class="p-1 cursor-pointer text-gray-500 hover:text-gray-700">
+                            {{ icon('basic', 'eye-slash', 'size-3') }}
+                        </div>
+                    </div>
                  </div>
              {% endfor %}
              
@@ -278,10 +258,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                  
                  {# Baseline data cells #}
                  {% for student in students %}
-                     <div class="p-2 border-b flex items-center justify-center {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}">
+                     <div :class="{'!bg-amber-100' : highlightStudent('{{ student.gibbonPersonID }}'), 'hidden': toggleStudent('{{ student.gibbonPersonID }}') }" class="p-2 border-b flex items-center justify-center {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}">
                          {% if student.baseline %}
                              {{ student.baseline.value }}<br/>
-                             <span class="details">{{ student.baseline.descriptor }}</span>
+                             <span class="text-xxs">{{ student.baseline.descriptor != student.baseline.value ? student.baseline.descriptor }}</span>
                          {% endif %}
                      </div>
                  {% endfor %}
@@ -308,7 +288,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                  
                  {# Target data cells #}
                  {% for student in students %}
-                     <div class="p-2 border-b flex items-center justify-center {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}">
+                     <div :class="{'!bg-amber-100' : highlightStudent('{{ student.gibbonPersonID }}'), 'hidden': toggleStudent('{{ student.gibbonPersonID }}') }" class="p-2 border-b flex items-center justify-center {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}">
                          {% if student.target %}
                              {{ student.target }}
                          {% endif %}
@@ -326,7 +306,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
     <div class="relative doublescroll-wrapper">
 
-    <div class="absolute doublescroll-top w-full overflow-x-auto overflow-y-hidden h-3.5">
+    <div class="absolute doublescroll-top w-full overflow-x-auto overflow-y-hidden -mt-3.5 h-3.5">
         <div class="doublescroll-top-tablewidth h-3.5"></div>
     </div>
 
@@ -354,9 +334,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                        COLUMN HEADER
                        ============================================ #}
                     
-                    <div class="header-row border-b flex flex-col items-center justify-start text-center pt-3.5" style="{{ columnColorStyle }}">
+                    <div class="header-row border-b flex flex-col items-center justify-start text-center" style="{{ columnColorStyle }}">
                         {% if canEditThisClass %}
-                            <div class="dragtable-drag-handle"></div>
+                            <div class="markbook-drag-handle"></div>
                         {% else %}
                             <br/>
                         {% endif %}
@@ -386,8 +366,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                             </ul>
                         {% endset %}
                         
-                        <span x-tooltip.bottom="{{ info|e('html_attr') }}" class="font-bold text-sm">{{ column.getData('name') }}</span><br/>
-                        <span class="text-xs">
+                        <span x-tooltip.bottom="{{ info|e('html_attr') }}" class="font-bold text-gray-800 text-sm px-2">{{ column.getData('name') }}</span><br/>
+                        <span class="text-xs px-2">
                             {{ markbook.getTypeDescription(column.getData('type')) }}
                             
                             {% if column.hasAttachment(absolutePath) %}
@@ -411,7 +391,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                     {# SAFE: icon() function generates trusted SVG HTML #}
                                     {{ icon('solid', 'edit', 'size-6')|raw }}
                                 </a>
-                                <a class="inline-block text-gray-600 hover:text-gray-800" title="{{ __('Enter Data') }}" href="{{ absoluteURL }}/index.php?q=/modules/Markbook/markbook_edit_data.php&gibbonCourseClassID={{ gibbonCourseClassID }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}">
+                                <a class="relative inline-block text-gray-600 hover:text-gray-800" title="{{ __('Enter Data') }}" href="{{ absoluteURL }}/index.php?q=/modules/Markbook/markbook_edit_data.php&gibbonCourseClassID={{ gibbonCourseClassID }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}">
                                     {# SAFE: icon() function generates trusted SVG HTML #}
                                     {{ icon('solid', 'markbook', 'size-6')|raw }}
                                     
@@ -461,7 +441,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                         {% endif %}
                         
                         {# Sub-header labels for attainment, effort, comment, etc. #}
-                        <div class="subcell-grid items-stretch justify-center text-xs font-bold text-gray-900/80 backdrop-saturate-150 backdrop-brightness-90" style="{{ columnColorStyle }}88;">
+                        <div class="subcell-grid items-stretch text-xs font-bold text-gray-900/80 backdrop-saturate-150 backdrop-brightness-90" style="{{ columnColorStyle }}88;">
                             {% if enableModifiedAssessment == 'Y' %}
                                 <div class="col-mod p-1 text-center" title="{{ __('Modified') }}">
                                     {{ __('Mod') }}
@@ -469,7 +449,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                             {% endif %}
                             
                             {% if column.displayAttainment() %}
-                                <div class="col-att p-1  text-center">
+                                <div class="{{ enableRubrics == 'Y' and column.hasAttainmentRubric() ? 'col-rub' : 'col-att' }} p-1  text-center">
                                     {% set scale = '' %}
                                     {% if enableRawAttainment == 'Y' and columnFilter == 'raw' and column.displayRawMarks() and column.hasAttainmentRawMax() %}
                                         {% set scale = ' - ' ~ __('Raw Marks') ~ ' ' ~ __('out of') ~ ': ' ~ column.getData('attainmentRawMax')|number_format(1) %}
@@ -484,7 +464,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                             {% endif %}
                             
                             {% if column.displayEffort() %}
-                                <div class="col-eff p-1  text-center">
+                                <div class="{{ enableRubrics == 'Y' and column.hasEffortRubric() ? 'col-rub' : 'col-eff' }} p-1  text-center">
                                     {% set effortScale = '' %}
                                     {% if columnMetadata[colIndex].effortScale is defined %}
                                         {% set effortScale = columnMetadata[colIndex].effortScale %}
@@ -520,12 +500,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                     {% for student in students %}
                         {% set entry = student.entries[colIndex] %}
                         
-                        <div class=" border-b subcell-grid items-stretch {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}" >
+                        <div :class="{'!bg-amber-100' : highlightStudent('{{ student.gibbonPersonID }}'), 'hidden': toggleStudent('{{ student.gibbonPersonID }}') }" class="border-b subcell-grid items-center {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}" >
                             
                             {# Check if this is a new enrollment (student joined after assessment) #}
                             {% if entry.newEnrollment %}
-                                <div calss="text-center p-1 flex items-center">
-                                    <i>{{ __('NA') }}</i>
+                                <div class="w-full bg-gray-200 text-xs text-center text-gray-500 italic p-1 flex items-center">
+                                    {{ __('N/A') }}
                                 </div>
                             {% elseif entry.exists %}
                                 
@@ -538,9 +518,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                     
                                     {# Attainment value and descriptor #}
                                     {% if column.displayAttainment() %}
-                                        <div class="col-att p-1 flex items-center justify-center">
+                                        <div class="{{ enableRubrics == 'Y' and column.hasAttainmentRubric() ? 'col-rub' : 'col-att' }} px-2 py-1 ">
                                             {% if entry.attainmentValue or entry.attainmentValueRaw %}
-                                                <div title="{{ entry.attainmentDescriptor }}" class="flex">
+                                                <div title="{{ entry.attainmentDescriptor }}" class="flex items-center justify-center">
                                                     {% set attainmentDisplay = entry.attainmentValue %}
                                                     
                                                     {# Display raw marks if enabled #}
@@ -559,7 +539,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                                     
                                                     {# Display rubric link if enabled #}
                                                     {% if enableRubrics == 'Y' and column.hasAttainmentRubric() %}
-                                                        <a class="thickbox rubricIcon text-gray-600 hover:text-gray-800 inline-block ml-2 align-middle" href="{{ absoluteURL }}/fullscreen.php?q=/modules/Markbook/markbook_view_rubric.php&gibbonRubricID={{ column.getData('gibbonRubricIDAttainment') }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}&gibbonPersonID={{ student.gibbonPersonID }}&gibbonCourseClassID={{ gibbonCourseClassID }}&mark=FALSE&type=attainment&width=1100&height=550">
+                                                        <a class="thickbox text-gray-600 hover:text-gray-800 size-4 ml-2 align-middle" href="{{ absoluteURL }}/fullscreen.php?q=/modules/Markbook/markbook_view_rubric.php&gibbonRubricID={{ column.getData('gibbonRubricIDAttainment') }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}&gibbonPersonID={{ student.gibbonPersonID }}&gibbonCourseClassID={{ gibbonCourseClassID }}&mark=FALSE&type=attainment&width=1100&height=550">
                                                             {# SAFE: icon() function generates trusted SVG HTML #}
                                                             {{ icon('solid', 'markbook', 'size-4')|raw }}
                                                         </a>
@@ -568,7 +548,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                             {% else %}
                                                 {# Show quick edit link for empty attainment when no rubric #}
                                                 {% if not column.hasAttainmentRubric() and canEditThisClass %}
-                                                    <a title="{{ __('Edit') }}" class="markbookQuickEdit text-gray-600 hover:text-gray-800 inline-block ml-2 align-middle" href="{{ absoluteURL }}/index.php?q=/modules/Markbook/markbook_edit_data.php&gibbonCourseClassID={{ gibbonCourseClassID }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}#{{ student.gibbonPersonID }}">
+                                                    <a title="{{ __('Edit') }}" class="markbookQuickEdit text-gray-600 hover:text-gray-800 size-4 ml-2 align-middle" href="{{ absoluteURL }}/index.php?q=/modules/Markbook/markbook_edit_data.php&gibbonCourseClassID={{ gibbonCourseClassID }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}#{{ student.gibbonPersonID }}">
                                                         {# SAFE: icon() function generates trusted SVG HTML #}
                                                         {{ icon('solid', 'edit', 'size-4')|raw }}
                                                     </a>
@@ -579,7 +559,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                     
                                     {# Effort value and descriptor #}
                                     {% if column.displayEffort() %}
-                                        <div class="col-eff p-1 flex items-center justify-center">
+                                        <div class="{{ enableRubrics == 'Y' and column.hasEffortRubric() ? 'col-rub' : 'col-eff' }} p-1 flex items-center justify-center">
                                             {% if entry.effortValue %}
                                                 <div title="{{ entry.effortDescriptor }}" class="flex">
                                                     {# Apply concern styling #}
@@ -598,15 +578,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                                     {# Display rubric link if enabled #}
                                                     {% if enableRubrics == 'Y' and column.hasEffortRubric() %}
                                                         <br/>
-                                                        <a class="thickbox" href="{{ absoluteURL }}/fullscreen.php?q=/modules/Markbook/markbook_view_rubric.php&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}&gibbonPersonID={{ student.gibbonPersonID }}&gibbonCourseClassID={{ gibbonCourseClassID }}&mark={{ entry.effortValue|url_encode }}&type=effort&width=1100&height=550">
-                                                            {{ __('Rubric') }}
+                                                        <a class="thickbox text-gray-600 hover:text-gray-800 size-4 ml-2 align-middle" href="{{ absoluteURL }}/fullscreen.php?q=/modules/Markbook/markbook_view_rubric.php&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}&gibbonPersonID={{ student.gibbonPersonID }}&gibbonCourseClassID={{ gibbonCourseClassID }}&mark={{ entry.effortValue|url_encode }}&type=effort&width=1100&height=550">
+                                                            {{ icon('solid', 'markbook', 'size-4')|raw }}
                                                         </a>
                                                     {% endif %}
                                                 </div>
                                             {% else %}
                                                 {# Show quick edit link for empty effort when no rubric #}
                                                 {% if not column.hasEffortRubric() and canEditThisClass %}
-                                                    <a title="{{ __('Edit') }}" class="markbookQuickEdit text-gray-600 hover:text-gray-800 inline-block ml-2 align-middle" href="{{ absoluteURL }}/index.php?q=/modules/Markbook/markbook_edit_data.php&gibbonCourseClassID={{ gibbonCourseClassID }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}#{{ student.gibbonPersonID }}">
+                                                    <a title="{{ __('Edit') }}" class="markbookQuickEdit text-gray-600 hover:text-gray-800 isize-4 ml-2 align-middle" href="{{ absoluteURL }}/index.php?q=/modules/Markbook/markbook_edit_data.php&gibbonCourseClassID={{ gibbonCourseClassID }}&gibbonMarkbookColumnID={{ column.gibbonMarkbookColumnID }}#{{ student.gibbonPersonID }}">
                                                         {# SAFE: icon() function generates trusted SVG HTML #}
                                                         {{ icon('solid', 'edit', 'size-4')|raw }}
                                                     </a>
@@ -617,7 +597,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                     
                                     {# Comment with proper escaping #}
                                     {% if column.displayComment() %}
-                                        <div class="col-com p-1 flex items-center  text-left ">
+                                        <div class="col-com px-2 py-1 flex items-center  text-left ">
                                             {% if entry.comment %}
                                                 <span title="{{ entry.comment }}">{{ entry.comment|slice(0, 10) }}...</span>
                                             {% endif %}
@@ -786,7 +766,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                 
                                 {# Student averages #}
                                 {% for student in students %}
-                                    <div class="p-2 border-b flex items-center justify-center {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}">
+                                    <div :class="{'!bg-amber-100' : highlightStudent('{{ student.gibbonPersonID }}'), 'hidden': toggleStudent('{{ student.gibbonPersonID }}') }" class="p-2 border-b flex items-center justify-center {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}">
                                         {% if student.averages.typeAverages[type] is defined %}
                                             {{ markbook.getFormattedAverage(student.averages.typeAverages[type]) }}
                                         {% endif %}
@@ -814,7 +794,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                             
                             {# Student averages #}
                             {% for student in students %}
-                                <div class="p-2 border-b flex items-center justify-center {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}">
+                                <div :class="{'!bg-amber-100' : highlightStudent('{{ student.gibbonPersonID }}'), 'hidden': toggleStudent('{{ student.gibbonPersonID }}') }" class="p-2 border-b flex items-center justify-center {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}">
                                     {% if student.averages.typeAverages[type] is defined %}
                                         {{ markbook.getFormattedAverage(student.averages.typeAverages[type]) }}
                                     {% endif %}
@@ -844,7 +824,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                             
                             {# Student averages #}
                             {% for student in students %}
-                                <div class="p-2 border-b flex items-center justify-center {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}">
+                                <div :class="{'!bg-amber-100' : highlightStudent('{{ student.gibbonPersonID }}'), 'hidden': toggleStudent('{{ student.gibbonPersonID }}') }" class="p-2 border-b flex items-center justify-center {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}">
                                     {% if student.averages.termAverages[term.gibbonSchoolYearTermID] is defined %}
                                         {{ markbook.getFormattedAverage(student.averages.termAverages[term.gibbonSchoolYearTermID])|raw }}
                                     {% endif %}
@@ -872,7 +852,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                     
                     {# Student averages #}
                     {% for student in students %}
-                        <div class="p-2 border-b flex items-center justify-center {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}">
+                        <div :class="{'!bg-amber-100' : highlightStudent('{{ student.gibbonPersonID }}'), 'hidden': toggleStudent('{{ student.gibbonPersonID }}') }" class="p-2 border-b flex items-center justify-center {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}">
                             {% if student.averages.cumulativeAverage %}
                                 {{ markbook.getFormattedAverage(student.averages.cumulativeAverage)|raw }}
                             {% endif %}
@@ -901,7 +881,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                 
                                 {# Student averages #}
                                 {% for student in students %}
-                                    <div class="p-2 border-b flex items-center justify-center {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}">
+                                    <div :class="{'!bg-amber-100' : highlightStudent('{{ student.gibbonPersonID }}'), 'hidden': toggleStudent('{{ student.gibbonPersonID }}') }" class="p-2 border-b flex items-center justify-center {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}">
                                         {% if student.averages.finalTypeAverages[type] is defined %}
                                             {{ markbook.getFormattedAverage(student.averages.finalTypeAverages[type])|raw  }}
                                         {% endif %}
@@ -928,7 +908,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                             
                             {# Student averages #}
                             {% for student in students %}
-                                <div class="p-2 border-b flex items-center justify-center {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}">
+                                <div :class="{'!bg-amber-100' : highlightStudent('{{ student.gibbonPersonID }}'), 'hidden': toggleStudent('{{ student.gibbonPersonID }}') }" class="p-2 border-b flex items-center justify-center {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}">
                                     {% if student.averages.finalGradeAverage %}
                                         {{ markbook.getFormattedAverage(student.averages.finalGradeAverage)|raw  }}
                                     {% endif %}
