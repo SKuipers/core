@@ -1039,7 +1039,7 @@ class Format
      */
     public static function userPhoto($path, $size = 75, $class = '')
     {
-        $class .= ' inline-block shadow bg-white border border-gray-600 ';
+        $class .= !empty($size) ? ' inline-block shadow bg-white border border-gray-600 ' : '';
 
         switch ($size) {
             case 240:
@@ -1064,7 +1064,7 @@ class Format
                 break;
 
             default:
-                $imageSize = $size;
+                $imageSize = $size ?? 75;
         }
 
         if (empty($path) or file_exists(static::$settings['absolutePath'].'/'.$path) == false) {

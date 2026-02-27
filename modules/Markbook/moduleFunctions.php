@@ -76,7 +76,7 @@ function classChooser($guid, $pdo, $gibbonCourseClassID)
     // $output .= __('Choose Class');
     // $output .= '</h3>';
 
-    $form = Form::create('searchForm', $session->get('absoluteURL').'/index.php', 'get')->enableQuickSubmit();
+    $form = Form::create('searchForm', $session->get('absoluteURL').'/index.php', 'get');
     $form->setFactory(DatabaseFormFactory::create($pdo));
     $form->setClass('noIntBorder w-full');
 
