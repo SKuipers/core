@@ -214,9 +214,36 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
              {% for student in students %}
                  <div @mouseover="student = '{{ student.gibbonPersonID }}'" @mouseleave="student = ''"   
                     :class="{'!bg-amber-100' : highlightStudent('{{ student.gibbonPersonID }}'), 'hidden': toggleStudent('{{ student.gibbonPersonID }}') }"
-                    class="p-2 border-b border-l flex items-center justify-between text-left {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}">
-                     <a class="studentName pr-4" href="index.php?q=/modules/Students/student_view_details.php&gibbonPersonID={{ student.gibbonPersonID }}&subpage=Markbook#{{ gibbonCourseClassID }}">
-                         {{ formatUsing('name', student.title, student.preferredName, student.surname, 'Student', true) }}
+                    class="p-2 border-b border-l flex items-center justify-start text-left {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}">
+                     
+                    {#
+                    Student Initials as Placeholders - similar to other systems?
+
+                    {% set colorIndex = student.gibbonPersonID|slice(-2,1) %}
+
+                    {% if colorIndex >= 9 %}        {% set colorClass = 'bg-purple-100 text-purple-600' %}
+                    {% elseif colorIndex >= 8 %}    {% set colorClass = 'bg-blue-100 text-blue-600' %}
+                    {% elseif colorIndex >= 7 %}    {% set colorClass = 'bg-indigo-100 text-indigo-600' %}
+                    {% elseif colorIndex >= 6 %}    {% set colorClass = 'bg-sky-100 text-sky-600' %}
+                    {% elseif colorIndex >= 5 %}    {% set colorClass = 'bg-teal-100 text-teal-600' %}
+                    {% elseif colorIndex >= 4 %}    {% set colorClass = 'bg-green-100 text-green-600' %}
+                    {% elseif colorIndex >= 3 %}    {% set colorClass = 'bg-orange-100 text-orange-600' %}
+                    {% elseif colorIndex >= 2 %}    {% set colorClass = 'bg-amber-100 text-amber-600' %}
+                    {% elseif colorIndex >= 1 %}    {% set colorClass = 'bg-fuchsia-100 text-fuchsia-600' %}
+                    {% else %}                      {% set colorClass = 'bg-pink-100 text-pink-600' %}
+                    {% endif %}
+
+                    <div class="{{ colorClass }} rounded-full size-7 mr-3 inline-flex items-center justify-center text-xs font-semibold">
+                        {{ student.preferredName|slice(0,1) }}{{ student.surname|slice(0,1) }}
+                    </div>
+                    #}
+
+                    <div class="rounded-full size-8 mr-3 inline-flex items-center justify-center overflow-hidden">
+                        {{ formatUsing('userPhoto', student.image_240, null, 'w-8')|raw }}
+                    </div>
+                    
+                    <a class="text-gray-800 font-medium hover:underline pr-4 flex-1" href="index.php?q=/modules/Students/student_view_details.php&gibbonPersonID={{ student.gibbonPersonID }}&subpage=Markbook#{{ gibbonCourseClassID }}">
+                         {{ formatUsing('name', student.title, student.preferredName, student.surname, 'Student', false) }}
                      </a>
 
                      <div class="h-7 w-5">
@@ -367,7 +394,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                         {% endset %}
                         
                         <span x-tooltip.bottom="{{ info|e('html_attr') }}" class="font-bold text-gray-800 text-sm px-2">{{ column.getData('name') }}</span><br/>
-                        <span class="text-xs px-2">
+                        <div class="text-xs px-2 max-w-64">
                             {{ markbook.getTypeDescription(column.getData('type')) }}
                             
                             {% if column.hasAttachment(absolutePath) %}
@@ -382,7 +409,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                             {% else %}
                                 <br/>
                             {% endif %}
-                        </span>
+                        </div>
                         
                         {# Action links for editing #}
                         {% if canEditThisClass %}
@@ -441,7 +468,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                         {% endif %}
                         
                         {# Sub-header labels for attainment, effort, comment, etc. #}
-                        <div class="subcell-grid items-stretch text-xs font-bold text-gray-900/80 backdrop-saturate-150 backdrop-brightness-90" style="{{ columnColorStyle }}88;">
+                        <div class="subcell-grid items-center justify-around text-xs font-bold text-gray-900/80 backdrop-saturate-150 backdrop-brightness-90" style="{{ columnColorStyle }}88;">
                             {% if enableModifiedAssessment == 'Y' %}
                                 <div class="col-mod p-1 text-center" title="{{ __('Modified') }}">
                                     {{ __('Mod') }}
@@ -500,7 +527,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                     {% for student in students %}
                         {% set entry = student.entries[colIndex] %}
                         
-                        <div :class="{'!bg-amber-100' : highlightStudent('{{ student.gibbonPersonID }}'), 'hidden': toggleStudent('{{ student.gibbonPersonID }}') }" class="border-b subcell-grid items-center {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}" >
+                        <div :class="{'!bg-amber-100' : highlightStudent('{{ student.gibbonPersonID }}'), 'hidden': toggleStudent('{{ student.gibbonPersonID }}') }" class="border-b subcell-grid items-center justify-around {{ loop.index is odd ? 'bg-gray-50' : 'bg-white' }}" >
                             
                             {# Check if this is a new enrollment (student joined after assessment) #}
                             {% if entry.newEnrollment %}
@@ -530,9 +557,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                                     
                                                     {# Apply concern styling #}
                                                     {% if entry.attainmentConcern == 'Y' %}
-                                                        <span class="border-2 border-orange-500 bg-orange-200 text-orange-500 px-1 py-0.5">
+                                                        <div class="w-full text-center border-2 border-orange-500 bg-orange-200 text-orange-500 px-1 py-0.5">
                                                             <b>{{ attainmentDisplay }}</b>
-                                                        </span>
+                                                        </div>
                                                     {% else %}
                                                         {{ attainmentDisplay }}
                                                     {% endif %}
@@ -564,7 +591,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                                 <div title="{{ entry.effortDescriptor }}" class="flex">
                                                     {# Apply concern styling #}
                                                     {% if entry.effortConcern == 'Y' %}
-                                                        <div class="border-2 border-orange-500 bg-orange-200 text-orange-500 px-1 py-0.5">
+                                                        <div class="w-full text-center border-2 border-orange-500 bg-orange-200 text-orange-500 px-1 py-0.5">
                                                             {{ entry.effortValue }}
                                                         </div>
                                                     {% elseif entry.effortConcern == 'P' %}
