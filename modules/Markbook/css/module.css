@@ -20,6 +20,62 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 
+/**
+ * Markbook Stuff
+ */
+
+/* Grid auto-flow for horizontal columns */
+.markbook-grid-container {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+}
+
+/* Grid columns use CSS Grid for vertical alignment */
+.markbook-column {
+    display: grid;
+    grid-template-rows: 160px;
+    grid-auto-rows: 40px;
+}
+
+/* Header row has fixed height */
+.markbook-column > .header-row {
+    height: 160px;
+}
+
+/* Sub-cell grid for assessment columns */
+.subcell-grid {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(40px, auto);
+    width: 100%;
+}
+
+/* Specific column widths - only applied to columns that exist */
+.subcell-grid > .col-mod { width: 40px; max-width: 40px; }
+.subcell-grid > .col-att { width: 60px; max-width: 60px; }
+.subcell-grid > .col-rub { width: 80px; max-width: 80px; }
+.subcell-grid > .col-eff { width: 60px; max-width: 60px; }
+.subcell-grid > .col-com { width: 120px; max-width: 120px; overflow: hidden; } 
+.subcell-grid > .col-upl { width: 60px; max-width: 60px; }
+.subcell-grid > .col-sub { width: 40px; max-width: 40px; }
+
+/* Vertical text for narrow columns */
+.vertical-text {
+    writing-mode: sideways-lr;
+    text-orientation: mixed;
+    white-space: nowrap;
+}
+
+/* SortableJS ghost/drag states */
+.sortable-ghost {
+    opacity: 0.4;
+}
+
+.sortable-drag {
+    opacity: 0.8;
+}
+
 .verticalText {
 	-webkit-transform: rotate(-90deg);
 	-moz-transform: rotate(-90deg);
@@ -30,17 +86,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 	padding-left: 15px;
 }
 
-
-/**
- * Markbook Stuff
- */
-
  tr:target td {
 	background: #EDF7FF !important;
 }
 
 
-/* Data Edit input fields*/
+/* Data Edit input fields */
 
 input[id$="attainmentValueRaw"] {
 	width: 38px;
@@ -52,20 +103,6 @@ input[id$="attainmentValueRaw"] {
 select[id$="attainmentValue"],
 select[id$="effortValue"] {
 	float: none;
-}
-
-/* Mini icons added to the Edit Data to indicate marked/unmarked*/
-.miniIcon {
-	position: relative;
-	display: inline-block;
-}
-.miniIcon img + img {
-
-	width: 16px;
-	height: 16px;
-	position: absolute;
-	bottom: -2px;
-	right: -2px;
 }
 
 /* Small inline edit buttons */
@@ -84,113 +121,17 @@ select[id$="effortValue"] {
 	opacity: 1;
 }
 
-
-.gradeSelect {
-    width: 60px;
-    white-space: nowrap;
-}
-
-
 /* -------------------------------------------------------
  *
- * Double-scroll 
+ * Double-scroll & Sortable
  * 
  */
 
 .doublescroll-top {
-	
     height: 0.1px;
 }
 
-.doublescroll-top-tablewidth {
-	
-}
-
-/* 
-.doublescroll-wrapper {
-	display: inline-block;
-	max-width: 100%;
-	position: relative;
-	background: #FBFBFB none repeat scroll 0% 0%;
-	margin-bottom: 20px;
-}
-
-.doublescroll-top {
-	overflow-x:auto;
-}
-
-.doublescroll-top-tablewidth {
-	height: 0.1px;
-}
-
-.doublescroll-container {
-	overflow-x: auto;
-	overflow-y:visible;
-}
-
-.doublescroll-container table {
-	margin:0;
-	border-width: 0px;
-}
-
-.doublescroll-container .highlight,
-.doublescroll-container table tr[data-student]:hover td,
-.doublescroll-container table tr[data-student]:focus td {
-	background: #EDF7FF !important;
-}
-
-.doublescroll-container tr.head th.firstColumn {
-	position:absolute; 
-    height: 130px;
-    left:1px;
-    top:0;
-    padding: 5px 12px 5px !important;
-    margin:0;
-    z-index: 1;
-}
-
-.doublescroll-container tr.head th.firstColumn span {
-	height: 140px;
-	vertical-align: middle;
-	display: table-cell;
-}
-
-.doublescroll-container td.firstColumn {
-	position:absolute; 
-    left:1px;
-    top:auto;
-    padding: 5px 12px 5px !important;
-    border-right: 1px solid #666;
-    margin:0;
-    z-index: 1;
-    text-align: left;
-}
-
-.doublescroll-container td {
-	text-align: center;
-}
-
-.doublescroll-container::after {
-	content: "";
-	position: absolute;
-	top: 0px;
-	background: #666666 none repeat scroll 0% 0%;
-	height: calc(100% );
-	width: 1px;
-	z-index: 1;
-} */
-
-
-/* -------------------------------------------------------
- * dragtable
- *
- * @Version 1.0.3
- *
- * default css
- * -------------------------------------------------------
- */
-
-.dragtable-drag-handle{
+.markbook-drag-handle {
 	cursor: move;
 	height: 7px;
 	width: 31px;
@@ -201,63 +142,4 @@ select[id$="effortValue"] {
 	border-color: #bbbbbb;
 	border-style: dotted;
 	border-width: 3px 0px 3px 0px;
-}
-
-/*
- * gets wrapped around placeholder table
- */
-  
-.dragtable-drag-wrapper{
-	position: absolute;
-    z-index: 1000;
-} 
- /*
-  * this gets applied to the table copy of the col that we are dragging 
-  */ 
-.dragtable-drag-wrapper .dragtable-drag-col{
-    opacity: 0.8;
-    filter: alpha(opacity=70);
-    cursor:move;
-    box-shadow: 1px 3px 4px rgba(0,0,0,0.4);
-}
-
-.dragtable-drag-col td:first-of-type {
-	position: static;
-}
-
-.dragtable-drag-col thead tr.head {
-	height: 120px;
-}
-
-.dragtable-drag-col .blankColumn {
-	border-top: 0px;
-}
-
-.dragtable-drag-col th {
-	padding: 5px !important;
-}
-
-.dragtable-drag-col tbody td {
-	padding: 0px 5px !important;
-}
-
-/*
-	placeholder is just a name for the real table col
-*/
-.dragtable-col-placeholder { 
-    border-left: 1px solid #666666 !important;
-    border-right: 1px solid #666666 !important; 
-    border-top: 0;
-    border-bottom: 0;
-    color:#CCCCCC;
-    background: #CCCCCC !important;
-    visibility: visible !important;
-}
-table .dragtable-col-placeholder:first-of-type{
-	border-top:1px solid #666666 !important;
-}
-
-.dragtable-col-placeholder * { 
-    opacity: 0.0; 
-    visibility: hidden; 
 }

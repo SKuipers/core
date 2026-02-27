@@ -149,6 +149,7 @@ require_once __DIR__ . '/src/MarkbookColumn.php';
 
     $markbookGateway = $container->get(MarkbookColumnGateway::class);
     $plannerGateway = $container->get(PlannerEntryGateway::class);
+    $plannerHomeworkGateway = $container->get(PlannerEntryHomeworkGateway::class);
 
     // Build the markbook object for this class
     $markbook = new MarkbookView($gibbon, $pdo, $gibbonCourseClassID, $container->get(SettingGateway::class));
@@ -182,20 +183,22 @@ require_once __DIR__ . '/src/MarkbookColumn.php';
     // Load and cache data
     if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_view.php') ) {
 
+        // Pre-load homework data
+        $homework = $plannerHomeworkGateway->selectHomeworkByClass($gibbonCourseClassID)->fetchGroupedUnique();
+
         // Cache all personalized target data
-        $markbook->cachePersonalizedTargets( $gibbonCourseClassID );
+        $markbook->cachePersonalizedTargets();
+        $markbook->cacheMarkbookEntries();
 
         // Cache all weighting data for efficient use below
         if ($markbook->getSetting('enableColumnWeighting') == 'Y') {
-            $markbook->cacheWeightings( );
+            $markbook->cacheWeightings();
         }
 
         // Work out details for external assessment display
-        // TODO: Test this more?
         if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/externalAssessment_details.php')) {
-            $markbook->cacheExternalAssessments( $courseName, $gibbonYearGroupIDList );
+            $markbook->cacheExternalAssessments($courseName, $gibbonYearGroupIDList);
         }
-
 
     }
 
@@ -541,26 +544,7 @@ require_once __DIR__ . '/src/MarkbookColumn.php';
 
                 // Collect baseline data when external assessments exist
                 if ($markbook->hasExternalAssessments() == true) {
-                    $dataEntry = array('gibbonPersonID' => $rowStudents['gibbonPersonID'], 'gibbonExternalAssessmentFieldID' => $externalAssessmentFields[0]);
-                    $sqlEntry = "SELECT gibbonScaleGrade.value, gibbonScaleGrade.descriptor, gibbonExternalAssessmentStudent.date
-						FROM gibbonExternalAssessmentStudentEntry
-							JOIN gibbonExternalAssessmentStudent ON (gibbonExternalAssessmentStudentEntry.gibbonExternalAssessmentStudentID=gibbonExternalAssessmentStudent.gibbonExternalAssessmentStudentID)
-							JOIN gibbonScaleGrade ON (gibbonExternalAssessmentStudentEntry.gibbonScaleGradeID=gibbonScaleGrade.gibbonScaleGradeID)
-						WHERE gibbonPersonID=:gibbonPersonID
-							AND gibbonExternalAssessmentFieldID=:gibbonExternalAssessmentFieldID
-							AND NOT gibbonExternalAssessmentStudentEntry.gibbonScaleGradeID=''
-						ORDER BY date DESC";
-                    $resultEntry = $connection2->prepare($sqlEntry);
-                    $resultEntry->execute($dataEntry);
-                    if ($resultEntry->rowCount() >= 1) {
-                        $rowEntry = $resultEntry->fetch();
-                        
-                        $studentData['baseline'] = [
-                            'value' => $rowEntry['value'],
-                            'descriptor' => $rowEntry['descriptor'],
-                            'date' => $rowEntry['date'],
-                        ];
-                    }
+                    $studentData['baseline'] = $markbook->getExternalAssessmentByStudent($rowStudents['gibbonPersonID']);
                 }
 
                 // Collect target data when personalized targets exist
@@ -572,14 +556,13 @@ require_once __DIR__ . '/src/MarkbookColumn.php';
                 for ($i = 0; $i < $markbook->getColumnCountThisPage(); ++$i) {
 
                 	$column = $markbook->getColumn( $i );
-                    
-                    $dataEntry = array('gibbonMarkbookColumnID' => $column->gibbonMarkbookColumnID, 'gibbonPersonIDStudent' => $rowStudents['gibbonPersonID']);
-                    $sqlEntry = 'SELECT * FROM gibbonMarkbookEntry WHERE gibbonMarkbookColumnID=:gibbonMarkbookColumnID AND gibbonPersonIDStudent=:gibbonPersonIDStudent LIMIT 1';
-                    $rowEntry = $pdo->selectOne($sqlEntry, $dataEntry);
+
+                    $rowEntry = $markbook->getMarkbookEntryByColumnAndStudent($column->gibbonMarkbookColumnID, $rowStudents['gibbonPersonID']);
 
                     $rowWork = [];
                     if ($column->displaySubmission()) {
-                        $rowWork = $container->get(PlannerEntryHomeworkGateway::class)->selectHomeworkByStudent($column->getData('gibbonPlannerEntryID'), $rowStudents['gibbonPersonID'])->fetch();
+                        $key = $column->gibbonMarkbookColumnID.'-'.$rowStudents['gibbonPersonID'];
+                        $rowWork = $homework[$key] ?? [];
                     }
 
                     $newEnrollment = false;

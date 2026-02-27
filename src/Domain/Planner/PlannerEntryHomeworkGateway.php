@@ -46,4 +46,16 @@ class PlannerEntryHomeworkGateway extends QueryableGateway
 
         return $this->db()->select($sql, $data);
     }
+
+    public function selectHomeworkByClass($gibbonCourseClassID)
+    {
+        $data = ['gibbonCourseClassID' => $gibbonCourseClassID];
+        $sql = "SELECT CONCAT(gibbonMarkbookColumn.gibbonMarkbookColumnID, '-', gibbonPlannerEntryHomework.gibbonPersonID) as groupBy, gibbonPlannerEntryHomework.* FROM gibbonPlannerEntryHomework 
+            JOIN gibbonPlannerEntry ON (gibbonPlannerEntry.gibbonPlannerEntryID=gibbonPlannerEntryHomework.gibbonPlannerEntryID)
+            JOIN gibbonMarkbookColumn ON (gibbonMarkbookColumn.gibbonPlannerEntryID=gibbonPlannerEntry.gibbonPlannerEntryID)
+            WHERE gibbonMarkbookColumn.gibbonCourseClassID=:gibbonCourseClassID 
+            ORDER BY count DESC";
+
+        return $this->db()->select($sql, $data);
+    }
 }
