@@ -141,7 +141,7 @@ require_once __DIR__ . '/src/MarkbookColumn.php';
     $search = $_GET['search'] ?? '';
     $gibbonSchoolYearTermID = $_GET['gibbonSchoolYearTermID'] ?? $session->get('markbookTerm') ?? '';
     $columnFilter = $_GET['markbookFilter'] ?? $session->get('markbookFilter') ?? '';
-    $studentOrderBy = $_GET['markbookOrderBy'] ?? $session->get('markbookOrderBy') ?? 'surname';
+    $studentOrderBy = $_GET['markbookOrderBy'] ?? $session->get('markbookOrderBy') ?? 'preferredName';
 
     //Get the current page number
     $pageNum = $_GET['page'] ?? $session->get('markbookPage') ?? 0;
@@ -499,7 +499,7 @@ require_once __DIR__ . '/src/MarkbookColumn.php';
                 $sqlStudents = "SELECT title, surname, preferredName, gibbonPerson.gibbonPersonID, dateStart, rollOrder, dateEnrolled, dateUnenrolled FROM gibbonCourseClassPerson INNER JOIN gibbonPerson ON (gibbonCourseClassPerson.gibbonPersonID=gibbonPerson.gibbonPersonID) LEFT JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=gibbonCourseClassPerson.gibbonPersonID) WHERE role='Student' AND gibbonCourseClassID=:gibbonCourseClassID AND status='Full' AND (dateStart IS NULL OR dateStart<='".date('Y-m-d')."') AND (dateEnd IS NULL  OR dateEnd>='".date('Y-m-d')."') AND gibbonSchoolYearID=:gibbonSchoolYearID ORDER BY ISNULL(rollOrder), rollOrder, surname, preferredName";
             } else if ($studentOrderBy == 'surname') {
                 $dataStudents = array('gibbonCourseClassID' => $gibbonCourseClassID);
-                $sqlStudents = "SELECT title, surname, preferredName, gibbonPerson.gibbonPersonID, dateStart, dateEnrolled, dateUnenrolled FROM gibbonCourseClassPerson JOIN gibbonPerson ON (gibbonCourseClassPerson.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE role='Student' AND gibbonCourseClassID=:gibbonCourseClassID AND status='Full' AND (dateStart IS NULL OR dateStart<='".date('Y-m-d')."') AND (dateEnd IS NULL  OR dateEnd>='".date('Y-m-d')."') ORDER BY preferredName, surname";
+                $sqlStudents = "SELECT title, surname, preferredName, gibbonPerson.gibbonPersonID, dateStart, dateEnrolled, dateUnenrolled FROM gibbonCourseClassPerson JOIN gibbonPerson ON (gibbonCourseClassPerson.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE role='Student' AND gibbonCourseClassID=:gibbonCourseClassID AND status='Full' AND (dateStart IS NULL OR dateStart<='".date('Y-m-d')."') AND (dateEnd IS NULL  OR dateEnd>='".date('Y-m-d')."') ORDER BY surname, preferredName";
             } else {
                 $dataStudents = array('gibbonCourseClassID' => $gibbonCourseClassID);
                 $sqlStudents = "SELECT title, surname, preferredName, gibbonPerson.gibbonPersonID, dateStart, dateEnrolled, dateUnenrolled FROM gibbonCourseClassPerson JOIN gibbonPerson ON (gibbonCourseClassPerson.gibbonPersonID=gibbonPerson.gibbonPersonID) WHERE role='Student' AND gibbonCourseClassID=:gibbonCourseClassID AND status='Full' AND (dateStart IS NULL OR dateStart<='".date('Y-m-d')."') AND (dateEnd IS NULL  OR dateEnd>='".date('Y-m-d')."') ORDER BY preferredName, surname";
