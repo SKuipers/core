@@ -45,7 +45,7 @@ $effortAlternativeNameAbrev = $settingGateway->getSettingByScope('Markbook', 'ef
 $hasEffortName = ($effortAlternativeName != '' && $effortAlternativeNameAbrev != '');
 
 // Get the sort order, if it exists
-$studentOrderBy = $session->get('markbookOrderBy', null) ?? $_GET['markbookOrderBy'] ?? 'surname';
+$studentOrderBy = $session->get('markbookOrderBy', null) ?? $_GET['markbookOrderBy'] ?? 'preferredName';
 
 // Register scripts available to the core, but not included by default
 $page->scripts->add('chart');
@@ -222,7 +222,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_dat
                         'gibbonSchoolYearID' => $session->get('gibbonSchoolYearID'),
                         'today' => date('Y-m-d'),
                     );
-                    $sql = "SELECT gibbonPerson.gibbonPersonID as groupBy, title, surname, preferredName, gibbonPerson.gibbonPersonID, gibbonPerson.dateStart, gibbonStudentEnrolment.rollOrder, gibbonScaleGrade.value as targetScaleGrade, modifiedAssessment, gibbonMarkbookEntry.attainmentValue, gibbonMarkbookEntry.attainmentValueRaw, gibbonMarkbookEntry.effortValue, gibbonMarkbookEntry.comment, gibbonMarkbookEntry.response
+                    $sql = "SELECT gibbonPerson.gibbonPersonID as groupBy, title, surname, preferredName, image_240, gibbonPerson.gibbonPersonID, gibbonPerson.dateStart, gibbonStudentEnrolment.rollOrder, gibbonScaleGrade.value as targetScaleGrade, modifiedAssessment, gibbonMarkbookEntry.attainmentValue, gibbonMarkbookEntry.attainmentValueRaw, gibbonMarkbookEntry.effortValue, gibbonMarkbookEntry.comment, gibbonMarkbookEntry.response
                             FROM gibbonCourseClassPerson
                             JOIN gibbonCourseClass ON (gibbonCourseClassPerson.gibbonCourseClassID=gibbonCourseClass.gibbonCourseClassID)
                             JOIN gibbonPerson ON (gibbonCourseClassPerson.gibbonPersonID=gibbonPerson.gibbonPersonID)
@@ -430,6 +430,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_dat
                             $form->addHiddenValue($count.'-attainmentValueRaw', $student['attainmentValueRaw']);
                         }
 
+                        $photo = Format::userPhoto($student['image_240'], 'xs', 'align-middle mr-2');
+
                         $row = $table->addRow()->setID($student['gibbonPersonID']);
 
                         $reverseName = ($studentOrderBy == 'surname' || $studentOrderBy == 'rollOrder' || empty($studentOrderBy));
@@ -438,7 +440,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_dat
                             ->addParam('gibbonPersonID', $student['gibbonPersonID'])
                             ->addParam('subpage', 'Markbook')
                             ->wrap('<strong>', '</strong>')
-                            ->prepend($rollOrder.') ');
+                            ->prepend($photo . $rollOrder.') ');
 
                         $row->onlyIf($hasTarget)
                             ->addContent($student['targetScaleGrade']);
