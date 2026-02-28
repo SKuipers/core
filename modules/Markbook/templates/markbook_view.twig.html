@@ -372,7 +372,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                             <ul class="m-0 ml-4 w-48 text-xs">
                                 <li>{{ __('Type') }} - {{ markbook.getTypeDescription(columnType) }}</li>
                                 {% if column.getData('gibbonUnitID') %}
-                                    <li>{{ __('Unit') }} - {{ columnMetadata[loop.index0].unit[0] }}</li>
+                                    <li>{{ __('Unit') }} - {{ columnMetadata[colIndex].unit[0] }}</li>
                                 {% endif %}
                                 {% if enableGroupByTerm == 'Y' and column.getData('date') %}
                                     <li>{{ __('Assigned on') }} {{ formatUsing('date', column.getData('date')) }}</li>
@@ -402,8 +402,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                             {% endif %}
                             
                             {# Display unit information if available #}
-                            {% if column.getData('gibbonUnitID') and columnMetadata[loop.index0].unit[0] is defined %}
-                                {{ __('Unit') }} - {{ columnMetadata[loop.index0].unit[0] }}<br/>
+                            {% if column.getData('gibbonUnitID') and columnMetadata[colIndex].unit[0] is defined %}
+                                {{ __('Unit') }} - {{ columnMetadata[colIndex].unit[0] }}<br/>
                             {% else %}
                                 <br/>
                             {% endif %}
@@ -556,6 +556,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                                     {# Apply concern styling #}
                                                     {% if entry.attainmentConcern == 'Y' %}
                                                         <div class="w-full text-center rounded border-2 border-orange-500 bg-orange-200 text-orange-600 px-1 py-0.5">
+                                                            <b>{{ attainmentDisplay }}</b>
+                                                        </div>
+                                                    {% elseif entry.attainmentConcern == 'P' %}
+                                                        <div class="w-full text-center rounded border-2 border-green-500 bg-green-200 text-green-600 px-1 py-0.5">
                                                             <b>{{ attainmentDisplay }}</b>
                                                         </div>
                                                     {% else %}
