@@ -71,7 +71,7 @@ class PersonalPage extends ProfilePage implements ContainerAwareInterface
 
     public function checkAccess(): bool
     {
-        return Access::allows('Staff', 'View Staff Profile_full');
+        return Access::allows('Staff', 'staff_view_details', 'Staff Directory_full');
     }
 
     public function getOutput(): string
@@ -132,14 +132,14 @@ class PersonalPage extends ProfilePage implements ContainerAwareInterface
         $table = DataTable::createDetails('personal');
 
         // Add header actions for editing
-        if (Access::allows('User Admin', 'Manage Users_edit')) {
+        if (Access::allows('User Admin', 'user_manage_edit', 'Manage Users_edit')) {
             $table->addHeaderAction('edit', __('Edit User'))
                 ->setURL('/modules/User Admin/user_manage_edit.php')
                 ->addParam('gibbonPersonID', $this->gibbonPersonID)
                 ->displayLabel();
         }
 
-        if (Access::allows('Staff', 'Manage Staff_edit')) {
+        if (Access::allows('Staff', 'staff_manage_edit', 'Manage Staff_edit')) {
             $table->addHeaderAction('edit2', __('Edit Staff'))
                 ->setIcon('config')
                 ->setURL('/modules/Staff/staff_manage_edit.php')
@@ -241,7 +241,7 @@ class PersonalPage extends ProfilePage implements ContainerAwareInterface
     protected function renderPersonalDocuments(): string
     {
         // Guard: check confidential permission
-        if (!Access::allows('Staff', 'Manage Staff_confidential')) {
+        if (!Access::allows('Staff', 'staff_manage', 'Manage Staff_confidential')) {
             return '';
         }
 

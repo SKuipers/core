@@ -62,7 +62,7 @@ class FamilyPage extends ProfilePage implements ContainerAwareInterface
 
     public function checkAccess(): bool
     {
-        return Access::allows('Staff', 'View Staff Profile_full');
+        return Access::allows('Staff', 'staff_view_details', 'Staff Directory_full');
     }
 
     public function getOutput(): string
@@ -122,7 +122,7 @@ class FamilyPage extends ProfilePage implements ContainerAwareInterface
     protected function renderEditButton($families): string
     {
         // Guard: check if user has permission to manage families
-        if (!Access::allows('User Admin', 'Manage Families_view')) {
+        if (!Access::allows('User Admin', 'family_manage_edit', 'Manage Families_view')) {
             return '';
         }
 

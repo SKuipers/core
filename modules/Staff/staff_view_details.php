@@ -19,11 +19,12 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Domain\System\HookGateway;
+use Gibbon\Forms\CustomFieldHandler;
 use Gibbon\Http\Url;
 use Gibbon\Services\Format;
+use Gibbon\Support\Facades\Access;
 use Gibbon\Tables\DataTable;
-use Gibbon\Forms\CustomFieldHandler;
-use Gibbon\Domain\System\HookGateway;
 
 // Module includes for User Admin (for custom fields)
 include './modules/User Admin/moduleFunctions.php';
@@ -199,7 +200,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                     $page->addSidebarExtra($page->fetchFromTemplate('profile/sidebar.twig.html', [
                         'canViewEmergency' => ($highestActionManage == 'Manage Staff_confidential') ? true : false,
                         'userPhoto' => Format::userPhoto($row['image_240'], 240),
-                        'canViewTimetable' => isActionAccessible($guid, $connection2, '/modules/Timetable/tt_view.php'),
+                        'canViewTimetable' => Access::allows('Timetable', 'tt_view'),
                         'gibbonPersonID' => $gibbonPersonID,
                         'subpage' => $subpage,
                         'search' => $search,

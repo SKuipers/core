@@ -76,7 +76,7 @@ class OverviewPage extends ProfilePage implements ContainerAwareInterface
 
     public function checkAccess(): bool
     {
-        return Access::allows('Staff', 'View Staff Profile_full');
+        return Access::allows('Staff', 'staff_view_details', 'Staff Directory_full');
     }
 
     public function getOutput(): string
@@ -154,14 +154,14 @@ class OverviewPage extends ProfilePage implements ContainerAwareInterface
         $table = DataTable::createDetails('overview');
 
         // Add header actions for editing
-        if (Access::allows('User Admin', 'Manage Users_edit')) {
+        if (Access::allows('User Admin', 'user_manage_edit', 'Manage Users_edit')) {
             $table->addHeaderAction('edit', __('Edit User'))
                 ->setURL('/modules/User Admin/user_manage_edit.php')
                 ->addParam('gibbonPersonID', $this->gibbonPersonID)
                 ->displayLabel();
         }
 
-        if (Access::allows('Staff', 'Manage Staff_edit')) {
+        if (Access::allows('Staff', 'staff_manage_edit', 'Manage Staff_edit')) {
             $table->addHeaderAction('edit2', __('Edit Staff'))
                 ->setIcon('config')
                 ->setURL('/modules/Staff/staff_manage_edit.php')
@@ -221,7 +221,7 @@ class OverviewPage extends ProfilePage implements ContainerAwareInterface
     protected function renderEmbeddedTimetable(): string
     {
         // Guard: check timetable access permission
-        if (!Access::allows('Timetable', 'View Timetable by Person')) {
+        if (!Access::allows('Timetable', 'tt_view')) {
             return '';
         }
 
@@ -234,7 +234,7 @@ class OverviewPage extends ProfilePage implements ContainerAwareInterface
         $table = DataTable::createDetails('timetable');
 
         // Add edit action if user has permission
-        if (Access::allows('Timetable Admin', 'Course Enrolment by Person_edit')) {
+        if (Access::allows('Timetable Admin', 'courseEnrolment_manage_byPerson_edit', 'Course Enrolment by Person_edit')) {
             $table->addHeaderAction('edit', __('Edit'))
                 ->setURL('/modules/Timetable Admin/courseEnrolment_manage_byPerson_edit.php')
                 ->addParam('gibbonPersonID', $this->gibbonPersonID)

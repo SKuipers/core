@@ -61,8 +61,8 @@ class ActivitiesPage extends ProfilePage
     public function checkAccess(): bool
     {
         // Allow access if user has either My Activities or Activities view permission
-        return Access::allows('Activities', 'My Activities_view') 
-            || Access::allows('Activities', 'Activities_view');
+        return Access::allows('Activities', 'activities_my', 'My Activities_view') 
+            || Access::allows('Activities', 'activities_view');
     }
 
     /**

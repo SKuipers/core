@@ -59,7 +59,7 @@ class BriefPage extends ProfilePage
 
     public function checkAccess(): bool
     {
-        return Access::allows('Staff', 'Staff Directory_brief');
+        return Access::allows('Staff', 'staff_view_details', 'Staff Directory_brief');
     }
 
     public function getOutput(): string

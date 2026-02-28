@@ -60,7 +60,7 @@ class FacilitiesPage extends ProfilePage
      */
     public function checkAccess(): bool
     {
-        return Access::allows('Staff', 'View Staff Profile_full');
+        return Access::allows('Staff', 'staff_view_details', 'Staff Directory_full');
     }
 
     /**

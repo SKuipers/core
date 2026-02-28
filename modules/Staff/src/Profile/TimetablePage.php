@@ -56,7 +56,7 @@ class TimetablePage extends ProfilePage implements ContainerAwareInterface
     public function checkAccess(): bool
     {
         // Check if user has access to view timetables
-        return Access::allows('Timetable', 'View Timetable by Person');
+        return Access::allows('Timetable', 'tt_view');
     }
 
     public function getOutput(): string
@@ -90,7 +90,7 @@ class TimetablePage extends ProfilePage implements ContainerAwareInterface
     protected function renderEditLink(): string
     {
         // Guard: check if user has edit permission
-        if (!Access::allows('Timetable Admin', 'Course Enrolment by Person_edit')) {
+        if (!Access::allows('Timetable Admin', 'courseEnrolment_manage_byPerson_edit', 'Course Enrolment by Person_edit')) {
             return '';
         }
 

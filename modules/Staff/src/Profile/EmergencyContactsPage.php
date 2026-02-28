@@ -66,7 +66,7 @@ class EmergencyContactsPage extends ProfilePage
      */
     public function checkAccess(): bool
     {
-        return Access::allows('Staff', 'Manage Staff_confidential');
+        return Access::allows('Staff', 'staff_manage', 'Manage Staff_confidential');
     }
 
     /**
@@ -92,7 +92,7 @@ class EmergencyContactsPage extends ProfilePage
         $output = '';
 
         // Add edit button if user has permission
-        if (Access::allows('User Admin', 'user_manage')) {
+        if (Access::allows('User Admin', 'user_manage_edit')) {
             $form = Form::createBlank('buttons');
             $form->addHeaderAction('edit', __('Edit User'))
                 ->setURL('/modules/User Admin/user_manage_edit.php')
