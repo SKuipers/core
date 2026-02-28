@@ -193,10 +193,10 @@ class CourseEnrolmentGateway extends QueryableGateway
         return $this->db()->select($sql, $data);
     }
 
-    public function selectClassStudentEnrolment($gibbonCourseClassID)
+    public function selectClassStudentEnrolment($gibbonCourseClassID, string $orderBy = '')
     {
         $data =['gibbonCourseClassID' => $gibbonCourseClassID, 'today' => date('Y-m-d')];
-        $sql = "SELECT gibbonCourseClassPerson.role, gibbonPerson.gibbonPersonID, gibbonPerson.surname, gibbonPerson.preferredName, gibbonFormGroup.name as formGroup
+        $sql = "SELECT gibbonCourseClassPerson.role, gibbonPerson.gibbonPersonID, gibbonPerson.title, gibbonPerson.surname, gibbonPerson.preferredName, gibbonPerson.image_240, gibbonFormGroup.name as formGroup, gibbonPerson.dateStart, gibbonCourseClassPerson.dateEnrolled, gibbonCourseClassPerson.dateUnenrolled, gibbonStudentEnrolment.rollOrder
             FROM gibbonPerson
             INNER JOIN gibbonCourseClassPerson ON (gibbonCourseClassPerson.gibbonPersonID=gibbonPerson.gibbonPersonID)
             INNER JOIN gibbonCourseClass ON (gibbonCourseClass.gibbonCourseClassID=gibbonCourseClassPerson.gibbonCourseClassID)
@@ -208,8 +208,15 @@ class CourseEnrolmentGateway extends QueryableGateway
             AND (gibbonPerson.dateStart IS NULL OR gibbonPerson.dateStart<=:today)
             AND (gibbonPerson.dateEnd IS NULL OR gibbonPerson.dateEnd>=:today)
             AND gibbonCourseClassPerson.role='Student'
-            GROUP BY gibbonPerson.gibbonPersonID
-            ORDER BY gibbonPerson.surname, gibbonPerson.preferredName";
+            GROUP BY gibbonPerson.gibbonPersonID ";
+
+        if ($orderBy == 'rollOrder') {
+            $sql .= "ORDER BY ISNULL(rollOrder), rollOrder, gibbonPerson.surname, gibbonPerson.preferredName";
+        } elseif ($orderBy == 'preferredName') {
+            $sql .= "ORDER BY gibbonPerson.preferredName, gibbonPerson.surname";
+        } else {
+            $sql .= "ORDER BY gibbonPerson.surname, gibbonPerson.preferredName";
+        }
 
         return $this->db()->select($sql, $data);
     }
