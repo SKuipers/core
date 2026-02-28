@@ -89,7 +89,7 @@ class BriefPage extends ProfilePage
     {
         // Guard clause: validate student context
         if (empty($this->gibbonPersonID)) {
-            return Format::alert(__('Invalid student ID.'));
+            return Format::alert(__('You have not specified one or more required parameters.'));
         }
 
         // Fetch student data

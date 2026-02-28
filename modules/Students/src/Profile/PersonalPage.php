@@ -113,7 +113,7 @@ class PersonalPage extends ProfilePage
     {
         // Guard clause: validate student context
         if (empty($this->gibbonPersonID)) {
-            return Format::alert(__('Invalid student ID.'));
+            return Format::alert(__('You have not specified one or more required parameters.'));
         }
 
         // Fetch student and person data
@@ -142,7 +142,7 @@ class PersonalPage extends ProfilePage
      */
     protected function fetchPersonData(): array
     {
-        $personData = $this->userGateway->getPersonWithEnrollmentFields($this->gibbonPersonID, $this->gibbonSchoolYearID);
+        $personData = $this->studentGateway->selectActiveStudentByPerson($this->gibbonSchoolYearID, $this->gibbonPersonID)->fetch();
         
         return $personData ?: [];
     }
@@ -182,7 +182,7 @@ class PersonalPage extends ProfilePage
         $this->addSchoolInformationColumns($table, $student, $tutors, $house, $headOfYear);
 
         // Custom fields for Student Enrolment
-        $this->customFieldHandler->addCustomFieldsToTable($table, 'Student Enrolment', [], $student['fields'] ?? '');
+        $this->customFieldHandler->addCustomFieldsToTable($table, 'Student Enrolment', [], $student['enrolmentFields'] ?? '');
 
         // Background Information section
         $this->addBackgroundInformationColumns($table);

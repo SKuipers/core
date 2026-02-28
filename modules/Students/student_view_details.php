@@ -215,7 +215,7 @@ if (!Access::allows('Students', 'student_view_details')) {
         }
     } elseif ($subpage != '') {
         // Invalid subpage
-        echo Format::alert(__('Invalid subpage specified.'), 'error');
+        echo Format::alert(__('You do not have access to this action.'), 'error');
     }
 
     // Set sidebar
