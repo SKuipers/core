@@ -72,7 +72,7 @@ class FacilitiesPage extends ProfilePage
     {
         // Guard: validate staff ID
         if (empty($this->gibbonPersonID)) {
-            return Format::alert(__('Invalid staff ID.'), 'error');
+            return Format::alert(__('You have not specified one or more required parameters.'), 'error');
         }
 
         // Guard: validate school year ID

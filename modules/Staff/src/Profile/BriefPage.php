@@ -21,10 +21,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 namespace Gibbon\Module\Staff\Profile;
 
-use Gibbon\Support\Facades\Access;
 use Gibbon\Contracts\Services\Session;
-use Gibbon\Contracts\Database\Connection;
+use Gibbon\Domain\Staff\StaffGateway;
 use Gibbon\Services\Format;
+use Gibbon\Support\Facades\Access;
 use Gibbon\Tables\DataTable;
 
 /**
@@ -42,14 +42,14 @@ use Gibbon\Tables\DataTable;
  */
 class BriefPage extends ProfilePage
 {
-    private Connection $pdo;
+    private StaffGateway $staffGateway;
 
     public function __construct(
         Session $session,
-        Connection $pdo
+        StaffGateway $staffGateway,
     ) {
         parent::__construct($session);
-        $this->pdo = $pdo;
+        $this->staffGateway = $staffGateway;
     }
 
     public function getPageName(): string
@@ -64,20 +64,16 @@ class BriefPage extends ProfilePage
 
     public function getOutput(): string
     {
-        // Guard: validate staff ID
         if (empty($this->gibbonPersonID)) {
-            return Format::alert(__('Invalid staff ID.'), 'error');
+            return Format::alert(__('You have not specified one or more required parameters.'), 'error');
         }
 
-        // Fetch staff data
         $staff = $this->fetchStaffData();
 
-        // Guard: check data exists
         if (empty($staff)) {
             return Format::alert(__('The selected record does not exist, or you do not have access to it.'), 'error');
         }
 
-        // Display overview table with basic information only
         return $this->renderBriefTable($staff);
     }
 
@@ -89,20 +85,7 @@ class BriefPage extends ProfilePage
      */
     protected function fetchStaffData(): array
     {
-        $data = ['gibbonPersonID' => $this->gibbonPersonID];
-        $sql = "SELECT title, surname, preferredName, type, gibbonStaff.jobTitle, email, website, 
-                       countryOfOrigin, qualifications, biography, image_240 
-                FROM gibbonPerson 
-                JOIN gibbonStaff ON (gibbonStaff.gibbonPersonID=gibbonPerson.gibbonPersonID) 
-                WHERE status='Full' 
-                  AND (dateStart IS NULL OR dateStart<=:currentDate) 
-                  AND (dateEnd IS NULL OR dateEnd>=:currentDate) 
-                  AND gibbonPerson.gibbonPersonID=:gibbonPersonID";
-        
-        $data['currentDate'] = date('Y-m-d');
-        $result = $this->pdo->select($sql, $data);
-        
-        return $result->rowCount() > 0 ? $result->fetch() : [];
+        return $this->staffGateway->getStaffDetailsByID($this->gibbonPersonID);
     }
 
     /**

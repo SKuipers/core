@@ -21,11 +21,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 namespace Gibbon\Module\Staff\Profile;
 
-use Gibbon\Support\Facades\Access;
 use Gibbon\Contracts\Services\Session;
-use Gibbon\Contracts\Database\Connection;
+use Gibbon\Domain\Staff\StaffGateway;
+use Gibbon\Domain\User\FamilyGateway;
 use Gibbon\Forms\Form;
 use Gibbon\Services\Format;
+use Gibbon\Support\Facades\Access;
 use Gibbon\Tables\DataTable;
 
 /**
@@ -42,14 +43,17 @@ use Gibbon\Tables\DataTable;
  */
 class EmergencyContactsPage extends ProfilePage
 {
-    private Connection $pdo;
+    private StaffGateway $staffGateway;
+    private FamilyGateway $familyGateway;
 
     public function __construct(
         Session $session,
-        Connection $pdo
+        StaffGateway $staffGateway,
+        FamilyGateway $familyGateway
     ) {
         parent::__construct($session);
-        $this->pdo = $pdo;
+        $this->staffGateway = $staffGateway;
+        $this->familyGateway = $familyGateway;
     }
 
     public function getPageName(): string
@@ -78,7 +82,7 @@ class EmergencyContactsPage extends ProfilePage
     {
         // Guard clause: validate staff ID
         if (empty($this->gibbonPersonID)) {
-            return Format::alert(__('Invalid staff ID.'), 'error');
+            return Format::alert(__('You have not specified one or more required parameters.'), 'error');
         }
 
         // Fetch staff data
@@ -121,12 +125,7 @@ class EmergencyContactsPage extends ProfilePage
      */
     protected function fetchStaffData(): array
     {
-        $data = ['gibbonPersonID' => $this->gibbonPersonID];
-        $sql = "SELECT * FROM gibbonPerson WHERE gibbonPersonID=:gibbonPersonID";
-
-        $result = $this->pdo->select($sql, $data);
-        
-        return $result->rowCount() > 0 ? $result->fetch() : [];
+        return $this->staffGateway->getStaffDetailsByID($this->gibbonPersonID);
     }
 
     /**
@@ -141,55 +140,40 @@ class EmergencyContactsPage extends ProfilePage
         $output .= '</h4>';
 
         // Query families the staff member belongs to
-        $dataFamily = ['gibbonPersonID' => $this->gibbonPersonID];
-        $sqlFamily = 'SELECT * FROM gibbonFamily 
-                      JOIN gibbonFamilyAdult ON (gibbonFamily.gibbonFamilyID=gibbonFamilyAdult.gibbonFamilyID) 
-                      WHERE gibbonFamilyAdult.gibbonPersonID=:gibbonPersonID';
-        $resultFamily = $this->pdo->select($sqlFamily, $dataFamily);
+        $families = $this->familyGateway->selectFamiliesByAdult($this->gibbonPersonID)->fetchAll();
 
-        if ($resultFamily->rowCount() == 0) {
-            $output .= "<div class='error'>";
-            $output .= __('There is no family information available for the current staff member.');
-            $output .= '</div>';
+        if (empty($families)) {
+            $output .= Format::alert(__('There is no family information available for the current staff member.'), 'error');
             return $output;
         }
 
-        $rowFamily = $resultFamily->fetch();
-        $count = 1;
+        // Get all adults in each family
+        $familyIDs = array_column($families, 'gibbonFamilyID');
+        $familyAdults = $this->familyGateway->selectAdultsByFamily($familyIDs, true);
 
-        // Get all adults in the family
-        $dataMember = ['gibbonFamilyID' => $rowFamily['gibbonFamilyID']];
-        $sqlMember = "SELECT * FROM gibbonFamilyAdult 
-                      JOIN gibbonPerson ON (gibbonFamilyAdult.gibbonPersonID=gibbonPerson.gibbonPersonID) 
-                      WHERE gibbonFamilyID=:gibbonFamilyID 
-                      AND gibbonFamilyAdult.contactCall='Y'
-                      ORDER BY contactPriority, surname, preferredName";
-        $resultMember = $this->pdo->select($sqlMember, $dataMember);
+        foreach ($familyAdults as $index => $adult) {
+            if ($adult['gibbonPersonID'] == $this->gibbonPersonID) continue;
+            if ($adult['contactCall'] != 'Y') continue;
 
-        while ($rowMember = $resultMember->fetch()) {
-            if ($rowMember['gibbonPersonID'] == $this->gibbonPersonID) continue;
-
-            $table = DataTable::createDetails('family' . $count);
+            $table = DataTable::createDetails('family' . $index);
 
             $table->addColumn('preferredName', __('Name'))
                 ->format(Format::using('name', ['title', 'preferredName', 'surname', 'Parent']));
 
             $table->addColumn('phone', __('Contact By Phone'))
-                ->format(function($rowMember) {
+                ->format(function($adult) {
                     $phones = '';
 
                     for ($i = 1; $i < 5; ++$i) {
-                        if ($rowMember['phone'.$i] != '') {
-                            $phones .= Format::phone($rowMember['phone' . $i], $rowMember['phone'.$i.'CountryCode'], $rowMember['phone'.$i.'Type']) . '<br/>';
+                        if ($adult['phone'.$i] != '') {
+                            $phones .= Format::phone($adult['phone' . $i], $adult['phone'.$i.'CountryCode'], $adult['phone'.$i.'Type']) . '<br/>';
                         }
                     }
 
                     return $phones;
                 });
 
-            $output .= $table->render([$rowMember]);
-
-            ++$count;
+            $output .= $table->render([$adult]).'<br>';
         }
 
         return $output;

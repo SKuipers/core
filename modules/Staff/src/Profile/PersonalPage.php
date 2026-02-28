@@ -23,7 +23,7 @@ namespace Gibbon\Module\Staff\Profile;
 
 use Gibbon\Support\Facades\Access;
 use Gibbon\Contracts\Services\Session;
-use Gibbon\Contracts\Database\Connection;
+use Gibbon\Domain\Staff\StaffGateway;
 use Gibbon\Forms\CustomFieldHandler;
 use Gibbon\Domain\User\PersonalDocumentGateway;
 use Gibbon\Services\Format;
@@ -48,18 +48,18 @@ class PersonalPage extends ProfilePage implements ContainerAwareInterface
 {
     use ContainerAwareTrait;
 
-    private Connection $pdo;
+    private StaffGateway $staffGateway;
     private CustomFieldHandler $customFieldHandler;
     private PersonalDocumentGateway $personalDocumentGateway;
 
     public function __construct(
         Session $session,
-        Connection $pdo,
+        StaffGateway $staffGateway,
         CustomFieldHandler $customFieldHandler,
         PersonalDocumentGateway $personalDocumentGateway
     ) {
         parent::__construct($session);
-        $this->pdo = $pdo;
+        $this->staffGateway = $staffGateway;
         $this->customFieldHandler = $customFieldHandler;
         $this->personalDocumentGateway = $personalDocumentGateway;
     }
@@ -78,7 +78,7 @@ class PersonalPage extends ProfilePage implements ContainerAwareInterface
     {
         // Guard: validate staff ID
         if (empty($this->gibbonPersonID)) {
-            return Format::alert(__('Invalid staff ID.'), 'error');
+            return Format::alert(__('You have not specified one or more required parameters.'), 'error');
         }
 
         // Fetch staff data
@@ -107,18 +107,7 @@ class PersonalPage extends ProfilePage implements ContainerAwareInterface
      */
     protected function fetchStaffData(): array
     {
-        $data = ['gibbonPersonID' => $this->gibbonPersonID];
-        $sql = "SELECT gibbonPerson.*, gibbonStaff.initials, gibbonStaff.type, gibbonStaff.jobTitle, 
-                       gibbonStaff.gibbonStaffID, gibbonStaff.firstAidQualified, 
-                       gibbonStaff.firstAidQualification, gibbonStaff.firstAidExpiry, 
-                       gibbonStaff.fields as fieldsStaff
-                FROM gibbonPerson
-                LEFT JOIN gibbonStaff ON (gibbonPerson.gibbonPersonID=gibbonStaff.gibbonPersonID)
-                WHERE gibbonPerson.gibbonPersonID=:gibbonPersonID";
-
-        $result = $this->pdo->select($sql, $data);
-        
-        return $result->rowCount() > 0 ? $result->fetch() : [];
+        return $this->staffGateway->getStaffDetailsByID($this->gibbonPersonID);
     }
 
     /**

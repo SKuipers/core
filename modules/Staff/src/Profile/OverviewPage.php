@@ -23,7 +23,6 @@ namespace Gibbon\Module\Staff\Profile;
 
 use Gibbon\Support\Facades\Access;
 use Gibbon\Contracts\Services\Session;
-use Gibbon\Contracts\Database\Connection;
 use Gibbon\Domain\Staff\StaffGateway;
 use Gibbon\Domain\School\HouseGateway;
 use Gibbon\Forms\CustomFieldHandler;
@@ -51,22 +50,19 @@ class OverviewPage extends ProfilePage implements ContainerAwareInterface
     private HouseGateway $houseGateway;
     private CustomFieldHandler $customFieldHandler;
     private StaffAttendanceStatus $staffAttendanceStatus;
-    private Connection $pdo;
 
     public function __construct(
         Session $session,
         StaffGateway $staffGateway,
         HouseGateway $houseGateway,
         CustomFieldHandler $customFieldHandler,
-        StaffAttendanceStatus $staffAttendanceStatus,
-        Connection $pdo
+        StaffAttendanceStatus $staffAttendanceStatus
     ) {
         parent::__construct($session);
         $this->staffGateway = $staffGateway;
         $this->houseGateway = $houseGateway;
         $this->customFieldHandler = $customFieldHandler;
         $this->staffAttendanceStatus = $staffAttendanceStatus;
-        $this->pdo = $pdo;
     }
 
     public function getPageName(): string
@@ -83,7 +79,7 @@ class OverviewPage extends ProfilePage implements ContainerAwareInterface
     {
         // Guard: validate staff ID
         if (empty($this->gibbonPersonID)) {
-            return Format::alert(__('Invalid staff ID.'), 'error');
+            return Format::alert(__('You have not specified one or more required parameters.'), 'error');
         }
 
         // Fetch staff data
@@ -115,15 +111,7 @@ class OverviewPage extends ProfilePage implements ContainerAwareInterface
      */
     protected function fetchStaffData(): array
     {
-        $data = ['gibbonPersonID' => $this->gibbonPersonID];
-        $sql = "SELECT gibbonPerson.*, gibbonStaff.*
-                FROM gibbonPerson
-                LEFT JOIN gibbonStaff ON (gibbonPerson.gibbonPersonID=gibbonStaff.gibbonPersonID)
-                WHERE gibbonPerson.gibbonPersonID=:gibbonPersonID";
-
-        $result = $this->pdo->select($sql, $data);
-        
-        return $result->rowCount() > 0 ? $result->fetch() : [];
+        return $this->staffGateway->getStaffDetailsByID($this->gibbonPersonID);
     }
 
     /**

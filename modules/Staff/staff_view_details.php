@@ -22,20 +22,20 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Http\Url;
 use Gibbon\Services\Format;
 use Gibbon\Support\Facades\Access;
-use Gibbon\Module\Staff\Profile\Sidebar;
+use Gibbon\Domain\Staff\StaffGateway;
 use Gibbon\Module\Staff\Profile\HookPage;
+use Gibbon\Module\Staff\Profile\Sidebar;
 
 if (!Access::allows('Staff', 'staff_view_details')) {
     $page->addError(__('You do not have access to this action.'));
     return;
-}
-
-// Get action with highest precedence
-$highestAction = Access::get('Staff', 'staff_view_details');
-if (empty($highestAction)) {
-    $page->addError(__('The highest grouped action cannot be determined.'));
-    return;
 } else {
+    // Get action with highest precedence
+    $highestAction = Access::get('Staff', 'staff_view_details');
+    if (empty($highestAction)) {
+        $page->addError(__('The highest grouped action cannot be determined.'));
+        return;
+    } 
 
     $gibbonPersonID = $_GET['gibbonPersonID'] ?? '';
     $search = $_GET['search'] ?? '';
@@ -52,11 +52,19 @@ if (empty($highestAction)) {
         $page->navigator->addSearchResultsAction(Url::fromModuleRoute('Staff', 'staff_view.php')->withQueryParam('search', $search));
     }
 
+    $staffMember = $container->get(StaffGateway::class)->getStaffDetailsByID($gibbonPersonID, $allStaff == 'on');
+    if (empty($staffMember)) {
+        $page->addError(__('The selected record does not exist, or you do not have access to it.'));
+        return;
+    }
+
     // Handle brief profile view
     if ($highestAction->allows('Staff Directory_brief') && !$highestAction->allows('Staff Directory_full')) {
         $briefPage = $container->get(\Gibbon\Module\Staff\Profile\BriefPage::class);
         $briefPage->setStaff($session->get('gibbonSchoolYearID'), $gibbonPersonID);
         
+        $session->set('sidebarExtra', Format::userPhoto($staffMember['image_240'], 240));
+
         if (!$briefPage->checkAccess()) {
             $page->addError(__('You do not have access to this action.'));
             return;
@@ -67,38 +75,10 @@ if (empty($highestAction)) {
     }
 
     // Handle full profile view
-    $staffGateway = $container->get(\Gibbon\Domain\Staff\StaffGateway::class);
-    $userGateway = $container->get(\Gibbon\Domain\User\UserGateway::class);
-
-    if ($allStaff != 'on') {
-        $data = ['gibbonPersonID' => $gibbonPersonID, 'today' => date('Y-m-d')];
-        $sql = "SELECT gibbonPerson.*, gibbonStaff.initials, gibbonStaff.type, gibbonStaff.jobTitle, countryOfOrigin, qualifications, biography, gibbonStaff.gibbonStaffID, firstAidQualified, firstAidQualification, firstAidExpiry, gibbonStaff.fields as fieldsStaff 
-                FROM gibbonPerson 
-                JOIN gibbonStaff ON (gibbonStaff.gibbonPersonID=gibbonPerson.gibbonPersonID) 
-                WHERE status='Full' 
-                AND (dateStart IS NULL OR dateStart<=:today) 
-                AND (dateEnd IS NULL OR dateEnd>=:today) 
-                AND gibbonPerson.gibbonPersonID=:gibbonPersonID";
-        $result = $pdo->select($sql, $data);
-        $row = $result->rowCount() == 1 ? $result->fetch() : null;
-    } else {
-        $data = ['gibbonPersonID' => $gibbonPersonID];
-        $sql = 'SELECT gibbonPerson.*, gibbonStaff.initials, gibbonStaff.type, gibbonStaff.jobTitle, countryOfOrigin, qualifications, biography, gibbonStaff.gibbonStaffID, firstAidQualified, firstAidQualification, firstAidExpiry, gibbonStaff.fields as fieldsStaff 
-                FROM gibbonPerson 
-                JOIN gibbonStaff ON (gibbonStaff.gibbonPersonID=gibbonPerson.gibbonPersonID) 
-                WHERE gibbonPerson.gibbonPersonID=:gibbonPersonID';
-        $result = $pdo->select($sql, $data);
-        $row = $result->rowCount() == 1 ? $result->fetch() : null;
-    }
-
-    if (empty($row)) {
-        $page->addError(__('The selected record does not exist, or you do not have access to it.'));
-        return;
-    }
 
     $page->breadcrumbs
         ->add(__('Staff Directory'), 'staff_view.php', ['search' => $search, 'allStaff' => $allStaff])
-        ->add(Format::name('', $row['preferredName'], $row['surname'], 'Student'));
+        ->add(Format::name('', $staffMember['preferredName'], $staffMember['surname'], 'Student'));
 
     if (empty($subpage) && empty($hook)) {
         $subpage = 'Overview';
@@ -158,7 +138,7 @@ if (empty($highestAction)) {
 
     // Set sidebar
     $sidebar = $container->get(Sidebar::class);
-    $sidebar->setStaff($session->get('gibbonSchoolYearID'), $gibbonPersonID, $row['image_240']);
+    $sidebar->setStaff($session->get('gibbonSchoolYearID'), $gibbonPersonID, $staffMember['image_240']);
 
     $session->set('sidebarExtra', $sidebar->getOutput());
 }
