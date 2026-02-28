@@ -40,7 +40,8 @@ use Gibbon\Services\Format;
 class HookPage extends ProfilePage
 {
     private HookGateway $hookGateway;
-    private ?array $hookData = null;
+    protected string $hookName;
+    protected string $gibbonHookID;
 
     public function __construct(
         Session $session,
@@ -50,72 +51,101 @@ class HookPage extends ProfilePage
         $this->hookGateway = $hookGateway;
     }
 
-    public function getPageName(): string
+    /**
+     * Set the hook name and ID for this page
+     * 
+     * @param string $hookName The display name of the hook
+     * @param string $gibbonHookID The unique identifier for the hook
+     * @return self
+     */
+    public function setHook(string $hookName, string $gibbonHookID): self
     {
-        // Return the hook name if available, otherwise return 'Hook'
-        if ($this->hookData !== null && isset($this->hookData['name'])) {
-            return $this->hookData['name'];
-        }
-        return 'Hook';
+        $this->hookName = $hookName;
+        $this->gibbonHookID = $gibbonHookID;
+
+        return $this;
     }
 
+    /**
+     * Get the page name for display
+     *
+     * @return string The hook name
+     */
+    public function getPageName(): string
+    {
+        return $this->hookName;
+    }
+
+    /**
+     * Check if the current user has permission to view this hook
+     * 
+     * @return bool True if user has access, false otherwise
+     */
     public function checkAccess(): bool
     {
-        // Guard: validate hook ID parameter
-        $gibbonHookID = $_GET['gibbonHookID'] ?? '';
-        if (empty($gibbonHookID)) {
-            return false;
-        }
-
         // Fetch hook data
-        $this->hookData = $this->hookGateway->getByID($gibbonHookID);
-
-        // Guard: check if hook exists
-        if (empty($this->hookData)) {
+        $hook = $this->hookGateway->getByID($this->gibbonHookID);
+        
+        if (empty($hook)) {
             return false;
         }
 
-        // Unserialize hook options
-        $options = unserialize($this->hookData['options']);
+        $options = unserialize($hook['options']);
 
-        // Guard: validate options
         if (empty($options)) {
             return false;
         }
 
-        // Check for permission to access this hook
+        // Check for permission to hook
         $hookPermission = $this->hookGateway->getHookPermission(
-            $this->hookData['gibbonHookID'],
+            $hook['gibbonHookID'],
             $this->session->get('gibbonRoleIDCurrent'),
             $options['sourceModuleName'] ?? '',
             $options['sourceModuleAction'] ?? ''
         );
 
-        // Return true if user has permission to access the hook
         return !empty($hookPermission);
     }
 
+    /**
+     * Generate HTML output for the hook page
+     * 
+     * @return string HTML content for display
+     */
     public function getOutput(): string
     {
-        // Guard: validate hook data was loaded during checkAccess()
-        if ($this->hookData === null) {
-            return Format::alert(__('The selected page cannot be displayed due to a hook error.'), 'error');
+        // Fetch hook data
+        $hook = $this->hookGateway->getByID($this->gibbonHookID);
+        
+        // Guard clause: check if hook exists
+        if (empty($hook)) {
+            return '';
         }
 
-        // Unserialize hook options
-        $options = unserialize($this->hookData['options']);
+        $options = unserialize($hook['options']);
 
-        // Guard: validate options
+        // Guard clause: check for valid options
         if (empty($options)) {
-            return Format::alert(__('The selected page cannot be displayed due to a hook error.'), 'error');
+            return Format::alert(__('Your request failed because you do not have access to this action.'), 'error');
         }
 
-        // Build the path to the hook include file
-        $include = $this->session->get('absolutePath') . '/modules/' . 
-                   $options['sourceModuleName'] . '/' . 
-                   $options['sourceModuleInclude'];
+        // Check for permission to hook
+        $hookPermission = $this->hookGateway->getHookPermission(
+            $hook['gibbonHookID'],
+            $this->session->get('gibbonRoleIDCurrent'),
+            $options['sourceModuleName'] ?? '',
+            $options['sourceModuleAction'] ?? ''
+        );
 
-        // Guard: check if hook file exists
+        // Guard clause: check permissions
+        if (empty($hookPermission)) {
+            return Format::alert(__('Your request failed because you do not have access to this action.'), 'error');
+        }
+
+        // Build include path
+        $include = $this->session->get('absolutePath') . '/modules/' . $options['sourceModuleName'] . '/' . $options['sourceModuleInclude'];
+        
+        // Guard clause: check if include file exists
         if (!file_exists($include)) {
             return Format::alert(__('The selected page cannot be displayed due to a hook error.'), 'error');
         }

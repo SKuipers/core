@@ -159,32 +159,20 @@ class EmergencyContactsPage extends ProfilePage
 
         // Get all adults in the family
         $dataMember = ['gibbonFamilyID' => $rowFamily['gibbonFamilyID']];
-        $sqlMember = 'SELECT * FROM gibbonFamilyAdult 
+        $sqlMember = "SELECT * FROM gibbonFamilyAdult 
                       JOIN gibbonPerson ON (gibbonFamilyAdult.gibbonPersonID=gibbonPerson.gibbonPersonID) 
                       WHERE gibbonFamilyID=:gibbonFamilyID 
-                      ORDER BY contactPriority, surname, preferredName';
+                      AND gibbonFamilyAdult.contactCall='Y'
+                      ORDER BY contactPriority, surname, preferredName";
         $resultMember = $this->pdo->select($sqlMember, $dataMember);
 
         while ($rowMember = $resultMember->fetch()) {
+            if ($rowMember['gibbonPersonID'] == $this->gibbonPersonID) continue;
+
             $table = DataTable::createDetails('family' . $count);
 
             $table->addColumn('preferredName', __('Name'))
                 ->format(Format::using('name', ['title', 'preferredName', 'surname', 'Parent']));
-
-            $table->addColumn('relationship', __('Relationship'))
-                ->format(function($rowMember) {
-                    if ($rowMember['role'] == 'Parent') {
-                        if ($rowMember['gender'] == 'M') {
-                            return __('Father');
-                        } elseif ($rowMember['gender'] == 'F') {
-                            return __('Mother');
-                        } else {
-                            return __($rowMember['role']);
-                        }
-                    } else {
-                        return __($rowMember['role']);
-                    }
-                });
 
             $table->addColumn('phone', __('Contact By Phone'))
                 ->format(function($rowMember) {
