@@ -49,9 +49,9 @@ all stylesheets and scripts with a 'head' context.
     {% for asset in page.stylesheets %}
         {% set assetVersion = asset.version is not empty ? asset.version : version %}
         {% if asset.type == 'inline' %}
-            <style type="text/css">{{ asset.src|raw }}</style>
+            <!-- <style type="text/css">{{ asset.src|raw }}</style> -->
         {% else %}
-            <link rel="stylesheet" href="{{ absoluteURL }}/{{ asset.src }}?v={{ assetVersion }}.{{ cacheString }}" type="text/css" media="{{ asset.media }}" />
+            <!-- <link rel="stylesheet" href="{{ absoluteURL }}/{{ asset.src }}?v={{ assetVersion }}.{{ cacheString }}" type="text/css" media="{{ asset.media }}" /> -->
         {% endif %}
     {% endfor %}
 {% endblock styles %}
