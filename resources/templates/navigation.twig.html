@@ -17,10 +17,6 @@ collapsed drop-down list in 'mini' view-mode.
 {% if sidebar or menuModule is not empty or not isLoggedIn %}
 <div class="w-64 px-3 py-6 overflow-y-auto" x-data="{}" >
 
-    <button @click="sidebarMobile = true" class="block md:hidden mx-2 px-2 text-sm text-gray-800 dark:text-zinc-200 rounded-xl border dark:border-zinc-600">
-        {{ __('Main Menu') }}
-    </button>
-
     {% if sidebar and sidebarPosition != 'bottom' %}
         {% for code in page.extraSidebar  %}
             {% if code is not empty %}
@@ -48,8 +44,7 @@ collapsed drop-down list in 'mini' view-mode.
     {% if menuModule %}
     <nav x-cloak="{{ sidebar ? 'mobile' : 'off' }}"  x-data="{ menuItemActive: '{{ menuItemActive|replace({' ': '-', '&': '', '\'': ''}) }}' }" class="{{ sidebarClass }} w-full" >
 
-        <ul class="w-full  list-none column-1 sm:column-2 md:column-3 m-0 px-0  
-            lg:bg-transparent lg:border-0 lg:column-1 lg:shadow-none lg:px-2">
+        <ul class="w-full list-none m-0 px-0 md:pr-2">
 
             {% for categoryName, items in menuModule %}
                 <li class="w-full column-no-break p-0">
@@ -60,8 +55,8 @@ collapsed drop-down list in 'mini' view-mode.
                     <ul class="list-none m-0 mb-6">
                     {% for item in items %}
                         <li class=" -my-1">
-                            <a hx-boost="true" hx-target="#content-wrap" hx-select="#content-wrap" hx-swap="outerHTML show:window:top swap:0s" hx-indicator="#loadingIndicator" @click="menuItemActive = '{{ item.actionName|replace({' ': '-', '&': '', '\'': ''}) }}'"
-                            href="{{ item.url }}" class="block relative text-gray-700 no-underline px-3 py-1  text-sm leading-normal lg:leading-normal rounded transition cursor-pointer hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700" :class="[ (menuItemActive === '{{ item.actionName|replace({' ': '-', '&': '', '\'': ''}) }}' ) ? 'navigation-link text-gray-900 bg-gray-300 font-semibold dark:text-gray-100 dark:bg-gray-600' : '' ] ">
+                            <a hx-boost="true" hx-target="#content-wrap" hx-select="#content-wrap" hx-swap="outerHTML show:window:top swap:0s" hx-indicator="#loadingIndicator" @click="menuItemActive = '{{ item.actionName|replace({' ': '-', '&': '', '\'': ''}) }}'; sidebarToggle = pageWidth <= 768 ? false : sidebarToggle;"
+                            href="{{ item.url }}" class="block relative text-gray-700 no-underline px-3 py-1  text-sm leading-normal lg:leading-normal rounded-lg transition cursor-pointer hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700" :class="[ (menuItemActive === '{{ item.actionName|replace({' ': '-', '&': '', '\'': ''}) }}' ) ? 'navigation-link text-gray-900 bg-gray-300 font-semibold dark:text-gray-100 dark:bg-gray-600' : '' ] ">
                                 {{ __(item.name, item.textDomain) }}
                             </a>
                         </li>

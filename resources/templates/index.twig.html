@@ -25,8 +25,8 @@ TODO: add template variable details.
     {{ include('head.twig.html') }}
     {% endblock head %}
     
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.8/dist/htmx.min.js" integrity="sha384-/TgkGk7p307TH7EXJDuUlgG3Ce1UVolAOFopFekQkkXihi5u/6OCvVKyz1W+idaz" crossorigin="anonymous"></script>
+    <!-- <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script> -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.8/dist/htmx.min.js" integrity="sha384-/TgkGk7p307TH7EXJDuUlgG3Ce1UVolAOFopFekQkkXihi5u/6OCvVKyz1W+idaz" crossorigin="anonymous"></script> -->
 
     <style>
         [x-cloak=""], [x-cloak="on"] { 
@@ -46,7 +46,7 @@ TODO: add template variable details.
     
     
     <div id="gibbon" 
-        x-data="{ sidebarToggle: $persist(true).using(sessionStorage), sidebarOpen: {{ (sidebar and menuModule) or not isLoggedIn ? 'true' : 'false' }}, sidebarMobile: false, darkMode: $persist(false), pageWidth: 0, modalOpen: false, modalType: 'none', modalAlert: false, globalShowHide: false }" 
+        x-data="{ sidebarToggle: window.innerWidth <= 768 ? false : {{ (sidebar and menuModule) or not isLoggedIn ? 'true' : 'false' }}, sidebarMobile: false, darkMode: $persist(false), pageWidth: 0, modalOpen: false, modalType: 'none', modalAlert: false, globalShowHide: false }" 
         x-resize.document="pageWidth = $width;"
         x-init="$watch('pageWidth', value => value < 800 ? sidebarToggle = false : sidebarToggle = sidebarToggle );"
         @modalwindow="modalType=$event.detail; modalOpen = true"
@@ -60,7 +60,7 @@ TODO: add template variable details.
         <header class="bg-linear-to-r from-violet-600 via-violet-600 to-violet-800 fixed top-0 inset-x-0 z-10">
             <div class="h-12 flex justify-between space-x-2 items-end text-white px-2 lg:px-3">
                 <div class="flex-1 flex items-center gap-3 text-white/85">
-                    <a href="" class="text-base font-medium">
+                    <a href="{{ absoluteURL }}/index.php" class="text-base font-medium">
                         <span class="sr-only">Gibbon</span>
                         <img class="inline sm:hidden h-12 -mt-px" src="./themes/Default/img/gibbon-logo-only.svg">
                         <img class="hidden sm:inline h-12 -mt-px" src="./themes/Default/img/gibbon-logo.svg">
@@ -90,10 +90,10 @@ TODO: add template variable details.
                         {% endif %}
                         </a>
 
-                        <ul x-cloak x-show="menuOpen" x-transition:enter.duration.250ms x-transition:leave.duration.100ms class="list-none m-0 bg-black bg-opacity-75 backdrop-blur-lg backdrop-contrast-125 backdrop-saturate-150 absolute rounded-md w-48 mt-1 mr-4 p-1 sm:p-1.5 z-50 cursor-pointer {{ rightToLeft ? 'left-0' : 'right-0' }} dark:bg-opacity-60">
+                        <ul x-cloak x-show="menuOpen" x-transition:enter.duration.250ms x-transition:leave.duration.100ms class="list-none m-0 bg-black bg-opacity-75 backdrop-blur-lg backdrop-contrast-125 backdrop-saturate-150 absolute rounded-xl w-48 mt-1 mr-4 p-1 sm:p-1.5 z-50 cursor-pointer {{ rightToLeft ? 'left-0' : 'right-0' }} dark:bg-opacity-60">
                             {% for link in minorLinks|reverse %}
-                            <li class="hover:bg-{{ themeColour }}-700 rounded">
-                                <a @click="menuOpen = false" href="{{ link.url }}" class="flex justify-between items-center text-sm text-white focus:text-{{ themeColour }}-200 no-underline px-1 py-2 md:py-1 leading-normal {{ rightToLeft ? 'text-right' : 'text-left' }} dark:text-gray-200 dark:focus:text-gray-400" target="{{ link.target }}" {{ link.target == '_blank' ? 'rel="noopener noreferrer"' : '' }}>
+                            <li class="hover:bg-{{ themeColour }}-700 rounded-lg">
+                                <a @click="menuOpen = false" href="{{ link.url }}" class="flex justify-between items-center text-sm text-white focus:text-{{ themeColour }}-200 no-underline px-3 py-2 md:py-1 leading-normal {{ rightToLeft ? 'text-right' : 'text-left' }} dark:text-gray-200 dark:focus:text-gray-400" target="{{ link.target }}" {{ link.target == '_blank' ? 'rel="noopener noreferrer"' : '' }}>
                                     {{- link.name|raw -}}
 
                                     {% if link.target == '_blank' %}
@@ -104,7 +104,7 @@ TODO: add template variable details.
                             {% endfor %}
 
                             <li class="border-b mx-2 my-3 border-gray-500/25"></li>
-                            <li class="rounded mt-3 py-1 flex" role="menu"
+                            <li class="rounded-xl mt-3 flex gap-1.5" role="menu"
                                 id="themeToggle" 
                                 x-data="{ 
                                     theme: '{{ themePreference|default('auto') }}',
@@ -131,19 +131,19 @@ TODO: add template variable details.
                                 }"
                                 >
                                 <button @click="setTheme('light')" 
-                                    class="flex items-center justify-center flex-1 p-1 rounded-md text-xs text-white dark:text-gray-200 hover:bg-{{ themeColour }}-700" :class="theme === 'light' ? 'bg-gray-800' : ''" 
+                                    class="flex items-center justify-center flex-1 p-1 rounded-lg text-xs text-white dark:text-gray-200 hover:bg-{{ themeColour }}-700" :class="theme === 'light' ? 'bg-gray-800' : ''" 
                                     role="menuitem" title="{{ __('Light') }}">
                                     {{ icon('outline', 'sun', 'size-5') }}
                                     <span class="sr-only">{{ __('Light') }}</span>
                                 </button>
                                 <button @click="setTheme('dark')" 
-                                    class="flex items-center justify-center flex-1 p-1 rounded-md text-xs text-white dark:text-gray-200 hover:bg-{{ themeColour }}-700" :class="theme === 'dark' ? 'bg-gray-800' : ''" 
+                                    class="flex items-center justify-center flex-1 p-1 rounded-lg text-xs text-white dark:text-gray-200 hover:bg-{{ themeColour }}-700" :class="theme === 'dark' ? 'bg-gray-800' : ''" 
                                     role="menuitem" title="{{ __('Dark') }}">
                                     {{ icon('outline', 'moon', 'size-5') }}
                                     <span class="sr-only">{{ __('Dark') }}</span>
                                 </button>
                                 <button @click="setTheme('auto')" 
-                                    class="flex items-center justify-center flex-1 p-1 rounded-md text-xs text-white dark:text-gray-200 hover:bg-{{ themeColour }}-700" :class="theme === 'auto' ? 'bg-gray-800' : ''" 
+                                    class="flex items-center justify-center flex-1 p-1 rounded-lg text-xs text-white dark:text-gray-200 hover:bg-{{ themeColour }}-700" :class="theme === 'auto' ? 'bg-gray-800' : ''" 
                                     role="menuitem" title="{{ __('Auto') }}">
                                     {{ icon('outline', 'computer-desktop', 'size-5') }}
                                     <span class="sr-only">{{ __('Auto') }}</span>
@@ -160,13 +160,7 @@ TODO: add template variable details.
                 {% if isLoggedIn %}
                 <nav class="h-12 flex items-center px-2 lg:px-3 gap-6">
                     
-                    <!-- MENU ICON -->
-                    <button @click="{{ sidebar ? 'sidebarToggle = !sidebarToggle' : 'sidebarOpen = !sidebarOpen' }}" 
-                        class="size-8 rounded-full flex items-center justify-center group cursor-pointer hover:bg-black/20 text-white/85 hover:text-white" type="button" aria-label="Toggle Nav" style="--focus-outline-offset: 0.2rem;">    
-                        <svg class="size-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" >
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-                          </svg>
-                    </button>
+                    
 
                     <!-- MAIN MENU -->
                     {{ include('menu.twig.html') }}
@@ -204,53 +198,33 @@ TODO: add template variable details.
             </div>
         </header>
 
-        <main class="flex bg-zinc-100 dark:bg-zinc-900 rounded-t-2xl fixed top-24 inset-x-0 bottom-0 min-h-[calc(100vh-7rem)] nav-open">
+        <main id="page-main" class="flex bg-zinc-100 dark:bg-zinc-900 rounded-t-2xl fixed top-24 inset-x-0 bottom-0 min-h-[calc(100vh-7rem)]"
+       
+        x-on:htmx:after-settle="sidebarToggle = pageWidth <= 768 ? false : ($el.dataset.sidebar === 'true' ? true : false)"
+        data-sidebar="{{ sidebar and menuModule ? 'true' : 'false' }}"
+        >
 
             
-
+        <!--  -->
             <!-- SIDEBAR -->
-            <nav id="sidebar" x-show="{{ sidebar and isLoggedIn ? 'sidebarToggle && sidebarOpen' : 'sidebarOpen' }}"
+            <nav id="sidebar" x-cloak x-show="sidebarToggle"
+                @click.outside="sidebarToggle = pageWidth <= 768 ? false : sidebarToggle"
                 x-transition:enter="transition-all ease-out duration-300"
                 x-transition:enter-start="-translate-x-72 w-64 md:w-0"
-                x-transition:enter-end="translate-x-0 w-64 md:w-64"
+                x-transition:enter-end="translate-none w-64 md:w-64"
                 x-transition:leave="transition-all ease-linear duration-300"
-                x-transition:leave-start="translate-x-0 w-64 md:w-64"
+                x-transition:leave-start="translate-none w-64 md:w-64"
                 x-transition:leave-end="-translate-x-72 w-64 md:w-0"
-                
-                class="absolute left-0 md:static bg-zinc-100 dark:bg-zinc-800 md:bg-transparent md:dark:bg-transparent h-full transition-all z-20 shadow-xl/20 md:shadow-none">
-
-                
-
+                class="absolute left-0 md:static overflow-y-auto overflow-x-hidden bg-zinc-100 dark:bg-zinc-800 md:bg-transparent md:dark:bg-transparent h-full transition-all z-50 shadow-xl/20 md:shadow-none"
+                style="scrollbar-width: thin;">
                 {% block sidebar %}
                 {{ include('navigation.twig.html') }}
                 {% endblock sidebar %}
-
-                
-
-            </nav>
-
-            <!-- MOBILE SIDEBAR -->
-            <nav id="sidebarMobile" x-show="sidebarMobile"
-                x-transition:enter="transition-all ease-out duration-300"
-                x-transition:enter-start="-translate-x-72  "
-                x-transition:enter-end="translate-x-0 "
-                x-transition:leave="transition-all ease-linear duration-300"
-                x-transition:leave-start="translate-x-0 "
-                x-transition:leave-end="-translate-x-72 "
-                
-                class="absolute left-0 bg-zinc-100 dark:bg-zinc-800 h-full transition-all z-20 shadow-xl/20">
-
-                <ul class="list-none text-sm text-zinc-925 w-64 px-3 py-6">
-                    <li>
-                        Foo
-                    </li>
-                </ul> 
-
             </nav>
 
             <div id="content-wrap" class="sm:p-2 h-full flex-1 overflow-y-auto focus:outline-none rounded-t-2xl">
 
-                <div id="content" class="bg-white dark:bg-zinc-900 px-12 border border-zinc-200 dark:border-zinc-800 dark:text-zinc-300 rounded-2xl focus:outline-none relative grid min-h-full mx-auto">
+                <div id="content" class="bg-white dark:bg-zinc-900 px-4 sm:px-12 border border-zinc-200 dark:border-zinc-800 dark:text-zinc-300 rounded-2xl focus:outline-none relative grid min-h-full mx-auto">
                     
 
                     <div id="content-inner" class="w-full mx-auto max-w-6xl">
