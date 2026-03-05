@@ -50,11 +50,11 @@ class Theme
         $this->stylesheets = new AssetBundle();
         $this->scripts = new AssetBundle();
 
-        $this->stylesheets->add(
-            'theme',
-            'themes/'.$this->name.'/css/main.css',
-            ['version' => $this->version]
-        );
+        // $this->stylesheets->add(
+        //     'theme',
+        //     'themes/'.$this->name.'/css/main.css',
+        //     ['version' => $this->version]
+        // );
         $this->scripts->add(
             'theme',
             'themes/'.$this->name.'/js/common.js',

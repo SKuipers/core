@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 @tailwind base;
+@tailwind utilities;
 
 *,
 :after,
@@ -29,14 +30,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     box-sizing: border-box;
 }
 
-html {
-    @apply h-full;
-}
-
-body {
+/* body {
     @apply text-gray-900 dark:text-gray-100 dark:bg-gray-900;
     font-family: Helvetica, Arial, sans-serif;
-}
+} */
 
 [x-cloak=""], [x-cloak="on"] { 
     display: none !important;
@@ -652,11 +649,190 @@ input:not([type='checkbox']) + .error-msg::before {
   Theme
  --------------------------------------------------------------------------
 */
-
 :root {
-    --theme-
+    --color-theme-50: #f5f3ff;
+    --color-theme-100: #ede9fe;
+    --color-theme-200: #ddd6ff;
+    --color-theme-300: #c4b4ff;
+    --color-theme-400: #a684ff;
+    --color-theme-500: #8e51ff;
+    --color-theme-600: #7f22fe;
+    --color-theme-700: #7008e7;
+    --color-theme-800: #5d0ec0;
+    --color-theme-900: #4d179a;
+    --color-theme-950: #2f0d68;
+    --bg-theme-gradient: linear-gradient(to right, var(--color-theme-600) 0%, var(--color-theme-600) 50%, var(--color-theme-800) 100%);
 }
 
-.theme-purple {
-
+.theme-sky {
+    --color-theme-50: #f0f9ff;
+    --color-theme-100: #e0f2fe;
+    --color-theme-200: #bae6fd;
+    --color-theme-300: #7dd3fc;
+    --color-theme-400: #38bdf8;
+    --color-theme-500: #0ea5e9;
+    --color-theme-600: #0284c7;
+    --color-theme-700: #0369a1;
+    --color-theme-800: #075985;
+    --color-theme-900: #1e3a8a;
+    --color-theme-950: #172554;
 }
+
+.theme-sky {
+    --color-theme-50: #f0f9ff;
+    --color-theme-100: #e0f2fe;
+    --color-theme-200: #bae6fd;
+    --color-theme-300: #7dd3fc;
+    --color-theme-400: #38bdf8;
+    --color-theme-500: #0ea5e9;
+    --color-theme-600: #0284c7;
+    --color-theme-700: #0369a1;
+    --color-theme-800: #075985;
+    --color-theme-900: #1e3a8a;
+    --color-theme-950: #172554;
+}
+
+.bg-gradient-theme {
+    background-color: var(--color-theme-600);
+    background-image: var(--bg-theme-gradient);
+}
+
+.dark\:.bg-gradient-theme:is(.dark *) {
+    background-color: var(--color-theme-700);
+    background: var(--bg-theme-gradient-dark);
+}
+
+@layer utilities {
+    .bg-theme-50 {
+        background-color: var(--color-theme-50);
+    }
+
+    .bg-theme-100 {
+        background-color: var(--color-theme-100);
+    }
+
+    .bg-theme-200 {
+        background-color: var(--color-theme-200);
+    }
+
+    .bg-theme-300 {
+        background-color: var(--color-theme-300);
+    }
+
+    .bg-theme-400 {
+        background-color: var(--color-theme-400);
+    }
+
+    .bg-theme-500 {
+        background-color: var(--color-theme-500);
+    }
+
+    .bg-theme-600 {
+        background-color: var(--color-theme-600);
+    }
+
+    .bg-theme-700 {
+        background-color: var(--color-theme-700);
+    }
+
+    .bg-theme-800 {
+        background-color: var(--color-theme-800);
+    }
+
+    .bg-theme-900 {
+        background-color: var(--color-theme-900);
+    }
+
+    .bg-theme-950 {
+        background-color: var(--color-theme-950);
+    }
+
+    .text-theme-50 {
+        color: var(--color-theme-50);
+    }
+
+    .text-theme-100 {
+        color: var(--color-theme-100);
+    }
+
+    .text-theme-200 {
+        color: var(--color-theme-200);
+    }
+
+    .text-theme-300 {
+        color: var(--color-theme-300);
+    }
+
+    .text-theme-400 {
+        color: var(--color-theme-400);
+    }
+
+    .text-theme-500 {
+        color: var(--color-theme-500);
+    }
+
+    .text-theme-600 {
+        color: var(--color-theme-600);
+    }
+
+    .text-theme-700 {
+        color: var(--color-theme-700);
+    }
+
+    .text-theme-800 {
+        color: var(--color-theme-800);
+    }
+
+    .text-theme-900 {
+        color: var(--color-theme-900);
+    }
+
+    .text-theme-950 {
+        color: var(--color-theme-950);
+    }
+
+    .border-theme-50 {
+        border-color: var(--color-theme-50);
+    }
+
+    .border-theme-100 {
+        border-color: var(--color-theme-100);
+    }
+
+    .border-theme-200 {
+        border-color: var(--color-theme-200);
+    }
+
+    .border-theme-300 {
+        border-color: var(--color-theme-300);
+    }
+
+    .border-theme-400 {
+        border-color: var(--color-theme-400);
+    }
+
+    .border-theme-500 {
+        border-color: var(--color-theme-500);
+    }
+
+    .border-theme-600 {
+        border-color: var(--color-theme-600);
+    }
+
+    .border-theme-700 {
+        border-color: var(--color-theme-700);
+    }
+
+    .border-theme-800 {
+        border-color: var(--color-theme-800);
+    }
+
+    .border-theme-900 {
+        border-color: var(--color-theme-900);
+    }
+
+    .border-theme-950 {
+        border-color: var(--color-theme-950);
+    }
+}
+

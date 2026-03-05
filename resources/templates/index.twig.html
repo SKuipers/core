@@ -16,7 +16,7 @@ TODO: add template variable details.
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script> -->
 
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/resize@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
@@ -42,7 +42,7 @@ TODO: add template variable details.
     </style>
   </head>
 
-  <body class="font-sans bg-linear-to-r from-violet-600 via-violet-600 to-violet-800 h-[100vh]">
+  <body class="font-sans theme-{{ themeColour }} bg-gradient-theme  h-[100vh]">
     
     
     <div id="gibbon" 
@@ -57,13 +57,13 @@ TODO: add template variable details.
         <div id="loadingIndicator" style="--d:900px;--angle:45deg;"></div>
         <a id="top"></a>
 
-        <header class="bg-linear-to-r from-violet-600 via-violet-600 to-violet-800 fixed top-0 inset-x-0 z-10">
+        <header class="bg-gradient-theme dark:bg-gradient-theme fixed top-0 inset-x-0 z-10">
             <div class="h-12 flex justify-between space-x-2 items-end text-white px-2 lg:px-3">
                 <div class="flex-1 flex items-center gap-3 text-white/85">
-                    <a href="{{ absoluteURL }}/index.php" class="text-base font-medium">
+                    <a href="{{ absoluteURL }}/index.php" class="h-12 text-base font-medium">
                         <span class="sr-only">Gibbon</span>
-                        <img class="inline sm:hidden h-12 -mt-px" src="./themes/Default/img/gibbon-logo-only.svg">
-                        <img class="hidden sm:inline h-12 -mt-px" src="./themes/Default/img/gibbon-logo.svg">
+                        <img class="inline sm:hidden h-12 " src="./themes/Default/img/gibbon-logo-only.svg">
+                        <img class="hidden sm:inline h-12 " src="./themes/Default/img/gibbon-logo.svg">
                     </a>
                 </div>
                 <div x-data="{finderOpen: false, finderSearch: ''}" class="flex gap-1 md:gap-2 lg:gap-2 sm:gap-3 items-center justify-center">
@@ -92,7 +92,7 @@ TODO: add template variable details.
 
                         <ul x-cloak x-show="menuOpen" x-transition:enter.duration.250ms x-transition:leave.duration.100ms class="list-none m-0 bg-black/75 dark:bg-black/60 backdrop-blur-lg backdrop-contrast-125 backdrop-saturate-150 absolute rounded-xl w-48 mt-1 mr-4 p-1 sm:p-1.5 z-50 cursor-pointer {{ rightToLeft ? 'left-0' : 'right-0' }} shadow-lg">
                             {% for link in minorLinks|reverse %}
-                            <li class="hover:bg-{{ themeColour }}-700 rounded-lg">
+                            <li class="hover:bg-theme-700 rounded-lg">
                                 <a @click="menuOpen = false" href="{{ link.url }}" class="flex justify-between items-center text-sm text-white focus:text-{{ themeColour }}-200 no-underline px-3 py-2 md:py-1 leading-normal {{ rightToLeft ? 'text-right' : 'text-left' }} dark:text-gray-200 dark:focus:text-gray-400" target="{{ link.target }}" {{ link.target == '_blank' ? 'rel="noopener noreferrer"' : '' }}>
                                     {{- link.name|raw -}}
 
@@ -131,19 +131,19 @@ TODO: add template variable details.
                                 }"
                                 >
                                 <button @click="setTheme('light')" 
-                                    class="flex items-center justify-center flex-1 p-1 rounded-lg text-xs text-white dark:text-gray-200 hover:bg-{{ themeColour }}-700" :class="theme === 'light' ? 'bg-gray-800' : ''" 
+                                    class="flex items-center justify-center flex-1 p-1 rounded-lg text-xs text-white dark:text-gray-200 hover:bg-theme-700" :class="theme === 'light' ? 'bg-gray-800' : ''" 
                                     role="menuitem" title="{{ __('Light') }}">
                                     {{ icon('outline', 'sun', 'size-5') }}
                                     <span class="sr-only">{{ __('Light') }}</span>
                                 </button>
                                 <button @click="setTheme('dark')" 
-                                    class="flex items-center justify-center flex-1 p-1 rounded-lg text-xs text-white dark:text-gray-200 hover:bg-{{ themeColour }}-700" :class="theme === 'dark' ? 'bg-gray-800' : ''" 
+                                    class="flex items-center justify-center flex-1 p-1 rounded-lg text-xs text-white dark:text-gray-200 hover:bg-theme-700" :class="theme === 'dark' ? 'bg-gray-800' : ''" 
                                     role="menuitem" title="{{ __('Dark') }}">
                                     {{ icon('outline', 'moon', 'size-5') }}
                                     <span class="sr-only">{{ __('Dark') }}</span>
                                 </button>
                                 <button @click="setTheme('auto')" 
-                                    class="flex items-center justify-center flex-1 p-1 rounded-lg text-xs text-white dark:text-gray-200 hover:bg-{{ themeColour }}-700" :class="theme === 'auto' ? 'bg-gray-800' : ''" 
+                                    class="flex items-center justify-center flex-1 p-1 rounded-lg text-xs text-white dark:text-gray-200 hover:bg-theme-700" :class="theme === 'auto' ? 'bg-gray-800' : ''" 
                                     role="menuitem" title="{{ __('Auto') }}">
                                     {{ icon('outline', 'computer-desktop', 'size-5') }}
                                     <span class="sr-only">{{ __('Auto') }}</span>
