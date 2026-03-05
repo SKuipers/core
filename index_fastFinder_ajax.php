@@ -36,7 +36,7 @@ if (!isset($_SESSION[$guid]) or !$session->exists('gibbonPersonID')) {
     $searchTerm = str_replace('*', '%', $searchTerm);
 
     // Cancel out early for empty searches
-    if (empty($searchTerm) or strlen($searchTerm) < 2) die('<span class="block px-4 py-2 text-sm text-gray-800">'.__('Start typing a name...').'</span>');
+    if (empty($searchTerm) or strlen($searchTerm) < 2) die('<span class="block px-3 py-2 text-sm text-gray-700">'.__('Start typing a name...').'</span>');
 
     // Check access levels
     $studentIsAccessible = isActionAccessible($guid, $connection2, '/modules/students/student_view.php');
@@ -54,7 +54,7 @@ if (!isset($_SESSION[$guid]) or !$session->exists('gibbonPersonID')) {
 
     $resultSet = array();
     $resultCount = 0;
-    $resultError = '<span class="block px-4 py-2 text-sm text-gray-800">'.__('Your request failed due to a database error.').'</span>';
+    $resultError = '<span class="block px-3 py-2 text-sm text-gray-800">'.__('Your request failed due to a database error.').'</span>';
 
     // ACTIONS
     // Grab the cached set of translated actions from the session
@@ -249,7 +249,7 @@ if (!isset($_SESSION[$guid]) or !$session->exists('gibbonPersonID')) {
         foreach ($results as $token) {
 
             if ($outputCount > 30) {
-                $output .= '<span class="block px-4 py-2 text-sm italic text-gray-800">'.__('+{n} More Results', ['n' => $resultCount - $outputCount]).'</span>';
+                $output .= '<span class="block px-3 py-2 text-sm italic text-gray-800">'.__('+{n} More Results', ['n' => $resultCount - $outputCount]).'</span>';
                 break 2;
             }
 
@@ -275,17 +275,16 @@ if (!isset($_SESSION[$guid]) or !$session->exists('gibbonPersonID')) {
                 $name = htmlPrep($token['name']);
             }
 
-
             $name = preg_replace('/'.$searchTermSafe.'/i', '<strong>$0</strong>', $name);
 
-            $output .= '<a @click="finderOpen = false" hx-boost="true" hx-target="#content-wrap" hx-select="#content-wrap" hx-swap="outerHTML show:no-scroll swap:0s" href="'.($URL ?? '').'" class="block cursor-pointer px-4 py-2 text-sm text-gray-800 hover:bg-indigo-500 hover:text-white" role="menuitem" tabindex="-1" id="menu-item-0">'.htmlPrep(__($type)).' - '.$name.'</a>';
+            $output .= '<a @click="finderOpen = false" hx-boost="true" hx-target="#content-wrap" hx-select="#content-wrap" hx-swap="outerHTML show:no-scroll swap:0s" href="'.($URL ?? '').'" class="block cursor-pointer px-3 py-2 text-sm text-gray-800 hover:bg-indigo-500 hover:text-white rounded-lg focus:ring-2 focus:ring-inset focus:ring-blue-500 dark:focus:ring-blue-400" role="menuitem" tabindex="1" id="menu-item-0">'.htmlPrep(__($type)).' - '.$name.'</a>';
             $outputCount++;
             
         }
     }
 
     if ($resultCount == 0 || empty($output)) {
-        die('<span class="block px-4 py-2 text-sm text-gray-800">'.($searchType == 'all' ? __('No results') : __('No results in {type}', 
+        die('<span class="block px-3 py-2 text-sm text-gray-800">'.($searchType == 'all' ? __('No results') : __('No results in {type}', 
         ['type' => __(ucfirst($searchType)) ] ) ).'</span>');
     }
 

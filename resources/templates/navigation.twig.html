@@ -42,7 +42,7 @@ collapsed drop-down list in 'mini' view-mode.
     {% endif %}
     
     {% if menuModule %}
-    <nav x-cloak="{{ sidebar ? 'mobile' : 'off' }}"  x-data="{ menuItemActive: '{{ menuItemActive|replace({' ': '-', '&': '', '\'': ''}) }}' }" class="{{ sidebarClass }} w-full" >
+    <nav x-cloak="{{ sidebar ? 'mobile' : 'off' }}"  x-data="{ menuItemActive: '{{ menuItemActive|replace({' ': '-', '&': '', '\'': ''}) }}' }" class="{{ sidebarClass }} w-full  bg-zinc-100 dark:bg-zinc-800" >
 
         <ul class="w-full list-none m-0 px-0 md:pr-2">
 

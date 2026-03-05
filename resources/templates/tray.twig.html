@@ -10,33 +10,71 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 Main Menu: Displays the top-level categories and active modules.
 -->#}
 
-{% if statusTray.messageWall %}
 
-    <a id="messageWall" x-data="{ read: {{ currentUser.messengerRead ? 'true' : 'false' }} }" hx-boost="true" hx-target="#content-wrap" hx-select="#content-wrap" hx-swap="outerHTML show:no-scroll swap:0s" hx-indicator="#loadingIndicator" class="inline-block relative mr-5" title="{{ __('Message Wall') }}" href="{{ statusTray.messageWall.url }}" @click.debounce.500ms="read = true">
-        {%if statusTray.messageWall.messages %}
-            <span class='badge  -mr-2 right-0' :class="read ? 'bg-{{ themeColour }}-400' : 'bg-red-500'">{{ statusTray.messageWall.messages }}</span>
-        {% endif %}
 
-        {{ icon('outline', 'message-wall', 'minorLinkIcon size-10 -my-1 fill-current text-white ' ~ (statusTray.messageWall.messages ? 'opacity-75' : 'opacity-25') ) }}
-    </a>
-{% endif %}
 
 {% if statusTray.notifications %}
-        <a id="notifications" hx-boost="true" hx-target="#content-wrap" hx-select="#content-wrap" hx-swap="outerHTML show:no-scroll swap:0s" class="inline-block relative mr-5" title="{{ __('Notifications') }}" href="{{ statusTray.notifications.url }}">
-            <span class="notificationCounter badge bg-red-500 -mr-2 right-0 {{ statusTray.notifications.count == 0 ? 'hidden' }}">
-                {{ statusTray.notifications.count > 0 ? statusTray.notifications.count : '' }}
-            </span>
+    <a id="notifications" title="{{ __('Notifications') }}" href="{{ statusTray.notifications.url }}" hx-boost="true" hx-target="#content-wrap" hx-select="#content-wrap" hx-swap="outerHTML show:no-scroll swap:0s" class="relative size-9 rounded-full flex items-center justify-center hover:bg-black/20 text-white/85 hover:text-white">
+        {% if statusTray.notifications.count > 0 %}
+        <span class="notificationCounter text-xs/4.5 rounded-full overflow-clip h-4.5 min-w-4.5 px-1 text-center bg-red-500  absolute -top-0.5 -right-0.5 {{ statusTray.notifications.count == 0 ? 'hidden' }}">
+            {{ statusTray.notifications.count }}
+        </span>
+        {% endif %}
 
-            {{ icon('outline', 'notifications', 'notificationIcon size-8 fill-current text-white ' ~ (statusTray.notifications.count ? 'opacity-75' : 'opacity-25') ) }}
-        </a>
+        <svg class="size-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+        </svg>
+    </a>
 
         <script type="text/javascript">
             setInterval(function() {
                 refreshNotifications();
-            }, {{ statusTray.notifications.interval }});
+            }, {{ statusTray.notifications.interval ?? 60000 }});
         </script>
-    </div>
+
 {% endif %}
+
+
+{% if statusTray.messageWall %}
+
+    <a id="messageWall" x-data="{ read: {{ currentUser.messengerRead ? 'true' : 'false' }} }" hx-boost="true" hx-target="#content-wrap" hx-select="#content-wrap" hx-swap="outerHTML show:no-scroll swap:0s" hx-indicator="#loadingIndicator" title="{{ __('Message Wall') }}" href="{{ statusTray.messageWall.url }}" @click.debounce.500ms="read = true" class="relative size-9 rounded-full flex items-center justify-center hover:bg-black/20 text-white/85 hover:text-white">
+        {%if statusTray.messageWall.messages %}
+            <span class='text-xs/4.5 rounded-full overflow-clip h-4.5 min-w-4.5 px-1 text-center  absolute -top-0.5 -right-0.5' :class="read ? 'bg-{{ themeColour }}-400' : 'bg-red-500'">{{ statusTray.messageWall.messages }}</span>
+        {% endif %}
+
+        <svg class="size-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
+        </svg>
+    </a>
+
+{% endif %}
+
+
+<button @click="darkMode = !darkMode" class="size-9 rounded-full flex items-center justify-center hover:bg-black/20 text-white/85 hover:text-white">
+    <svg x-cloak x-show="!darkMode" class="size-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" >
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
+      </svg>
+    <svg x-cloak x-show="darkMode" class="size-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
+    </svg>
+</button>
+
+<nav id="launcher" x-data="{menuOpen: false}" @click.outside="menuOpen = false" class="relative">
+    <button @click="menuOpen = !menuOpen" class="size-9 rounded-full flex items-center justify-center hover:bg-black/20 text-white/85 hover:text-white" :class="{'bg-black/20': menuOpen}">
+        <svg class="size-6" focusable="false" viewBox="0 0 24 24"><path fill="currentColor" d="M6,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM6,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM6,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM16,6c0,1.1 0.9,2 2,2s2,-0.9 2,-2 -0.9,-2 -2,-2 -2,0.9 -2,2zM12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM18,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM18,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2z"></path><image src="https://ssl.gstatic.com/gb/images/bar/al-icon.png" alt="" height="24" width="24" style="border:none;display:none \9"></image></svg>
+    </button>
+
+    <div x-cloak x-show="menuOpen" x-transition:enter.duration.250ms x-transition:leave.duration.100ms class="grid grid-cols-3 absolute min-w-64 -mt-1 p-1.5 sm:p-2 bg-white dark:bg-gray-800/60 outline-hidden overflow-hidden rounded-2xl border border-gray-200 dark:border-black shadow-lg  z-50 cursor-pointer {{ rightToLeft ? 'left-0' : 'right-0' }}">
+
+        <div class="rounded-xl hover:bg-gray-100 p-4 flex items-center justify-center">1</div>
+        <div class="rounded-xl hover:bg-gray-100 p-4 flex items-center justify-center">2</div>
+        <div class="rounded-xl hover:bg-gray-100 p-4 flex items-center justify-center">3</div>
+        <div class="rounded-xl hover:bg-gray-100 p-4 flex items-center justify-center">4</div>
+    </div>
+
+
+</nav>
+
 
 {% if statusTray.alarm %}
     <script>

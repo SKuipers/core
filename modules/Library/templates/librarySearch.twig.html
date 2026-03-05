@@ -10,7 +10,7 @@
             {% endfor %}
             ...
         </h3>
-        <div class="flex flex-wrap p-3 gap-4 columns-auto w-full overflow-y-auto overscroll-contain max-h-screen border-2 border-transparent bg-gray-100 dark:bg-gray-800 bg-opacity-50">
+        <div class="flex flex-wrap p-3 gap-4 columns-auto w-full overflow-y-auto overscroll-contain max-h-screen border-2 border-transparent bg-gray-100/50 dark:bg-gray-800/50">
         {% for item in searchItems %}
             {% if item.imageLocation is not empty %}
                 <a data-log="{{searchItemViewer.tooltip(item) }}">

@@ -6,7 +6,7 @@
         <div class="columns-auto w-full divide-y">
         {% for shelf in libraryShelves|keys %}
             <h3 class="mt-8">{{shelfNames[shelf]}}</h3>
-            <div class="flex justify-content-start pl-4 pr-4 pt-4 content-end gap-5 flex-row  overflow-x-scroll overscroll-contain pb-8 border-2 border-transparent bg-gray-100 dark:bg-gray-800 bg-opacity-50">
+            <div class="flex justify-content-start pl-4 pr-4 pt-4 content-end gap-5 flex-row  overflow-x-scroll overscroll-contain pb-8 border-2 border-transparent bg-gray-100/50 dark:bg-gray-800/50">
                 {% for item in libraryShelves[shelf] %}
                     {% if item.imageLocation is not empty %}
                         <a data-log="{{shelfItemViewer.tooltip(item) }}">
