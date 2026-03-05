@@ -909,24 +909,36 @@ class Format
         if (empty($name)) return __('Unknown');
 
         if ($roleCategory == 'Parent' || $roleCategory == 'Other') {
-            $url = Url::fromModuleRoute('User Admin', 'user_manage_edit')
+            $url = Url::fromHandlerModuleRoute('fullscreen.php', 'User Admin', 'user_manage_edit')
                 ->withAbsoluteUrl()
                 ->withQueryParams(['gibbonPersonID' => $gibbonPersonID] + $params);
-            $output = self::link($url, $name);
+            $output = self::nameLink($url, $name);
         } elseif ($roleCategory == 'Staff') {
-            $url = Url::fromModuleRoute('Staff', 'staff_view_details')
+            $url = Url::fromHandlerModuleRoute('fullscreen.php', 'Staff', 'staff_view_details')
                 ->withAbsoluteUrl()
                 ->withQueryParams(['gibbonPersonID' => $gibbonPersonID] + $params);
-            $output = self::link($url, $name);
+            $output = self::nameLink($url, $name);
         } elseif ($roleCategory == 'Student') {
-            $url = Url::fromModuleRoute('Students', 'student_view_details')
+            $url = Url::fromHandlerModuleRoute('fullscreen.php', 'Students', 'student_view_details')
                 ->withAbsoluteUrl()
                 ->withQueryParams(['gibbonPersonID' => $gibbonPersonID] + $params);
-            $output = self::link($url, $name);
+            $output = self::nameLink($url, $name);
         } else {
             $output = $name;
         }
         return $output;
+    }
+
+    protected static function nameLink(string $url, string $name)
+    {
+        $attrs = [
+            'hx-boost'                => 'true',
+            'hx-target'               => '#drawerContent',
+            'hx-push-url'             => 'false',
+            'x-on:htmx:after-on-load' => 'drawerOpen = true',
+            'hx-swap'                 => 'innerHTML show:no-scroll swap:0s',
+        ];
+        return '<a href="'.$url.'&subpage=Personal" '.self::attributes($attrs).'>'.$name.'</a>';
     }
 
     /**

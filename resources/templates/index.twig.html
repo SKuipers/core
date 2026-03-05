@@ -46,7 +46,7 @@ TODO: add template variable details.
     
     
     <div id="gibbon" 
-        x-data="{ sidebarToggle: window.innerWidth <= 768 ? false : {{ (sidebar and menuModule) or not isLoggedIn ? 'true' : 'false' }}, sidebarMobile: false, darkMode: $persist(false), pageWidth: 0, modalOpen: false, modalType: 'none', modalAlert: false, globalShowHide: false }" 
+        x-data="{ sidebarToggle: window.innerWidth <= 768 ? false : {{ (sidebar and menuModule) or not isLoggedIn ? 'true' : 'false' }}, sidebarMobile: false, darkMode: $persist(false), pageWidth: 0, drawerOpen: false, modalOpen: false, modalType: 'none', modalAlert: false, globalShowHide: false }" 
         x-resize.document="pageWidth = $width;"
         x-init="$watch('pageWidth', value => value < 800 ? sidebarToggle = false : sidebarToggle = sidebarToggle );"
         @modalwindow="modalType=$event.detail; modalOpen = true"
@@ -164,14 +164,14 @@ TODO: add template variable details.
                 </nav>
 
                 <div class="px-2 lg:px-3 flex gap-3">
-                    <!-- STATUS TRAy -->
+                    <!-- STATUS TRAY -->
                     {{ include('tray.twig.html') }}
                 </div>
                 {% endif %}
             </div>
         </header>
 
-        <main id="page-main" class="flex bg-gray-100 dark:bg-gray-800 rounded-t-2xl fixed top-24 inset-x-0 bottom-0 min-h-[calc(100vh-7rem)]"
+        <main id="content-wrap" class="flex bg-gray-100 dark:bg-gray-800 rounded-t-2xl fixed top-24 inset-x-0 bottom-0 min-h-[calc(100vh-7rem)]"
        
         x-on:htmx:after-settle="sidebarToggle = pageWidth <= 768 ? false : ($el.dataset.sidebar === 'true' ? true : false)"
         data-sidebar="{{ sidebar and menuModule ? 'true' : 'false' }}"
@@ -195,7 +195,7 @@ TODO: add template variable details.
                 {% endblock sidebar %}
             </nav>
 
-            <div id="content-wrap" class="sm:p-2 h-full flex-1 overflow-y-auto focus:outline-none rounded-t-2xl">
+            <div id="content-outer" class="sm:p-2 h-full flex-1 overflow-y-auto focus:outline-none rounded-t-2xl">
 
                 <div id="content" class="bg-white dark:bg-gray-900 px-4 sm:px-12 border border-gray-200 dark:border-gray-800 dark:text-gray-300 rounded-2xl focus:outline-none relative grid min-h-full mx-auto">
                     

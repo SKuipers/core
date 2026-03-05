@@ -33,16 +33,16 @@ Fast Finder
 </style>
 
 <button @click="finderOpen = true; finderSearch = ''; $focus.focus($refs.fastFinderSearch)" type="button" aria-haspopup="dialog" aria-expanded="false" data-state="closed">
-    <div class="data-[focus-visible]:outline-focus hover flex cursor-pointer justify-center sm:justify-start items-center gap-x-1.5 group h-9 rounded-xl [button:has(&gt;&amp;)]:rounded-xl bg-black/20 text-sm text-white/60 outline-none ring-1 ring-white/10 w-8 sm:w-64 sm:px-2 md:py-[calc(5/16*1rem)] hover:bg-black/25 hover:text-white/70"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true" class="size-4 shrink-0 size-5 flex-none text-white/50 group-hover:text-white/70 size-5 flex-none text-white/50 group-hover:text-white/70"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m12.712 12.712 3.538 3.538m-2-7.25a5.25 5.25 0 1 1-10.5 0 5.25 5.25 0 0 1 10.5 0Z"></path></svg><span class="sr-only leading-none sm:not-sr-only st-text-trim-cap">Search</span><kbd class="ml-auto hidden self-center rounded-md bg-white/5 px-[0.3125rem] py-[0.0625rem] text-[0.625rem]/4 font-medium text-white/60 group-hover:text-white/70 ring-1 ring-white/7.5 [word-spacing:-0.15em] ring-inset md:block"><kbd class="font-sans">⌘ </kbd><kbd class="font-sans">K</kbd></kbd></div>
+    <div class="data-[focus-visible]:outline-focus hover flex cursor-pointer justify-center sm:justify-start items-center gap-x-1.5 group h-9 rounded-xl [button:has(&gt;&amp;)]:rounded-xl bg-black/20 text-sm text-white/60 outline-none ring-1 ring-white/10 w-8 sm:w-64 sm:px-2 md:py-[calc(5/16*1rem)] hover:bg-black/25 hover:text-white/70"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true" class="size-5 shrink-0 flex-none text-white/50 group-hover:text-white/70 "><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m12.712 12.712 3.538 3.538m-2-7.25a5.25 5.25 0 1 1-10.5 0 5.25 5.25 0 0 1 10.5 0Z"></path></svg><span class="sr-only leading-none sm:not-sr-only st-text-trim-cap">Search</span><kbd class="ml-auto hidden self-center rounded-md bg-white/5 px-[0.3125rem] py-[0.0625rem] text-[0.625rem]/4 font-medium text-white/60 group-hover:text-white/70 ring-1 ring-white/7.5 [word-spacing:-0.15em] ring-inset md:block"><kbd class="font-sans">⌘ </kbd><kbd class="font-sans">K</kbd></kbd></div>
 </button>
 
 
 <div id="fastFinder" x-show="finderOpen" x-trap.inert.noreturn="finderOpen" 
     @keydown.meta.k.window.prevent="finderOpen = true; finderSearch = ''; $focus.focus($refs.fastFinderSearch)" 
-    @keydown.escape.window="finderOpen = false"  @keydown.enter.prevent="$refs.searching.querySelector('a').click()"
-    @keydown.down.prevent.window="$focus.focus($refs.searching.firstChild); "
-    @click.self="finderOpen = !finderOpen" 
-    class="fixed inset-0 z-90 flex items-start justify-center py-16 overflow-y-auto bg-black/20" role="dialog" aria-modal="true" >
+    @keydown.escape.window="finderOpen = false"  @keydown.enter.prevent="$focus.focused() == $refs.fastFinderSearch ? $refs.searching.querySelector('a').click() : $focus.focused().click()"
+    @keydown.down.prevent.window="$focus.focus($refs.searching.firstChild)"
+    @click.self="finderOpen = false" 
+    class="fixed inset-0 z-90 flex items-start justify-center py-16 overflow-y-auto bg-black/20 text-gray-800 dark:text-gray-400" role="dialog" aria-modal="true" >
         <div x-cloak x-show="finderOpen"  
             x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="opacity-0 scale-95" 
@@ -58,7 +58,7 @@ Fast Finder
                     {{ icon('basic', 'search', 'size-5 opacity-50') }}
                 </div>
 
-                <input class="form-control flex-1 rounded-lg text-gray-800 dark:text-gray-400 placeholder:text-gray-400 placeholder:text-opacity-60 text-base pl-10 h-10 " 
+                <input class="form-control flex-1 rounded-lg placeholder:text-gray-400 placeholder:text-opacity-60 text-base pl-10 h-10 " 
                     type="search" autocomplete="off" 
                     name="search" placeholder="{{ __('Search') }}" 
                     hx-post="index_fastFinder_ajax.php" 
@@ -66,14 +66,13 @@ Fast Finder
                     hx-target="#search-results" 
                     hx-include="[name='searchType']"
                     hx-indicator=".htmx-indicator"
-                    @click="finderOpen = true"
                     x-model="finderSearch"
                     x-ref="fastFinderSearch"
                     tabindex="0"
                 >
 
                 {% if roleCategory == 'Staff' %}
-                <select name="searchType" class="w-20 h-10 ml-2 text-sm font-medium"
+                <select name="searchType" class="w-20 h-10 px-3 text-sm font-medium bg-gray-100 rounded-xl"
                     hx-post="index_fastFinder_ajax.php" 
                     hx-target="#search-results" 
                     hx-include="[name='search']"
@@ -104,7 +103,7 @@ Fast Finder
                     <div id="search-results" x-ref="searching"
                         @keydown.down.prevent.window.stop="$focus.next()"
                         @keydown.up.prevent.window.stop="$focus.previous()">
-                        <button class="block px-3 py-2 text-sm text-gray-700 rounded-lg" @click="finderOpen = false" tabindex="-1" >
+                        <button class="block px-3 py-2 text-sm text-gray-700 rounded-lg" tabindex="-1" >
                             {{ __('Start typing a name ...') }}
                         </button>
                     </div>
@@ -115,7 +114,7 @@ Fast Finder
             <footer class="flex items-center gap-4 rounded-b-xl border-t border-gray-200/80 bg-gray-50 px-3 py-3 dark:border-gray-950 dark:bg-gray-800/20">
 
                 <div class="flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14"
-                        class="size-4 shrink-0 size-4 text-gray-500 size-4 text-gray-500">
+                        class="size-4 shrink-0 text-gray-500">
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                             d="M0.959867 10.2685C1.114 11.7092 2.2727 12.8679 3.71266 13.0284 4.78221 13.1476 5.88037 13.25 7 13.25s2.21779 -0.1024 3.2873 -0.2216c1.44 -0.1605 2.5987 -1.3192 2.7528 -2.7599 0.1138 -1.06348 0.2099 -2.15535 0.2099 -3.2685 0 -1.11316 -0.0961 -2.20502 -0.2099 -3.26853 -0.1541 -1.44065 -1.3128 -2.59936 -2.7528 -2.759861C9.21779 0.852392 8.11963 0.75 7 0.75S4.78221 0.852392 3.71266 0.971609C2.2727 1.13211 1.114 2.29082 0.959867 3.73147 0.846083 4.79498 0.75 5.88684 0.75 7c0 1.11315 0.096084 2.20502 0.209867 3.2685Z"
                             stroke-width="1"></path>
@@ -124,7 +123,7 @@ Fast Finder
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                             d="M5 6c0 -0.75 1 -1.75 2 -2 1 0.25 2 1.25 2 2" stroke-width="1"></path>
                     </svg><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14"
-                        class="size-4 shrink-0 size-4 text-gray-500 size-4 text-gray-500">
+                        class="size-4 shrink-0 text-gray-500">
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                             d="M0.959867 10.2685C1.114 11.7092 2.2727 12.8679 3.71266 13.0284 4.78221 13.1476 5.88037 13.25 7 13.25s2.21779 -0.1024 3.2873 -0.2216c1.44 -0.1605 2.5987 -1.3192 2.7528 -2.7599 0.1138 -1.06348 0.2099 -2.15535 0.2099 -3.2685 0 -1.11316 -0.0961 -2.20502 -0.2099 -3.26853 -0.1541 -1.44065 -1.3128 -2.59936 -2.7528 -2.759861C9.21779 0.852392 8.11963 0.75 7 0.75S4.78221 0.852392 3.71266 0.971609C2.2727 1.13211 1.114 2.29082 0.959867 3.73147 0.846083 4.79498 0.75 5.88684 0.75 7c0 1.11315 0.096084 2.20502 0.209867 3.2685Z"
                             stroke-width="1"></path>
@@ -133,7 +132,7 @@ Fast Finder
                             d="M9 8c0 0.75 -1 1.75 -2 2 -1 -0.25 -2 -1.25 -2 -2" stroke-width="1"></path>
                     </svg><span class="text-sm text-gray-600 dark:text-gray-500">Navigate</span></div>
                 <div class="flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14"
-                        class="size-4 shrink-0 size-4 text-gray-500 size-4 text-gray-500">
+                        class="size-4 shrink-0 text-gray-500">
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                             d="M0.959867 10.2685C1.114 11.7092 2.2727 12.8679 3.71266 13.0284 4.78221 13.1476 5.88037 13.25 7 13.25s2.21779 -0.1024 3.2873 -0.2216c1.44 -0.1605 2.5987 -1.3192 2.7528 -2.7599 0.1138 -1.06348 0.2099 -2.15535 0.2099 -3.2685 0 -1.11316 -0.0961 -2.20502 -0.2099 -3.26853 -0.1541 -1.44065 -1.3128 -2.59936 -2.7528 -2.759861C9.21779 0.852392 8.11963 0.75 7 0.75S4.78221 0.852392 3.71266 0.971609C2.2727 1.13211 1.114 2.29082 0.959867 3.73147 0.846083 4.79498 0.75 5.88684 0.75 7c0 1.11315 0.096084 2.20502 0.209867 3.2685Z"
                             stroke-width="1"></path>
