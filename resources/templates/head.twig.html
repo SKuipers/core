@@ -19,7 +19,7 @@ all stylesheets and scripts with a 'head' context.
     <meta http-equiv="content-language" content="{{ locale }}"/>
     <meta name="author" content="Ross Parker, International College Hong Kong"/>
     <meta name="robots" content="noindex"/>
-    <meta name="Referrer‐Policy" value="no‐referrer | same‐origin"/>
+    <!-- <meta name="Referrer‐Policy" value="no‐referrer | same‐origin"/> -->
     <meta name="htmx-config" content='{"scrollBehavior":"smooth", "scrollIntoViewOnBoost": true}'>
     <link rel="shortcut icon" type="image/x-icon" href="./favicon.ico"/>
 {% endblock meta %}
@@ -63,7 +63,7 @@ all stylesheets and scripts with a 'head' context.
         {% if asset.type == 'inline' %}
             <script type="text/javascript">{{ asset.src|raw }}</script>
         {% else %}
-            <script type="text/javascript" src="{{ absoluteURL }}/{{ asset.src }}?v={{ assetVersion }}.{{ cacheString }}" {{ asset.type == 'defer' ? 'defer' }}></script>
+            <script type="{{ asset.type == 'module' ? 'module' : 'text/javascript' }}" src="{{ absoluteURL }}/{{ asset.src }}?v={{ assetVersion }}.{{ cacheString }}" {{ asset.type == 'defer' ? 'defer' }}></script>
         {% endif %}
     {% endfor %}
 

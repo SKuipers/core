@@ -11,39 +11,20 @@ TODO: add template variable details.
 -->#}
 
 <!doctype html>
-<html lang="{{ lang }}" dir="{{ rightToLeft ? 'rtl' : 'ltr' }}" style="scroll-behavior: smooth;">
+<html lang="{{ lang }}" dir="{{ rightToLeft ? 'rtl' : 'ltr' }}" class="theme-{{ themeColour }}">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
-    <!-- <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script> -->
-
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/resize@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
 
     {% block head %}
     {{ include('head.twig.html') }}
     {% endblock head %}
-    
-    <!-- <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script> -->
-    <!-- <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.8/dist/htmx.min.js" integrity="sha384-/TgkGk7p307TH7EXJDuUlgG3Ce1UVolAOFopFekQkkXihi5u/6OCvVKyz1W+idaz" crossorigin="anonymous"></script> -->
-
-    <style>
-        [x-cloak=""], [x-cloak="on"] { 
-            display: none !important;
-        }
-
-        /* hidden on mobile/smaller screens */
-        @media screen and (max-width: 768px) {
-            [x-cloak="mobile"] { 
-                display: none !important;
-            }
-        }
-    </style>
   </head>
 
-  <body class="font-sans theme-{{ themeColour }} bg-gradient-theme  h-[100vh]">
-    
+  <body class="font-sans bg-gradient-theme h-[100vh]">
     
     <div id="gibbon" 
         x-data="{ sidebarToggle: window.innerWidth <= 768 ? false : {{ (sidebar and menuModule) or not isLoggedIn ? 'true' : 'false' }}, sidebarMobile: false, darkMode: $persist(false), pageWidth: 0, drawerOpen: false, modalOpen: false, modalType: 'none', modalAlert: false, globalShowHide: false }" 
@@ -93,7 +74,7 @@ TODO: add template variable details.
                         <ul x-cloak x-show="menuOpen" x-transition:enter.duration.250ms x-transition:leave.duration.100ms class="list-none m-0 bg-black/75 dark:bg-black/60 backdrop-blur-lg backdrop-contrast-125 backdrop-saturate-150 absolute rounded-xl w-48 mt-1 mr-4 p-1 sm:p-1.5 z-50 cursor-pointer {{ rightToLeft ? 'left-0' : 'right-0' }} shadow-lg">
                             {% for link in minorLinks|reverse %}
                             <li class="hover:bg-theme-700 rounded-lg">
-                                <a @click="menuOpen = false" href="{{ link.url }}" class="flex justify-between items-center text-sm text-white focus:text-{{ themeColour }}-200 no-underline px-3 py-2 md:py-1 leading-normal {{ rightToLeft ? 'text-right' : 'text-left' }} dark:text-gray-200 dark:focus:text-gray-400" target="{{ link.target }}" {{ link.target == '_blank' ? 'rel="noopener noreferrer"' : '' }}>
+                                <a @click="menuOpen = false" href="{{ link.url }}" class="flex justify-between items-center text-sm text-white focus:text-theme-200 no-underline px-3 py-2 md:py-1 leading-normal {{ rightToLeft ? 'text-right' : 'text-left' }} dark:text-gray-200 dark:focus:text-gray-400" target="{{ link.target }}" {{ link.target == '_blank' ? 'rel="noopener noreferrer"' : '' }}>
                                     {{- link.name|raw -}}
 
                                     {% if link.target == '_blank' %}

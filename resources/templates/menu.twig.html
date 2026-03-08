@@ -24,25 +24,25 @@ Main Menu: Displays the top-level categories and active modules.
 
     <ul x-cloak x-show="sidebarMobile" x-transition:enter.duration.250ms x-transition:leave.duration.0s @click.outside="sidebarMobile = false" class="list-none bg-black/75 dark:bg-black/60 shadow-xl backdrop-blur-lg backdrop-contrast-125 backdrop-saturate-150 rounded-xl absolute left-0 w-1/2 sm:mx-0 sm:w-52 my-0 p-1.5 z-50 {{ rightToLeft ? 'right-0' : 'left-0' }} ">
 
-        <li class="hover:bg-theme-700 rounded-lg w-full" x-data="{menuOpen: false}" @click.outside="menuOpen = false" :class="{'bg-{{ themeColour }}-700' : menuOpen}">
-            <a @click="menuOpen = false" class="block text-sm text-white focus:text-{{ themeColour }}-200 no-underline px-4 py-2 md:py-1 leading-normal {{ rightToLeft ? 'text-right' : 'text-left' }} dark:text-gray-200 dark:focus:text-gray-400" href="{{ absoluteURL }}/index.php">
+        <li class="hover:bg-theme-700 rounded-lg w-full" x-data="{menuOpen: false}" @click.outside="menuOpen = false" :class="{'bg-theme-700' : menuOpen}">
+            <a @click="menuOpen = false" class="block text-sm text-white focus:text-theme-200 no-underline px-4 py-2 md:py-1 leading-normal {{ rightToLeft ? 'text-right' : 'text-left' }} dark:text-gray-200 dark:focus:text-gray-400" href="{{ absoluteURL }}/index.php">
                 {{ __('Home') }}
             </a>
         </li>
         {% for categoryName, items in menuMain %}
-        <li class="hover:bg-theme-700 rounded-lg w-full" x-data="{menuOpen: false}" @click.outside="menuOpen = false" :class="{'bg-{{ themeColour }}-700' : menuOpen}">
+        <li class="hover:bg-theme-700 rounded-lg w-full" x-data="{menuOpen: false}" @click.outside="menuOpen = false" :class="{'bg-theme-700' : menuOpen}">
 
             <ul x-cloak x-show="menuOpen" x-transition:enter.duration.250ms x-transition:leave.duration.0s class="list-none w-full bg-black/75 dark:bg-black/60 shadow-xl backdrop-blur-lg backdrop-contrast-125 backdrop-saturate-150 rounded-xl absolute left-full -ml-4 -mt-1 sm:w-52 my-0 p-1.5 z-0 ">
                 {% for item in items %}
                 <li class="hover:bg-theme-700 rounded-lg">
-                    <a @click="menuOpen = false" class="block text-sm text-white focus:text-{{ themeColour }}-200 no-underline px-4 py-2 md:py-1 leading-normal {{ rightToLeft ? 'text-right' : 'text-left' }} dark:text-gray-200 dark:focus:text-gray-400" href="{{ item.url }}">
+                    <a @click="menuOpen = false" class="block text-sm text-white focus:text-theme-200 no-underline px-4 py-2 md:py-1 leading-normal {{ rightToLeft ? 'text-right' : 'text-left' }} dark:text-gray-200 dark:focus:text-gray-400" href="{{ item.url }}">
                         {{ __(item.name, item.textDomain) }}
                     </a>
                 </li>
                 {% endfor %}
             </ul>
 
-            <button @click="menuOpen = true" class="flex items-start justify-between w-full rounded-lg text-sm text-white focus:text-{{ themeColour }}-200 no-underline ps-4 pe-2 py-2 md:py-1 leading-normal {{ rightToLeft ? 'text-right' : 'text-left' }} dark:text-gray-200 dark:focus:text-gray-400" href="{{ item.url }}">
+            <button @click="menuOpen = true" class="flex items-start justify-between w-full rounded-lg text-sm text-white focus:text-theme-200 no-underline ps-4 pe-2 py-2 md:py-1 leading-normal {{ rightToLeft ? 'text-right' : 'text-left' }} dark:text-gray-200 dark:focus:text-gray-400" href="{{ item.url }}">
                 {{ __(categoryName) }}
 
                 <svg class="size-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" >
@@ -73,7 +73,7 @@ Main Menu: Displays the top-level categories and active modules.
             <ul x-cloak x-show="menuOpen" x-transition:enter.duration.250ms x-transition:leave.duration.0s class="list-none bg-black/75 dark:bg-black/60 backdrop-blur-lg backdrop-contrast-125 backdrop-saturate-150 rounded-xl absolute w-available -mt-0.5 ms-4 me-4 sm:mx-0 sm:w-52 my-0 p-1 sm:p-1.5 z-50 {{ rightToLeft ? 'right-0' : 'left-0' }} shadow-lg">
                 {% for item in items %}
                 <li class="hover:bg-theme-700 rounded-lg">
-                    <a @click="menuOpen = false" class="block text-sm text-white focus:text-{{ themeColour }}-200 no-underline px-3 py-2 md:py-1 leading-normal {{ rightToLeft ? 'text-right' : 'text-left' }} dark:text-gray-200 dark:focus:text-gray-400" hx-boost="true" hx-target="#content-wrap" hx-select="#content-wrap" hx-swap="outerHTML show:no-scroll swap:0s" hx-indicator="#loadingIndicator" href="{{ item.url }}">
+                    <a @click="menuOpen = false" class="block text-sm text-white focus:text-theme-200 no-underline px-3 py-2 md:py-1 leading-normal {{ rightToLeft ? 'text-right' : 'text-left' }} dark:text-gray-200 dark:focus:text-gray-400" hx-boost="true" hx-target="#content-wrap" hx-select="#content-wrap" hx-swap="outerHTML show:no-scroll swap:0s" hx-indicator="#loadingIndicator" href="{{ item.url }}">
                         {{ __(item.name, item.textDomain) }}
                     </a>
                 </li>
