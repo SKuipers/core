@@ -18,13 +18,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * This injects all of Tailwind's utility classes, generated based on your
- * config file.
- */
+@config "../../build/tailwind.config.js";
+@import "../../build/node_modules/tailwindcss" source("../../");
+/* @import "../../build/node_modules/tailwindcss/preflight"; */
 
- @tailwind utilities;
- /* @tailwind components; */
+@import "./app.css";
+@import "./theme.css";
+
 
 /*
  --------------------------------------------------------------------------
@@ -32,6 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  --------------------------------------------------------------------------
 */
 
+/* 
 @layer utilities {
     .column-1 {
         column-count: 1;
@@ -88,14 +89,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     0%   { opacity: 0; }
     50%  { opacity: 0; }
     100% { opacity: 1; }
-}
+} */
 
 /*
  --------------------------------------------------------------------------
   Typography
  --------------------------------------------------------------------------
 */
-
+/* 
 @layer utilities {
     .text-xsm {
         font-size: 0.825rem;
@@ -103,7 +104,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     .text-xxs {
         font-size: 0.65rem;
     }
-}
+} */
 
 /*
  --------------------------------------------------------------------------
@@ -111,7 +112,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  --------------------------------------------------------------------------
 */
 
-.bg-transparent-100 {
+/* .bg-transparent-100 {
     background-color: rgba(255,255,255,0.9);
 }
 
@@ -125,24 +126,4 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 .bg-transparent-900 {
     background-color: rgba(50,50,50,0.95);
-}
-
-/*
- --------------------------------------------------------------------------
-  Sizing
- --------------------------------------------------------------------------
-*/
-
-.min-h-1\/2 {
-    min-height: 50vh;
-}
-
-@layer utilities {
-    .w-content {
-        width: 72%;
-    }
-
-    .w-sidebar {
-        width: 28%;
-    }
-}
+} */

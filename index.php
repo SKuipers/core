@@ -342,10 +342,10 @@ $page->scripts->addMultiple([
     'jquery-migrate' => 'lib/jquery/jquery-migrate.min.js',
     'jquery-ui'      => 'lib/jquery-ui/js/jquery-ui.min.js',
     'htmx'           => 'lib/htmx/htmx.min.js',
-    'core'           => 'resources/assets/js/core.min.js',
-    'theme'           => 'resources/assets/js/theme.js',
     
 ], ['context' => 'head']);
+
+$page->scripts->add('core', 'resources/assets/build/app.js', ['context' => 'foot', 'type' => 'module']);
 
 $page->scripts->addMultiple([
     'jquery-time'    => 'lib/jquery-timepicker/jquery.timepicker.min.js',
@@ -406,8 +406,7 @@ if (!empty($backgroundImage)) {
     $page->addData(['bodyBackground' => 'background: url("'.$backgroundImage.'") '.$backgroundScroll.' #626cd3!important;background-size: cover !important;']);
 }
 
-$page->stylesheets->add('theme-dev', 'resources/assets/css/theme.min.css');
-$page->stylesheets->add('core', 'resources/assets/css/core.min.css', ['weight' => 10]);
+$page->stylesheets->add('core', 'resources/assets/build/core.css', ['weight' => 10]);
 
 /**
  * USER CONFIGURATION
