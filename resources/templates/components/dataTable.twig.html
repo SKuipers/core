@@ -34,8 +34,12 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
         {% endblock header %}
     </header>
 
-    <div id="{{ table.getID }}" class="dataTable {{ not preventOverflow ? 'overflow-x-auto overflow-y-visible' : '' }}">
+    <div id="{{ table.getID }}" class="dataTable mt-8 flow-root  ">
 
+        <div class=" overflow-x-auto scrollbar -mx-4 -my-2  sm:-mx-6 lg:-mx-8">
+            <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+              <div class="overflow-hidden shadow-sm outline-1 outline-black/5 sm:rounded-lg dark:shadow-none dark:-outline-offset-1 dark:outline-white/10">
+                
    
     {% if not rows and not isFiltered and dataSet.getResultCount == 0 %}
     <div class="h-32 rounded-sm border dark:border-gray-700 bg-gray-100 dark:bg-gray-800 shadow-inner overflow-hidden">
@@ -47,8 +51,8 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
     {% block tableInner %}
 
-        <table class="{{ class }} w-full mb-2 relative" cellspacing=0 {% if draggable %}data-draggable="true" hx-post="{{ draggable.url }}" hx-trigger="end" hx-swap="none" hx-include="this" hx-vals="{{ draggable.data is not empty and draggable.data != '[]' ? draggable.data : '' }}"{% endif %}>
-            <thead class="sticky top-0 z-20 bg-gray-50 dark:bg-gray-900">
+        <table class="{{ class }} table min-w-full relative divide-y divide-gray-300 dark:divide-white/15" cellspacing=0 {% if draggable %}data-draggable="true" hx-post="{{ draggable.url }}" hx-trigger="end" hx-swap="none" hx-include="this" hx-vals="{{ draggable.data is not empty and draggable.data != '[]' ? draggable.data : '' }}"{% endif %}>
+            <thead class="sticky -top-2 z-20 bg-gray-50 dark:bg-gray-800/75">
             {% for rowIndex, headerRow in headers %}
 
                 <tr class="head text-xsm text-gray-700 dark:text-gray-300">
@@ -68,7 +72,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
             {% endfor %}
             </thead>
 
-            <tbody>
+            <tbody class="divide-y divide-gray-200 bg-white dark:divide-white/10 dark:bg-gray-800/50">
             {% if not rows and isFiltered %}
                 <tr class="h-48 bg-gray-100 dark:bg-gray-800 shadow-inner">
                     <td class="p-0" colspan="{{ columns|length }}">
@@ -127,6 +131,11 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
         </table>
     {% endblock tableInner %}
     {% endif %}
+
+
+    </div>
+    </div>
+    </div>
 
     </div>
 

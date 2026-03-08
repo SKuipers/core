@@ -141,7 +141,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   
   @layer base {
     * {
-      /* @apply border-border outline-ring/50; */
+      @apply border-border outline-ring/50;
     }
     html {
       @apply scroll-smooth;
@@ -1154,9 +1154,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   } */
   
   /* Tables */
-  /* @layer components {
+  @layer components {
     .table {
-      @apply w-full caption-bottom text-sm;
+      @apply min-w-full caption-bottom text-sm;
       thead {
         @apply [&_tr]:border-b;
       }
@@ -1167,19 +1167,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         @apply bg-muted/50 border-t font-medium [&>tr]:last:border-b-0;
       }
       tr {
-        @apply hover:bg-muted/50 border-b transition-colors;
+        @apply border-b transition-colors;
+      }
+      tr:hover td {
+        @apply bg-muted/50;
       }
       th {
         @apply text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px];
       }
       td {
-        @apply p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px];
+        @apply p-2 align-middle not-has-[span]:whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px];
       }
       caption {
         @apply text-muted-foreground mt-4 text-sm;
       }
     }
-  } */
+
+  }
   
   /* Tabs */
   /* @layer components {
