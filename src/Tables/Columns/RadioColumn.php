@@ -66,7 +66,7 @@ class RadioColumn extends Column
     {
         $value = isset($data[$this->key])? $data[$this->key] : '';
 
-        return ((new Radio($this->getID()))->wrap('<label for="'.$this->getID().$value.'" class="-m-4 p-4">', '</label>'))
+        return ((new Radio($this->getID()))->wrap('<label for="'.$this->getID().$value.'" class="block -m-4 p-4">', '</label>'))
             ->setID($this->getID().$value)
             ->fromArray([$value => ''])
             ->alignCenter()

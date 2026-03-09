@@ -13,7 +13,7 @@
             $svgClass = 'size-4 '.($displayLabel ? 'lg:-ml-0.5 lg:mr-1.5 ' : '').($iconClass ?? '');
             break;
         default:
-            $displayClass = 'px-3 py-2 bg-white dark:bg-gray-800 shadow-sm border border-gray-400 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700';
+            $displayClass = 'px-3 py-2 bg-white dark:bg-gray-800 shadow-sm border dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700';
             $svgClass = 'size-6 sm:size-5 '.($displayLabel ? 'lg:-ml-0.5 lg:mr-1.5 ' : '').($iconClass ?? '');
     }
 ?>

@@ -182,7 +182,7 @@
     <nav class="flex mt-2">
             <?= $toolsTable ?>
 
-            <button x-show="blockCount > 0" @click="showHide()" class="inline-flex rounded-md text-sm sm:leading-5 bg-gray-100 hover:bg-gray-200 text-gray-800 align-middle items-center border border-gray-400 gap-2 px-3 py-2 font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500" type="button">
+            <button x-show="blockCount > 0" @click="showHide()" class="inline-flex rounded-md text-sm sm:leading-5 bg-gray-100 hover:bg-gray-200 text-gray-800 align-middle items-center border gap-2 px-3 py-2 font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500" type="button">
                 <span x-show="!showAll" title="<?= __('Expand All') ?>" class="inline-flex"><?= icon('basic', 'expand-lines', 'size-5 text-gray-600') ?></span>
                 <span x-cloak x-show="showAll" title="<?= __('Collapse All') ?>" class="inline-flex"><?= icon('basic', 'collapse-lines', 'size-5 text-gray-600') ?></span>
             </button>

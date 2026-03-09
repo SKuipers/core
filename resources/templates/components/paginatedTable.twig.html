@@ -40,25 +40,23 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
     {% if dataSet.getTotalCount > 0 and not hidePagination %}
     <div class="flex flex-wrap sm:flex-no-wrap items-stretch justify-between">
-        <div class="flex items-stretch h-full">
+        <div role="group" class="button-group mb-2">
             {% if pageSize and dataSet.getResultCount > 20 %}
-            <div class="relative inline-flex -mr-1 mb-2">
-                <div class="absolute caret z-10 mt-3 right-0 mr-5 pointer-events-none"></div>
+            <!-- <div class="relative inline-flex -mr-1 mb-2"> -->
                 {{ pageSize|raw }}
-            </div>
+            <!-- </div> -->
             {% endif %}
 
             {% if filterOptions %}
-            <div class="relative inline-flex mb-2">
-                <div class="absolute caret z-10 mt-3 right-0 mr-5 pointer-events-none"></div>
+            <!-- <div class="relative inline-flex mb-2"> -->
                 {{ filterOptions|raw }}
-            </div>
+            <!-- </div> -->
             {% endif %}
             
             {% if filterCriteria and filterOptions %}
-            <nav class="inline-flex cursor-default mb-2">
+            <!-- <nav class="inline-flex cursor-default mb-2"> -->
                 {{ block('filters') }}
-            </nav>
+            <!-- </nav> -->
             {% endif %}
         </div>
 
@@ -66,7 +64,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
             {{ include('components/listOptions.twig.html') }}
         {% endif %}
 
-        {{ block('pagination') }}
+        <!-- {{ block('pagination') }} -->
     </div>
     {% endif %}
 {% endblock header %}
@@ -74,13 +72,13 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
 {% block footer %}
     {% if dataSet.getResultCount > dataSet.getPageSize %}
-    <div class="flex items-start justify-between">
+    <div class="flex items-center justify-between mt-2">
 
-        <div class="flex items-start mt-2 {{ dataSet.getTotalCount > 0 ? 'h-10' : '' }}">
+        <div class="flex items-center  {{ dataSet.getTotalCount > 0 ? 'h-10' : '' }}">
             {{ block('pageCount') }}
         </div>
 
-        <div class="flex flex-col sm:flex-row sm:items-end justify-end mt-2">
+        <div class="">
             {{ block('pagination') }}
         </div>
     </div>
@@ -91,12 +89,12 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
 {% block filters %}
     {% for name, label in filterCriteria %}
-        <button type="button" class="filter inline-flex items-center -mx-px py-2 px-3 text-xxs border-0 ring-1 ring-inset ring-blue-700 bg-blue-500 hover:bg-blue-600 z-10 text-white font-semibold" data-filter="{{ name }}">
+        <button type="button" class="filter btn-outline text-xs text-white font-semibold whitespace-nowrap bg-blue-500 dark:bg-blue-800 border-0 ring-1 ring-inset ring-blue-700 dark:ring-blue-700 {{ not loop.first ? '-ml-px'}}" data-filter="{{ name }}">
             {{ label|raw }}
         </button>
     {% endfor %}
     
-    <button type="button" class="filter inline-flex items-center px-1.5 rounded-r-md text-xxs bg-white dark:bg-gray-800 border-0 ring-1 ring-inset ring-gray-400 dark:ring-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 font-semibold clear">
+    <button type="button" class="filter clear btn-outline">
         <span class="sr-only">
             {{ __('Clear') }}
         </span>
@@ -127,11 +125,10 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
 {% block pagination %}
     
-    {% set buttonStyle = ' relative inline-flex items-center text-sm sm:text-xs font-semibold ring-1 focus:outline-offset-0' %}
-    
     {% if dataSet.getPage > 0 and (dataSet.getResultCount > dataSet.getPageSize or filterOptions) %}
-    <nav class="pagination isolate mb-2 inline-flex rounded-md" aria-label="Pagination">
-        <button type="button" class="paginate px-1.5 rounded-l-md bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 ring-gray-400 dark:ring-gray-700  {{ not dataSet.isFirstPage ? 'cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700'}} {{ buttonStyle }}" data-page="{{ dataSet.getPrevPageNumber }}" {{ dataSet.isFirstPage ? 'disabled'}}>
+    <nav role="group" class="pagination isolate button-group" aria-label="Pagination">
+
+        <button type="button" class="paginate btn-sm-icon-outline" data-page="{{ dataSet.getPrevPageNumber }}" {{ dataSet.isFirstPage ? 'disabled'}}>
             <span class="sr-only">
                 {{ __('Prev') }}
             </span>
@@ -140,13 +137,13 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
         {%- for page in dataSet.getPaginatedRange -%}
             {%- if page == '...' -%}
-                <button type="button" class="{{ buttonStyle }} hidden bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 sm:inline-flex px-4 sm:px-3 py-2 ring-gray-400 dark:ring-gray-700" disabled>...</button>
+                <button type="button" class="btn-sm-outline hidden sm:inline-flex" disabled>...</button>
             {%- else -%}
-                <button type="button" class="paginate {{ buttonStyle }} px-4 sm:px-3 py-2 {{ page == dataSet.getPage ? 'z-20 bg-blue-500 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-700 ring-blue-700 dark:ring-blue-800 text-white relative' : 'z-10 hidden sm:inline-flex bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 ring-gray-400 dark:ring-gray-700' }}" data-page="{{ page }}" {{ page == dataSet.getPage ? 'aria-current="page"' }}>{{ page }}</button>
+                <button type="button" class="paginate btn-sm-outline  {{ page == dataSet.getPage ? 'text-white bg-blue-500 dark:bg-blue-600 border-0 ring-1 ring-inset ring-blue-700 dark:ring-blue-800' : 'z-0 hidden sm:inline-flex ' }}" data-page="{{ page }}" {{ page == dataSet.getPage ? 'aria-current="page"' }}>{{ page }}</button>
             {%- endif -%}
         {%- endfor -%}
 
-        <button type="button" class="paginate px-1.5 rounded-r-md bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 ring-gray-400 dark:ring-gray-700  {{ not dataSet.isLastPage ? 'cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700'}} {{ buttonStyle }}" data-page="{{ dataSet.getNextPageNumber }}" {{ dataSet.isLastPage ? 'disabled'}}>
+        <button type="button" class="paginate btn-sm-icon-outline" data-page="{{ dataSet.getNextPageNumber }}" {{ dataSet.isLastPage ? 'disabled'}}>
             <span class="sr-only">
                 {{ __('Next') }}
             </span>

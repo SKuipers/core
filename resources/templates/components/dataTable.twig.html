@@ -34,15 +34,12 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
         {% endblock header %}
     </header>
 
-    <div id="{{ table.getID }}" class="dataTable mt-8 flow-root  ">
+    <div id="{{ table.getID }}" class="dataTable relative bg-gray-150 dark:bg-gray-950/35 dark:inset-shadow-2xs dark:inset-shadow-black w-full rounded-2xl mb-8 p-1.25 lg:p-1.75 focus-none starting-style-transition overflow-x-auto overscroll-x-contain">
 
-        <div class=" overflow-x-auto scrollbar -mx-4 -my-2  sm:-mx-6 lg:-mx-8">
-            <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-              <div class="overflow-hidden shadow-sm outline-1 outline-black/5 sm:rounded-lg dark:shadow-none dark:-outline-offset-1 dark:outline-white/10">
-                
+
    
     {% if not rows and not isFiltered and dataSet.getResultCount == 0 %}
-    <div class="h-32 rounded-sm border dark:border-gray-700 bg-gray-100 dark:bg-gray-800 shadow-inner overflow-hidden">
+    <div class="h-32 rounded-xl border dark:border-gray-700 bg-gray-100 dark:bg-gray-800 shadow-inner overflow-hidden">
         {% block blankslate %}
         {{ include('components/blankSlate.twig.html') }}
         {% endblock blankslate %}
@@ -51,8 +48,8 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
     {% block tableInner %}
 
-        <table class="{{ class }} table min-w-full relative divide-y divide-gray-300 dark:divide-white/15" cellspacing=0 {% if draggable %}data-draggable="true" hx-post="{{ draggable.url }}" hx-trigger="end" hx-swap="none" hx-include="this" hx-vals="{{ draggable.data is not empty and draggable.data != '[]' ? draggable.data : '' }}"{% endif %}>
-            <thead class="sticky -top-2 z-20 bg-gray-50 dark:bg-gray-800/75">
+        <table class="{{ class }} data-table min-w-full relative" cellspacing=0 data-size="sm" {% if draggable %}data-draggable="true" hx-post="{{ draggable.url }}" hx-trigger="end" hx-swap="none" hx-include="this" hx-vals="{{ draggable.data is not empty and draggable.data != '[]' ? draggable.data : '' }}"{% endif %}>
+            <thead class="sticky -top-2 z-20">
             {% for rowIndex, headerRow in headers %}
 
                 <tr class="head text-xsm text-gray-700 dark:text-gray-300">
@@ -72,7 +69,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
             {% endfor %}
             </thead>
 
-            <tbody class="divide-y divide-gray-200 bg-white dark:divide-white/10 dark:bg-gray-800/50">
+            <tbody class="">
             {% if not rows and isFiltered %}
                 <tr class="h-48 bg-gray-100 dark:bg-gray-800 shadow-inner">
                     <td class="p-0" colspan="{{ columns|length }}">
@@ -133,16 +130,14 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
     {% endif %}
 
 
-    </div>
-    </div>
-    </div>
+        <footer class="px-4">
+        {% block footer %}
+        {% endblock footer %}
+        </footer>
 
     </div>
 
-    <footer>
-    {% block footer %}
-    {% endblock footer %}
-    </footer>
+    
 
 {% endblock table %}
 

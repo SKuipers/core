@@ -62,7 +62,15 @@ all stylesheets and scripts with a 'head' context.
 <div id="alerts" class="hidden lg:block">
     {% for type, alerts in page.alerts %}
         {% for text in alerts %}
-            <div class="{{ type }}">{{ text|raw }}</div>
+            <div class="alert {{ type }}">
+                
+                <section>
+                    <h3>{{ text|raw }}</h3>
+                    {% if description %}<div>{{ description|raw }}</div>{% endif %}
+                    {% if button %}{{ button|raw }}{% endif %}
+                </section>
+                <aside>{{ link|raw }}</aside>
+            </div>
         {% endfor %}
     {% endfor %}
 </div>

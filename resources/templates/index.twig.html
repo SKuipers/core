@@ -161,7 +161,7 @@ TODO: add template variable details.
             
         <!--  -->
             <!-- SIDEBAR -->
-            <nav id="sidebar" x-cloak x-show="sidebarToggle"
+            <nav id="sidebar" x-show="sidebarToggle"
                 @click.outside="sidebarToggle = pageWidth <= 768 ? false : sidebarToggle"
                 x-transition:enter="transition-all ease-out duration-300"
                 x-transition:enter-start="-translate-x-72 w-64 md:w-0"
@@ -169,8 +169,8 @@ TODO: add template variable details.
                 x-transition:leave="transition-all ease-linear duration-300"
                 x-transition:leave-start="translate-none w-64 md:w-64"
                 x-transition:leave-end="-translate-x-72 w-64 md:w-0"
-                class="absolute left-0 md:static overflow-y-auto overflow-x-hidden bg-gray-100 dark:bg-gray-800 md:bg-transparent md:dark:bg-transparent h-full transition-all z-50 shadow-xl/20 md:shadow-none"
-                style="scrollbar-width: thin;">
+                class="absolute scrollbar left-0 md:static overflow-y-auto overflow-x-hidden bg-gray-100 dark:bg-gray-800 md:bg-transparent md:dark:bg-transparent h-full transition-all z-50 shadow-xl/20 md:shadow-none"
+                >
                 {% block sidebar %}
                 {{ include('navigation.twig.html') }}
                 {% endblock sidebar %}
@@ -178,10 +178,10 @@ TODO: add template variable details.
 
             <div id="content-outer" class="sm:p-2 h-full flex-1 overflow-y-auto focus:outline-none rounded-t-2xl">
 
-                <div id="content" class="bg-white dark:bg-gray-900 px-4 sm:px-12 border border-gray-200 dark:border-gray-800 dark:text-gray-300 rounded-2xl focus:outline-none relative grid min-h-full mx-auto">
+                <div id="content" class="bg-white dark:bg-gray-900 px-4 sm:px-12 border border-gray-200 dark:border-gray-800 dark:text-gray-300 rounded-2xl focus:outline-none relative grid min-h-full mx-auto overflow-x-auto">
                     
 
-                    <div id="content-inner" class="w-full mx-auto max-w-6xl">
+                    <div id="content-inner" class="w-full mx-auto {{ sidebar ? 'max-w-8xl' : 'max-w-full' }} ">
                         
                         <header>
                             {{ include('page.twig.html') }}

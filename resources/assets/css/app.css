@@ -141,7 +141,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   
   @layer base {
     * {
-      @apply border-border outline-ring/50;
+      @apply border-gray-300 outline-ring/50;
     }
     html {
       @apply scroll-smooth;
@@ -167,50 +167,131 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   }
   
   /* Alert */
-  /* @layer components {
-    .alert,
-    .alert-destructive {
-      @apply relative w-full rounded-lg border px-4 py-3 text-sm grid has-[>svg]:grid-cols-[calc(var(--spacing)*4)_1fr] grid-cols-[0_1fr] has-[>svg]:gap-x-3 gap-y-0.5 items-start [&>svg]:size-4 [&>svg]:translate-y-0.5 [&>svg]:text-current;
+  @layer components {
+    .alert {
+      @apply relative w-full rounded-xl my-4 pl-14 pr-4 text-sm flex has-[>aside]:justify-between has-[>aside]:gap-x-3 gap-y-0.5 items-start;
       
-      > h2,
-      > h3,
-      > h4,
-      > h5,
-      > h6,
-      > strong,
-      > [data-title] {
-        @apply col-start-2 line-clamp-1 min-h-4 font-medium tracking-tight;
+      h2,
+      h3,
+      h4,
+      h5,
+      h6,
+      strong,
+      [data-title] {
+        @apply min-h-4 font-medium tracking-tight;
       }
-      > section {
-        @apply text-muted-foreground col-start-2 grid justify-items-start gap-1 text-sm [&_p]:leading-relaxed;
+      section {
+        @apply py-4 grid justify-items-start gap-1 text-sm [&_p]:leading-relaxed;
   
         ul {
           @apply list-inside list-disc text-sm;
         }
       }
-    }
-    .alert {
-      @apply bg-card text-card-foreground;
-    }
-    .alert-destructive {
-      @apply text-destructive bg-card [&>svg]:text-current;
-  
-      > section {
-        @apply text-destructive;
+
+      a {
+        @apply px-2 cursor-pointer text-inherit hover:text-inherit;
+        &.btn-sm-ghost {
+            @apply hover:bg-gray-400/10 hover:backdrop-saturate-150;
+        }
+      }
+
+      aside {
+        @apply w-min pt-2 flex items-center justify-end;
       }
     }
-  } */
+
+    .alert::before {
+        @apply absolute top-3.5 left-4 w-6 h-full bg-no-repeat bg-top;
+        content: "";
+    }
+
+    .alert.message::before {
+        background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20stroke-width%3D%221.5%22%20stroke%3D%22rgb(29%2078%20216)%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20d%3D%22m11.25%2011.25.041-.02a.75.75%200%200%201%201.063.852l-.708%202.836a.75.75%200%200%200%201.063.853l.041-.021M21%2012a9%209%200%201%201-18%200%209%209%200%200%201%2018%200Zm-9-3.75h.008v.008H12V8.25Z%22%20%2F%3E%3C%2Fsvg%3E');
+    }
+
+    .alert.success::before {
+        background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGZpbGw9Im5vbmUiIHZpZXdCb3g9IjAgMCAyNCAyNCIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZT0icmdiKDIxIDEyOCA2MSkiPgogIDxwYXRoIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTkgMTIuNzUgMTEuMjUgMTUgMTUgOS43NU0yMSAxMmE5IDkgMCAxIDEtMTggMCA5IDkgMCAwIDEgMTggMFoiIC8+Cjwvc3ZnPgo=');
+    }
+
+    .alert.warning::before {
+        background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20stroke-width%3D%221.5%22%20stroke%3D%22rgb(194%2065%2012)%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20d%3D%22M12%209v3.75m-9.303%203.376c-.866%201.5.217%203.374%201.948%203.374h14.71c1.73%200%202.813-1.874%201.948-3.374L13.949%203.378c-.866-1.5-3.032-1.5-3.898%200L2.697%2016.126ZM12%2015.75h.007v.008H12v-.008Z%22%20%2F%3E%3C%2Fsvg%3E');
+    }
+
+    .alert.error::before {
+        background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGZpbGw9Im5vbmUiIHZpZXdCb3g9IjAgMCAyNCAyNCIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZT0icmdiKDE5NyA0OCA0OCkiPgogIDxwYXRoIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0ibTkuNzUgOS43NSA0LjUgNC41bTAtNC41LTQuNSA0LjVNMjEgMTJhOSA5IDAgMSAxLTE4IDAgOSA5IDAgMCAxIDE4IDBaIiAvPgo8L3N2Zz4=');
+    }
+
+    .alert.exception::before {
+        background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGZpbGw9Im5vbmUiIHZpZXdCb3g9IjAgMCAyNCAyNCIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZT0iaHNsKDAgMyUgMjMlKSI+CiAgPHBhdGggc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBkPSJNMTcuMjUgNi43NSAyMi41IDEybC01LjI1IDUuMjVtLTEwLjUgMEwxLjUgMTJsNS4yNS01LjI1bTcuNS0zLTQuNSAxNi41IiAvPgo8L3N2Zz4K');
+    }
+
+    .alert.magic::before {
+        background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGZpbGw9Im5vbmUiIHZpZXdCb3g9IjAgMCAyNCAyNCIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZT0icmdiKDkzIDQ1IDE3MCkiPgogIDxwYXRoIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTkuODEzIDE1LjkwNCA5IDE4Ljc1bC0uODEzLTIuODQ2YTQuNSA0LjUgMCAwIDAtMy4wOS0zLjA5TDIuMjUgMTJsMi44NDYtLjgxM2E0LjUgNC41IDAgMCAwIDMuMDktMy4wOUw5IDUuMjVsLjgxMyAyLjg0NmE0LjUgNC41IDAgMCAwIDMuMDkgMy4wOUwxNS43NSAxMmwtMi44NDYuODEzYTQuNSA0LjUgMCAwIDAtMy4wOSAzLjA5Wk0xOC4yNTkgOC43MTUgMTggOS43NWwtLjI1OS0xLjAzNWEzLjM3NSAzLjM3NSAwIDAgMC0yLjQ1NS0yLjQ1NkwxNC4yNSA2bDEuMDM2LS4yNTlhMy4zNzUgMy4zNzUgMCAwIDAgMi40NTUtMi40NTZMMTggMi4yNWwuMjU5IDEuMDM1YTMuMzc1IDMuMzc1IDAgMCAwIDIuNDU2IDIuNDU2TDIxLjc1IDZsLTEuMDM1LjI1OWEzLjM3NSAzLjM3NSAwIDAgMC0yLjQ1NiAyLjQ1NlpNMTYuODk0IDIwLjU2NyAxNi41IDIxLjc1bC0uMzk0LTEuMTgzYTIuMjUgMi4yNSAwIDAgMC0xLjQyMy0xLjQyM0wxMy41IDE4Ljc1bDEuMTgzLS4zOTRhMi4yNSAyLjI1IDAgMCAwIDEuNDIzLTEuNDIzbC4zOTQtMS4xODMuMzk0IDEuMTgzYTIuMjUgMi4yNSAwIDAgMCAxLjQyMyAxLjQyM2wxLjE4My4zOTQtMS4xODMuMzk0YTIuMjUgMi4yNSAwIDAgMC0xLjQyMyAxLjQyM1oiIC8+Cjwvc3ZnPgo=');
+    }
+
+    .alert.empty:not(.tag)::before {
+        background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGZpbGw9Im5vbmUiIHZpZXdCb3g9IjAgMCAyNCAyNCIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZT0icmdiKDE2NiwgMTczLCAxODUpIj4KICA8cGF0aCBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGQ9Ik0xNi41IDguMjVWNmEyLjI1IDIuMjUgMCAwIDAtMi4yNS0yLjI1SDZBMi4yNSAyLjI1IDAgMCAwIDMuNzUgNnY4LjI1QTIuMjUgMi4yNSAwIDAgMCA2IDE2LjVoMi4yNW04LjI1LTguMjVIMThhMi4yNSAyLjI1IDAgMCAxIDIuMjUgMi4yNVYxOEEyLjI1IDIuMjUgMCAwIDEgMTggMjAuMjVoLTcuNUEyLjI1IDIuMjUgMCAwIDEgOC4yNSAxOHYtMS41bTguMjUtOC4yNWgtNmEyLjI1IDIuMjUgMCAwIDAtMi4yNSAyLjI1djYiIC8+Cjwvc3ZnPgo=');
+    }
+    
+    .message {
+        @apply bg-blue-100 border-blue-700/15 text-blue-800 dark:bg-blue-900 dark:border-blue-500/25 dark:text-blue-200 
+        [&_div]:text-blue-700/80 [&_div]:dark:text-blue-200/80;
+    }
+
+    .current,
+    .success {
+        @apply bg-green-100 border-green-700/15 text-green-800 dark:bg-green-900 dark:border-green-500/25 dark:text-green-200 
+        [&_div]:text-green-700/80 [&_div]:dark:text-green-200/80;
+    }
+
+    .warning {
+        @apply bg-orange-100 border-orange-700/15 text-orange-800 dark:bg-amber-900 dark:border-amber-500/25 dark:text-amber-200 
+        [&_div]:text-orange-700/80 [&_div]:dark:text-orange-200/80;
+    }
+    
+    .past,
+    .error {
+        @apply bg-red-200 border-red-700/15 text-red-800 dark:bg-red-900 dark:border-red-500/25 dark:text-red-200 
+        [&_div]:text-red-700/80 [&_div]:dark:text-red-200/80;
+    }
+
+    .exception {
+        @apply bg-gray-300 border-gray-800/15 text-gray-800 dark:bg-gray-800 dark:border-gray-700/25 dark:text-gray-200 
+        [&_div]:text-gray-800/80 [&_div]:dark:text-gray-200/80;
+    }
+
+    .selected,
+    .magic {
+        @apply bg-purple-100 border-purple-800/15 text-purple-800 dark:bg-purple-900 dark:border-purple-500/25 dark:text-purple-200 
+        [&_div]:text-purple-800/80 [&_div]:dark:text-purple-200/80;
+    }
+
+    .empty {
+        @apply bg-gray-100 border-gray-800/15 text-gray-600 dark:bg-gray-800 dark:border-gray-700/25 dark:text-gray-400 
+        [&_div]:text-gray-600/80 [&_div]:dark:text-gray-400/80;
+    }
+
+    .dull {
+        @apply bg-gray-300 text-gray-600 dark:bg-gray-700 dark:text-gray-400 
+        [&_div]:text-gray-700/80 [&_div]:dark:text-gray-200/80;
+    }
+    
+  }
   
   /* Badge */
-  /* @layer components {
+  @layer components {
     .badge,
+    .badge-sm,
     .badge-primary,
     .badge-secondary,
     .badge-destructive,
     .badge-outline {
-      @apply inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden;
+      @apply inline-flex items-center justify-center rounded-full border px-2 py-0.75 text-xs font-medium w-fit whitespace-nowrap shrink-0 has-[svg]:h-6 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:brightness-95 [a&]:hover:saturate-150;
     }
-    .badge,
+
+    .badge-sm {
+      @apply overflow-clip h-4.5 min-w-4.5 px-1;
+    }
     .badge-primary {
       @apply border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90;
     }
@@ -223,10 +304,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     .badge-outline {
       @apply text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground;
     }
-  } */
+  }
   
   /* Button */
-  /* @layer components {
+  @layer components {
     .btn,
     .btn-primary,
     .btn-secondary,
@@ -401,10 +482,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         @apply bg-destructive/90 dark:bg-destructive/50;
       }
     }
-  } */
+  }
   
   /* Button Group */
-  /* @layer components {
+  @layer components {
     .button-group {
       @apply inline-flex w-fit items-stretch;
       
@@ -444,7 +525,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         }
       }
     }
-  } */
+  }
   
   /* Card */
   /* @layer components {
@@ -758,7 +839,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   } */
   
   /* Input */
-  /* @layer components {
+  @layer components {
     :is(.form, .field) input[type='text']:not(:is(.select [data-popover] > header input[role='combobox'], .command > header input, .dialog > * > header input)),
     :is(.form, .field) input[type='email'],
     :is(.form, .field) input[type='password'],
@@ -789,14 +870,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
       @apply focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px];
       @apply aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive;
     }
-  } */
+  }
   
   /* Kbd */
-  /* @layer components {
+  @layer components {
     .kbd {
       @apply bg-muted text-muted-foreground pointer-events-none inline-flex h-5 w-fit min-w-5 items-center justify-center gap-1 rounded-sm px-1 font-sans text-xs font-medium select-none [&_svg:not([class*='size-'])]:size-3;
     }
-  } */
+  }
   
   /* Label */
   /* @layer components {
@@ -945,16 +1026,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   } */
   
   /* Select */
-  /* @layer components {
+  @layer components {
     :is(.form, .field) select,
     select.select {
-      @apply appearance-none border-input focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 dark:hover:bg-input/50 flex w-fit items-center justify-between gap-2 rounded-md border bg-transparent pl-3 pr-9 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 h-9;
-      @apply bg-[image:var(--chevron-down-icon-50)] bg-no-repeat bg-position-[center_right_0.75rem] bg-size-[1rem];
+      @apply appearance-none border-input focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 dark:hover:bg-input/50 flex w-fit items-center justify-between gap-2 rounded-md border bg-transparent pl-3 pr-9 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 not-[[multiple]]:h-9;
+
+      &:not([multiple]) {
+        @apply bg-[image:var(--chevron-down-icon-50)] bg-no-repeat bg-position-[center_right_0.75rem] bg-size-[1rem];
+      }
   
       option,
       optgroup {
         @apply bg-popover text-popover-foreground;
       }
+    }
+    .form section .select {
+        @apply w-full;
     }
     *:not(select).select {
       @apply relative inline-flex;
@@ -1017,7 +1104,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         @apply hover:bg-accent hover:text-accent-foreground;
       }
     }
-  } */
+  }
   
   /* Sidebar */
   /* @layer components {
@@ -1181,6 +1268,327 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
       caption {
         @apply text-muted-foreground mt-4 text-sm;
       }
+    }
+
+    .data-table {
+        border-collapse: separate;
+    }
+
+    .data-table.data-table--contained {
+        border-radius: var(--radius-xl);
+        background: inherit;
+        box-shadow: inherit
+    }
+
+    .data-table thead th {
+        text-align: start;
+        font-size: var(--text-sm);
+        line-height: var(--tw-leading, var(--text-sm--line-height));
+        --tw-font-weight: var(--font-weight-medium);
+        font-weight: var(--font-weight-medium);
+        white-space: nowrap;
+        color: var(--color-gray-900)
+    }
+
+    .data-table thead th:where(.dark,
+        .dark *) {
+        color: var(--color-gray-300)
+    }
+
+    .data-table thead th {
+        padding-inline: calc(var(--spacing)*2);
+        padding-block: calc(var(--spacing)*2)
+    }
+
+    @media (min-width:48rem) {
+        .data-table thead th {
+            padding-inline: calc(var(--spacing)*4)
+        }
+    }
+
+    .data-table--contained :is(.data-table thead th) {
+        border-bottom-style: var(--tw-border-style);
+        border-bottom-width: 1px;
+        border-color: var(--color-gray-200);
+        padding-block: calc(var(--spacing)*2.5)
+    }
+
+    .data-table--contained :is(.data-table thead th):where(.dark,
+        .dark *) {
+        border-color: var(--color-gray-700)
+    }
+
+    .data-table thead th.handle-column {
+        width: calc(var(--spacing)*4);
+        padding: calc(var(--spacing)*0)
+    }
+
+    .data-table thead .type-column {
+        text-align: end
+    }
+
+    :is(.data-table:not(.data-table--contained) tbody tr:first-child td:first-child,
+        .data-table:not(.data-table--contained) tbody tr:first-child th:first-child):where(:dir(ltr),
+        [dir=ltr],
+        [dir=ltr] *) {
+        border-top-left-radius: var(--radius-xl)
+    }
+
+    :is(.data-table:not(.data-table--contained) tbody tr:first-child td:first-child,
+        .data-table:not(.data-table--contained) tbody tr:first-child th:first-child):where(:dir(rtl),
+        [dir=rtl],
+        [dir=rtl] *),
+    :is(.data-table:not(.data-table--contained) tbody tr:first-child td:last-child,
+        .data-table:not(.data-table--contained) tbody tr:first-child th:last-child):where(:dir(ltr),
+        [dir=ltr],
+        [dir=ltr] *) {
+        border-top-right-radius: var(--radius-xl)
+    }
+
+    :is(.data-table:not(.data-table--contained) tbody tr:first-child td:last-child,
+        .data-table:not(.data-table--contained) tbody tr:first-child th:last-child):where(:dir(rtl),
+        [dir=rtl],
+        [dir=rtl] *) {
+        border-top-left-radius: var(--radius-xl)
+    }
+
+    .data-table:not(.data-table--contained) tbody tr:first-child td {
+        border-top-style: var(--tw-border-style);
+        border-top-width: 1px;
+        border-top-color: var(--color-gray-200)
+    }
+
+    .data-table:not(.data-table--contained) tbody tr:first-child td:where(.dark,
+        .dark *) {
+        border-top-color: var(--color-gray-800)
+    }
+
+    .data-table:not(.data-table--contained) tbody tr td:where(.dark,
+        .dark *) {
+        background-color: var(--color-gray-850)
+    }
+
+    .data-table:not(.data-table--contained) tbody tr td:first-child {
+        border-inline-start-style: var(--tw-border-style);
+        border-inline-start-width: 1px;
+        border-inline-start-color: var(--color-gray-200)
+    }
+
+    .data-table:not(.data-table--contained) tbody tr td:first-child:where(.dark,
+        .dark *) {
+        border-inline-start-color: var(--color-gray-800)
+    }
+
+    .data-table:not(.data-table--contained) tbody tr td:last-child {
+        border-inline-end-style: var(--tw-border-style);
+        border-inline-end-width: 1px;
+        border-inline-end-color: var(--color-gray-200)
+    }
+
+    .data-table:not(.data-table--contained) tbody tr td:last-child:where(.dark,
+        .dark *) {
+        border-inline-end-color: var(--color-gray-800)
+    }
+
+    .data-table tbody {
+        border-radius: var(--radius-xl);
+        font-size: var(--text-sm);
+        line-height: var(--tw-leading, var(--text-sm--line-height));
+        box-shadow: 0 3px 2px -1px #e6e6e6, 0 1px 2px #e6e6e6
+    }
+
+    .data-table tbody:where(.dark,
+        .dark *) {
+        box-shadow: unset
+    }
+
+    .data-table tbody {
+        @apply overflow-clip;
+        --tw-outline-style: none;
+        outline-style: none;
+        overflow: clip;
+    }
+
+    .data-table tbody tr:last-child {
+        --tw-border-style: none;
+        border-style: none
+    }
+
+    .data-table tbody tr:last-child td {
+        border-bottom-style: var(--tw-border-style);
+        border-bottom-width: 1px;
+        border-bottom-color: var(--color-gray-200)
+    }
+
+    .data-table tbody tr:last-child td:where(.dark,
+        .dark *) {
+        border-bottom-color: var(--color-gray-800)
+    }
+
+    :is(.data-table tbody tr:last-child td:first-child,
+        .data-table tbody tr:last-child th:first-child):where(:dir(ltr),
+        [dir=ltr],
+        [dir=ltr] *) {
+        border-bottom-left-radius: var(--radius-xl)
+    }
+
+    :is(.data-table tbody tr:last-child td:first-child,
+        .data-table tbody tr:last-child th:first-child):where(:dir(rtl),
+        [dir=rtl],
+        [dir=rtl] *),
+    :is(.data-table tbody tr:last-child td:last-child,
+        .data-table tbody tr:last-child th:last-child):where(:dir(ltr),
+        [dir=ltr],
+        [dir=ltr] *) {
+        border-bottom-right-radius: var(--radius-xl)
+    }
+
+    :is(.data-table tbody tr:last-child td:last-child,
+        .data-table tbody tr:last-child th:last-child):where(:dir(rtl),
+        [dir=rtl],
+        [dir=rtl] *) {
+        border-bottom-left-radius: var(--radius-xl)
+    }
+
+    .data-table tbody tr[class=""],
+    .data-table tbody tr:not([class]) {
+        @apply bg-white dark:bg-gray-900;
+    }
+    
+    .data-table tbody tr th {
+        padding-block: calc(var(--spacing)*2)
+    }
+
+    .data-table tbody tr th:where(:dir(ltr),
+        [dir=ltr],
+        [dir=ltr] *) {
+        padding-right: calc(var(--spacing)*4)
+    }
+
+    .data-table tbody tr th:where(:dir(rtl),
+        [dir=rtl],
+        [dir=rtl] *) {
+        padding-left: calc(var(--spacing)*4)
+    }
+
+    .data-table tbody tr td {
+        background-color: inherit;
+    }
+
+    .data-table tbody tr td:where(.dark,
+        .dark *) {
+        background-color: var(--color-gray-900)
+    }
+
+    .data-table tbody tr td {
+        border-top-style: var(--tw-border-style);
+        border-top-width: 1px;
+        border-color: var(--color-gray-200);
+        padding-block: calc(var(--spacing)*3);
+        padding-inline-start: calc(var(--spacing)*2);
+        padding-inline-end: calc(var(--spacing)*1)
+    }
+
+    @media (min-width:48rem) {
+        .data-table tbody tr td {
+            padding-inline-end: calc(var(--spacing)*2.5);
+            padding-left: calc(var(--spacing)*4.5)
+        }
+    }
+
+    .data-table tbody tr td:where(.dark,
+        .dark *) {
+        border-color: #ffffff1a
+    }
+
+    @supports (color:color-mix(in lab, red, red)) {
+
+        .data-table tbody tr td:where(.dark,
+            .dark *) {
+            border-color: color-mix(in oklab, var(--color-white)10%, transparent)
+        }
+    }
+
+    .data-table tbody tr td {
+        color: var(--color-gray-900)
+    }
+
+    .data-table tbody tr td:where(.dark,
+        .dark *) {
+        color: var(--color-gray-200)
+    }
+
+    .data-table tbody tr:has(:hover) td {
+        background-color: var(--color-gray-50)
+    }
+
+    .data-table tbody tr:has(:hover) td:where(.dark,
+        .dark *) {
+        background-color: var(--color-gray-900)
+    }
+
+    .data-table tbody .type-column {
+        text-align: end
+    }
+
+    .data-table .date-index-field {
+        white-space: nowrap
+    }
+
+    .data-table--contained tbody tr:first-child td {
+        border-top: unset
+    }
+
+    .data-table thead th.checkbox-column {
+        z-index: 1;
+        width: calc(var(--spacing)*8);
+        padding-inline-start: calc(.75rem + 1px);
+        position: sticky
+    }
+
+    .data-table--contained :is(.data-table thead th.checkbox-column) {
+        padding-inline-start: calc(var(--spacing)*4);
+        position: sticky
+    }
+
+    .data-table thead .actions-column {
+        padding: calc(var(--spacing)*0);
+        text-align: end;
+        width: 45px;
+        min-width: 45px;
+        padding-inline-start: calc(var(--spacing)*2);
+        position: sticky;
+        inset-inline-end: -1px
+    }
+
+    .data-table tbody .checkbox-column {
+        inset-inline-start: -1px;
+        left: calc(var(--spacing)*-1.75);
+        padding-inline: calc(var(--spacing)*3);
+        container-type: scroll-state;
+        position: sticky
+    }
+
+    .data-table--contained :is(.data-table tbody .checkbox-column) {
+        padding-inline-start: calc(var(--spacing)*4);
+        position: sticky
+    }
+
+    .data-table tbody .actions-column {
+        width: calc(var(--spacing)*12);
+        padding: calc(var(--spacing)*0);
+        text-align: end;
+        padding-inline-start: calc(var(--spacing)*2);
+        position: sticky
+    }
+
+    .data-table[data-has-selections] tbody tr[data-row=selected] td {
+        background-color: var(--color-gray-100)
+    }
+
+    .data-table[data-has-selections] tbody tr[data-row=selected] td:where(.dark,
+        .dark *) {
+        background-color: var(--color-gray-925)
     }
 
   }

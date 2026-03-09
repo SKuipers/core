@@ -37,7 +37,7 @@ Fast Finder
 </button>
 
 
-<div id="fastFinder" x-show="finderOpen" x-trap.inert.noreturn="finderOpen" 
+<div id="fastFinder" x-cloak x-show="finderOpen" x-trap.inert.noreturn="finderOpen" 
     @keydown.meta.k.window.prevent="finderOpen = true; finderSearch = ''; $focus.focus($refs.fastFinderSearch)" 
     @keydown.escape.window="finderOpen = false"  @keydown.enter.prevent="$focus.focused() == $refs.fastFinderSearch ? $refs.searching.querySelector('a').click() : $focus.focused().click()"
     @keydown.down.prevent.window="$focus.focus($refs.searching.firstChild)"

@@ -4,7 +4,7 @@
 <div class="flex mt-1 <?= $align == 'right' ? 'justify-end text-right' : '' ?>">
     <?php $checked = $totalOptions == $checkedOptions; ?>
     <label for="checkall<?= $identifier; ?>" class="mr-2 text-xs text-gray-600 dark:text-gray-400"><?= $checkall; ?></label> 
-    <input id="checkall<?= $identifier; ?>" class="checkall h-4 w-4 rounded text-gray-500 dark:text-gray-400 focus:ring-gray-600 dark:focus:ring-gray-500" type="checkbox" <?= $checked; ?> >
+    <input id="checkall<?= $identifier; ?>" class="checkall ml-px h-4 w-4 rounded-sm text-gray-500 dark:text-gray-400 focus:ring-gray-600 dark:focus:ring-gray-500" type="checkbox" <?= $checked; ?> >
 </div>
 <?php } ?>
 
@@ -18,7 +18,7 @@
     <?php foreach ($optionList as $checkboxValue => $checkbox) { ?>
 
         <?php $itemId = $hasMultiple ? $identifier.$count : $identifier; ?>
-        <?php $itemClass = 'h-4 w-4 rounded text-blue-500 dark:text-blue-400 focus:ring-blue-600 dark:focus:ring-blue-500 ' . $class; ?>
+        <?php $itemClass = 'h-4 w-4 rounded-sm border text-blue-500 dark:text-blue-400 focus:ring-blue-600 dark:focus:ring-blue-500 ' . $class; ?>
         
         <?php if ($inline) { ?>
             <input type="checkbox" name="<?= $name; ?>" id="<?= $itemId; ?>" class="<?= $itemClass; ?>" value="<?= $checkboxValue; ?>" <?= $checkbox['checked'] ?> <?= $checkbox['disabled'] ?> <?= $attributes; ?> >

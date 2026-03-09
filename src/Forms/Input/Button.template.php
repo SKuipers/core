@@ -38,16 +38,16 @@ if ($size == 'sm') {
         </span>
     </button>
 <?php } elseif ($type == 'quickSubmit') { ?>
-    <button type="submit" <?= $attributes; ?>  @click="submitting = true" :class="{'submitted': submitting}" class="<?= $class; ?> <?= $groupClass; ?> <?= $sizeClass; ?> <?= $bgClass; ?> inline-flex align-middle items-center font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 dark:focus-visible:outline-blue-400 border border-gray-400 dark:border-gray-700" >
+    <button type="submit" <?= $attributes; ?>  @click="submitting = true" :class="{'submitted': submitting}" class="<?= $class; ?> <?= $groupClass; ?> <?= $sizeClass; ?> <?= $bgClass; ?> inline-flex align-middle items-center font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 dark:focus-visible:outline-blue-400 border dark:border-gray-700" >
         <?php $svgClass = 'inline text-gray-600 dark:text-gray-400 size-5 '.(!empty($value) ? 'lg:-ml-0.5 lg:mr-1.5 ' : '').($iconClass ?? ''); ?>
         <?= !empty($icon) ? icon($iconLibrary ?? 'solid', $icon, $svgClass ) : ''; ?>
 
         <span :class="{'opacity-0': submitting}"><?= $value; ?></span>
     </button>
 <?php } elseif ($type == 'input') { ?>
-    <input type="button" <?= $attributes; ?> class="<?= $class; ?> <?= $groupClass; ?> <?= $sizeClass; ?> <?= $bgClass; ?> inline-block align-middle items-center border border-gray-400 dark:border-gray-700 px-8 font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 dark:focus-visible:outline-blue-400"/>
+    <input type="button" <?= $attributes; ?> class="<?= $class; ?> <?= $groupClass; ?> <?= $sizeClass; ?> <?= $bgClass; ?> inline-block align-middle items-center border dark:border-gray-700 px-8 font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 dark:focus-visible:outline-blue-400"/>
 <?php } elseif ($type == 'button') { ?>
-<button type="button" <?= $attributes; ?> class="<?= $class; ?> <?= $groupClass; ?> <?= $sizeClass; ?> <?= $bgClass; ?> inline-flex align-middle items-center border border-gray-400 dark:border-gray-700 gap-2 font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 dark:focus-visible:outline-blue-400 ">
+<button type="button" <?= $attributes; ?> class="<?= $class; ?> <?= $groupClass; ?> <?= $sizeClass; ?> <?= $bgClass; ?> inline-flex align-middle items-center border dark:border-gray-700 gap-2 font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 dark:focus-visible:outline-blue-400 ">
 
     <?php $svgClass = 'text-gray-600 dark:text-gray-400 block '.$sizeClassIcon.($iconClass ?? ''); ?>
     <?= !empty($icon) ? icon($iconLibrary ?? 'solid', $icon, $svgClass, $iconOptions ) : ''; ?>

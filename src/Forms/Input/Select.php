@@ -250,6 +250,7 @@ class Select extends Input
             'placeholder' => $this->placeholder,
             'chainedToID' => $this->chainedToID,
             'options'     => $options,
+            'multiple'    => $this->getAttribute('multiple') == true,
         ]);
     }
 }

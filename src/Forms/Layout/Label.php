@@ -184,7 +184,7 @@ class Label extends Element implements RowDependancyInterface
     {
         $output = '';
         
-        $this->addClass('-mt-1');
+        $this->addClass('-mt-0.5');
         $output .= '<label '.$this->getAttributeString().' aria-label="'.$this->label.'">';
         $output .= $this->label;
     
@@ -197,7 +197,7 @@ class Label extends Element implements RowDependancyInterface
             $output .= icon('solid', 'lock-closed', 'inline size-3 ml-2 text-gray-400 dark:text-gray-500');
 
         } elseif ($this->getRequired()) {
-            $output .= ' <span class="text-sm text-red-600 font-light">*</span>';
+            $output .= ' <span class="text-sm text-red-600 font-normal">*</span>';
         }
 
         if ($context = $this->getLabelContext()) {
@@ -205,7 +205,7 @@ class Label extends Element implements RowDependancyInterface
         }
 
         if (!empty($this->description)) {
-            $output .= '<div class="mt-1 sm:mt-2 text-sm sm:text-xs text-gray-600 dark:text-gray-400 font-light">';
+            $output .= '<div class="mt-1 sm:mt-2 text-sm sm:text-xs text-gray-600 dark:text-gray-400 font-normal">';
             $output .= $this->getDescription();
             $output .= '</div>';
         }

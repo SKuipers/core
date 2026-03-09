@@ -589,9 +589,10 @@ class Format
      * @param string $value
      * @return string
      */
-    public static function tag($value, $class, $title = '')
+    public static function tag($value, $class, $title = '', $icon = [])
     {
-        return '<span class="tag '.$class.'" title="'.$title.'">'.$value.'</span>';
+        $icon = !empty($icon) ? icon(...$icon) : '';
+        return '<span class="badge '.$class.'" title="'.$title.'">'.$icon . $value.'</span>';
     }
 
     /**
@@ -780,7 +781,8 @@ class Format
 
     public static function heading(string $text, string $tag = 'h3', string $class = '')
     {
-        return "<{$tag} ".($class ? "class='{$class}'" : '').">{$text}</{$tag}>";
+        $id = preg_replace('/[^a-zA-Z0-9]/', '', $text);
+        return "<{$tag} ".($class ? "class='{$class}'" : '')."><a id='{$id}'/>{$text}</{$tag}>";
     }
 
     public static function paragraph(string $text, string $class = '')
@@ -1003,7 +1005,7 @@ class Format
      * @param string $class
      * @return string
      */
-    public static function photo($path, $size = 75, $class = 'inline-block shadow bg-white dark:bg-gray-800 border border-gray-600 dark:border-gray-500')
+    public static function photo($path, $size = 75, $class = 'inline-block shadow rounded-lg bg-white dark:bg-gray-800 border border-gray-600 dark:border-gray-500')
     {
         switch ($size) {
             case 240:
@@ -1048,7 +1050,7 @@ class Format
      */
     public static function userPhoto($path, $size = 75, $class = '')
     {
-        $class .= ' inline-block shadow bg-white dark:bg-gray-800 border border-gray-600 dark:border-gray-500 ';
+        $class .= ' inline-block bg-white dark:bg-gray-800 rounded-md border border-gray-300 dark:border-gray-500 ';
 
         switch ($size) {
             case 240:
@@ -1227,9 +1229,22 @@ class Format
      * @param string $level
      * @return string
      */
-    public static function alert($message, $level = 'error')
+    public static function alert($message, $level = 'error', $description = '', $options = [])
     {
-        return '<div class="'.$level.'">'.$message.'</div>';
+        $description = !empty($description) ? '<div>'.$description.'</div>' : '';
+        $link = !empty($options['link']) ? '<a class="btn-sm-ghost -mx-2" href="'.$options['link']['url'].'">'.$options['link']['text'].' →</a>' : '';
+        $button = !empty($options['button']) ? '<a class="btn-sm-ghost mt-2 -mx-2" href="'.$options['button']['url'].'">'.$options['button']['text'].'</a>' : '';
+
+        return <<<HTML
+            <div class="alert {$level}">
+                <section>
+                    <h3>{$message}</h3>
+                    {$description}
+                    {$button}
+                </section>
+                <aside>{$link}</aside>
+            </div>
+        HTML;
     }
 
     private static function createDateTime($dateOriginal, $expectedFormat = null, $timezone = null)

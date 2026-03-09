@@ -164,7 +164,7 @@ class DataTableView extends View implements RendererInterface
         $th = new TableCell($column->getLabel());
 
         $th->setTitle($column->getTitle())
-           ->setClass('column p-3 sm:p-4 font-semibold text-gray-700 dark:text-gray-300 '.$column->getClass())
+           ->setClass('column '.$column->getClass())
            ->addData('description', $column->getDescription());
 
         $this->applyContexts($column, $th);
@@ -200,7 +200,7 @@ class DataTableView extends View implements RendererInterface
     protected function createTableCell(array $data, DataTable $table, Column $column)
     {
         $cell = new Element();
-        $cell->addClass('p-3 sm:p-4 '.$column->getClass());
+        $cell->addClass($column->getClass());
         $this->applyContexts($column, $cell);
 
         foreach ($column->getCellModifiers() as $callable) {

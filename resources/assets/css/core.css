@@ -95,15 +95,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   Typography
  --------------------------------------------------------------------------
 */
-/* 
-@layer utilities {
+
+@layer base {
     .text-xsm {
         font-size: 0.825rem;
     }
     .text-xxs {
         font-size: 0.65rem;
     }
-} */
+}
 
 /*
  --------------------------------------------------------------------------

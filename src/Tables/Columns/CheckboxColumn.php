@@ -46,7 +46,7 @@ class CheckboxColumn extends Column
         $this->key = !empty($key)? $key : $id;
 
         $this->modifyCells(function ($data, $cell) {
-            return $cell->addClass('bulkCheckbox textCenter');
+            return $cell->addClass('bulkCheckbox text-center p-0');
         });
     }
 
@@ -63,7 +63,7 @@ class CheckboxColumn extends Column
     public function getLabel()
     {
         return (new Checkbox('checkall'))
-            ->setClass('checkall text-gray-500 focus:ring-gray-600')
+            ->setClass('checkall ml-px text-gray-500 focus:ring-gray-600')
             ->checked(!is_callable($this->checked) ? $this->checked : false)
             ->wrap('<div class="text-center">', '</div>')
             ->alignCenter()
@@ -84,7 +84,7 @@ class CheckboxColumn extends Column
 
         return !empty($contents)
             ? $contents 
-            : ((new Checkbox($this->getID().'[]'))->wrap('<label for="'.$this->getID().$value.'" class="-m-4 p-4">', '</label>'))
+            : ((new Checkbox($this->getID().'[]'))->wrap('<label for="'.$this->getID().$value.'" class="block p-4">', '</label>'))
             ->setID($this->getID().$value)
             ->setValue($value)
             ->checked(is_callable($this->checked) ? call_user_func($this->checked, $data) : ($this->checked ? $value : false) )

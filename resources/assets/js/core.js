@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import '../js/sortable.js';
+import Sortable from '../../build/node_modules/sortablejs';
 
 // Initialize an Alpine.js Tooltip (on non-mobile devices)
 document.addEventListener('alpine:init', () => {
