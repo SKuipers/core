@@ -170,7 +170,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_summ
                 ->notSortable()
                 ->format(function ($month) use ($baseURL, $dayCount, $gibbonStaffAbsenceTypeID, $dateFormat) {
                     $day = $month['days'][$dayCount] ?? null;
-                    if (empty($day)) return '';
+                    if (empty($day)) return '<div class="aspect-square"></div>';
                     $dateText = $day['date']->format($dateFormat);
                     $url = $baseURL.'&dateStart='.$dateText.'&dateEnd='.$dateText.'&gibbonStaffAbsenceTypeID='.$gibbonStaffAbsenceTypeID;
                     $title =  Format::dayOfWeekName($day['date']);
@@ -179,7 +179,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_summ
                         $title .= '<br/>'.__n('{count} Absence', '{count} Absences', $day['count']);
                     }
 
-                    return Format::link($url, $day['number'], $title);
+                    return Format::link($url, $day['number'], $title, ['class' => 'aspect-square']);
                 })
                 ->modifyCells(function ($month, $cell) use ($dayCount, $maxAbsence) {
                     $day = $month['days'][$dayCount] ?? null;
@@ -195,8 +195,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/report_absences_summ
                     elseif ($count > 0) $cell->addClass('bg-purple-200');
                     elseif ($day['weekend']) $cell->addClass('bg-gray-200');
                     else $cell->addClass('bg-white');
-
-                    $cell->addClass('h-3 sm:h-6');
 
                     return $cell;
                 });

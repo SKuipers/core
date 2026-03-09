@@ -72,7 +72,7 @@ class AbsenceCalendar
 
         $table = DataTable::create('staffAbsenceCalendar');
         $table->setTitle(__('Calendar'));
-        $table->getRenderer()->addData('class', 'calendarTable border-collapse bg-transparent border-r-0');
+        $table->getRenderer()->addData('class', 'calendarTable');
         $table->addMetaData('hidePagination', true);
         $table->modifyRows(function ($values, $row) {
             return $row->setClass('bg-transparent');
@@ -86,13 +86,13 @@ class AbsenceCalendar
                 ->notSortable()
                 ->format(function ($month) use ($dayCount) {
                     $day = $month['days'][$dayCount] ?? null;
-                    if (empty($day) || $day['count'] <= 0) return '';
+                    if (empty($day) || $day['count'] <= 0) return '<div class="aspect-square"></div>';
 
                     $url = Url::fromHandlerModuleRoute('fullscreen.php', 'Staff', 'absences_view_details.php')->withQueryParams(['gibbonStaffAbsenceID' => $day['absence']['gibbonStaffAbsenceID']]);
 
                     $title = Format::dayOfWeekName($day['date']).'<br/>'.Format::dateReadable($day['date'], Format::MEDIUM);
                     $title .= '<br/>'.$day['absence']['type'];
-                    $classes = ['thickbox'];
+                    $classes = ['thickbox aspect-square'];
                     if ($day['absence']['allDay'] == 'N') {
                         $classes[] = $day['absence']['timeStart'] < '12:00:00' ? 'half-day-am' : 'half-day-pm';
                     }
@@ -103,13 +103,11 @@ class AbsenceCalendar
                     $day = $month['days'][$dayCount] ?? null;
                     if (empty($day)) return '';
 
-                    $cell->addClass($day['date']->format('Y-m-d') == date('Y-m-d') ? 'border-2 border-gray-700' : 'border');
+                    $cell->addClass($day['date']->format('Y-m-d') == date('Y-m-d') ? 'outline-2 outline-gray-400' : 'border-r');
 
                     if ($day['count'] > 0) $cell->addClass('bg-chart'.($day['absence']['sequenceNumber'] % 10));
                     elseif ($day['weekend']) $cell->addClass('bg-gray-200');
                     else $cell->addClass('bg-white');
-
-                    $cell->addClass('h-3 sm:h-6');
 
                     return $cell;
                 });

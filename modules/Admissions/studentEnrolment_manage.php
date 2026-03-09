@@ -44,10 +44,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Admissions/studentEnrolmen
             ->sortBy(['surname', 'preferredName'])
             ->fromPOST();
 
-        echo '<h3>';
-        echo __('Search');
-        echo '</h3>';
-
         $form = Form::create('searchForm', $session->get('absoluteURL').'/index.php','get');
         $form->setClass('noIntBorder w-full');
 
@@ -63,17 +59,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Admissions/studentEnrolmen
 
         echo $form->getOutput();
 
-        echo '<h3>';
-        echo __('View');
-        echo '</h3>';
-        echo '<p>';
-        echo __("Students highlighted in red are marked as 'Full' but have either not reached their start date, or have exceeded their end date.");
-        echo '<p>';
-
         $students = $studentGateway->queryStudentEnrolmentBySchoolYear($criteria, $gibbonSchoolYearID);
 
         // DATA TABLE
         $table = DataTable::createPaginated('students', $criteria);
+        $table->setTitle(__('Student Enrolment'));
+        $table->setDescription(__("Students highlighted in red are marked as 'Full' but have either not reached their start date, or have exceeded their end date."));
 
         $table->addHeaderAction('add', __('Add'))
             ->setURL('/modules/Admissions/studentEnrolment_manage_add.php')

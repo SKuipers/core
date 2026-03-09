@@ -114,6 +114,11 @@ class FormFactory implements FormFactoryInterface
         return new Layout\Details($this, $id);
     }
 
+    public function createButtonGroup()
+    {
+        return new Layout\ButtonGroup($this);
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -338,7 +343,7 @@ class FormFactory implements FormFactoryInterface
 
     public function createSubmit($label = 'Submit', $id = null)
     {
-        return $this->createButton(__($label), null, $id)->setType('submit')->addClass('text-right');
+        return $this->createButton(__($label), null, $id)->setType('submit')->setSize('lg')->addClass('text-right');
     }
 
     public function createSearchSubmit($session, $clearLabel = 'Clear Filters', $passParams = [])

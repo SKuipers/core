@@ -22,8 +22,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 @import "../../build/node_modules/tailwindcss" source("../../");
 /* @import "../../build/node_modules/tailwindcss/preflight"; */
 
-@import "./app.css";
 @import "./theme.css";
+@import "./app.css";
 
 /*
  --------------------------------------------------------------------------

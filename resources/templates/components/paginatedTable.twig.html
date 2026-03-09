@@ -64,7 +64,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
             {{ include('components/listOptions.twig.html') }}
         {% endif %}
 
-        <!-- {{ block('pagination') }} -->
+        {{ block('pagination') }}
     </div>
     {% endif %}
 {% endblock header %}
@@ -89,12 +89,12 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
 {% block filters %}
     {% for name, label in filterCriteria %}
-        <button type="button" class="filter btn-outline text-xs text-white font-semibold whitespace-nowrap bg-blue-500 dark:bg-blue-800 border-0 ring-1 ring-inset ring-blue-700 dark:ring-blue-700 {{ not loop.first ? '-ml-px'}}" data-filter="{{ name }}">
+        <button type="button" class="filter button-outline text-xs text-white font-semibold whitespace-nowrap bg-blue-500 dark:bg-blue-800 border-0 ring-1 ring-inset ring-blue-700 dark:ring-blue-700 {{ not loop.first ? '-ml-px'}}" data-filter="{{ name }}">
             {{ label|raw }}
         </button>
     {% endfor %}
     
-    <button type="button" class="filter clear btn-outline">
+    <button type="button" class="filter clear button-outline">
         <span class="sr-only">
             {{ __('Clear') }}
         </span>
@@ -128,7 +128,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
     {% if dataSet.getPage > 0 and (dataSet.getResultCount > dataSet.getPageSize or filterOptions) %}
     <nav role="group" class="pagination isolate button-group" aria-label="Pagination">
 
-        <button type="button" class="paginate btn-sm-icon-outline" data-page="{{ dataSet.getPrevPageNumber }}" {{ dataSet.isFirstPage ? 'disabled'}}>
+        <button type="button" class="paginate button-sm-icon-outline" data-page="{{ dataSet.getPrevPageNumber }}" {{ dataSet.isFirstPage ? 'disabled'}}>
             <span class="sr-only">
                 {{ __('Prev') }}
             </span>
@@ -137,13 +137,13 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
         {%- for page in dataSet.getPaginatedRange -%}
             {%- if page == '...' -%}
-                <button type="button" class="btn-sm-outline hidden sm:inline-flex" disabled>...</button>
+                <button type="button" class="button-sm-outline hidden sm:inline-flex" disabled>...</button>
             {%- else -%}
-                <button type="button" class="paginate btn-sm-outline  {{ page == dataSet.getPage ? 'text-white bg-blue-500 dark:bg-blue-600 border-0 ring-1 ring-inset ring-blue-700 dark:ring-blue-800' : 'z-0 hidden sm:inline-flex ' }}" data-page="{{ page }}" {{ page == dataSet.getPage ? 'aria-current="page"' }}>{{ page }}</button>
+                <button type="button" class="paginate button-sm-outline  {{ page == dataSet.getPage ? 'text-white bg-blue-500 dark:bg-blue-600 border-0 ring-1 ring-inset ring-blue-700 dark:ring-blue-800' : 'z-0 hidden sm:inline-flex ' }}" data-page="{{ page }}" {{ page == dataSet.getPage ? 'aria-current="page"' }}>{{ page }}</button>
             {%- endif -%}
         {%- endfor -%}
 
-        <button type="button" class="paginate btn-sm-icon-outline" data-page="{{ dataSet.getNextPageNumber }}" {{ dataSet.isLastPage ? 'disabled'}}>
+        <button type="button" class="paginate button-sm-icon-outline" data-page="{{ dataSet.getNextPageNumber }}" {{ dataSet.isLastPage ? 'disabled'}}>
             <span class="sr-only">
                 {{ __('Next') }}
             </span>

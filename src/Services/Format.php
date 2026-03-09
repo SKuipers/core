@@ -779,7 +779,7 @@ class Format
         return ($address? $address.'<br/>' : '') . ($addressDistrict? $addressDistrict.'<br/>' : '') . ($addressCountry? $addressCountry.'<br/>' : '');
     }
 
-    public static function heading(string $text, string $tag = 'h3', string $class = '')
+    public static function heading(string $text, string $tag = 'h3', string $class = 'mt-4 mb-2')
     {
         $id = preg_replace('/[^a-zA-Z0-9]/', '', $text);
         return "<{$tag} ".($class ? "class='{$class}'" : '')."><a id='{$id}'/>{$text}</{$tag}>";
@@ -1232,8 +1232,8 @@ class Format
     public static function alert($message, $level = 'error', $description = '', $options = [])
     {
         $description = !empty($description) ? '<div>'.$description.'</div>' : '';
-        $link = !empty($options['link']) ? '<a class="btn-sm-ghost -mx-2" href="'.$options['link']['url'].'">'.$options['link']['text'].' →</a>' : '';
-        $button = !empty($options['button']) ? '<a class="btn-sm-ghost mt-2 -mx-2" href="'.$options['button']['url'].'">'.$options['button']['text'].'</a>' : '';
+        $link = !empty($options['link']) ? '<a class="button-sm-ghost -mx-2" href="'.$options['link']['url'].'">'.$options['link']['text'].' →</a>' : '';
+        $button = !empty($options['button']) ? '<a class="button-sm-ghost mt-2 -mx-2" href="'.$options['button']['url'].'">'.$options['button']['text'].'</a>' : '';
 
         return <<<HTML
             <div class="alert {$level}">

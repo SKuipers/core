@@ -29,7 +29,7 @@ TODO: add template variable details.
     <div id="gibbon" 
         x-data="{ sidebarToggle: window.innerWidth <= 768 ? false : {{ (sidebar and menuModule) or not isLoggedIn ? 'true' : 'false' }}, sidebarMobile: false, darkMode: $persist(false), pageWidth: 0, drawerOpen: false, modalOpen: false, modalType: 'none', modalAlert: false, globalShowHide: false }" 
         x-resize.document="pageWidth = $width;"
-        x-init="$watch('pageWidth', value => value < 800 ? sidebarToggle = false : sidebarToggle = sidebarToggle );"
+        x-init="$watch('pageWidth', value => sidebarToggle = value < 800 ? false : (value >= 1400 ? true : sidebarToggle) );"
         @modalwindow="modalType=$event.detail; modalOpen = true"
         :class="darkMode ? 'dark' : ''"
         hx-indicator="#loadingIndicator"
@@ -178,7 +178,7 @@ TODO: add template variable details.
 
             <div id="content-outer" class="sm:p-2 h-full flex-1 overflow-y-auto focus:outline-none rounded-t-2xl">
 
-                <div id="content" class="bg-white dark:bg-gray-900 px-4 sm:px-12 border border-gray-200 dark:border-gray-800 dark:text-gray-300 rounded-2xl focus:outline-none relative grid min-h-full mx-auto overflow-x-auto">
+                <div id="content" class="bg-white dark:bg-gray-900 px-4 sm:px-12 border border-gray-200 dark:border-gray-800 dark:text-gray-300 rounded-2xl focus:outline-none relative grid min-h-full mx-auto">
                     
 
                     <div id="content-inner" class="w-full mx-auto {{ sidebar ? 'max-w-8xl' : 'max-w-full' }} ">

@@ -41,15 +41,15 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
     {% endif %}
 
     {% if form.getTitle and not form.getHeader %}
-        <h2>{{ form.getTitle }}</h2>
+        <h2 class="text-2xl font-medium antialiased mt-8 mb-2">{{ form.getTitle }}</h2>
     {% endif %}
 
     {% if form.getDescription %}
-        <p>{{ form.getDescription|raw }}</p>
+        <p class="text-sm text-gray-600 mb-2">{{ form.getDescription|raw }}</p>
     {% endif %}
 
     {% if introduction %}
-        <p>{{ introduction|raw }}</p>
+        <p class="text-sm text-gray-600 mb-2">{{ introduction|raw }}</p>
     {% endif %}
 
     {% block header %}
@@ -70,7 +70,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
     {% endfor %}
 
     {% if form.getSectionCount > 0 %}
-    <div id="{{ form.getID }}Wrap" class="form relative w-full grid grid-cols-5 xl:grid-cols-8 gap-2 sm:gap-4 font-sans text-gray-700 dark:text-gray-300  {{ "noIntBorder" in form.getClass ? 'border dark:border-gray-600 bg-blue-50 dark:bg-blue-900/50 rounded p-4' }}" style="" cellspacing="0" 
+    <div id="{{ form.getID }}Wrap" class="form overflow-[unset] relative w-full grid grid-cols-5 xl:grid-cols-8 gap-2 sm:gap-4 font-sans text-gray-700 dark:text-gray-300  {{ "noIntBorder" in form.getClass ? ' form-search rounded-2xl bg-blue-100 dark:bg-blue-900/50 p-1.25 lg:p-1.75' }}" style="" cellspacing="0" 
         {% if useSaveWarning %}
         x-data="{changed: false, 
             checkInput(formElement) {  
@@ -97,7 +97,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
             {% set sectionLoop = loop %}
 
             {% if useSections %}
-            <section id="{{ section.getID }}" x-data="{sectionOpen: {{ section.getOpen|default(0) }} }" class="relative bg-gray-150 dark:bg-gray-950/35 dark:inset-shadow-2xs dark:inset-shadow-black w-full rounded-2xl mb-8 p-1.25 lg:p-1.75 focus-none starting-style-transition has-[header]:pt-0 {{ not sectionLoop.last ? 'pb-4 dark:border-t-gray-600 focus-within:border-t-blue-500 dark:focus-within:border-t-blue-400 transition' }} {{ section.getID == 'submit' ? 'w-full sm:sticky -bottom-px -mt-px mb-px z-40' : standardLayout ? '  ' : ''}}" :class="{'pb-0!' : !sectionOpen}" >
+            <section id="{{ section.getID }}" x-data="{sectionOpen: {{ section.getOpen|default(0) }} }" class="relative bg-gray-150 dark:bg-gray-950/35 dark:inset-shadow-2xs dark:inset-shadow-black w-full rounded-2xl mb-8 p-1.25 lg:p-1.75 focus-none starting-style-transition has-[header]:pt-0 {{ not sectionLoop.last ? 'pb-4 dark:border-t-gray-600 focus-within:border-t-blue-500 dark:focus-within:border-t-blue-400 transition' }} {{ section.getID == 'submit' ? 'w-full sm:sticky -bottom-px -mt-px mb-px z-40' : standardLayout ? '  ' : ''}}" :class="{'pb-0! hover:bg-gray-200 dark:bg-gray-950' : !sectionOpen}" >
 
                 {% if section.getHeading %}
                 <header @click="sectionOpen = !sectionOpen" class="px-3 py-4 [&_button]:relative relative flex items-center justify-between" data-ui-panel-header="">
@@ -134,7 +134,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
             {% set isformTable = ((rows|first).getElements|first).isInstanceOf('Gibbon\\Forms\\Layout\\Table') %}
 
-            <div {% if useSections %}x-show="sectionOpen" x-transition.opacity {% endif %} {% if not section.getOpen %}x-cloak{% endif %} class="bg-white dark:bg-gray-850 rounded-xl ring ring-gray-200 dark:ring-x-0 dark:ring-b-0 dark:ring-gray-700/80 shadow-ui-md  divide-y divide-gray-200 dark:divide-gray-800">
+            <div {% if useSections %}x-show="sectionOpen" x-transition.opacity {% endif %} {% if not section.getOpen %}x-cloak{% endif %} class="bg-white dark:bg-gray-800 rounded-xl ring ring-gray-200 dark:ring-x-0 dark:ring-b-0 dark:ring-gray-700/80 shadow-ui-md  divide-y divide-gray-200 dark:divide-gray-800">
           
             {% for num, row in rows %}
 
@@ -147,11 +147,11 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
                         : 'flex flex-col sm:flex-row  content-center p-0 gap-2 sm:gap-4 justify-between sm:items-start' 
                     %}
                     
-                    <div id="{{ row.getID }}"  class="{{ standardLayout and not isformTable ? ' px-3 sm:px-4.5 py-4' : smallLayout ? 'px-2 py-2' : "noIntBorder" in form.getClass ? 'py-2' }}  {{ row.getClass|replace({'standardWidth': ''}) }} {{ rowClass }}  " {{ row.getAttributeString('', 'id,class')|raw }} >
+                    <div id="{{ row.getID }}"  class="{{ not isformTable ? 'px-3 sm:px-4.5 py-4' }}  {{ row.getClass|replace({'standardWidth': ''}) }} {{ rowClass }}  " {{ row.getAttributeString('', 'id,class')|raw }} >
     
                     {% if quickSave and section.getID == 'submit' %}
-                        <span class="text-xs text-gray-600 dark:text-gray-400 flex-1">
-                            {{ __('Press {shortcut} to {action}', {shortcut: '<kbd class="kbd btn-outline bg-white dark:bg-gray-700 dark:text-gray-100">⌘ Cmd</kbd> + <kbd class="kbd btn-outline bg-white dark:bg-gray-700 dark:text-gray-100">S</kbd>', action: __('quick save')} )|raw }}
+                        <span class="text-xs text-gray-600 dark:text-gray-400 flex-1 inline-flex items-center gap-1">
+                            {{ __('Press {shortcut} to {action}', {shortcut: '<kbd class="kbd button-outline bg-white dark:bg-gray-700 dark:text-gray-100">⌘ Cmd</kbd> + <kbd class="kbd button-outline bg-white dark:bg-gray-700 dark:text-gray-100">S</kbd>', action: __('quick save')} )|raw }}
                         </span>
                     {% endif %}
 
@@ -205,7 +205,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
         {% if form.hasMeta and form.getMeta.getElementCount > 0 %}
         <aside class="hidden xl:flex flex-col col-span-2 sticky top-0 h-min bg-gray-150 dark:bg-gray-950/35 dark:inset-shadow-2xs dark:inset-shadow-black w-full rounded-2xl mb-8 p-1.25 lg:p-1.75 focus-none">
 
-            <div class="bg-white dark:bg-gray-850 rounded-xl ring ring-gray-200 dark:ring-x-0 dark:ring-b-0 dark:ring-gray-700/80 shadow-ui-md">
+            <div class="bg-white dark:bg-gray-800 rounded-xl ring ring-gray-200 dark:ring-x-0 dark:ring-b-0 dark:ring-gray-700/80 shadow-ui-md">
             {% for element in form.getMeta.getElements %}
                 {% set hasClass = element.instanceOf('Gibbon\\Forms\\Layout\\Element') or element.instanceOf('Gibbon\\Forms\\Layout\\Row') %}
             

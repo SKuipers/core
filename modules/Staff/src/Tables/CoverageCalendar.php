@@ -88,7 +88,7 @@ class CoverageCalendar
         $table = DataTable::create('staffAbsenceCalendar')
             ->setTitle(__('Calendar'));
 
-        $table->getRenderer()->addData('class', 'calendarTable border-collapse bg-transparent border-r-0');
+        $table->getRenderer()->addData('class', 'calendarTable');
         $table->addMetaData('hidePagination', true);
         $table->modifyRows(function ($values, $row) {
             return $row->setClass('bg-transparent');
@@ -102,14 +102,14 @@ class CoverageCalendar
                 ->notSortable()
                 ->format(function ($month) use ($dayCount) {
                     $day = $month['days'][$dayCount] ?? null;
-                    if (empty($day['coverage']) || ($day['count'] <= 0 && !$day['exception'])) return '';
+                    if (empty($day['coverage']) || ($day['count'] <= 0 && !$day['exception'])) return '<div class="aspect-square"></div>';
 
                     $coverage = $day['coverage'];
 
                     $url = Url::fromHandlerModuleRoute('fullscreen.php', 'Staff', 'coverage_view_details.php')->withQueryParams(['gibbonStaffCoverageID' => $coverage['gibbonStaffCoverageID']]);
 
                     $params['title'] = Format::dayOfWeekName($day['date']).'<br/>'.Format::dateReadable($day['date'], Format::MEDIUM);
-                    $params['class'] = '';
+                    $params['class'] = 'aspect-square';
                     if ($coverage['allDay'] == 'N') {
                         $params['class'] = $coverage['timeStart'] < '12:00:00' ? 'half-day-am' : 'half-day-pm';
                     }
@@ -148,8 +148,6 @@ class CoverageCalendar
                     elseif ($day['exception']) $cell->addClass('bg-gray-500');
                     elseif ($day['weekend']) $cell->addClass('bg-gray-200');
                     else $cell->addClass('bg-white');
-
-                    $cell->addClass('h-3 sm:h-6');
 
                     return $cell;
                 });

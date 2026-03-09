@@ -25,7 +25,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 .calendarTable td {
     padding: 0px !important;
-    width: 30px !important;
+    width: 42px !important;
 }
 
 .calendarTable td:first-child {
@@ -33,8 +33,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
     border-bottom: 1px solid transparent !important;
     border-left: 1px solid transparent !important;
     background: transparent !important;
-    font-weight: bold;
+    font-weight: 450;
     padding-right: 4px !important;
+    padding-left: 4px !important;
 }
 
 .calendarTable a {

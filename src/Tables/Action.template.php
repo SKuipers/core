@@ -19,7 +19,7 @@
 ?>
 
 <a <?= $attributes; ?> <?= !$modal ? '@click="modalOpen = false"' : '' ?> title="<?= !$displayLabel ? $label : ''; ?>"
-    class="<?= $class; ?> inline-flex items-center align-middle rounded-md text-sm sm:leading-5 font-semibold <?= $displayClass; ?> <?= $hoverClass; ?> <?= $displayLabel ? 'text-gray-600 dark:text-gray-400 lg:text-gray-500 dark:lg:text-gray-400' : 'text-gray-600 dark:text-gray-400'; ?>">
+    class="button <?= $class; ?> <?= $hoverClass; ?> ">
 
     <?= icon($iconLibrary ?? 'solid', $icon ?? $action, $svgClass) ?>
     

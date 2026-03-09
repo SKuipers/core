@@ -159,7 +159,7 @@ class PaginatedView extends DataTableView implements RendererInterface
 
         return $this->factory->createSelect('filter')
             ->fromArray($filters)
-            ->setClass('filters input btn-outline')
+            ->setClass('filters input button-outline')
             // ->groupAlign($this->criteria->hasFilter() && $groupAlign  ? 'middle' : ($this->criteria->hasFilter() ? 'left' : $groupAlign) )
             ->placeholder(__('Filters'))
             ->getOutput();
@@ -189,7 +189,7 @@ class PaginatedView extends DataTableView implements RendererInterface
 
         return $this->factory->createSelect('limit')
             ->fromArray($options)
-            ->setClass('limit input btn-outline')
+            ->setClass('limit input button-outline')
             // ->groupAlign(!empty($filters) ? 'left' : '')
             ->selected($dataSet->getPageSize())
             ->getOutput();

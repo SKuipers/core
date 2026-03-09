@@ -54,19 +54,19 @@ class Meta extends Row
 
         if ($this->checkActionList($action, ['add', 'addProcess'])) {
             $row = $this->addRow()->addClass('text-sm');
-            $row->addContent(icon('solid', 'add', $iconClass) . __('Adding'))->wrap('<h3 class="text-base font-semibold text-gray-800 dark:text-gray-200 mt-0 ">', '</h3>');
+            $row->addContent(icon('solid', 'add', $iconClass) . __('Adding'))->wrap('<h3 class="text-base font-medium text-gray-800 dark:text-gray-200 mt-0 ">', '</h3>');
             $row->addContent(__('You are creating a new record and it has not been saved yet.').'<br/><br/>'.__('Press Submit to save your data.'))->wrap('<p class="mt-2 mb-0">', '</p>');
         } elseif ($this->checkActionList($action, ['addMultiProcess', 'addMultipleProcess'])) {
             $row = $this->addRow()->addClass('text-sm');
-            $row->addContent(icon('solid', 'add-multi', $iconClass) . __('Adding Multiple'))->wrap('<h3 class="text-base font-semibold text-gray-800 dark:text-gray-200 mt-0 ">', '</h3>');
+            $row->addContent(icon('solid', 'add-multi', $iconClass) . __('Adding Multiple'))->wrap('<h3 class="text-base font-medium text-gray-800 dark:text-gray-200 mt-0 ">', '</h3>');
             $row->addContent(__('You are creating multiple new records that share similar data.').'<br/><br/>'.__('Press Submit to save your data.'))->wrap('<p class="mt-2 mb-0">', '</p>');
         } elseif ($this->checkActionList($action, ['edit', 'editProcess'])) {
             $row = $this->addRow()->addClass('text-sm');
-            $row->addContent(icon('solid', 'edit', $iconClass) . __('Editing'))->wrap('<h3 class="text-base font-semibold text-gray-800 dark:text-gray-200 mt-0 ">', '</h3>');
+            $row->addContent(icon('solid', 'edit', $iconClass) . __('Editing'))->wrap('<h3 class="text-base font-medium text-gray-800 dark:text-gray-200 mt-0 ">', '</h3>');
             $row->addContent(__('Press Submit to save your data.'))->wrap('<p class="mt-2 mb-0">', '</p>');
         } elseif ($this->checkActionList($action, ['duplicate'])) {
             $row = $this->addRow()->addClass('text-sm');
-            $row->addContent(icon('solid', 'copy', $iconClass) . __('Duplicating'))->wrap('<h3 class="text-base font-semibold text-gray-800 dark:text-gray-200 mt-0 ">', '</h3>');
+            $row->addContent(icon('solid', 'copy', $iconClass) . __('Duplicating'))->wrap('<h3 class="text-base font-medium text-gray-800 dark:text-gray-200 mt-0 ">', '</h3>');
             $row->addContent(__('You are creating a copy of the selected record. The original record will not be changed.'))->wrap('<p class="mt-2 mb-0">', '</p>');
         }
 
@@ -77,7 +77,7 @@ class Meta extends Row
     {
         if (count($sections) <= 2) return $this;
         
-        $output = '<h5 class="text-sm font-semibold text-gray-800 dark:text-gray-200 mt-0 mb-2 ">'. __('Jump To').'</h5>';
+        $output = '<h5 class="text-sm font-medium text-gray-800 dark:text-gray-200 mt-0 mb-2 ">'. __('Jump To').'</h5>';
         $links = [];
 
         foreach ($sections as $section) {
@@ -86,7 +86,7 @@ class Meta extends Row
             $links[] = Format::link('#'.$section->getID(), $section->getHeading(), ['target' => '_self', 'class' => 'block py-0.5 text-gray-700 dark:text-gray-300 text-sm hover:underline']);
         }
 
-        $output .= Format::list($links, 'ul', 'ml-6');
+        $output .= Format::list($links, 'ul', 'list-disc marker:text-gray-300 ml-4', 'py-0.5');
 
         $this->addContent($output);
 

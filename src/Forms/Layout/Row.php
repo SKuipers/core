@@ -102,7 +102,6 @@ class Row implements OutputableInterface
             ->setAttribute('x-transition.duration.200ms');
     }
 
-
     /**
      * Adds an outputtable element to the row's internal collection.
      * @param  OutputableInterface  $element
@@ -130,24 +129,6 @@ class Row implements OutputableInterface
             return null;
         }
         return (isset($this->elements[$id]))? $this->elements[$id] : null;
-    }
-
-    /**
-     * Get an array of all row elements.
-     * @return  array
-     */
-    public function getElements()
-    {
-        return $this->elements;
-    }
-
-    /**
-     * Count the elements array.
-     * @return  int
-     */
-    public function getElementCount()
-    {
-        return count($this->elements);
     }
 
     /**
@@ -210,23 +191,5 @@ class Row implements OutputableInterface
         $output .= '</div>';
 
         return $output;
-    }
-
-    /**
-     * Gets the string identifier for an element that can be used as an array key.
-     * @param object $element
-     * @return string
-     */
-    protected function getUniqueIdentifier($element)
-    {
-        if (method_exists($element, 'getID') && !empty($element->getID())) {
-            return $element->getID();
-        }
-
-        if (method_exists($element, 'getName') && !empty($element->getName())) {
-            return $element->getName();
-        }
-
-        return 'element-'.$this->getElementCount();
     }
 }
