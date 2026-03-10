@@ -116,9 +116,9 @@ class Form implements OutputableInterface
     /**
      * @return Form
      */
-    public static function createSearch($id = 'search', $action = '', $method = 'get', $class = '') : Form
+    public static function createSearch($id = 'searchForm', $action = '', $method = 'get', $class = '') : Form
     {
-        $form = static::create($id, $action ?? Url::fromRoute(), $method, $class);
+        $form = static::create('searchForm', $action ?? Url::fromRoute(), $method, $class);
         $form->renderer->setTemplate('components/formSearch.twig.html');
         $form->addHiddenValue('q', $_GET['q']);
 

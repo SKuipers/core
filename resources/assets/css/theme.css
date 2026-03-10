@@ -543,9 +543,6 @@ input:not([type='checkbox']) + .error-msg::before {
  --------------------------------------------------------------------------
 */
 @theme {
-    --color-gray-150: oklch(0.956 0.0022 286.32);
-    --color-gray-850: oklch(0.236 0.006 286.015);
-
     --color-theme-50: var(--color-violet-50);
     --color-theme-100: var(--color-violet-100);
     --color-theme-200: var(--color-violet-200);

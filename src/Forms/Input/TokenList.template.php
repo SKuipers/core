@@ -47,7 +47,7 @@
 >
     
     <div id="<?= $id ?>TokenList" name="<?= $name ?>TokenList" 
-        class="<?= $class; ?> <?= $groupClass; ?> w-full flex flex-wrap items-center justify-start gap-1 p-1 placeholder:text-gray-500 dark:placeholder:text-gray-400 sm:text-sm sm:leading-5 border dark:border-gray-700 bg-white dark:bg-gray-800 min-h-[2.375rem]
+        class="<?= $class; ?> <?= $groupClass; ?> w-full flex flex-wrap items-center justify-start gap-1 p-1 placeholder:text-gray-500 dark:placeholder:text-gray-400 sm:text-sm sm:leading-5 border dark:border-gray-700 bg-white dark:bg-gray-800 min-h-9
         
         <?= !empty($readonly) ? 'border-dashed text-gray-600 dark:text-gray-400 cursor-not-allowed focus:ring-0 focus:border-gray-400 dark:focus:border-gray-600' : 'text-gray-900 dark:text-gray-100 focus-within:ring-inset focus-within:ring-blue-500 dark:focus-within:ring-blue-400 focus-within:border-blue-500 dark:focus-within:border-blue-400 focus-within:ring-1 '; ?>"
 

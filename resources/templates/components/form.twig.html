@@ -92,7 +92,10 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
         <div class="{{ standardLayout and form.hasMeta ? 'col-span-6' : 'col-span-8' }}">
 
-        {% for section in form.getSections %}
+        {% set submitSection = form.getSections|filter(item => item.getID == 'submit')|first %}
+        {% set skipSubmit = useSections and form.getSectionCount() == 2 and submitSection and submitSection.getRowCount > 0 %}
+
+        {% for section in form.getSections|filter(item => (skipSubmit and item.getID != 'submit') or not skipSubmit) %}
             {% set sectionLoop = loop %}
             {% set rows = section.getRows %}
 
@@ -141,7 +144,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
             {% endif %}
 
             {% if rows %}
-            <div {% if useSections %}x-show="sectionOpen" x-transition.opacity {% endif %} {% if not section.getOpen %}x-cloak{% endif %} class="bg-white dark:bg-gray-800 rounded-xl ring ring-gray-200 dark:ring-x-0 dark:ring-b-0 dark:ring-gray-700/80 shadow-ui-md  divide-y divide-gray-200 dark:divide-gray-800">
+            <div {% if useSections %}x-show="sectionOpen" x-transition.opacity {% endif %} {% if not section.getOpen %}x-cloak{% endif %} class="bg-white dark:bg-gray-850 rounded-xl ring ring-gray-200 dark:ring-x-0 dark:ring-b-0 dark:ring-gray-700/80 shadow-ui-md  divide-y divide-gray-200 dark:divide-gray-800">
           
             {% for num, row in rows %}
 
@@ -203,6 +206,14 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
             </div>
             {% endif %}
 
+            {% if sectionLoop.last and skipSubmit %}
+                <div class="flex items-center justify-end pt-2">
+                    {% for element in submitSection.getRows|first.getElements %}
+                        {{ element.getOutput|raw }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
             {% if useSections %}
             </section>
             {% endif %}
@@ -215,7 +226,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
         {% if form.hasMeta and form.getMeta.getElementCount > 0 %}
         <aside class="hidden xl:flex flex-col col-span-2 sticky top-0 h-min bg-gray-150 dark:bg-gray-950/35 dark:inset-shadow-2xs dark:inset-shadow-black w-full rounded-2xl mb-8 p-1.25 lg:p-1.75 focus-none">
 
-            <div class="bg-white dark:bg-gray-800 rounded-xl ring ring-gray-200 dark:ring-x-0 dark:ring-b-0 dark:ring-gray-700/80 shadow-ui-md">
+            <div class="bg-white dark:bg-gray-850 rounded-xl ring ring-gray-200 dark:ring-x-0 dark:ring-b-0 dark:ring-gray-700/80 shadow-ui-md">
             {% for element in form.getMeta.getElements %}
                 {% set hasClass = element.instanceOf('Gibbon\\Forms\\Layout\\Element') or element.instanceOf('Gibbon\\Forms\\Layout\\Row') %}
             

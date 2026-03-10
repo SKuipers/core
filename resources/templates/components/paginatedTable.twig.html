@@ -30,15 +30,9 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
 
 {% block header %}
-    <!-- <div class="flex items-end justify-between" style="min-height:50px;">
-        <div class="flex items-end pb-2 {{ dataSet.getTotalCount > 0 ? 'h-10' : '' }}">
-            {{ block('pageCount') }}
-        </div>
-    </div> -->
-
-    {% if dataSet.getTotalCount > 0 and not hidePagination %}
     <div class="flex flex-wrap sm:flex-no-wrap items-stretch justify-between gap-2 mt-4 mb-3">
 
+        {% if dataSet.getTotalCount > 0 %}
         <div class="flex-1 flex justify-start items-center gap-2">
             <div role="group" class="button-group">
 
@@ -52,31 +46,38 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
                 
                 {% if filterOptions %}
                     <div class="button-wrap" x-data="{}" @keydown.enter.prevent="document.getElementById('search').value = $refs.quickSearch.value; document.getElementById('searchForm')?.submit()">
-                        <input type="text" class="input pl-9 w-full max-w-64" name="quickSearch" placeholder="{{ __('Search') }}" x-ref="quickSearch" value="{{ searchText }}">
+                        <input type="text" class="input pl-9 w-full max-w-64" size="32" name="quickSearch" placeholder="{{ __('Search') }}" x-ref="quickSearch" value="{{ searchText }}">
 
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20" stroke="currentColor" class="ml-2 size-5">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m12.712 12.712 3.538 3.538m-2-7.25a5.25 5.25 0 1 1-10.5 0 5.25 5.25 0 0 1 10.5 0Z"></path>
                         </svg>
                     </div>
                 {% endif %}
+            </div>
 
-                {% if isFiltered %}
+            {% if filterOptions %}
+            <button @click="searchOpen = true" class="button button-icon" title="{{ __('Advanced Options') }}">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                    <path d="M18.75 12.75h1.5a.75.75 0 0 0 0-1.5h-1.5a.75.75 0 0 0 0 1.5ZM12 6a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 12 6ZM12 18a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 12 18ZM3.75 6.75h1.5a.75.75 0 1 0 0-1.5h-1.5a.75.75 0 0 0 0 1.5ZM5.25 18.75h-1.5a.75.75 0 0 1 0-1.5h1.5a.75.75 0 0 1 0 1.5ZM3 12a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 3 12ZM9 3.75a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5ZM12.75 12a2.25 2.25 0 1 1 4.5 0 2.25 2.25 0 0 1-4.5 0ZM9 15.75a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5Z" />
+                </svg>                  
+            </button>
+            {% endif %}
+
+            {% if isFiltered %}
+            <div role="group" class="button-group">
+                <button class="button">
+                    {{ dataSet.getResultCount|number_format }} {{ __n('Result', 'Results', dataSet.getResultCount) }}
+                </button>
                 <button type="button" class="filter clear button button-icon">
                     <span class="sr-only">
                         {{ __('Clear') }}
                     </span>
                     {{ icon('basic', 'x-mark', 'size-5' ) }}
                 </button>
-                {% endif %}
             </div>
-
-            <button @click="searchOpen = true" class="button button-icon" title="{{ __('Advanced Options') }}">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
-                    <path d="M18.75 12.75h1.5a.75.75 0 0 0 0-1.5h-1.5a.75.75 0 0 0 0 1.5ZM12 6a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 12 6ZM12 18a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 12 18ZM3.75 6.75h1.5a.75.75 0 1 0 0-1.5h-1.5a.75.75 0 0 0 0 1.5ZM5.25 18.75h-1.5a.75.75 0 0 1 0-1.5h1.5a.75.75 0 0 1 0 1.5ZM3 12a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 3 12ZM9 3.75a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5ZM12.75 12a2.25 2.25 0 1 1 4.5 0 2.25 2.25 0 0 1-4.5 0ZM9 15.75a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5Z" />
-                </svg>                  
-            </button>
+            {% endif %}
         </div>
-    
+        {% endif %}
 
         <div class="flex justify-end items-center gap-2">
             {% if listOptions %}
@@ -86,7 +87,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
             {{ parent() }}
         </div>
     </div>
-    {% endif %}
+    
 {% endblock header %}
 
 
@@ -105,8 +106,8 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
         {% endif %}
 
         <div class="flex items-center gap-2 text-xs">
-            {{ __('Per Page') }}
             {% if pageSize and dataSet.getResultCount > 20 %}
+                {{ __('Per Page') }}
                 {{ pageSize|raw }}
             {% endif %}
         </div>
@@ -122,13 +123,6 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
             {{ label|raw }}
         </button>
     {% endfor %}
-    
-    <!-- <button type="button" class="filter clear button-outline button-icon">
-        <span class="sr-only">
-            {{ __('Clear') }}
-        </span>
-        {{ icon('basic', 'x-mark', 'size-5' ) }}
-    </button> -->
 
 {% endblock filters %}
 

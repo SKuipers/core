@@ -101,7 +101,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view.php'
                 'yearGroup' => __('Year Group'),
             );
 
-            $form = Form::create('filter', $session->get('absoluteURL').'/index.php', 'get');
+            $form = Form::createSearch('filter', $session->get('absoluteURL').'/index.php', 'get');
             $form->setTitle(__('Filter'));
             $form->setClass('noIntBorder w-full');
             $form->addHiddenValue('q', '/modules/'.$session->get('module').'/student_view.php');

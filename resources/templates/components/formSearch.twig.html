@@ -7,72 +7,108 @@ Gibbon™, Gibbon Education Ltd. (Hong Kong)
 This is a Gibbon template file, written in HTML and Twig syntax.
 For info about editing, see: https://twig.symfony.com/doc/2.x/
 -->#}
+
+<template x-teleport="body">
+<div x-cloak x-show="searchOpen" @keydown.escape.window="searchOpen = false" class="fixed right-0 w-full max-w-xl z-90 flex items-start justify-center pt-4 pb-16 overflow-y-clip  transition-colors"
+
+>
+
+    <div class="ml-auto block w-full max-w-xl transform translate-x-full" 
+        x-show="searchOpen"
+        x-transition:enter="transition ease-out duration-500"
+        x-transition:enter-start="translate-x-full"
+        x-transition:enter-end="translate-x-0"
+        x-transition:leave="transition ease-in-out duration-300"
+        x-transition:leave-start="translate-x-0"
+        x-transition:leave-end="translate-x-full"
+        @click.outside.stop="searchOpen = false"
+        :class="{'translate-x-0': searchOpen, 'translate-x-full': !searchOpen}"
+    >
+
+    <div class="relative flex w-full h-full flex-col px-2 py-2 rounded-2xl border border-gray-200 backdrop-blur-lg backdrop-contrast-125 shadow-xl bg-white/80 dark:bg-gray-800/90 ">
+
+    <form x-validate {{ form.getAttributeString|raw }} x-data="{'advancedOptions': {{ form.getData('advanced-options')|default('false') }}, 'invalid': false, 'submitting': false}"  x-ref="form" @submit="searchOpen = false; $validate.submit; invalid = !$validate.isComplete($el); if (invalid) submitting = false;" @change.debounce.750ms="if (invalid) invalid = !$validate.isComplete($el); "
     
-<form x-validate {{ form.getAttributeString|raw }} x-data="{'advancedOptions': {{ form.getData('advanced-options')|default('false') }}, 'invalid': false, 'submitting': false}"  x-ref="form" @submit="$validate.submit; invalid = !$validate.isComplete($el); if (invalid) submitting = false;" @change.debounce.750ms="if (invalid) invalid = !$validate.isComplete($el); ">
-
-    {% if form.getTitle and not form.getHeader %}
-        <h2 class="text-2xl font-medium antialiased mt-8 mb-2">{{ form.getTitle }}</h2>
-    {% endif %}
-
-    {% if form.getDescription %}
-        <p class="text-sm text-gray-600 mb-2">{{ form.getDescription|raw }}</p>
-    {% endif %}
+    hx-trigger="submit" hx-target="#content-inner" hx-select="#content-inner" hx-swap="outerHTML show:no-scroll swap:0s" hx-replace-url="true" x-on:htmx:before-request="submitting = true" x-on:htmx:after-request="submitting = false"
     
-    {% block header %}
-        <header class="relative flex justify-between mb-2 {{ standardLayout ? '' }}">
-            {% if form.getHeader %}
-                <h2>{{ form.getTitle }}</h2>
-                <div class="linkTop flex justify-end gap-2">
-                    {% for action in form.getHeader %}
-                        {{ action.getOutput|raw }}
-                    {% endfor %}
-                </div>
-            {% endif %}
-        </header>
-    {% endblock header %}
+    >
+        <div class="px-2 sm:px-3 py-2 flex items-start justify-between">
 
-    {% for values in form.getHiddenValues %}
-        <input type="hidden" name="{{ values.name }}" value="{{ values.value }}">
-    {% endfor %}
 
-    {% if form.getRows|length > 0 %}
-    <section class="form form-search w-full bg-blue-100 dark:bg-blue-900/50 rounded-2xl p-1.25 lg:p-1.75">
-    <div class="bg-white dark:bg-gray-800 rounded-xl ring ring-gray-200 dark:ring-x-0 dark:ring-b-0 dark:ring-gray-700/80 shadow-ui-md  divide-y divide-gray-200 dark:divide-gray-800">
+        <h2 class="text-base font-semibold text-gray-900/80 dark:text-white/80">{{ form.getTitle|default(__('Search & Filter')) }}</h2>
 
-        {% for num, row in form.getRows %}
 
-            {% set rowLoop = loop %}
-            {% set rowClass = 'flex flex-col sm:flex-row justify-between content-center gap-2 sm:gap-6 px-3 sm:px-4.5 py-4' %}
+        {% if form.getDescription %}
+            <p class="text-sm text-gray-600 mb-2">{{ form.getDescription|raw }}</p>
+        {% endif %}
 
-            <div id="{{ row.getID }}" class="{{ row.getClass }} {{ rowClass }}" {{ row.getAttributeString("data-drag-id,x-show,x-transition,x-cloak")|raw }}>
-    
-            {% for element in row.getElements %}
-
-                {% if element.isInstanceOf('Gibbon\\Forms\\Layout\\Label') %}
-                    {% set class = 'sm:w-2/5 flex flex-col justify-center sm:mb-0 text-xs ' %}
-                {% elseif loop.last %}
-                    {% set class = 'flex-1 relative flex justify-end items-center' %}
-                {% else %}
-                    {% set class = '' %}
+            <button @click="searchOpen = false" type="button" command="close" commandfor="drawer" class="relative rounded-md text-gray-400 hover:text-gray-500 focus-visible:outline-2 focus-visible:outline-offset-2 dark:hover:text-white">
+                <span class="sr-only">Close panel</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6">
+                    <path d="M6 18 18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </button>
+        </div>
+        
+        {% block header %}
+            <header class="relative flex justify-between mb-2 {{ standardLayout ? '' }}">
+                {% if form.getHeader %}
+                    <h2>{{ form.getTitle }}</h2>
+                    <div class="linkTop flex justify-end gap-2">
+                        {% for action in form.getHeader %}
+                            {{ action.getOutput|raw }}
+                        {% endfor %}
+                    </div>
                 {% endif %}
+            </header>
+        {% endblock header %}
 
-                {% set class = class ~ ' ' ~ element.getAttribute('class') %}
+        {% for values in form.getHiddenValues %}
+            <input type="hidden" name="{{ values.name }}" value="{{ values.value }}">
+        {% endfor %}
 
-                <div class="{{ class }}" >
-                    {{ element.getOutput|raw }}
+        {% if form.getRows|length > 0 %}
+        <section class="form form-search w-full bg-white dark:bg-gray-800 rounded-xl ring ring-gray-200 dark:ring-x-0 dark:ring-b-0 dark:ring-gray-700/80 shadow-ui-md  divide-y divide-gray-200 dark:divide-gray-80">
+
+            {% for num, row in form.getRows %}
+
+                {% set rowLoop = loop %}
+                {% set rowClass = 'flex flex-col justify-between content-center gap-2 sm:gap-6 px-3 sm:px-4.5 py-4' %}
+
+                <div id="{{ row.getID }}" class="{{ row.getClass }} {{ rowClass }}" {{ row.getAttributeString("data-drag-id,x-show,x-transition,x-cloak")|raw }}>
+        
+                {% for element in row.getElements %}
+
+                    {% if element.isInstanceOf('Gibbon\\Forms\\Layout\\Label') %}
+                        {% set class = 'sm:w-2/5 flex flex-col justify-center sm:mb-0 text-xs ' %}
+                    {% elseif loop.last %}
+                        {% set class = 'flex-1 relative flex justify-end items-center' %}
+                    {% else %}
+                        {% set class = '' %}
+                    {% endif %}
+
+                    {% set class = class ~ ' ' ~ element.getAttribute('class') %}
+
+                    <div class="{{ class }}" >
+                        {{ element.getOutput|raw }}
+                    </div>
+                {% endfor %}
+
                 </div>
             {% endfor %}
+        </section>
+        {% endif %}
 
-            </div>
-        {% endfor %}
-    </div>
-    </section>
-    {% endif %}
+        <script type="text/javascript">
+            {% for code in javascript %}
+                {{ code|raw }}
+            {% endfor %}
+        </script>
 
-    <script type="text/javascript">
-        {% for code in javascript %}
-            {{ code|raw }}
-        {% endfor %}
-    </script>
+    </form>
 
-</form>
+</div>
+</div>
+</div>
+
+</template>

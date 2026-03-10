@@ -13,13 +13,13 @@ Main Menu: Displays the top-level categories and active modules.
 <!-- MENU ICON -->
 <div class="block md:hidden">
     <button @click="sidebarMobile = !sidebarMobile" 
-    class="group flex items-center justify-center gap-2 cursor-pointer text-white/85 hover:text-white" type="button" aria-label="Toggle Nav" style="--focus-outline-offset: 0.2rem;">    
-    <div class="size-8 flex items-center justify-center rounded-full group-hover:bg-black/20 ">
+    class="flex items-center justify-center gap-2 cursor-pointer text-white/85 hover:text-white h-8 px-2 -mx-2 rounded-full hover:bg-black/20" type="button" aria-label="Toggle Nav" style="--focus-outline-offset: 0.2rem;">    
+
         <svg class="size-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" >
             <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
         </svg>
-    </div>
-    {{ __('Menu') }}
+
+        {{ __('Menu') }}
     </button>
 
     <ul x-cloak x-show="sidebarMobile" x-transition:enter.duration.250ms x-transition:leave.duration.0s @click.outside="sidebarMobile = false" class="list-none bg-black/75 dark:bg-black/60 shadow-xl backdrop-blur-lg backdrop-contrast-125 backdrop-saturate-150 rounded-xl absolute left-0 w-1/2 sm:mx-0 sm:w-52 my-0 p-1.5 z-50 {{ rightToLeft ? 'right-0' : 'left-0' }} ">

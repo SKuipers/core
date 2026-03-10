@@ -80,7 +80,7 @@
     }" class="relative flex flex-col gap-1 <?= $outerClass ?? 'flex-1'; ?>" x-on:keydown="handleKeydownOnOptions($event)" x-on:keydown.esc.window="toggleSelect(false), openedWithKeyboard = false" x-init="getOptions()" >
 
         <!-- trigger button  -->
-        <button type="button" class="<?= $class; ?> <?= $groupClass; ?> inner-input inline-flex w-full overflow-hidden items-center justify-between min-w-16 h-[2.375rem] bg-white dark:bg-gray-800 border border-outline dark:border-gray-700 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:border-blue-500 dark:focus:border-blue-400 focus-within:border-blue-500 dark:focus-within:border-blue-400 focus:ring-1 focus:ring-inset focus:ring-blue-500 dark:focus:ring-blue-400 sm:text-sm sm:leading-5 transition  " role="combobox" aria-controls="<?= $id ?>List" aria-haspopup="<?= $id ?>List listbox" x-on:click="toggleSelect(!isOpen)" x-on:keydown.down.prevent="openedWithKeyboard = true" x-on:keydown.enter.prevent="openedWithKeyboard = true" x-on:keydown.space.prevent="openedWithKeyboard = true" x-bind:aria-expanded="isOpen || openedWithKeyboard" x-bind:aria-label="selectedOption ? selectedOption.label : '<?= __($placeholder); ?>'" x-ref="searchSelect" >
+        <button type="button" class="<?= $class; ?> <?= $groupClass; ?> inner-input inline-flex w-full overflow-hidden items-center justify-between min-w-16 h-9 bg-white dark:bg-gray-800 border border-outline dark:border-gray-700 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:border-blue-500 dark:focus:border-blue-400 focus-within:border-blue-500 dark:focus-within:border-blue-400 focus:ring-1 focus:ring-inset focus:ring-blue-500 dark:focus:ring-blue-400 sm:text-sm sm:leading-5 transition  " role="combobox" aria-controls="<?= $id ?>List" aria-haspopup="<?= $id ?>List listbox" x-on:click="toggleSelect(!isOpen)" x-on:keydown.down.prevent="openedWithKeyboard = true" x-on:keydown.enter.prevent="openedWithKeyboard = true" x-on:keydown.space.prevent="openedWithKeyboard = true" x-bind:aria-expanded="isOpen || openedWithKeyboard" x-bind:aria-label="selectedOption ? selectedOption.label : '<?= __($placeholder); ?>'" x-ref="searchSelect" >
 
             <span class="flex-1 w-24 text-left text-sm sm:leading-5 font-normal truncate" x-text="selectedOption ? selectedOption.label : '<?= __($placeholder); ?>'"><?= $selectedLabel ?? __($placeholder); ?></span>
 
@@ -148,7 +148,7 @@
 
                                 <!-- Checkmark  -->
                                 <svg x-cloak x-show="selectedOption == item" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" class="size-4" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                                 </svg>
                             </li>
 

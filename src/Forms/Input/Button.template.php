@@ -15,7 +15,7 @@ if ($type == 'submit' || $color == 'submit' || $color == 'primary') {
 ?>
 
 <?php if ($type == 'submit' || $type == 'quickSubmit') { ?>
-    <button type="submit" <?= $attributes; ?> x-data="{ submitDisabled: false }" x-bind:disabled="submitDisabled" x-on:submit="submitDisabled = true" @click="submitting = true" :class="{'submitted bg-gray-100 dark:bg-gray-700': submitting}" class="<?= $class; ?> <?= $buttonClass; ?>" />
+    <button type="submit" <?= $attributes; ?> x-data="{ submitDisabled: false }" x-bind:disabled="submitDisabled" x-on:submit="submitDisabled = true" @click="submitting = true" :class="{'submitted bg-gray-100 dark:bg-gray-700': submitting}" class="<?= $class; ?> <?= $buttonClass; ?>" >
         
         <span :class="{'opacity-0': submitting}">
             <?= $value; ?>
