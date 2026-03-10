@@ -88,6 +88,7 @@ class PaginatedView extends DataTableView implements RendererInterface
                 'searchText'     => $this->criteria->getSearchText(),
                 'pageSize'       => $this->getSelectPageSize($dataSet, $filters),
                 'listOptions'    => $table->getMetaData('listOptions'),
+                'listActive'     => $table->getMetaData('listActive', $_GET['view'] ?? ''),
                 'filterOptions'  => $this->getSelectFilterOptions($dataSet, $filters),
                 'filterCriteria' => $this->getFilterCriteria($filters),
                 'bulkActions'    => $table->getMetaData('bulkActions'),
@@ -155,12 +156,9 @@ class PaginatedView extends DataTableView implements RendererInterface
     {
         if (empty($filters)) return '';
 
-        $groupAlign = $dataSet->getResultCount() > 20 ? 'right' : '';
-
         return $this->factory->createSelect('filter')
             ->fromArray($filters)
-            ->setClass('filters input button-outline')
-            // ->groupAlign($this->criteria->hasFilter() && $groupAlign  ? 'middle' : ($this->criteria->hasFilter() ? 'left' : $groupAlign) )
+            ->setClass('filters input max-w-24')
             ->placeholder(__('Filters'))
             ->getOutput();
     }
@@ -189,8 +187,7 @@ class PaginatedView extends DataTableView implements RendererInterface
 
         return $this->factory->createSelect('limit')
             ->fromArray($options)
-            ->setClass('limit input button-outline')
-            // ->groupAlign(!empty($filters) ? 'left' : '')
+            ->setClass('limit input button')
             ->selected($dataSet->getPageSize())
             ->getOutput();
     }

@@ -495,13 +495,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                             echo __('Includes Teachers, Tutors, Educational Assistants and Head of Year.');
                             echo '</p>';
 
+                            $view = $_GET['view'] ?? 'grid';
+
                             $table = DataTable::createPaginated('staffView', $criteria);
+                            $table->addMetaData('listActive', $view);
                             $table->addMetaData('listOptions', [
                                 'list' => __('List'),
                                 'grid' => __('Grid'),
                             ]);
-
-                            $view = $_GET['view'] ?? 'grid';
+                            
                             if ($view == 'grid') {
                                 /** @var GridView */
                                 $gridView = $container->get(GridView::class);

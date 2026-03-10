@@ -29,7 +29,7 @@ TODO: add template variable details.
     <div id="gibbon" 
         x-data="{ sidebarToggle: window.innerWidth <= 768 ? false : {{ (sidebar and menuModule) or not isLoggedIn ? 'true' : 'false' }}, sidebarMobile: false, darkMode: $persist(false), pageWidth: 0, drawerOpen: false, modalOpen: false, modalType: 'none', modalAlert: false, globalShowHide: false }" 
         x-resize.document="pageWidth = $width;"
-        x-init="$watch('pageWidth', value => sidebarToggle = value < 800 ? false : (value >= 1400 ? true : sidebarToggle) );"
+        x-init="$watch('pageWidth', value => sidebarToggle = value < 800 ? false : sidebarToggle );"
         @modalwindow="modalType=$event.detail; modalOpen = true"
         :class="darkMode ? 'dark' : ''"
         hx-indicator="#loadingIndicator"
@@ -63,15 +63,22 @@ TODO: add template variable details.
 
                     <div class="relative p-4 -m-4" x-data="{menuOpen: false}" @click.outside="menuOpen = false">
 
-                        <a @click="menuOpen = !menuOpen" :class="{'ring-opacity-75': menuOpen, 'ring-opacity-25': !menuOpen}" hx-boost="true" hx-target="#content-wrap" hx-select="#content-wrap" hx-swap="outerHTML show:no-scroll swap:0s" href="{{ currentUser.url ?? '#' }}" class="{{ currentUser.image_240 ? 'flex-none' : 'flex items-center justify-center' }} block size-9 rounded-full bg-gray-200 ring-2 ring-white/20 hover:ring-white/50 overflow-hidden cursor-pointer">
+                        <button @click="menuOpen = !menuOpen" :class="{'ring-opacity-75': menuOpen, 'ring-opacity-25': !menuOpen}" class="{{ currentUser.image_240 ? 'flex-none' : 'flex items-center justify-center' }} block size-9 rounded-full bg-gray-200 ring-2 ring-white/20 hover:ring-white/50 overflow-hidden cursor-pointer">
                         {% if currentUser.image_240 %}
                             <img class="size-9 object-cover object-[50%_30%]" src="{{ absoluteURL }}/{{ currentUser.image_240 }}" />
                         {% else %}
                             <img class="size-9 object-cover object-[50%_30%]" src="{{ absoluteURL }}/themes/{{ gibbonThemeName }}/img/anonymous_75.jpg" />
                         {% endif %}
-                        </a>
+                        </button>
 
                         <ul x-cloak x-show="menuOpen" x-transition:enter.duration.250ms x-transition:leave.duration.100ms class="list-none m-0 bg-black/75 dark:bg-black/60 backdrop-blur-lg backdrop-contrast-125 backdrop-saturate-150 absolute rounded-xl w-48 mt-1 mr-4 p-1 sm:p-1.5 z-50 cursor-pointer {{ rightToLeft ? 'left-0' : 'right-0' }} shadow-lg">
+
+                            {% if currentUser.url %}
+                            <li class="hover:bg-theme-700 rounded-lg">
+                                <a @click="menuOpen = false" href="{{ currentUser.url }}" hx-boost="true" hx-target="#content-wrap" hx-select="#content-wrap" hx-swap="outerHTML show:no-scroll swap:0s" class="flex justify-between items-center text-sm text-white focus:text-theme-200 no-underline px-3 py-2 md:py-1 leading-normal {{ rightToLeft ? 'text-right' : 'text-left' }} dark:text-gray-200 dark:focus:text-gray-400" >{{ __('My Profile') }}</a>
+                            </li>
+                            {% endif %}
+
                             {% for link in minorLinks|reverse %}
                             <li class="hover:bg-theme-700 rounded-lg">
                                 <a @click="menuOpen = false" href="{{ link.url }}" class="flex justify-between items-center text-sm text-white focus:text-theme-200 no-underline px-3 py-2 md:py-1 leading-normal {{ rightToLeft ? 'text-right' : 'text-left' }} dark:text-gray-200 dark:focus:text-gray-400" target="{{ link.target }}" {{ link.target == '_blank' ? 'rel="noopener noreferrer"' : '' }}>

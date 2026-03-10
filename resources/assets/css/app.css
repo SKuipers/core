@@ -398,6 +398,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     @apply gap-2 h-10 px-6 has-[>svg]:px-4;
   }
 
+  .button-icon {
+    @apply has-[>svg]:p-2 h-9 w-9 [&>svg]:size-5;
+  }
+
+  .button-sm-icon {
+    @apply has-[>svg]:p-1.5 h-8 w-8 [&>svg]:size-4.5;
+  }
+
   .button-primary,
   .button-sm-primary,
   .button-lg-primary {
@@ -474,6 +482,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
       @apply hover:underline;
     }
   }
+
+  .button-wrap {
+    @apply relative [&>svg]:text-muted-foreground [&>svg]:absolute [&>svg]:left-0 [&>svg]:top-1/2 [&>svg]:-translate-y-1/2 [&>svg]:pointer-events-none;
+  }
+
+  .button-toggle {
+    @apply data-[state=on]:from-gray-100 data-[state=on]:to-gray-100 data-[state=on]:text-gray-900 data-[state=on]:inset-shadow-sm/10 dark:data-[state=on]:from-gray-950 dark:data-[state=on]:to-gray-850 dark:data-[state=on]:text-white;
+  }
 }
 
 /* Button Group */
@@ -493,12 +509,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     &:not([data-orientation='vertical']) {
 
       >*:not(:first-child),
-      > :is(.dropdown-menu, .popover, .select):not(:first-child)>button {
+      > :is(.dropdown-menu, .popover, .select, .input):not(:first-child)>button,
+      > .button-wrap:not(:first-child) > :is(.dropdown-menu, .popover, .select, .input) {
         @apply rounded-l-none border-l-0;
       }
 
       >*:not(:last-child),
-      > :is(.dropdown-menu, .popover, .select):not(:last-child)>button {
+      > :is(.dropdown-menu, .popover, .select):not(:last-child)>button,
+      > .button-wrap:not(:last-child) > :is(.dropdown-menu, .popover, .select, .input) {
         @apply rounded-r-none;
       }
     }

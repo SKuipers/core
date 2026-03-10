@@ -74,7 +74,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view.php') == 
             $page->breadcrumbs->add(__('Staff Directory'));
         }
 
-        $form = Form::create('filters', $session->get('absoluteURL').'/index.php', 'get');
+        $form = Form::createSearch('filters', $session->get('absoluteURL').'/index.php', 'get');
         $form->setTitle(__('Search'));
 
         $form->setClass('noIntBorder w-full');

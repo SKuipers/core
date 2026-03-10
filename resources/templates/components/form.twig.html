@@ -93,14 +93,19 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
         <div class="{{ standardLayout and form.hasMeta ? 'col-span-6' : 'col-span-8' }}">
 
         {% for section in form.getSections %}
-            {% set rows = section.getRows %}
             {% set sectionLoop = loop %}
+            {% set rows = section.getRows %}
+
+            {% set firstElement = (rows|first).getElements|first %}
+            {% set isformTable = firstElement.isInstanceOf('Gibbon\\Forms\\Layout\\Table') %}
+
+            {% set rows = rows|filter(row => "formHeading" not in row.getClass) %}
 
             {% if useSections %}
-            <section id="{{ section.getID }}" x-data="{sectionOpen: {{ section.getOpen|default(0) }} }" class="relative bg-gray-150 dark:bg-gray-950/35 dark:inset-shadow-2xs dark:inset-shadow-black w-full rounded-2xl mb-8 p-1.25 lg:p-1.75 focus-none starting-style-transition has-[header]:pt-0 {{ not sectionLoop.last ? 'pb-4 dark:border-t-gray-600 focus-within:border-t-blue-500 dark:focus-within:border-t-blue-400 transition' }} {{ section.getID == 'submit' ? 'w-full sm:sticky -bottom-px -mt-px mb-px z-40' : standardLayout ? '  ' : ''}}" :class="{'pb-0! hover:bg-gray-200 dark:bg-gray-950' : !sectionOpen}" >
+            <section id="{{ section.getID }}" x-data="{sectionOpen: {{ section.getOpen|default(0) }}, openable: {{ rows ? '1' : '0' }} }" class="relative bg-gray-150 dark:bg-gray-950/35 dark:inset-shadow-2xs dark:inset-shadow-black w-full rounded-2xl mb-8 p-1.25 lg:p-1.75 focus-none starting-style-transition has-[header]:pt-0 {{ not sectionLoop.last ? 'pb-4 dark:border-t-gray-600 focus-within:border-t-blue-500 dark:focus-within:border-t-blue-400 transition' }} {{ section.getID == 'submit' ? 'w-full sm:sticky -bottom-px -mt-px mb-px z-40' : standardLayout ? '  ' : ''}}" :class="{'pb-0! hover:bg-gray-200 dark:bg-gray-950' : !sectionOpen && openable, 'pb-0!' : !openable }" >
 
                 {% if section.getHeading %}
-                <header @click="sectionOpen = !sectionOpen" class="px-3 py-4 [&_button]:relative relative flex items-center justify-between" data-ui-panel-header="">
+                <header @click="sectionOpen = openable ? !sectionOpen : true" class="px-3 py-4 [&_button]:relative relative flex flex-col items-start justify-between" data-ui-panel-header="">
                     
                     <div class="absolute top-0 right-0 my-2.5 mx-2">
                         <button x-cloak x-show="!sectionOpen" type="button" class="p-2">
@@ -113,27 +118,29 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
                         {% endif %}
                     </div>
                     
-
-                    
                     <h3 class="font-medium [&:has(+[data-ui-subheading])]:mb-0.5 [&:has(+[data-ui-subheading])]:text-gray-925 dark:[&:has(+[data-ui-subheading])]:text-white antialiased flex items-center text-base gap-3 tracking-tight text-gray-800 dark:text-white">
 
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
                           </svg>
 
-                          
                         {{ section.getHeading }}
                     </h3>
+
+                    {% set sectionContent = firstElement.getPrepended ~ firstElement.getAppended %}
+                    {% if sectionContent %}
+                    <div class="mt-4 text-sm">
+                        {{ sectionContent|raw }}
+                    </div>
+                    {% endif %}
                     
 
                 </header>
                 {% endif %}
                 
-               
             {% endif %}
 
-            {% set isformTable = ((rows|first).getElements|first).isInstanceOf('Gibbon\\Forms\\Layout\\Table') %}
-
+            {% if rows %}
             <div {% if useSections %}x-show="sectionOpen" x-transition.opacity {% endif %} {% if not section.getOpen %}x-cloak{% endif %} class="bg-white dark:bg-gray-800 rounded-xl ring ring-gray-200 dark:ring-x-0 dark:ring-b-0 dark:ring-gray-700/80 shadow-ui-md  divide-y divide-gray-200 dark:divide-gray-800">
           
             {% for num, row in rows %}
@@ -194,10 +201,13 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
             {% endfor %}
             </div>
+            {% endif %}
 
             {% if useSections %}
             </section>
             {% endif %}
+
+            
 
         {% endfor %}
         </div>
