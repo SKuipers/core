@@ -43,7 +43,7 @@ class Row implements OutputableInterface
     protected $factory;
     protected $heading;
 
-    protected $elements = [];
+    protected array $elements = [];
 
     /**
      * Construct a row with access to a specific factory.
@@ -191,5 +191,41 @@ class Row implements OutputableInterface
         $output .= '</div>';
 
         return $output;
+    }
+
+    /**
+     * Get an array of all row elements.
+     * @return  array
+     */
+    public function getElements()
+    {
+        return $this->elements;
+    }
+
+    /**
+     * Count the elements array.
+     * @return  int
+     */
+    public function getElementCount()
+    {
+        return count($this->elements);
+    }
+    
+    /**
+     * Gets the string identifier for an element that can be used as an array key.
+     * @param object $element
+     * @return string
+     */
+    protected function getUniqueIdentifier($element)
+    {
+        if (method_exists($element, 'getID') && !empty($element->getID())) {
+            return $element->getID();
+        }
+
+        if (method_exists($element, 'getName') && !empty($element->getName())) {
+            return $element->getName();
+        }
+
+        return 'element-'.$this->getElementCount();
     }
 }
