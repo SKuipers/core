@@ -30,26 +30,48 @@
     </div>
 
     <script>
-    $('#librarySearch').tooltip({
-        items: "a[data-log]",
-        show: 800,
-        hide: false,
-        content: function () {
-            return $(this).data('log');
-        },
-        tooltipClass: "tooltip-reset",
-        position: {
-            my: "center bottom-5",
-            at: "center top",
-            using: function (position, feedback) {
-                $(this).css(position);
-                $("<div>").
-                    addClass("arrow").
-                    addClass(feedback.vertical).
-                    addClass(feedback.horizontal).
-                    appendTo(this);
+    document.addEventListener('DOMContentLoaded', function() {
+        var container = document.getElementById('librarySearch');
+        if (!container) return;
+
+        var tooltipEl = null;
+
+        function showTooltip(anchor, evt) {
+            hideTooltip();
+            var content = anchor.getAttribute('data-log');
+            if (!content) return;
+
+            tooltipEl = document.createElement('div');
+            tooltipEl.className = 'tooltip-reset';
+            tooltipEl.style.position = 'absolute';
+            tooltipEl.style.zIndex = '10000';
+            tooltipEl.innerHTML = content;
+            document.body.appendChild(tooltipEl);
+
+            var rect = anchor.getBoundingClientRect();
+            var tipRect = tooltipEl.getBoundingClientRect();
+            var left = rect.left + (rect.width / 2) - (tipRect.width / 2) + window.scrollX;
+            var top = rect.top - tipRect.height - 5 + window.scrollY;
+            tooltipEl.style.left = left + 'px';
+            tooltipEl.style.top = top + 'px';
+        }
+
+        function hideTooltip() {
+            if (tooltipEl) {
+                tooltipEl.remove();
+                tooltipEl = null;
             }
         }
+
+        container.addEventListener('mouseenter', function(e) {
+            var anchor = e.target.closest('a[data-log]');
+            if (anchor) showTooltip(anchor, e);
+        }, true);
+
+        container.addEventListener('mouseleave', function(e) {
+            var anchor = e.target.closest('a[data-log]');
+            if (anchor) hideTooltip();
+        }, true);
     });
     </script>        
     <style>

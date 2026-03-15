@@ -306,17 +306,21 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/thirdPartySet
 
 <script>
     function testPayment() {
-        var amount = $('#paymentTest').val();
+        var amountEl = document.getElementById('paymentTest');
+        var amount = amountEl ? amountEl.value : '';
         location.href = "<?php echo $session->get('absoluteURL'); ?>/modules/System Admin/thirdPartySettings_paymentProcess.php?amount="+amount;
     }
 
     function testEmail() {
-        var email = encodeURIComponent($('#emailTest').val());
+        var emailEl = document.getElementById('emailTest');
+        var email = encodeURIComponent(emailEl ? emailEl.value : '');
         location.href = "<?php echo $session->get('absoluteURL'); ?>/modules/System Admin/thirdPartySettings_emailProcess.php?email="+email;
     }
 
     function testSMS() {
-        var phoneNumber = $('#smsTestCountryCode').val() + $('#smsTest').val();
+        var countryCodeEl = document.getElementById('smsTestCountryCode');
+        var smsEl = document.getElementById('smsTest');
+        var phoneNumber = (countryCodeEl ? countryCodeEl.value : '') + (smsEl ? smsEl.value : '');
         location.href = "<?php echo $session->get('absoluteURL'); ?>/modules/System Admin/thirdPartySettings_smsProcess.php?phoneNumber="+phoneNumber;
     }
 </script>

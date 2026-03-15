@@ -117,10 +117,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/courseEnro
 
             // Checkall by course
             echo '<script type="text/javascript">';
-            echo '$(function () {';
-                echo "$('#checkall".$course['gibbonCourseID']."').click(function () {";
-                echo "$('.".$course['gibbonCourseID']."').find(':checkbox').attr('checked', this.checked);";
-                echo '});';
+            echo 'document.addEventListener("DOMContentLoaded", function () {';
+                echo "var checkall = document.getElementById('checkall".$course['gibbonCourseID']."');";
+                echo "if (checkall) { checkall.addEventListener('click', function () {";
+                echo "document.querySelectorAll('.".$course['gibbonCourseID']." input[type=checkbox]').forEach(function(cb) { cb.checked = checkall.checked; });";
+                echo '}); }';
             echo '});';
             echo '</script>';
         }

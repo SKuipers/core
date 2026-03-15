@@ -579,18 +579,21 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/user_manage_edi
 
             <!-- CONTROLS FOR STATUS -->
             <script type="text/javascript">
-                $(document).ready(function(){
-                    $("#status").change(function(){
-                        if ($('#status').val()=="Left" ) {
-                            alert("As you have marked this person as left, please consider setting the End Date field.") ;
-                        }
-                        else if ($('#status').val()=="Full" ) {
-                            alert("As you have marked this person as full, please consider setting the Start Date field.") ;
-                        }
-                        else if ($('#status').val()=="Expected" ) {
-                            alert("As you have marked this person as expected, please consider setting the Start Date field.") ;
-                        }
+                document.addEventListener('DOMContentLoaded', function(){
+                    var statusEl = document.getElementById('status');
+                    if (statusEl) {
+                        statusEl.addEventListener('change', function(){
+                            if (statusEl.value === 'Left') {
+                                alert('As you have marked this person as left, please consider setting the End Date field.');
+                            }
+                            else if (statusEl.value === 'Full') {
+                                alert('As you have marked this person as full, please consider setting the Start Date field.');
+                            }
+                            else if (statusEl.value === 'Expected') {
+                                alert('As you have marked this person as expected, please consider setting the Start Date field.');
+                            }
                         });
+                    }
                 });
             </script>
 

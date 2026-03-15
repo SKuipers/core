@@ -44,39 +44,57 @@ function versionCompare(a, b) {
 }
 
 
-$(function(){
+document.addEventListener('DOMContentLoaded', function(){
 
-    $("select.columnOrder").on('change', function(){
+    document.querySelectorAll('select.columnOrder').forEach(function(select) {
+        select.addEventListener('change', function(){
 
-        var currentSelection = $(this).val();
-        var textBox = $(this).parent().parent().find('input.columnText');
+            var currentSelection = this.value;
+            var row = this.closest('tr') || this.parentElement.parentElement;
+            var textBox = row ? row.querySelector('input.columnText') : null;
 
-        textBox.prop("readonly", currentSelection != columnDataCustom );
-        textBox.prop("disabled", currentSelection != columnDataCustom );
+            if (textBox) {
+                textBox.readOnly = (currentSelection != columnDataCustom);
+                textBox.disabled = (currentSelection != columnDataCustom);
 
-        if ( currentSelection == columnDataFunction ) {
-            textBox.val("*generated*");
-        } else if ( currentSelection == columnDataCustom ) {
-            textBox.val("");
-        } else if ( currentSelection == columnDataSkip ) {
-            textBox.val("*skipped*");
-        } else if ( currentSelection >= 0 ) {
-            if ( currentSelection in csvFirstLine ) {
-                textBox.val(csvFirstLine[ currentSelection ] );
-            } else {
-                textBox.val("");
+                if ( currentSelection == columnDataFunction ) {
+                    textBox.value = "*generated*";
+                } else if ( currentSelection == columnDataCustom ) {
+                    textBox.value = "";
+                } else if ( currentSelection == columnDataSkip ) {
+                    textBox.value = "*skipped*";
+                } else if ( currentSelection >= 0 ) {
+                    if ( currentSelection in csvFirstLine ) {
+                        textBox.value = csvFirstLine[ currentSelection ];
+                    } else {
+                        textBox.value = "";
+                    }
+                }
             }
-        }
+        });
     });
-    $("select.columnOrder").change();
+    document.querySelectorAll('select.columnOrder').forEach(function(select) {
+        select.dispatchEvent(new Event('change'));
+    });
 
-	$("#ignoreErrors").click(function() {
-		if ($(this).is(':checked')) {
-			$(this).val( 1 );
-			$("#submitStep3").prop("disabled", false).prop("type", "submit").prop("value", "Submit");
-		} else {
-			$(this).val( 0 );
-			$("#submitStep3").prop("disabled", true).prop("value", "Cannot Continue");
-		}
-	});
+    var ignoreErrors = document.getElementById('ignoreErrors');
+    if (ignoreErrors) {
+        ignoreErrors.addEventListener('click', function() {
+            var submitStep3 = document.getElementById('submitStep3');
+            if (this.checked) {
+                this.value = 1;
+                if (submitStep3) {
+                    submitStep3.disabled = false;
+                    submitStep3.type = 'submit';
+                    submitStep3.value = 'Submit';
+                }
+            } else {
+                this.value = 0;
+                if (submitStep3) {
+                    submitStep3.disabled = true;
+                    submitStep3.value = 'Cannot Continue';
+                }
+            }
+        });
+    }
 }); 

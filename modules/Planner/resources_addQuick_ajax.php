@@ -38,24 +38,28 @@ if (!$session->has('gibbonPersonID')) {
     $id = preg_replace('/[^a-zA-Z0-9-_]/', '', $id);
 
     $output .= "<script type='text/javascript'>";
-        $output .= '$(document).ready(function() {';
-            $output .= 'var options={';
-                $output .= 'success: function(response) {';
-                    $output .= "tinymce.execCommand(\"mceFocus\",false,\"$id\"); tinyMCE.execCommand(\"mceInsertContent\", 0, response); formReset(); \$(\".".$id.'resourceQuickSlider").slideUp();';
-                $output .= '}, ';
-                $output .= "url: '".$session->get('absoluteURL')."/modules/Planner/resources_addQuick_ajaxProcess.php',";
-                $output .= "type: 'POST'";
-            $output .= '};';
-
-            $output .= "$('#".$id."ajaxForm').submit(function() {";
-                $output .= '$(this).ajaxSubmit(options);';
-                $output .= '$(".'.$id."resourceQuickSlider\").html(\"<div class='resourceAddSlider'><img style='margin: 10px 0 5px 0' src='".$session->get('absoluteURL').'/themes/'.($session->get('gibbonThemeName') ?? 'Default')."/img/loading.gif' alt='".__('Uploading')."' onclick='return false;' /><br/>".__('Loading').'</div>");';
-                $output .= 'return false;';
-            $output .= '});';
+        $output .= "document.addEventListener('DOMContentLoaded', function() {";
+            $output .= "var ajaxForm = document.getElementById('".$id."ajaxForm');";
+            $output .= 'if (ajaxForm) {';
+                $output .= "ajaxForm.addEventListener('submit', function(e) {";
+                    $output .= 'e.preventDefault();';
+                    $output .= 'var formData = new FormData(this);';
+                    $output .= "fetch('".$session->get('absoluteURL')."/modules/Planner/resources_addQuick_ajaxProcess.php', {";
+                        $output .= "method: 'POST',";
+                        $output .= 'body: formData';
+                    $output .= '}).then(function(resp) { return resp.text(); }).then(function(response) {';
+                        $output .= "tinymce.execCommand(\"mceFocus\",false,\"$id\"); tinyMCE.execCommand(\"mceInsertContent\", 0, response); formReset(); var slider = document.querySelector('.".$id."resourceQuickSlider'); if (slider) slider.style.display = 'none';";
+                    $output .= '});';
+                    $output .= "var slider = document.querySelector('.".$id."resourceQuickSlider');";
+                    $output .= "if (slider) slider.innerHTML = \"<div class='resourceAddSlider'><img style='margin: 10px 0 5px 0' src='".$session->get('absoluteURL').'/themes/'.($session->get('gibbonThemeName') ?? 'Default')."/img/loading.gif' alt='".__('Uploading')."' onclick='return false;' /><br/>".__('Loading').'</div>";';
+                    $output .= 'return false;';
+                $output .= '});';
+            $output .= '}';
         $output .= '});';
 
         $output .= 'var formReset=function() {';
-            $output .= "$('#".$id."resourceQuick').css('display','none');";
+            $output .= "var el = document.getElementById('".$id."resourceQuick');";
+            $output .= "if (el) el.style.display = 'none';";
         $output .= '};';
     $output .= '</script>';
 
@@ -66,7 +70,7 @@ if (!$session->has('gibbonPersonID')) {
 
     $row = $form->addRow();
         $row->addButton(icon('solid', 'cross', 'size-5 fill-current text-red-700'))
-            ->onClick("formReset(); \$(\".".$id."resourceQuickSlider\").slideUp();")
+            ->onClick("formReset(); var slider = document.querySelector('.".$id."resourceQuickSlider'); if (slider) slider.style.display = 'none';")
             ->addClass('float-right')
             ->setType('blank');
 

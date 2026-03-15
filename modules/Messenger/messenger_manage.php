@@ -292,15 +292,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Messenger/messenger_manage
 ?>
 
 <script>
-$('.statusBar').each(function(index, element) {
+document.querySelectorAll('.statusBar').forEach(function(element) {
     var refresh = setInterval(function () {
         var path = "<?php echo $session->get('absoluteURL') ?>/modules/Messenger/messenger_manage_ajax.php";
-        var postData = { gibbonLogID: $(element).data('id') };
-        $(element).load(path, postData, function(responseText, textStatus, jqXHR) {
+        var postData = new URLSearchParams({ gibbonLogID: element.dataset.id });
+        fetch(path, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: postData
+        })
+        .then(function(response) { return response.text(); })
+        .then(function(responseText) {
+            element.innerHTML = responseText;
             if (responseText.indexOf('Sent') >= 0) {
                 clearInterval(refresh);
             }
-        });
+        })
+        .catch(function() {});
     }, 3000);
 });
 </script>

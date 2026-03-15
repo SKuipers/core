@@ -395,11 +395,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full.
                                 echo '<td>';
                                 echo "<script type='text/javascript'>";
                                 echo 'htmx.onLoad(function (content) {';
-                                echo "\$(\".description-$count\").hide();";
-                                echo "\$(\".show_hide-$count\").fadeIn(1000);";
-                                echo "\$(\".show_hide-$count\").click(function(){";
-                                echo "\$(\".description-$count\").fadeToggle(1000);";
-                                echo '});';
+                                echo "document.querySelectorAll('.description-$count').forEach(function(el){ el.classList.add('hidden'); });";
+                                echo "document.querySelectorAll('.show_hide-$count').forEach(function(el){ el.classList.remove('hidden'); });";
+                                echo "document.querySelectorAll('.show_hide-$count').forEach(function(el){ el.addEventListener('click', function(){";
+                                echo "document.querySelectorAll('.description-$count').forEach(function(d){ d.classList.toggle('hidden'); });";
+                                echo '}); });';
                                 echo '});';
                                 echo '</script>';
                                 if ($rowOutcomes['content'] != '') {
@@ -1044,30 +1044,42 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full.
 											<?php
 											if ($checkedNo == 'checked') {
 												?>
-												$("#homeworkDueDateRow").css("display","none");
-												$("#homeworkDueDateTimeRow").css("display","none");
-												$("#homeworkDetailsRow").css("display","none");
+												var dueDateRow = document.getElementById("homeworkDueDateRow");
+												var dueDateTimeRow = document.getElementById("homeworkDueDateTimeRow");
+												var detailsRow = document.getElementById("homeworkDetailsRow");
+												if (dueDateRow) dueDateRow.style.display = "none";
+												if (dueDateTimeRow) dueDateTimeRow.style.display = "none";
+												if (detailsRow) detailsRow.style.display = "none";
 												<?php
 
 											}
 										?>
 
 											//Response to clicking on homework control
-											$(".homework").click(function(){
-												if ($('input[name=homework]:checked').val()=="Yes" ) {
-													homeworkDueDate.enable();
-													homeworkDetails.enable();
-													$("#homeworkDueDateRow").slideDown("fast", $("#homeworkDueDateRow").css("display","table-row"));
-													$("#homeworkDueDateTimeRow").slideDown("fast", $("#homeworkDueDateTimeRow").css("display","table-row"));
-													$("#homeworkDetailsRow").slideDown("fast", $("#homeworkDetailsRow").css("display","table-row"));
-												} else {
-													homeworkDueDate.disable();
-													homeworkDetails.disable();
-													$("#homeworkDueDateRow").css("display","none");
-													$("#homeworkDueDateTimeRow").css("display","none");
-													$("#homeworkDetailsRow").css("display","none");
-												}
-											 });
+											document.querySelectorAll(".homework").forEach(function(el) {
+												el.addEventListener("click", function(){
+													var checkedInput = document.querySelector('input[name=homework]:checked');
+													if (checkedInput && checkedInput.value=="Yes" ) {
+														homeworkDueDate.enable();
+														homeworkDetails.enable();
+														var dueDateRow = document.getElementById("homeworkDueDateRow");
+														var dueDateTimeRow = document.getElementById("homeworkDueDateTimeRow");
+														var detailsRow = document.getElementById("homeworkDetailsRow");
+														if (dueDateRow) dueDateRow.style.display = "table-row";
+														if (dueDateTimeRow) dueDateTimeRow.style.display = "table-row";
+														if (detailsRow) detailsRow.style.display = "table-row";
+													} else {
+														homeworkDueDate.disable();
+														homeworkDetails.disable();
+														var dueDateRow = document.getElementById("homeworkDueDateRow");
+														var dueDateTimeRow = document.getElementById("homeworkDueDateTimeRow");
+														var detailsRow = document.getElementById("homeworkDetailsRow");
+														if (dueDateRow) dueDateRow.style.display = "none";
+														if (dueDateTimeRow) dueDateTimeRow.style.display = "none";
+														if (detailsRow) detailsRow.style.display = "none";
+													}
+												});
+											});
 										});
 									</script>
 

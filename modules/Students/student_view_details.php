@@ -1678,16 +1678,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
 
                                 <script type="text/javascript">
                                     /* Show/Hide detail control */
-                                    $(document).ready(function(){
+                                    document.addEventListener('DOMContentLoaded', function(){
                                         var updateDetails = function (){
-                                            if ($('input[name=details]:checked').val()=="Yes" ) {
-                                                $(".detailItem").slideDown("fast", $(".detailItem").css("{'display' : 'table-row'}"));
+                                            var checked = document.querySelector('input[name=details]:checked');
+                                            if (checked && checked.value=="Yes" ) {
+                                                document.querySelectorAll(".detailItem").forEach(function(el) {
+                                                    el.style.display = 'table-row';
+                                                });
                                             }
                                             else {
-                                                $(".detailItem").slideUp("fast");
+                                                document.querySelectorAll(".detailItem").forEach(function(el) {
+                                                    el.style.display = 'none';
+                                                });
                                             }
                                         }
-                                        $(".details").click(updateDetails);
+                                        document.querySelectorAll(".details").forEach(function(el) {
+                                            el.addEventListener('click', updateDetails);
+                                        });
                                         updateDetails();
                                     });
                                 </script>
@@ -1925,12 +1932,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                                                     if ($rowEntry['comment'] != '') {
                                                         if (mb_strlen($rowEntry['comment']) > 200) {
                                                             echo "<script type='text/javascript'>";
-                                                            echo '$(document).ready(function(){';
-                                                            echo "\$(\".comment-$entryCount\").hide();";
-                                                            echo "\$(\".show_hide-$entryCount\").fadeIn(1000);";
-                                                            echo "\$(\".show_hide-$entryCount\").click(function(){";
-                                                            echo "\$(\".comment-$entryCount\").fadeToggle(1000);";
-                                                            echo '});';
+                                                            echo "document.addEventListener('DOMContentLoaded', function(){";
+                                                            echo "document.querySelectorAll('.comment-$entryCount').forEach(function(el){ el.classList.add('hidden'); });";
+                                                            echo "document.querySelectorAll('.show_hide-$entryCount').forEach(function(el){ el.classList.remove('hidden'); });";
+                                                            echo "document.querySelectorAll('.show_hide-$entryCount').forEach(function(el){ el.addEventListener('click', function(){";
+                                                            echo "document.querySelectorAll('.comment-$entryCount').forEach(function(c){ c.classList.toggle('hidden'); });";
+                                                            echo '}); });';
                                                             echo '});';
                                                             echo '</script>';
                                                             echo '<span>'.mb_substr($rowEntry['comment'], 0, 200).'...<br/>';

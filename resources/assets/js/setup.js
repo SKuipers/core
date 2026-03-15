@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 
-        $(document).trigger('gibbon-setup');
+        document.dispatchEvent(new Event('gibbon-setup'));
     });
 
 });

@@ -62,8 +62,11 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 {% if url %}
 
 <script>
-$('button.paginate').on('click', function() {
-    window.location = '{{ url|raw }}&page=' + $(this).data('page');
+document.addEventListener('click', function(e) {
+    var btn = e.target.closest('button.paginate');
+    if (btn) {
+        window.location = '{{ url|raw }}&page=' + btn.dataset.page;
+    }
 });
 </script>
 

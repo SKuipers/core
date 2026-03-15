@@ -164,10 +164,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/courseEnro
 
             // Checkall by Year Group
             echo '<script type="text/javascript">';
-            echo '$(function () {';
-                echo "$('#checkall".$classMap['gibbonYearGroupID']."').click(function () {";
-                echo "$('.".$classMap['gibbonYearGroupID']."').find(':checkbox').attr('checked', this.checked);";
-                echo '});';
+            echo 'document.addEventListener("DOMContentLoaded", function () {';
+                echo "var checkall = document.getElementById('checkall".$classMap['gibbonYearGroupID']."');";
+                echo "if (checkall) { checkall.addEventListener('click', function () {";
+                echo "document.querySelectorAll('.".$classMap['gibbonYearGroupID']." input[type=checkbox]').forEach(function(cb) { cb.checked = checkall.checked; });";
+                echo '}); }';
             echo '});';
             echo '</script>';
         }
@@ -183,14 +184,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/courseEnro
 
     // Checkall by Student/Teacher
     echo '<script type="text/javascript">';
-    echo '$(function () {';
-        echo "$('#includeStudents').click(function () {";
-        echo "$('.student').find(':checkbox').attr('checked', this.checked);";
-        echo '});';
+    echo 'document.addEventListener("DOMContentLoaded", function () {';
+        echo "var includeStudents = document.getElementById('includeStudents');";
+        echo "if (includeStudents) { includeStudents.addEventListener('click', function () {";
+        echo "document.querySelectorAll('.student input[type=checkbox]').forEach(function(cb) { cb.checked = includeStudents.checked; });";
+        echo '}); }';
 
-        echo "$('#includeTeachers').click(function () {";
-        echo "$('.teacher').find(':checkbox').attr('checked', this.checked);";
-        echo '});';
+        echo "var includeTeachers = document.getElementById('includeTeachers');";
+        echo "if (includeTeachers) { includeTeachers.addEventListener('click', function () {";
+        echo "document.querySelectorAll('.teacher input[type=checkbox]').forEach(function(cb) { cb.checked = includeTeachers.checked; });";
+        echo '}); }';
     echo '});';
     echo '</script>';
 }

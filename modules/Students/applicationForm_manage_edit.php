@@ -915,19 +915,20 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
 
     ?>
     <script type="text/javascript">
-    $(document).ready(function(){
+    document.addEventListener('DOMContentLoaded', function(){
 
         /* Replaces fields in all caps with title case */
-        $('a#fixCaps').click(function(){
-            $('input[type=text]').val (function () {
-                if (this.value.toUpperCase() == this.value) {
-                    return this.value.replace(/\b\w+/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
-                } else {
-                    return this.value;
-                }
+        var fixCapsLink = document.querySelector('a#fixCaps');
+        if (fixCapsLink) {
+            fixCapsLink.addEventListener('click', function(){
+                document.querySelectorAll('input[type=text]').forEach(function(input) {
+                    if (input.value.toUpperCase() === input.value) {
+                        input.value = input.value.replace(/\b\w+/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+                    }
+                });
+                alert('<?php echo __('Fields with all caps have been changed to title case. Please check the updated values and save the form to keep changes.'); ?>');
             });
-            alert('<?php echo __('Fields with all caps have been changed to title case. Please check the updated values and save the form to keep changes.'); ?>');
-        });
+        }
     });
     </script>
     <?php

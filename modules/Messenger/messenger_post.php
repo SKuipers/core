@@ -69,9 +69,12 @@ else {
 ?>
 <script>
 function checkDraft() {
-    $('option', '#individualList').each(function() {
-        $(this).prop('selected', true);
-    });
+    var individualList = document.getElementById('individualList');
+    if (individualList) {
+        individualList.querySelectorAll('option').forEach(function(option) {
+            option.selected = true;
+        });
+    }
     
     document.querySelectorAll('*[data-error-msg]').forEach(function (element) {
         element.dispatchEvent(new Event('change'));
@@ -82,7 +85,8 @@ function checkDraft() {
 function saveDraft() {
     window.onbeforeunload = null;
 
-    $('input[name="saveMode"]').val('Draft');
+    var saveModeInput = document.querySelector('input[name="saveMode"]');
+    if (saveModeInput) saveModeInput.value = 'Draft';
     document.getElementById('messengerMessage').submit(); 
 }
 </script>

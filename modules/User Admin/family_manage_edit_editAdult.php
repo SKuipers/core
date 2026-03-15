@@ -115,30 +115,35 @@ if (isActionAccessible($guid, $connection2, '/modules/User Admin/family_manage_e
             echo $form->getOutput();
 
             echo "<script type=\"text/javascript\">
-                $(document).ready(function(){
-                    $(\"#contactCall\").attr(\"disabled\", \"disabled\");
-                    $(\"#contactSMS\").attr(\"disabled\", \"disabled\");
-                    $(\"#contactEmail\").attr(\"disabled\", \"disabled\");
-                    $(\"#contactMail\").attr(\"disabled\", \"disabled\");
-                    $(\"#contactPriority\").change(function(){
-                        if ($('#contactPriority').val()==\"1\" ) {
-                            $(\"#contactCall\").attr(\"disabled\", \"disabled\");
-                            $(\"#contactCall\").val(\"Y\");
-                            $(\"#contactSMS\").attr(\"disabled\", \"disabled\");
-                            $(\"#contactSMS\").val(\"Y\");
-                            $(\"#contactEmail\").attr(\"disabled\", \"disabled\");
-                            $(\"#contactEmail\").val(\"Y\");
-                            $(\"#contactMail\").attr(\"disabled\", \"disabled\");
-                            $(\"#contactMail\").val(\"Y\");
-                        }
-                        else {
-                            $(\"#contactCall\").removeAttr(\"disabled\");
-                            $(\"#contactSMS\").removeAttr(\"disabled\");
-                            $(\"#contactEmail\").removeAttr(\"disabled\");
-                            $(\"#contactMail\").removeAttr(\"disabled\");
-                        }
-                    });
-                    $(\"#contactPriority\").change();
+                document.addEventListener('DOMContentLoaded', function(){
+                    var contactCall = document.getElementById('contactCall');
+                    var contactSMS = document.getElementById('contactSMS');
+                    var contactEmail = document.getElementById('contactEmail');
+                    var contactMail = document.getElementById('contactMail');
+                    var contactPriority = document.getElementById('contactPriority');
+
+                    if (contactCall) contactCall.setAttribute('disabled', 'disabled');
+                    if (contactSMS) contactSMS.setAttribute('disabled', 'disabled');
+                    if (contactEmail) contactEmail.setAttribute('disabled', 'disabled');
+                    if (contactMail) contactMail.setAttribute('disabled', 'disabled');
+
+                    if (contactPriority) {
+                        contactPriority.addEventListener('change', function(){
+                            if (contactPriority.value === '1') {
+                                if (contactCall) { contactCall.setAttribute('disabled', 'disabled'); contactCall.value = 'Y'; }
+                                if (contactSMS) { contactSMS.setAttribute('disabled', 'disabled'); contactSMS.value = 'Y'; }
+                                if (contactEmail) { contactEmail.setAttribute('disabled', 'disabled'); contactEmail.value = 'Y'; }
+                                if (contactMail) { contactMail.setAttribute('disabled', 'disabled'); contactMail.value = 'Y'; }
+                            }
+                            else {
+                                if (contactCall) contactCall.removeAttribute('disabled');
+                                if (contactSMS) contactSMS.removeAttribute('disabled');
+                                if (contactEmail) contactEmail.removeAttribute('disabled');
+                                if (contactMail) contactMail.removeAttribute('disabled');
+                            }
+                        });
+                        contactPriority.dispatchEvent(new Event('change'));
+                    }
                 });
             </script>";
 

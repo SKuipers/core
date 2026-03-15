@@ -116,7 +116,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Departments/department_edi
 						$form->toggleVisibilityByClass("resource{$i}Button")->onRadio("type{$i}")->when(array('Link', 'File'));
 						$row = $form->addRow()->addClass("resource{$i}Row resource{$i}Button");
 						$row->addButton(__('Add Another Resource'))
-							->onClick("$('.resource".($i+1)."RowTop').show();$('.resource".$i."Button').hide();")
+							->onClick("document.querySelectorAll('.resource".($i+1)."RowTop').forEach(function(el){ el.classList.remove('hidden'); });document.querySelectorAll('.resource".$i."Button').forEach(function(el){ el.classList.add('hidden'); });")
 							->addClass('right');
 					}
 				}
@@ -128,9 +128,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Departments/department_edi
 				?>
 
 				<script type="text/javascript">
-				$(document).ready(function(){
-					$('.resource2Row').hide();
-					$('.resource3Row').hide();
+				document.addEventListener('DOMContentLoaded', function(){
+					document.querySelectorAll('.resource2Row').forEach(function(el) { el.classList.add('hidden'); });
+					document.querySelectorAll('.resource3Row').forEach(function(el) { el.classList.add('hidden'); });
 				});
 				</script>
 				<?php

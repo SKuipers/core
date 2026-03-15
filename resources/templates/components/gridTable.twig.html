@@ -69,8 +69,11 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
 {% if path and identifier %}
 <script>
-$(function(){
-    document.getElementById('{{ table.getID }}').gibbonDataTable( '{{ path|raw }}', {{ jsonData|raw }}, '{{ identifier }}');
+document.addEventListener('DOMContentLoaded', function(){
+    var el = document.getElementById('{{ table.getID }}');
+    if (el) {
+        el.gibbonDataTable( '{{ path|raw }}', {{ jsonData|raw }}, '{{ identifier }}');
+    }
 });
 </script>
 {% endif %}

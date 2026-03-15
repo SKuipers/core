@@ -220,20 +220,34 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_manage_cat
 }
 ?>
 <script type='text/javascript'>
-    $(document).ready(function(){
+    document.addEventListener('DOMContentLoaded', function(){
         document.onkeypress = stopRKey;
         
-        $(".gbooks").loadGoogleBookData({
-            "notFound": "<?php echo __('The specified record cannot be found.'); ?>",
-            "dataRequired": "<?php echo __('Please enter an ISBN13 or ISBN10 value before trying to get data from Google Books.'); ?>",
-        });
+        if (typeof loadGoogleBookData === 'function') {
+            loadGoogleBookData({
+                "notFound": "<?php echo __('The specified record cannot be found.'); ?>",
+                "dataRequired": "<?php echo __('Please enter an ISBN13 or ISBN10 value before trying to get data from Google Books.'); ?>",
+            });
+        }
 
-        $('#gibbonLibraryTypeID').change(function(){
-            var path = '<?php echo $session->get('absoluteURL').'/modules/Library/library_manage_catalog_fields_ajax.php'; ?>';
+        var typeSelect = document.getElementById('gibbonLibraryTypeID');
+        if (typeSelect) {
+            typeSelect.addEventListener('change', function(){
+                var path = '<?php echo $session->get('absoluteURL').'/modules/Library/library_manage_catalog_fields_ajax.php'; ?>';
+                var detailsContainer = document.querySelector('#detailsRow .general');
+                if (detailsContainer) {
+                    detailsContainer.innerHTML = "<div id='details' name='details' style='min-height: 100px; text-align: center'><img style='margin: 10px 0 5px 0' src='<?php echo $session->get('absoluteURL'); ?>/themes/<?php echo $session->get('gibbonThemeName'); ?>/img/loading.gif' alt='Loading' onclick='return false;' /><br/>Loading</div>";
 
-            $('#detailsRow .general').html("<div id='details' name='details' style='min-height: 100px; text-align: center'><img style='margin: 10px 0 5px 0' src='<?php echo $session->get('absoluteURL'); ?>/themes/<?php echo $session->get('gibbonThemeName'); ?>/img/loading.gif' alt='Loading' onclick='return false;' /><br/>Loading</div>");
-
-            $('#detailsRow .general').load(path, { 'gibbonLibraryTypeID': $(this).val() });
-        });
+                    fetch(path, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                        body: new URLSearchParams({'gibbonLibraryTypeID': typeSelect.value})
+                    })
+                    .then(function(response) { return response.text(); })
+                    .then(function(html) { detailsContainer.innerHTML = html; })
+                    .catch(function() { detailsContainer.innerHTML = ''; });
+                }
+            });
+        }
     });
 </script>

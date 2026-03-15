@@ -127,7 +127,7 @@ if ($proceed == false) {
     
     if ($return == 'success0' or $return == 'success1' or $return == 'success2' or $return == 'success3' or $return == 'success4') {
         echo "<script type='text/javascript'>";
-        echo '$(document).ready(function(){';
+        echo "document.addEventListener('DOMContentLoaded', function(){";
         echo "alert('".$successMessage."') ;";
         echo '});';
         echo '</script>';

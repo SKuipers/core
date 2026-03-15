@@ -313,12 +313,12 @@ if ($makeUnitsPublic != 'Y') {
                     echo '</td>';
                     echo '<td>';
                     echo "<script type='text/javascript'>";
-                    echo '$(document).ready(function(){';
-                    echo "\$(\".description-$count\").hide();";
-                    echo "\$(\".show_hide-$count\").fadeIn(1000);";
-                    echo "\$(\".show_hide-$count\").click(function(){";
-                    echo "\$(\".description-$count\").fadeToggle(1000);";
-                    echo '});';
+                    echo "document.addEventListener('DOMContentLoaded', function(){";
+                    echo "document.querySelectorAll('.description-$count').forEach(function(el){ el.classList.add('hidden'); });";
+                    echo "document.querySelectorAll('.show_hide-$count').forEach(function(el){ el.classList.remove('hidden'); });";
+                    echo "document.querySelectorAll('.show_hide-$count').forEach(function(el){ el.addEventListener('click', function(){";
+                    echo "document.querySelectorAll('.description-$count').forEach(function(d){ d.classList.toggle('hidden'); });";
+                    echo '}); });';
                     echo '});';
                     echo '</script>';
                     if ($rowBlocks['content'] != '') {
