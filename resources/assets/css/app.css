@@ -556,7 +556,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 }
 
 /* Card */
-/* @layer components {
+@layer components {
     .card {
       @apply bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm;
   
@@ -577,7 +577,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         @apply flex items-center px-6 [.border-t]:pt-6;
       }
     }
-  } */
+
+    .panel {
+      @apply bg-gray-150 dark:bg-gray-950/35 dark:inset-shadow-2xs dark:inset-shadow-black w-full rounded-2xl mb-8 p-1.25 lg:p-1.75 overflow-x-auto overscroll-x-contain;
+    }
+
+    .panel-content {
+      @apply bg-white dark:bg-gray-850 rounded-xl ring ring-gray-200 dark:ring-gray-700/80 shadow-ui-md divide-gray-200 dark:divide-gray-800;
+
+      > section {
+        @apply -mb-px px-4 py-4 [&:not(:last-child)]:border-b ;
+      }
+    }
+}
 
 /* Checkbox */
 /* @layer components {
@@ -1336,7 +1348,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   }
 
   .data-table thead th {
-    @apply px-2 py-2 md:px-4;
+    @apply px-2 py-2 md:px-4 align-top;
   }
 
   .data-table--contained :is(.data-table thead th) {
@@ -1407,15 +1419,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   }
 
   .data-table tbody tr th {
-    @apply py-2;
-  }
-
-  .data-table tbody tr th:where(:dir(ltr), [dir="ltr"], [dir="ltr"] *) {
-    @apply pr-4;
-  }
-
-  .data-table tbody tr th:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
-    @apply pl-4;
+    @apply py-2 ps-4;
   }
 
   .data-table tbody tr td {
@@ -1475,10 +1479,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     @apply bg-gray-100 dark:bg-gray-950;
   }
 
-  .data-table .sortable:not(.sorting):hover:after,
-  .data-table .sortable.sorting::before,
-  .data-table .sortASC:after,
-  .data-table .sortDESC:after {
+  .data-table .table-heading {
+    @apply relative w-min -ms-2 px-2 -mt-1 py-1 rounded-lg group-hover:bg-gray-600/10;
+  }
+
+  .data-table .sortable:not(.sorting):hover .table-heading::after,
+  .data-table .sortable.sorting .table-heading::before,
+  .data-table .sortASC .table-heading::after,
+  .data-table .sortDESC .table-heading::after {
       content: "";
       background-position: left center;
       background-repeat: no-repeat;
@@ -1486,21 +1494,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
       width: 1.2rem;
       height: 1.2rem;
       position: absolute;
-      top: 30%;
-      right: 0;
+      top: 0.25rem;
+      right: -1.25rem;
   }
 
-  .data-table .sortable:not(.sorting):hover:after,
-  .data-table .sortable.sorting::before {
+  .data-table .sortable:not(.sorting):hover .table-heading::after,
+  .data-table .sortable.sorting .table-heading::before {
       background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0icmdiKDEyMywgMTI5LCAxNDIpIj4KICA8cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xMC41MyAzLjQ3YS43NS43NSAwIDAgMC0xLjA2IDBMNi4yMiA2LjcyYS43NS43NSAwIDAgMCAxLjA2IDEuMDZMMTAgNS4wNmwyLjcyIDIuNzJhLjc1Ljc1IDAgMSAwIDEuMDYtMS4wNmwtMy4yNS0zLjI1Wm0tNC4zMSA5LjgxIDMuMjUgMy4yNWEuNzUuNzUgMCAwIDAgMS4wNiAwbDMuMjUtMy4yNWEuNzUuNzUgMCAxIDAtMS4wNi0xLjA2TDEwIDE0Ljk0bC0yLjcyLTIuNzJhLjc1Ljc1IDAgMCAwLTEuMDYgMS4wNloiIGNsaXAtcnVsZT0iZXZlbm9kZCIgLz4KPC9zdmc+Cg==');
       opacity: 0.4;
   }
 
-  .data-table .sortASC:after {
+  .data-table .sortASC .table-heading::after {
       background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0icmdiKDEyMywgMTI5LCAxNDIpIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBkPSJNMTAuNTMgMy40N2EuNzUuNzUgMCAwIDAtMS4wNiAwTDYuMjIgNi43MmEuNzUuNzUgMCAwIDAgMS4wNiAxLjA2TDEwIDUuMDZsMi43MiAyLjcyYS43NS43NSAwIDEgMCAxLjA2LTEuMDZsLTMuMjUtMy4yNVoiICAvPgo8L3N2Zz4=');
   }
 
-  .data-table .sortDESC:after {
+  .data-table .sortDESC .table-heading::after {
       background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0icmdiKDEyMywgMTI5LCAxNDIpIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBkPSJNNi4yLDEzLjNsMy4yLDMuMmMuMy4zLjguMywxLjEsMGwzLjItMy4yYy4zLS4zLjMtLjgsMC0xLjFzLS44LS4zLTEuMSwwYzAsMCwwLDAsMCwwbC0yLjcsMi43LTIuNy0yLjdjLS4zLS4zLS44LS4zLTEuMSwwLS4zLjMtLjMuNywwLDFaIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIC8+Cjwvc3ZnPg==');
   }
 

@@ -30,7 +30,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
 
 {% block header %}
-    <div class="flex flex-wrap sm:flex-no-wrap items-stretch justify-between gap-2 mt-4 mb-3">
+    <div class="flex flex-wrap sm:flex-no-wrap items-stretch justify-between gap-2">
 
         {% if dataSet.getTotalCount > 0 %}
         <div class="flex-1 flex justify-start items-center gap-2">
@@ -93,6 +93,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
 {% block footer %}
     
+    {% if not isFiltered and dataSet.getResultCount > 0 %}
     <div class="flex items-center justify-between mt-2">
 
         <div class="flex items-center  {{ dataSet.getTotalCount > 0 ? 'h-10' : '' }}">
@@ -112,6 +113,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
             {% endif %}
         </div>
     </div>
+    {% endif %}
     
     
 {% endblock footer %}

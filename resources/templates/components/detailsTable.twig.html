@@ -11,15 +11,17 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 {% extends "components/dataTable.twig.html" %}
 
 {% block title %}
-    
 {% endblock title %}
+
+{% block description %}
+{% endblock description %}
 
 {% block table %}
 
     <header class="relative print:hidden w-full flex justify-between items-end">
         {% block header %}
             {% if table.getTitle %}
-                <h2>{{ table.getTitle|raw }}</h2>
+            <h2 class="text-xl font-medium antialiased mt-8 mb-2">{{ table.getTitle|raw }}</h2>
             {% endif %}
 
             {% if table.getHeader %}
@@ -33,10 +35,8 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
         {% endblock header %}
     </header>
 
-    {{ title }}
-
     {% if rows is empty %}
-        <div class="h-48 rounded-sm border dark:border-gray-700 bg-gray-100 dark:bg-gray-800 shadow-inner overflow-hidden">
+        <div class="h-48 panel-content  shadow-inner overflow-hidden">
             {% block blankslate %}
             {{ include('components/blankSlate.twig.html') }}
             {% endblock blankslate %}
@@ -44,30 +44,35 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
     {% else %}
     
         {% for rowIndex, rowData in rows %}
-        
+            
             {% for heading, headingColumns in groups %}
+            <div class="panel"> 
                 {% if heading %}
-                    <h4>{{ __(heading) }}</h4>
+                <div class="flex flex-col items-start justify-between px-3 py-2">
+                    <h4 class="font-medium [&:has(+[data-ui-subheading])]:mb-0.5 [&:has(+[data-ui-subheading])]:text-gray-925 dark:[&:has(+[data-ui-subheading])]:text-white antialiased flex items-center text-base gap-3 tracking-tight text-gray-800 dark:text-white">{{ __(heading) }}</h4>
+                </div>
                 {% endif %}
 
-                <div class="sm:grid {{ gridClass|default('grid-cols-2 sm:grid-cols-3') }} rounded border dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs text-gray-700 dark:text-gray-300">
+                <div class="panel-content sm:grid {{ gridClass|default('grid-cols-2 md:grid-cols-3') }} gap-0 overflow-clip">
             
                 {% for columnIndex, column in headingColumns %}
 
-                    <div class="px-4 py-4 border-b dark:border-gray-700 -mb-px {{ column.getClass }}" 
-                        style="{{ column.getWidth != 'auto' ? 'width: ' ~ column.getWidth }}" >
-                        <span class="block text-sm text-gray-700 dark:text-gray-300 font-semibold mb-1.5">{{ column.getLabel | raw }}</span>
+                    <section class="{{ column.getClass }}" style="{{ column.getWidth != 'auto' ? 'width: ' ~ column.getWidth }}" >
+                        <header class="block text-sm text-gray-700 dark:text-gray-300 font-semibold mb-1.5">{{ column.getLabel | raw }}</header>
                         <span class="block text-sm text-gray-700 dark:text-gray-300 overflow-x-auto">{{ column.getOutput(rowData) | raw }}</span>
-                    </div>
+                    </section>
 
                 {% endfor %}
                 </div>
+            </div>
             {% endfor %}
 
-
+            
         {% endfor %}
 
     {% endif %}
+
+
 
 {% endblock table %}
 

@@ -18,7 +18,22 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import Sortable from '../../build/node_modules/sortablejs';
+import Sortable from '~/sortablejs';
+import Alpine from '~/alpinejs';
+import focus from '~/@alpinejs/focus'
+import sort from '~/@alpinejs/sort'
+import collapse from '~/@alpinejs/collapse'
+import resize from '~/@alpinejs/resize'
+import persist from '~/@alpinejs/persist'
+
+Alpine.plugin(focus);
+Alpine.plugin(sort);
+Alpine.plugin(collapse);
+Alpine.plugin(resize);
+Alpine.plugin(persist);
+
+Alpine.start();
+
 
 // Initialize an Alpine.js Tooltip (on non-mobile devices)
 document.addEventListener('alpine:init', () => {

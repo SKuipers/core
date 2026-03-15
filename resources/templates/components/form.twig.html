@@ -105,7 +105,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
             {% set rows = rows|filter(row => "formHeading" not in row.getClass) %}
 
             {% if useSections %}
-            <section id="{{ section.getID }}" x-data="{sectionOpen: {{ section.getOpen|default(0) }}, openable: {{ rows ? '1' : '0' }} }" class="relative bg-gray-150 dark:bg-gray-950/35 dark:inset-shadow-2xs dark:inset-shadow-black w-full rounded-2xl mb-8 p-1.25 lg:p-1.75 focus-none starting-style-transition has-[header]:pt-0 {{ not sectionLoop.last ? 'pb-4 dark:border-t-gray-600 focus-within:border-t-blue-500 dark:focus-within:border-t-blue-400 transition' }} {{ section.getID == 'submit' ? 'w-full sm:sticky -bottom-px -mt-px mb-px z-40' : standardLayout ? '  ' : ''}}" :class="{'pb-0! hover:bg-gray-200 dark:bg-gray-950' : !sectionOpen && openable, 'pb-0!' : !openable }" >
+            <section id="{{ section.getID }}" x-data="{sectionOpen: {{ section.getOpen|default(0) }}, openable: {{ rows ? '1' : '0' }} }" class="relative bg-gray-150 dark:bg-gray-950/35 dark:inset-shadow-2xs dark:inset-shadow-black w-full rounded-2xl mb-8 p-1.25 lg:p-1.75 has-[header]:pt-0 {{ not sectionLoop.last ? 'pb-4 dark:border-t-gray-600 focus-within:border-t-blue-500 dark:focus-within:border-t-blue-400 transition' }} {{ section.getID == 'submit' ? 'w-full sm:sticky -bottom-px -mt-px mb-px z-40' : standardLayout ? '  ' : ''}}" :class="{'pb-0! hover:bg-gray-200 dark:bg-gray-950' : !sectionOpen && openable, 'pb-0!' : !openable }" >
 
                 {% if section.getHeading %}
                 <header @click="sectionOpen = openable ? !sectionOpen : true" class="px-3 py-4 [&_button]:relative relative flex flex-col items-start justify-between" data-ui-panel-header="">

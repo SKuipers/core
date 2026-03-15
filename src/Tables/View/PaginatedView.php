@@ -113,7 +113,7 @@ class PaginatedView extends DataTableView implements RendererInterface
 
         if ($sortBy = $column->getSortable()) {
             $sortBy = !is_array($sortBy)? array($sortBy) : $sortBy;
-            $th->addClass('sortable relative pr-4 cursor-pointer');
+            $th->addClass('sortable group pr-4 cursor-pointer');
             $th->addData('sort', implode(',', $sortBy));
 
             foreach ($sortBy as $sortColumn) {

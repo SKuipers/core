@@ -15,11 +15,13 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 {% endif %}
 
 {% if table.getDescription %}
+    {% block description %}
     <p class="text-sm text-gray-600 mb-2">{{ table.getDescription|raw }}</p>
+    {% endblock description %}
 {% endif %}
 
 {% block table %}
-    <header class="relative print:hidden">
+    <header class="relative print:hidden mt-4 mb-3">
         {% block header %}
     
             {% if table.getHeader %}
@@ -33,7 +35,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
         {% endblock header %}
     </header>
 
-    <div class="dataTable relative bg-gray-150 dark:bg-gray-950/35 dark:inset-shadow-2xs dark:inset-shadow-black w-full rounded-2xl mb-8 p-1.25 lg:p-1.75 focus-none starting-style-transition overflow-x-auto overscroll-x-contain">
+    <div class="dataTable relative bg-gray-150 dark:bg-gray-950/35 dark:inset-shadow-2xs dark:inset-shadow-black w-full rounded-2xl mb-8 p-1.25 lg:p-1.75 overflow-x-auto overscroll-x-contain">
    
     {% if not rows and not isFiltered and dataSet.getResultCount == 0 %}
     <div class="h-32 rounded-xl border dark:border-gray-700 bg-white dark:bg-gray-800 shadow-inner overflow-hidden">
@@ -54,11 +56,13 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
                     {% set th = headerRow[columnIndex] %}
                     {% if th %}
                     <th {{ th.getAttributeString|raw }} style="width: {{ column.getWidth }}; {{ rowIndex > 0 ? 'top: '~(2.83 * rowIndex)~'rem' }}">
-                        {{ th.getOutput|raw }}
+                        <div class="table-heading">
+                            {{ th.getOutput|raw }}
 
-                        {% if th.getData('description') %}
-                            <br/><small><i>{{ th.getData('description') }}</i></small>
-                        {% endif %}
+                            {% if th.getData('description') %}
+                                <br/><small><i>{{ th.getData('description') }}</i></small>
+                            {% endif %}
+                        </div>
                     </th>
                     {% endif %}
                 {% endfor %}

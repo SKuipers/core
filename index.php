@@ -345,17 +345,16 @@ $page->scripts->addMultiple([
     
 ], ['context' => 'head']);
 
-$page->scripts->add('core', 'resources/assets/build/app.js', ['context' => 'foot', 'type' => 'module']);
-
 $page->scripts->addMultiple([
     'jquery-time'    => 'lib/jquery-timepicker/jquery.timepicker.min.js',
     'jquery-chained' => 'lib/chained/jquery.chained.min.js',
-    'alpineFocus'    => 'lib/htmx/alpine.focus.min.js',
-    'alpineSort'     => 'lib/htmx/alpine.sort.min.js',
-    'alpineCollapse' => 'lib/htmx/alpine.collapse.min.js',
     'alpineValidate' => 'lib/htmx/alpine.validate.min.js',
-    'alpine'         => 'lib/htmx/alpine.min.js',
 ], ['context' => 'head', 'type' => 'defer']);
+
+$page->scripts->add('core', 'lib/htmx/alpine.validate.min.js', ['context' => 'head', 'type' => 'defer']);
+$page->scripts->add('core', 'resources/assets/build/app.js', ['context' => 'head', 'type' => 'module']);
+
+
 
 // Set page scripts: foot - core
 $page->scripts->add('core-config', 'window.Gibbon = '.json_encode($javascriptConfig).';', ['type' => 'inline']);
