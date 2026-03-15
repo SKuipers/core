@@ -104,8 +104,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/ttDates.ph
 
                     $script = '<script type="text/javascript">';
                     $script .= 'htmx.onLoad(function (content) {';
-                    $script .= "$(document).on('click', '#checkall".$dowShort.$values['nameShort']."', function () {";
-                    $script .= "$('.".$dowShort.$values['nameShort']." :checkbox').attr('checked', this.checked);";
+                    $script .= "document.addEventListener('click', function (e) {";
+                    $script .= "var target = e.target.closest('#checkall".$dowShort.$values['nameShort']."');";
+                    $script .= 'if (!target) return;';
+                    $script .= "document.querySelectorAll('.".$dowShort.$values['nameShort']." input[type=\"checkbox\"]').forEach(function (cb) { cb.checked = target.checked; });";
                     $script .= '});';
                     $script .= '});';
                     $script .= '</script>';

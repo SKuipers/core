@@ -148,13 +148,54 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/tt_edit_by
 ?>
  <script>
     function chainSelects() {
-            $('div.blocks').find('select.chainTo').each(function () {
-            var index = $(this).attr('id').replace('gibbonTTColumnRowID' ,'');
-            $(this).removeClass('chainTo').chainedTo('#gibbonTTDayID' + index);
+        document.querySelectorAll('div.blocks select.chainTo').forEach(function (select) {
+            var index = select.id.replace('gibbonTTColumnRowID', '');
+            select.classList.remove('chainTo');
+
+            var parent = document.querySelector('#gibbonTTDayID' + index);
+            if (!parent) return;
+
+            var backup = select.cloneNode(true);
+
+            function updateOptions() {
+                var selectedChild = select.value;
+                select.innerHTML = backup.innerHTML;
+                select.value = '';
+
+                var parentValue = parent.value;
+                Array.from(select.options).forEach(function (option) {
+                    var optionValue = option.value;
+                    var optionClass = option.className;
+                    var hasParentClass = optionClass && optionClass.split(' ').includes(parentValue);
+
+                    if (optionValue !== '' && optionValue !== 'Please select...' && !hasParentClass) {
+                        option.remove();
+                    }
+                });
+
+                var matchingOption = Array.from(select.options).find(function (opt) {
+                    return opt.value === selectedChild;
+                });
+                if (matchingOption) {
+                    select.value = selectedChild;
+                }
+
+                var selectableOptions = Array.from(select.options).filter(function (option) {
+                    return option.value !== '' && option.value !== 'Please select...';
+                });
+                select.disabled = selectableOptions.length === 0;
+            }
+
+            parent.addEventListener('change', updateOptions);
+            updateOptions();
         });
     }
 
-    $(document).ready(chainSelects);
+    document.addEventListener('DOMContentLoaded', chainSelects);
 
-    $(document).on('click', '.addBlock', chainSelects);
+    document.addEventListener('click', function(e) {
+        var target = e.target.closest('.addBlock');
+        if (!target) return;
+        chainSelects();
+    });
 </script>

@@ -288,24 +288,29 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_mana
         //All of this javascript is due to limitations of CustomBlocks. If these limitaions are fixed in the future, the corresponding block of code should be removed.
         var radio = 'input[type="radio"][name$="[location]"]';
 
-        function locationSwap() {
-            var block = $(this).closest('tbody');
-            if ($(this).prop('id').startsWith('location0')) {
-                block.find('.showHide').hide();
-                block.find('.hideShow').show();
+        function locationSwap(el) {
+            var block = el.closest('tbody');
+            if (!block) return;
+            if (el.id.startsWith('location0')) {
+                block.querySelectorAll('.showHide').forEach(function(node) { node.style.display = 'none'; });
+                block.querySelectorAll('.hideShow').forEach(function(node) { node.style.display = ''; });
             } else {
-                block.find('.showHide').show();
-                block.find('.hideShow').hide();
+                block.querySelectorAll('.showHide').forEach(function(node) { node.style.display = ''; });
+                block.querySelectorAll('.hideShow').forEach(function(node) { node.style.display = 'none'; });
             }
         }
 
-        $(document).ready(function(){
+        document.addEventListener('DOMContentLoaded', function(){
             //This is to ensure that loaded blocks have the correct state.
-            $(radio + ':checked').each(locationSwap);
+            document.querySelectorAll(radio + ':checked').forEach(function(el) { locationSwap(el); });
         });
 
         //This supplements triggers for the Internal and External Locations
-        $(document).on('change', radio, locationSwap);
+        document.addEventListener('change', function(e) {
+            var target = e.target.closest(radio);
+            if (!target) return;
+            locationSwap(target);
+        });
     </script>
 
     <?php

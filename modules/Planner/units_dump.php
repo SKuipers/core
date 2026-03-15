@@ -332,6 +332,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_dump.php') =
                                     }
 
                                     //COLOR ROW BY STATUS!
+                                    echo "<tbody x-data=\"{ open: false }\">";
                                     echo "<tr class=$rowNum>";
                                     echo '<td>';
                                     echo '<b>'.$rowBlocks['scope'].'</b><br/>';
@@ -357,28 +358,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_dump.php') =
                                     echo getYearGroupsFromIDList($guid, $connection2, $rowBlocks['gibbonYearGroupIDList']);
                                     echo '</td>';
                                     echo '<td>';
-                                    echo "<script type='text/javascript'>";
-                                    echo '$(document).ready(function(){';
-                                    echo "\$(\".description-$count\").hide();";
-                                    echo "\$(\".show_hide-$count\").fadeIn(1000);";
-                                    echo "\$(\".show_hide-$count\").click(function(){";
-                                    echo "\$(\".description-$count\").fadeToggle(1000);";
-                                    echo '});';
-                                    echo '});';
-                                    echo '</script>';
                                     if ($rowBlocks['content'] != '') {
-                                        echo "<a title='".__('View Description')."' class='show_hide-$count' onclick='false' href='#'><img style='padding-left: 0px' src='".$session->get('absoluteURL').'/themes/'.$session->get('gibbonThemeName')."/img/page_down.png' alt='".__('Show Comment')."' onclick='return false;' /></a>";
+                                        echo "<a title='".__('View Description')."' class='show_hide-$count' @click.prevent=\"open = !open\" href='#' x-show=\"true\" x-transition.opacity.duration.1000ms><img style='padding-left: 0px' src='".$session->get('absoluteURL').'/themes/'.$session->get('gibbonThemeName')."/img/page_down.png' alt='".__('Show Comment')."' /></a>";
                                     }
                                     echo '</td>';
                                     echo '</tr>';
                                     if ($rowBlocks['content'] != '') {
-                                        echo "<tr class='description-$count' id='description-$count'>";
+                                        echo "<tr class='description-$count' id='description-$count' x-show=\"open\" x-transition.opacity.duration.1000ms>";
                                         echo '<td colspan=6>';
                                         echo $rowBlocks['content'];
                                         echo '</td>';
                                         echo '</tr>';
                                     }
-                                    echo '</tr>';
+                                    echo '</tbody>';
 
                                     ++$count;
                                 }

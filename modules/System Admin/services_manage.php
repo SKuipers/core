@@ -76,17 +76,29 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/services_mana
 
 ?>
 <script type='text/javascript'>
-    $(document).ready(function(){
+    document.addEventListener('DOMContentLoaded', function(){
         var path = '<?php echo $session->get('absoluteURL').'/modules/System%20Admin/services_manage_ajax.php'; ?>';
-        var orgName = $('#gibboneduComOrganisationName').val();
-        var orgKey = $('#gibboneduComOrganisationKey').val();
+        var orgNameEl = document.getElementById('gibboneduComOrganisationName');
+        var orgKeyEl = document.getElementById('gibboneduComOrganisationKey');
+        var orgName = orgNameEl ? orgNameEl.value : '';
+        var orgKey = orgKeyEl ? orgKeyEl.value : '';
 
         if (orgName && orgKey) {
-            $('#servicesCheck').load(path, {
-                'address': '<?php echo $session->get('address'); ?>',
-                'gibboneduComOrganisationName': orgName, 
-                'gibboneduComOrganisationKey': orgKey
-            });
+            var servicesCheck = document.getElementById('servicesCheck');
+            if (servicesCheck) {
+                fetch(path, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        'address': '<?php echo $session->get('address'); ?>',
+                        'gibboneduComOrganisationName': orgName,
+                        'gibboneduComOrganisationKey': orgKey
+                    })
+                })
+                .then(function(response) { return response.text(); })
+                .then(function(html) { servicesCheck.innerHTML = html; })
+                .catch(function() { servicesCheck.innerHTML = ''; });
+            }
         }
     });
 </script>

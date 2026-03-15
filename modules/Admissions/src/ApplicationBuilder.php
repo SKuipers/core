@@ -138,16 +138,18 @@ class ApplicationBuilder extends FormBuilder
     {
         if (!empty($_GET['return']) && stripos($_GET['return'], 'success') !== false) {
             $successMessage = $this->settingGateway->getSettingByScope('Application Form', 'successMessage');
-            $output = "$(document).ready(function(){
+            $output = "document.addEventListener('DOMContentLoaded', function(){
                 alert('".$successMessage."');
             });";
         } else {
             $output = "
-            $('input,textarea,select').on('input', function() {
-                window.onbeforeunload = function(event) {
-                    if (event.explicitOriginalTarget.value=='Submit' || event.explicitOriginalTarget.value=='Next') return;
-                    return '".__('There are unsaved changes on this page.')."';
-                };
+            document.querySelectorAll('input,textarea,select').forEach(function(el) {
+                el.addEventListener('input', function() {
+                    window.onbeforeunload = function(event) {
+                        if (event.explicitOriginalTarget.value=='Submit' || event.explicitOriginalTarget.value=='Next') return;
+                        return '".__('There are unsaved changes on this page.')."';
+                    };
+                });
             });
         ";
         }

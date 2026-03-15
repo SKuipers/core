@@ -51,28 +51,33 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/resources_view.php
     $highestAction = getHighestGroupedAction($guid, '/modules/Planner/resources_manage.php', $connection2);
 
     $output .= "<script type='text/javascript'>";
-    $output .= '$(document).ready(function() {';
-    $output .= 'var optionsSearch={';
-    $output .= 'target: $(".'.$id.'resourceSlider"),';
-    $output .= "url: '".$session->get('absoluteURL')."/modules/Planner/resources_insert_ajax.php?id=$id',";
-    $output .= "type: 'POST'";
-    $output .= '};';
-
-    $output .= "$('#".$id."ajaxFormSearch').submit(function() {";
-    $output .= '$(this).ajaxSubmit(optionsSearch);';
-    $output .= 'return false;';
+    $output .= 'document.addEventListener("DOMContentLoaded", function() {';
+    $output .= "var searchForm = document.getElementById('".$id."ajaxFormSearch');";
+    $output .= 'if (searchForm) {';
+    $output .= 'searchForm.addEventListener("submit", function(e) {';
+    $output .= 'e.preventDefault();';
+    $output .= "var target = document.querySelector('.".$id."resourceSlider');";
+    $output .= "fetch('".$session->get('absoluteURL')."/modules/Planner/resources_insert_ajax.php?id=$id', {";
+    $output .= "method: 'POST',";
+    $output .= 'body: new FormData(searchForm)';
+    $output .= '})';
+    $output .= '.then(function(response) { return response.text(); })';
+    $output .= '.then(function(html) { if (target) { target.innerHTML = html; } })';
+    $output .= ".catch(function(error) { console.error('Search request failed:', error); });";
     $output .= '});';
+    $output .= '}';
     $output .= '});';
 
     $output .= 'var formResetSearch=function() {';
-    $output .= "$('#".$id."resourceInsert').css('display','none');";
+    $output .= "var insertEl = document.getElementById('".$id."resourceInsert');";
+    $output .= "if (insertEl) { insertEl.style.display = 'none'; }";
     $output .= '};';
     $output .= '</script>';
 
     $output .= "<table cellspacing='0' style='width: 100%'>";
     $output .= "<tr id='".$id."resourceInsert'>";
     $output .= "<td colspan=2 style='padding-top: 0px'>";
-    $output .= "<div class='text-right pt-2'><a href='javascript:void(0)' onclick='formResetSearch(); \$(\".".$id."resourceSlider\").slideUp();'>".__('Close')."<img style='margin-left: 5px' title='".__('Close')."' src='./themes/".$session->get('gibbonThemeName')."/img/iconCross.png'/></a></div>";
+    $output .= "<div class='text-right pt-2'><a href='javascript:void(0)' onclick='formResetSearch(); var slider = document.querySelector(\".".$id."resourceSlider\"); if (slider) { slider.style.display = \"none\"; }'>".__('Close')."<img style='margin-left: 5px' title='".__('Close')."' src='./themes/".$session->get('gibbonThemeName')."/img/iconCross.png'/></a></div>";
     $output .= "<h3 style='margin-top: 0px; font-size: 140%'>Insert A Resource</h3>";
     $output .= '<p>'.sprintf(__('The table below shows shared resources drawn from the %1$sPlanner%2$s section of Gibbon. You will see the 50 most recent resources that match the filters you have used.'), "<a target='_blank' href='".$session->get('absoluteURL')."/index.php?q=/modules/Planner/resources_view.php'>", '</a>').'</p>';
     
@@ -270,7 +275,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/resources_view.php
             } elseif ($row['type'] == 'HTML') {
                 $html = $row['content'];
             }
-            $output .= "<a href='javascript:void(0)' onclick='tinymce.execCommand(\"mceFocus\",false,\"$id\"); tinyMCE.execCommand(\"mceInsertContent\", 0, \"".htmlPrep(addslashes($html)).'"); formResetSearch(); $(".'.$id."resourceSlider\").slideUp();'><img title='".__('Insert')."' src='./themes/".$session->get('gibbonThemeName')."/img/plus.png'/></a>";
+            $output .= "<a href='javascript:void(0)' onclick='tinymce.execCommand(\"mceFocus\",false,\"$id\"); tinyMCE.execCommand(\"mceInsertContent\", 0, \"".htmlPrep(addslashes($html))."\"); formResetSearch(); var slider = document.querySelector(\".".$id."resourceSlider\"); if (slider) { slider.style.display = \"none\"; }'><img title='".__('Insert')."' src='./themes/".$session->get('gibbonThemeName')."/img/plus.png'/></a>";
             $output .= '</td>';
             $output .= '</tr>';
         }

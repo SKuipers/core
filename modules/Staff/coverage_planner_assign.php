@@ -332,11 +332,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage.php'
 ?>
 <script>
 
-$('#subsManage tr').removeClass('odd').removeClass('even');
+document.querySelectorAll('#subsManage tr').forEach(function(tr) {
+    tr.classList.remove('odd');
+    tr.classList.remove('even');
+});
 
-$(document).on('click', 'input[id^="gibbonPersonID"]', function(event) {
-    $('#subsManage tr').removeClass('selected');
-    $(event.target).parents('tr').addClass('selected');
+document.addEventListener('click', function(e) {
+    var target = e.target.closest('input[id^="gibbonPersonID"]');
+    if (!target) return;
+
+    document.querySelectorAll('#subsManage tr').forEach(function(tr) {
+        tr.classList.remove('selected');
+    });
+
+    var row = target.closest('tr');
+    if (row) {
+        row.classList.add('selected');
+    }
 });
 
 </script>

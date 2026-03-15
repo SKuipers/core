@@ -71,28 +71,37 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/resources_manage_a
         $output .= '</div>';
     } else {
         $output .= "<script type='text/javascript'>";
-        $output .= '$(document).ready(function() {';
+        $output .= 'document.addEventListener("DOMContentLoaded", function() {';
 
-        $output .= "$('.checkall').click(function () {";
-        $output .= "$(this).parents('fieldset:eq(0)').find(':checkbox').attr('checked', this.checked);";
-        $output .= "});";
-        $output .= 'var options={';
-        $output .= 'success: function(response) {';
-        $output .= "tinymce.execCommand(\"mceFocus\",false,\"$id\"); tinyMCE.execCommand(\"mceInsertContent\", 0, response); formReset(); \$(\".".$id.'resourceAddSlider").slideUp();';
-        $output .= '}, ';
-        $output .= "url: '".$session->get('absoluteURL')."/modules/Planner/resources_add_ajaxProcess.php',";
-        $output .= "type: 'POST'";
-        $output .= '};';
-
-        $output .= "$('#".$id."ajaxForm').submit(function() {";
-        $output .= '$(this).ajaxSubmit(options);';
-        $output .= '$(".'.$id."resourceAddSlider\").html(\"<div class='resourceAddSlider'><img style='margin: 10px 0 5px 0' src='".$session->get('absoluteURL').'/themes/'.$session->get('gibbonThemeName')."/img/loading.gif' alt='".__('Uploading')."' onclick='return false;' /><br/>".__('Loading').'</div>");';
-        $output .= 'return false;';
+        $output .= "document.querySelectorAll('.checkall').forEach(function(el) {";
+        $output .= "el.addEventListener('click', function() {";
+        $output .= "var fieldset = this.closest('fieldset');";
+        $output .= "if (fieldset) { fieldset.querySelectorAll('input[type=\"checkbox\"]').forEach(function(cb) { cb.checked = el.checked; }); }";
         $output .= '});';
+        $output .= '});';
+
+        $output .= "var ajaxForm = document.getElementById('".$id."ajaxForm');";
+        $output .= 'if (ajaxForm) {';
+        $output .= "ajaxForm.addEventListener('submit', function(e) {";
+        $output .= 'e.preventDefault();';
+        $output .= "var slider = document.querySelector('.".$id."resourceAddSlider');";
+        $output .= "if (slider) { slider.innerHTML = \"<div class='resourceAddSlider'><img style='margin: 10px 0 5px 0' src='".$session->get('absoluteURL').'/themes/'.$session->get('gibbonThemeName')."/img/loading.gif' alt='".__('Uploading')."' onclick='return false;' /><br/>".__('Loading')."</div>\"; }";
+        $output .= "fetch('".$session->get('absoluteURL')."/modules/Planner/resources_add_ajaxProcess.php', {";
+        $output .= "method: 'POST',";
+        $output .= 'body: new FormData(ajaxForm)';
+        $output .= '})';
+        $output .= '.then(function(response) { return response.text(); })';
+        $output .= '.then(function(response) {';
+        $output .= "tinymce.execCommand(\"mceFocus\",false,\"$id\"); tinyMCE.execCommand(\"mceInsertContent\", 0, response); formReset(); var slider = document.querySelector('.".$id."resourceAddSlider'); if (slider) { slider.style.display = 'none'; }";
+        $output .= '})';
+        $output .= ".catch(function(error) { console.error('Form submission failed:', error); });";
+        $output .= '});';
+        $output .= '}';
         $output .= '});';
 
         $output .= 'var formReset=function() {';
-        $output .= "$('#".$id."resourceAdd').css('display','none');";
+        $output .= "var el = document.getElementById('".$id."resourceAdd');";
+        $output .= "if (el) { el.style.display = 'none'; }";
         $output .= '};';
         $output .= '</script>';
 
@@ -104,7 +113,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/resources_manage_a
 
         $col = $form->addRow()->addColumn();
             $col->addWebLink("<img title='".__('Close')."' src='./themes/".$session->get('gibbonThemeName')."/img/iconCross.png'/>")
-                ->onClick("formReset(); \$(\".".$id."resourceAddSlider\").slideUp();")->addClass('right');
+                ->onClick("formReset(); var slider = document.querySelector('.".$id."resourceAddSlider'); if (slider) { slider.style.display = 'none'; }")->addClass('right');
             $col->addContent(__('Add & Insert A New Resource'))->wrap('<h3 style="margin-top: 0;">', '</h3>');
             $col->addContent(__('Use the form below to add a new resource to Gibbon. If the addition is successful, then it will be automatically inserted into your work above. Note that you  cannot create HTML resources here (you have to go to the Planner module for that).'))->wrap('<p>', '</p>');
 

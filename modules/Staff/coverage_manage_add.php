@@ -148,38 +148,76 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_manage_add.
 ?>
 
 <script>
-$(document).ready(function() {
-    $('#gibbonPersonIDCoverage, #dateStart, #dateEnd, #allDay, #timeStart, #timeEnd').on('change', function() {
-        $('.datesTable').load('./modules/Staff/coverage_manage_addAjax.php', {
-            'allDay': $('input[name=allDay]:checked').val(),
-            'dateStart': $('#dateStart').val(),
-            'dateEnd': $('#dateEnd').val(),
-            'timeStart': $('#timeStart').val(),
-            'timeEnd': $('#timeEnd').val(),
-            'gibbonPersonIDCoverage': $('#gibbonPersonIDCoverage').val(),
-        }, function() {
-            // Pre-highlight selected rows
-            $('.bulkActionForm').find('.bulkCheckbox :checkbox').each(function () {
-                $(this).closest('tr').toggleClass('selected', $(this).prop('checked'));
-            });
-
-            $('#gibbonPersonID').trigger('change');
-        });
-    });
-
-    // Individual requests: Prevent clicking submit until at least one date has been selected
-    $(document).on('change', '#gibbonPersonID, input[name="requestDates[]"]', function() {
-        var checked = $('input[name="requestDates[]"]:checked');
-
-        if (checked.length <= 0) {
-            $('.coverageNoSubmit').show();
-            $('.coverageSubmit :input').prop('disabled', true);
-        } else {
-            $('.coverageNoSubmit').hide();
-            $('.coverageSubmit :input').prop('disabled', false);
+document.addEventListener('DOMContentLoaded', function() {
+    var fields = ['gibbonPersonIDCoverage', 'dateStart', 'dateEnd', 'allDay', 'timeStart', 'timeEnd'];
+    fields.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('change', loadDatesTable);
         }
     });
-    
-    $('#gibbonPersonID').trigger('change');
-}) ;
+
+    function loadDatesTable() {
+        var datesTable = document.querySelector('.datesTable');
+        if (!datesTable) return;
+
+        var allDayEl = document.querySelector('input[name=allDay]:checked');
+        var params = new URLSearchParams({
+            'allDay': allDayEl ? allDayEl.value : '',
+            'dateStart': (document.getElementById('dateStart') || {}).value || '',
+            'dateEnd': (document.getElementById('dateEnd') || {}).value || '',
+            'timeStart': (document.getElementById('timeStart') || {}).value || '',
+            'timeEnd': (document.getElementById('timeEnd') || {}).value || '',
+            'gibbonPersonIDCoverage': (document.getElementById('gibbonPersonIDCoverage') || {}).value || '',
+        });
+
+        fetch('./modules/Staff/coverage_manage_addAjax.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params.toString()
+        })
+        .then(function(r) { return r.text(); })
+        .then(function(html) {
+            datesTable.innerHTML = html;
+
+            // Pre-highlight selected rows
+            var checkboxes = datesTable.querySelectorAll('.bulkActionForm .bulkCheckbox input[type="checkbox"]');
+            checkboxes.forEach(function(cb) {
+                var row = cb.closest('tr');
+                if (row) {
+                    row.classList.toggle('selected', cb.checked);
+                }
+            });
+
+            var personEl = document.getElementById('gibbonPersonID');
+            if (personEl) {
+                personEl.dispatchEvent(new Event('change'));
+            }
+        });
+    }
+
+    // Individual requests: Prevent clicking submit until at least one date has been selected
+    document.addEventListener('change', function(e) {
+        var target = e.target;
+        if (!target.matches('#gibbonPersonID, input[name="requestDates[]"]')) return;
+
+        var checked = document.querySelectorAll('input[name="requestDates[]"]:checked');
+
+        var noSubmit = document.querySelector('.coverageNoSubmit');
+        var submitInputs = document.querySelectorAll('.coverageSubmit input, .coverageSubmit button');
+
+        if (checked.length <= 0) {
+            if (noSubmit) noSubmit.classList.remove('hidden');
+            submitInputs.forEach(function(input) { input.disabled = true; });
+        } else {
+            if (noSubmit) noSubmit.classList.add('hidden');
+            submitInputs.forEach(function(input) { input.disabled = false; });
+        }
+    });
+
+    var personEl = document.getElementById('gibbonPersonID');
+    if (personEl) {
+        personEl.dispatchEvent(new Event('change'));
+    }
+});
 </script>

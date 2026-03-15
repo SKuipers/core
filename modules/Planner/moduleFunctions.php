@@ -77,34 +77,66 @@ function makeBlock($guid, $connection2, $i, $mode = 'masterAdd', $title = '', $t
 
 		</script>
 		<script type='text/javascript'>
-			$(document).ready(function(){
-				$("#blockInner<?php echo $i ?>").css("display","none");
-				$("#block<?php echo $i ?>").css("height","82px")
+			document.addEventListener('DOMContentLoaded', function(){
+				var blockInner = document.getElementById('blockInner<?php echo $i ?>');
+				var block = document.getElementById('block<?php echo $i ?>');
+				var showBtn = document.getElementById('show<?php echo $i ?>');
+				var deleteBtn = document.getElementById('delete<?php echo $i ?>');
+
+				if (blockInner) blockInner.style.display = 'none';
+				if (block) block.style.height = '82px';
 
 				//Block contents control
-				$('#show<?php echo $i ?>').unbind('click').click(function() {
-					if ($("#blockInner<?php echo $i ?>").is(":visible")) {
-						$("#blockInner<?php echo $i ?>").css("display","none");
-						$("#block<?php echo $i ?>").css("height","82px")
-						$('#show<?php echo $i ?>').css("background-image", "<?php echo "url(\'".$session->get('absoluteURL').'/themes/'.$session->get('gibbonThemeName')."/img/plus.png\'"?>)");
-						tinyMCE.execCommand('mceRemoveEditor', false, 'contents<?php echo $i ?>') ;
-						tinyMCE.execCommand('mceRemoveEditor', false, 'teachersNotes<?php echo $i ?>') ;
-					} else {
-						$("#blockInner<?php echo $i ?>").slideDown("fast", $("#blockInner<?php echo $i ?>").css("display","table-row"));
-						$("#block<?php echo $i ?>").css("height","auto")
-						$('#show<?php echo $i ?>').css("background-image", "<?php echo "url(\'".$session->get('absoluteURL').'/themes/'.$session->get('gibbonThemeName')."/img/minus.png\'"?>)");
-						tinyMCE.execCommand('mceRemoveEditor', false, 'contents<?php echo $i ?>') ;
-						tinyMCE.execCommand('mceAddEditor', false, 'contents<?php echo $i ?>') ;
-						tinyMCE.execCommand('mceRemoveEditor', false, 'teachersNotes<?php echo $i ?>') ;
-						tinyMCE.execCommand('mceAddEditor', false, 'teachersNotes<?php echo $i ?>') ;
-					}
-				});
+				if (showBtn) {
+					showBtn.replaceWith(showBtn.cloneNode(true));
+					showBtn = document.getElementById('show<?php echo $i ?>');
+					showBtn.addEventListener('click', function() {
+						var inner = document.getElementById('blockInner<?php echo $i ?>');
+						var blk = document.getElementById('block<?php echo $i ?>');
+						if (inner && inner.offsetParent !== null) {
+							inner.style.display = 'none';
+							if (blk) blk.style.height = '82px';
+							showBtn.style.backgroundImage = "<?php echo "url(\'".$session->get('absoluteURL').'/themes/'.$session->get('gibbonThemeName')."/img/plus.png\'"?>)";
+							if (typeof tinyMCE !== 'undefined') {
+								tinyMCE.execCommand('mceRemoveEditor', false, 'contents<?php echo $i ?>');
+								tinyMCE.execCommand('mceRemoveEditor', false, 'teachersNotes<?php echo $i ?>');
+							}
+						} else {
+							if (inner) {
+								inner.style.display = 'table-row';
+								inner.style.overflow = 'hidden';
+								inner.style.maxHeight = '0';
+								inner.style.transition = 'max-height 0.3s ease';
+								requestAnimationFrame(function() {
+									inner.style.maxHeight = inner.scrollHeight + 'px';
+								});
+							}
+							if (blk) blk.style.height = 'auto';
+							showBtn.style.backgroundImage = "<?php echo "url(\'".$session->get('absoluteURL').'/themes/'.$session->get('gibbonThemeName')."/img/minus.png\'"?>)";
+							if (typeof tinyMCE !== 'undefined') {
+								tinyMCE.execCommand('mceRemoveEditor', false, 'contents<?php echo $i ?>');
+								tinyMCE.execCommand('mceAddEditor', false, 'contents<?php echo $i ?>');
+								tinyMCE.execCommand('mceRemoveEditor', false, 'teachersNotes<?php echo $i ?>');
+								tinyMCE.execCommand('mceAddEditor', false, 'teachersNotes<?php echo $i ?>');
+							}
+						}
+					});
+				}
 
-				$('#delete<?php echo $i ?>').unbind('click').click(function() {
-					if (confirm("<?php echo __('Are you sure you want to delete this record?') ?>")) {
-						$('#block<?php echo $i ?>').fadeOut(600, function(){ $('#block<?php echo $i ?>').remove(); });
-					}
-				});
+				if (deleteBtn) {
+					deleteBtn.replaceWith(deleteBtn.cloneNode(true));
+					deleteBtn = document.getElementById('delete<?php echo $i ?>');
+					deleteBtn.addEventListener('click', function() {
+						if (confirm("<?php echo __('Are you sure you want to delete this record?') ?>")) {
+							var blk = document.getElementById('block<?php echo $i ?>');
+							if (blk) {
+								blk.style.transition = 'opacity 0.6s ease';
+								blk.style.opacity = '0';
+								setTimeout(function(){ blk.remove(); }, 600);
+							}
+						}
+					});
+				}
 			});
 		</script>
 		<?php
@@ -506,34 +538,64 @@ function makeBlockOutcome($guid,  $i, $type = '', $gibbonOutcomeID = '', $title 
 			});
 		</script>
 		<script type="text/javascript">
-			$(document).ready(function(){
-				$("#<?php echo $type ?>BlockInner<?php echo $i ?>").css("display","none");
-				$("#<?php echo $type ?>Block<?php echo $i ?>").css("height","82px") ;
+			document.addEventListener('DOMContentLoaded', function(){
+				var blockInner = document.getElementById('<?php echo $type ?>BlockInner<?php echo $i ?>');
+				var block = document.getElementById('<?php echo $type ?>Block<?php echo $i ?>');
+				var showBtn = document.getElementById('<?php echo $type ?>show<?php echo $i ?>');
+				var deleteBtn = document.getElementById('<?php echo $type ?>delete<?php echo $i ?>');
+
+				if (blockInner) blockInner.style.display = 'none';
+				if (block) block.style.height = '82px';
 
 				//Block contents control
-				$('#<?php echo $type ?>show<?php echo $i ?>').unbind('click').click(function() {
-					if ($("#<?php echo $type ?>BlockInner<?php echo $i ?>").is(":visible")) {
-						$("#<?php echo $type ?>BlockInner<?php echo $i ?>").css("display","none");
-						$("#<?php echo $type ?>Block<?php echo $i ?>").css("height","82px") ;
-						$('#<?php echo $type ?>show<?php echo $i ?>').css("background-image", "<?php echo "url(\'".$session->get('absoluteURL').'/themes/'.$session->get('gibbonThemeName')."/img/plus.png\'"?>)");
-						tinyMCE.execCommand('mceRemoveEditor', false, '<?php echo $type ?>contents<?php echo $i ?>') ;
-					} else {
-						$("#<?php echo $type ?>BlockInner<?php echo $i ?>").slideDown("fast", $("#<?php echo $type ?>BlockInner<?php echo $i ?>").css("display","table-row"));
-						$("#<?php echo $type ?>Block<?php echo $i ?>").css("height","auto")
-						$('#<?php echo $type ?>show<?php echo $i ?>').css("background-image", "<?php echo "url(\'".$session->get('absoluteURL').'/themes/'.$session->get('gibbonThemeName')."/img/minus.png\'"?>)");
-						tinyMCE.execCommand('mceRemoveEditor', false, '<?php echo $type ?>contents<?php echo $i ?>') ;
-						tinyMCE.execCommand('mceAddEditor', false, '<?php echo $type ?>contents<?php echo $i ?>') ;
-					}
-				});
+				if (showBtn) {
+					showBtn.replaceWith(showBtn.cloneNode(true));
+					showBtn = document.getElementById('<?php echo $type ?>show<?php echo $i ?>');
+					showBtn.addEventListener('click', function() {
+						var inner = document.getElementById('<?php echo $type ?>BlockInner<?php echo $i ?>');
+						var blk = document.getElementById('<?php echo $type ?>Block<?php echo $i ?>');
+						if (inner && inner.offsetParent !== null) {
+							inner.style.display = 'none';
+							if (blk) blk.style.height = '82px';
+							showBtn.style.backgroundImage = "<?php echo "url(\'".$session->get('absoluteURL').'/themes/'.$session->get('gibbonThemeName')."/img/plus.png\'"?>)";
+							if (typeof tinyMCE !== 'undefined') {
+								tinyMCE.execCommand('mceRemoveEditor', false, '<?php echo $type ?>contents<?php echo $i ?>');
+							}
+						} else {
+							if (inner) {
+								inner.style.display = 'table-row';
+								inner.style.overflow = 'hidden';
+								inner.style.maxHeight = '0';
+								inner.style.transition = 'max-height 0.3s ease';
+								requestAnimationFrame(function() {
+									inner.style.maxHeight = inner.scrollHeight + 'px';
+								});
+							}
+							if (blk) blk.style.height = 'auto';
+							showBtn.style.backgroundImage = "<?php echo "url(\'".$session->get('absoluteURL').'/themes/'.$session->get('gibbonThemeName')."/img/minus.png\'"?>)";
+							if (typeof tinyMCE !== 'undefined') {
+								tinyMCE.execCommand('mceRemoveEditor', false, '<?php echo $type ?>contents<?php echo $i ?>');
+								tinyMCE.execCommand('mceAddEditor', false, '<?php echo $type ?>contents<?php echo $i ?>');
+							}
+						}
+					});
+				}
 
-				$('#<?php echo $type ?>delete<?php echo $i ?>').unbind('click').click(function() {
-					if (confirm("Are you sure you want to delete this record?")) {
-						$('#<?php echo $type ?>blockOuter<?php echo $i ?>').fadeOut(600, function(){ $('#<?php echo $type ?><?php echo $i ?>'); });
-						$('#<?php echo $type ?>blockOuter<?php echo $i ?>').remove();
-						<?php echo $type ?>Used[<?php echo $type ?>Used.indexOf("<?php echo $gibbonOutcomeID ?>")]="x" ;
-					}
-				});
-
+				if (deleteBtn) {
+					deleteBtn.replaceWith(deleteBtn.cloneNode(true));
+					deleteBtn = document.getElementById('<?php echo $type ?>delete<?php echo $i ?>');
+					deleteBtn.addEventListener('click', function() {
+						if (confirm("Are you sure you want to delete this record?")) {
+							var outer = document.getElementById('<?php echo $type ?>blockOuter<?php echo $i ?>');
+							if (outer) {
+								outer.style.transition = 'opacity 0.6s ease';
+								outer.style.opacity = '0';
+								setTimeout(function(){ outer.remove(); }, 600);
+							}
+							<?php echo $type ?>Used[<?php echo $type ?>Used.indexOf("<?php echo $gibbonOutcomeID ?>")]="x" ;
+						}
+					});
+				}
 			});
 		</script>
 		<div class='hiddenReveal' style='border: 1px solid #d8dcdf; margin: 0 0 5px;' id="<?php echo $type ?>Block<?php echo $i ?>" style='padding: 0px'>
@@ -545,9 +607,12 @@ function makeBlockOutcome($guid,  $i, $type = '', $gibbonOutcomeID = '', $title 
 						<input readonly maxlength=100 id='<?php echo $type ?>title<?php echo $i ?>' name='<?php echo $type ?>title<?php echo $i ?>' type='text' style='float: none; border: 1px dotted #aaa; background: none; margin-left: 3px; margin-top: 0px; font-size: 140%; font-weight: bold; width: 350px' value='<?php echo $title; ?>'><br/>
 						<input readonly maxlength=100 id='<?php echo $type ?>category<?php echo $i ?>' name='<?php echo $type ?>category<?php echo $i ?>' type='text' style='float: left; border: 1px dotted #aaa; background: none; margin-left: 3px; margin-top: 2px; font-size: 110%; font-style: italic; width: 250px' value='<?php echo $category; ?>'>
 						<script type="text/javascript">
-							if($('#<?php echo $type ?>category<?php echo $i ?>').val()=="") {
-								$('#<?php echo $type ?>category<?php echo $i ?>').css("border","none") ;
-							}
+							(function() {
+								var catEl = document.getElementById('<?php echo $type ?>category<?php echo $i ?>');
+								if (catEl && catEl.value === "") {
+									catEl.style.border = "none";
+								}
+							})();
 						</script>
 					</td>
 					<td style='text-align: right; width: 50%'>

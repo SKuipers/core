@@ -115,44 +115,60 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/coverage_request.php
 checkSelections = function ()
 {
     // Prevent clicking submit until at least one date (and sub) has been selected
-    var datesChecked = $('input[name="timetableClasses[]"]:checked');
-    var subsChecked = $('.personSelect').filter(function () {
-        return $(this).val() != '';
+    var datesChecked = document.querySelectorAll('input[name="timetableClasses[]"]:checked');
+    var subsChecked = Array.from(document.querySelectorAll('.personSelect')).filter(function (el) {
+        return el.value != '';
     }).length;
 
-    if (datesChecked === undefined || datesChecked.length <= 0 || ($('#requestType').val() == 'Individual' && subsChecked <= 0 ) ) {
-        $('.coverageNoSubmit').show();
-        $('.coverageSubmit :input').prop('disabled', true);
+    var requestTypeEl = document.querySelector('#requestType');
+    var requestTypeVal = requestTypeEl ? requestTypeEl.value : '';
+
+    if (datesChecked === undefined || datesChecked.length <= 0 || (requestTypeVal == 'Individual' && subsChecked <= 0 ) ) {
+        document.querySelectorAll('.coverageNoSubmit').forEach(function(el) { el.style.display = ''; });
+        document.querySelectorAll('.coverageSubmit input, .coverageSubmit select, .coverageSubmit textarea, .coverageSubmit button').forEach(function(el) { el.disabled = true; });
     } else {
-        $('.coverageNoSubmit').hide();
-        $('.coverageSubmit :input').prop('disabled', false);
+        document.querySelectorAll('.coverageNoSubmit').forEach(function(el) { el.style.display = 'none'; });
+        document.querySelectorAll('.coverageSubmit input, .coverageSubmit select, .coverageSubmit textarea, .coverageSubmit button').forEach(function(el) { el.disabled = false; });
     }
 }
 
-$(document).ready(function() {
+document.addEventListener('DOMContentLoaded', function() {
 
-    $(document).on('change', '.personSelect', function() {
+    document.addEventListener('change', function(e) {
+        if (e.target.closest('.personSelect')) {
+            checkSelections();
+        }
+    });
+
+    document.addEventListener('change', function(e) {
+        var checkbox = e.target.closest('input[name="timetableClasses[]"]');
+        if (!checkbox) return;
+
+        var row = checkbox.closest('tr');
+        if (row) {
+            row.querySelectorAll('.individualOptions.personSelect').forEach(function(el) {
+                el.style.display = checkbox.checked ? '' : 'none';
+            });
+
+            row.querySelectorAll('.coverageNotes').forEach(function(el) {
+                el.style.display = checkbox.checked ? '' : 'none';
+            });
+        }
+
         checkSelections();
     });
 
-    $(document).on('change', 'input[name="timetableClasses[]"]', function() {
-        var checkbox = this;
-        $(this).parents('tr').find('.individualOptions.personSelect').each(function() {
-            $(this).toggle($(checkbox).prop("checked"));
-        });
-
-        $(this).parents('tr').find('.coverageNotes').each(function() {
-            $(this).toggle($(checkbox).prop("checked"));
-        });
-
-        checkSelections();
+    document.querySelectorAll('input[name="timetableClasses[]"]').forEach(function(el) {
+        el.dispatchEvent(new Event('change', { bubbles: true }));
     });
-
-    $('input[name="timetableClasses[]"]').trigger('change');
     checkSelections();
 
-    $(document).on('change', '#requestType', function() {
-        $('input[name="timetableClasses[]"]').trigger('change');
+    document.addEventListener('change', function(e) {
+        if (e.target.closest('#requestType')) {
+            document.querySelectorAll('input[name="timetableClasses[]"]').forEach(function(el) {
+                el.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+        }
     });
 }) ;
 </script>
