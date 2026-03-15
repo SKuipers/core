@@ -384,9 +384,7 @@ class Sidebar implements OutputableInterface, ContainerAwareInterface
                         if (count($unpinnedMessages) < 1) {
                             echo Format::alert(__('There are no records to display.'), 'empty');
                         } elseif (is_array($unpinnedMessages) == false) {
-                            echo "<div class='error'>";
-                            echo __('An error occurred.');
-                            echo '</div>';
+                            echo Format::alert(__('An error occurred.'), 'error');
                         } else {
                             $height = 283;
                             if (count($unpinnedMessages) == 1) {

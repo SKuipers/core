@@ -52,9 +52,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
         $result->execute($data);
 
         if ($result->rowCount() != 1) {
-            echo "<div class='error'>";
-            echo __('There is no data to display, or an error has occurred.');
-            echo '</div>';
+            echo Format::alert(__('There is no data to display, or an error has occurred.'), 'error');
         } else {
             $row = $result->fetch();
             echo '<h4>'.__('For Office Use').'</h4>';
@@ -458,9 +456,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                     $resultFamily->execute($dataFamily);
 
                 if ($resultFamily->rowCount() < 1) {
-                    echo "<div class='error'>";
-                    echo __('There is no family information available for the current student.');
-                    echo '</div>';
+                    echo Format::alert(__('There is no family information available for the current student.'), 'error');
                 } else {
                     while ($rowFamily = $resultFamily->fetch()) {
                         $count = 1;

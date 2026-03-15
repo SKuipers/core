@@ -692,7 +692,7 @@ if (!$session->has('address')) {
             case 'Other':
                 break;
             default:
-                $page->write('<div class="error">'.__('Your current role type cannot be determined.').'</div>');
+                $page->addError(__('Your current role type cannot be determined.'));
         }
     }
 } else {

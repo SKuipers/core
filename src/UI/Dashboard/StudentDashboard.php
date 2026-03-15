@@ -71,9 +71,7 @@ class StudentDashboard implements OutputableInterface, ContainerAwareInterface
         $dashboardContents = $this->renderDashboard();
 
         if ($dashboardContents == false) {
-            $output .= "<div class='error'>".
-                __('There are no records to display.').
-                '</div>';
+            $output .= Format::alert(__('There are no records to display.'), 'error');
         } else {
             $output .= $dashboardContents;
         }

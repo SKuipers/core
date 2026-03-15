@@ -49,9 +49,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/weighting_manage_
             echo '<h1>';
             echo __('Add Markbook Weighting');
             echo '</h1>';
-            echo "<div class='warning'>";
-            echo __('The selected record does not exist, or you do not have access to it.');
-            echo '</div>';
+            echo Format::alert(__('The selected record does not exist, or you do not have access to it.'), 'warning');
 
             return;
         } else {

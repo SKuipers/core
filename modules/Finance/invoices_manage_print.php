@@ -20,6 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Http\Url;
+use Gibbon\Services\Format;
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -65,9 +66,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/invoices_manage_pr
             }
 
             if ($row['status'] == 'Pending') {
-                echo "<div class='error'>";
-                echo __('There is nothing to print, as the invoice has yet to be issued.');
-                echo '</div>';
+                echo Format::alert(__('There is nothing to print, as the invoice has yet to be issued.'), 'error');
             } else {
                 echo "<table cellspacing='0' style='width: 100%'>";
                 echo "<tr class='head'>";

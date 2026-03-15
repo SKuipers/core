@@ -59,6 +59,7 @@ class ImportType
      * Has the structure been checked against the database?
      */
     protected $validated = false;
+    protected $invalidFields = [];
 
     /**
      * Relational data: System-wide (for filters)
@@ -367,6 +368,17 @@ class ImportType
     }
 
     /**
+     * Get fields that do not match those in the database table structure, 
+     * if the structure check has been performed and failed.
+     *
+     * @return array
+     */
+    public function getInvalidFields(): array
+    {
+        return $this->invalidFields;
+    }
+
+    /**
      * Compares the importType structure with the database table to ensure imports will succeed
      *
      * @param   Connection  Database connection
@@ -397,7 +409,7 @@ class ImportType
                 }
                 $validatedFields++;
             } else {
-                echo '<div class="error">Invalid field '. $fieldName .'</div>';
+                $this->invalidFields[] = $fieldName;
             }
         }
 

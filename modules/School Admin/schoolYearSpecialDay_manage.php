@@ -39,9 +39,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/schoolYearSpe
         $result->execute($data);
 
         if ($result->rowCount() < 1) {
-            echo "<div class='error'>";
-            echo __('There are no terms in the specified year.');
-            echo '</div>';
+            echo Format::alert(__('There are no terms in the specified year.'), 'error');
         } else {
             while ($row = $result->fetch()) {
                 echo '<h3>';

@@ -109,9 +109,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit_edi
                         ->add(__('Edit Column'));
 
                     if ($values['groupingID'] != '' && ($values['gibbonPersonIDCreator'] != $session->get('gibbonPersonID') && $highestAction != 'Edit Markbook_everything' && $highestAction != 'Edit Markbook_multipleClassesAcrossSchool' && $highestAction != 'Edit Markbook_multipleClassesInDepartment')) {
-                        echo "<div class='error'>";
-                        echo __('This column is part of a set of columns, which you did not create, and so cannot be individually edited.');
-                        echo '</div>';
+                        echo Format::alert(__('This column is part of a set of columns, which you did not create, and so cannot be individually edited.'), 'error');
                     } else {
                         $returns = array();
                         $returns['error6'] = __('Your request failed because you already have one "End of Year" column for this class.');

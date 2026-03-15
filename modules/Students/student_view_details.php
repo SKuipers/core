@@ -2030,9 +2030,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/student_view_deta
                                     }
                                 }
                                 if ($entryCount < 1) {
-                                    echo "<div class='message'>";
-                                    echo __('There are no records to display.');
-                                    echo '</div>';
+                                    echo Format::alert(__('There are no records to display.'), 'message');
                                 }
                             }
                         }

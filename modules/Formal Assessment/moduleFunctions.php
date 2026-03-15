@@ -45,9 +45,7 @@ function getInternalAssessmentRecord($guid, $connection2, $gibbonPersonID, $role
     }
 
     if ($resultYears->rowCount() < 1) {
-        $output .= "<div class='error'>";
-        $output .= __('There are no records to display.');
-        $output .= '</div>';
+        $output .= Format::alert(__('There are no records to display.'), 'error');
     } else {
         $results = false;
         $currentDate = date('Y-m-d');
@@ -218,9 +216,7 @@ function getInternalAssessmentRecord($guid, $connection2, $gibbonPersonID, $role
             }
         }
         if ($results == false) {
-            $output .= "<div class='error'>";
-            $output .= __('There are no records to display.');
-            $output .= '</div>';
+            $output .= Format::alert(__('There are no records to display.'), 'error');
         }
     }
 
@@ -296,9 +292,7 @@ function externalAssessmentDetails($guid, $gibbonPersonID, $connection2, $gibbon
     $resultAssessments->execute($dataAssessments);
 
     if ($resultAssessments->rowCount() < 1) {
-        echo "<div class='error'>";
-        echo __('There are no records to display.');
-        echo '</div>';
+        echo Format::alert(__('There are no records to display.'), 'error');
     } else {
         while ($rowAssessments = $resultAssessments->fetch()) {
             echo '<h2>';
@@ -337,9 +331,7 @@ function externalAssessmentDetails($guid, $gibbonPersonID, $connection2, $gibbon
                 $resultResults->execute($dataResults);
 
             if ($resultResults->rowCount() < 1) {
-                echo "<div class='warning'>";
-                echo __('There are no records to display.');
-                echo '</div>';
+                echo Format::alert(__('There are no records to display.'), 'warning');
             } else {
                 $lastCategory = '';
                 $count = 0;

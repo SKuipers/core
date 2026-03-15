@@ -148,7 +148,7 @@ class ParentDashboard implements OutputableInterface, ContainerAwareInterface
                 $output .= '<div class="flex-grow mb-6">';
                 $dashboardContents = $this->renderChildDashboard($student['gibbonPersonID'], $student['dateStart']);
                 if ($dashboardContents == false) {
-                    $output .= "<div class='error'>".__('There are no records to display.').'</div>';
+                    $output .= Format::alert(__('There are no records to display.'), 'error');
                 } else {
                     $output .= $dashboardContents;
                 }

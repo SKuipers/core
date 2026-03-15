@@ -141,16 +141,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/report_summary_
     $attendanceReasons[] = 'No Reason';
 
     if ($resultCodes->rowCount() == 0) {
-        echo "<div class='error'>";
-        echo __('There are no attendance codes defined.');
-        echo '</div>';
+        echo Format::alert(__('There are no attendance codes defined.'), 'error');
     }
     else if ( empty($dateStart) || empty($group)) {
         echo $page->getBlankSlate();
     } else if ($dateStart > $today || $dateEnd > $today) {
-            echo "<div class='error'>";
-            echo __('The specified date is in the future: it must be today or earlier.');
-            echo '</div>';
+            echo Format::alert(__('The specified date is in the future: it must be today or earlier.'), 'error');
     } else {
         echo '<h2>';
         echo __('Report Data').': '. Format::dateRangeReadable($dateStart, $dateEnd);

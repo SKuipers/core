@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
 
@@ -30,9 +32,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/resources_view_ful
     //Get class variable
     $gibbonResourceID = $_GET['gibbonResourceID'] ?? '';
     if ($gibbonResourceID == '') {
-        echo "<div class='warning'>";
-        echo __('You have not specified one or more required parameters.');
-        echo '</div>';
+        echo Format::alert(__('You have not specified one or more required parameters.'), 'warning');
     }
     //Check existence of and access to this class.
     else {
@@ -43,9 +43,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/resources_view_ful
             $result->execute($data);
 
         if ($result->rowCount() != 1) {
-            echo "<div class='warning'>";
-            echo __('The specified record does not exist.');
-            echo '</div>';
+            echo Format::alert(__('The specified record does not exist.'), 'warning');
         } else {
             $row = $result->fetch();
 

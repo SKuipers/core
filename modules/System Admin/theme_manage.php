@@ -44,9 +44,7 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/theme_manage.
 
     $page->return->addReturns($returns);
 
-    echo "<div class='message'>";
-    echo sprintf(__('To install a theme, upload the theme folder to %1$s on your server and then refresh this page. After refresh, the theme should appear in the list below: use the install button in the Actions column to set it up.'), '<b><u>'.$session->get('absolutePath').'/themes/</u></b>');
-    echo '</div>';    
+    echo Format::alert(sprintf(__('To install a theme, upload the theme folder to %1$s on your server and then refresh this page. After refresh, the theme should appear in the list below: use the install button in the Actions column to set it up.'), '<b><u>'.$session->get('absolutePath').'/themes/</u></b>'), 'message');    
     
     echo '<h2>';
     echo __('Installed');

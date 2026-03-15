@@ -92,9 +92,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/report_courseCl
     echo $form->getOutput();
 
     if ( count($lastNSchoolDays) == 0 ) {
-        echo "<div class='error'>";
-        echo __('School is closed on the specified date, and so attendance information cannot be recorded.');
-        echo '</div>';
+        echo Format::alert(__('School is closed on the specified date, and so attendance information cannot be recorded.'), 'error');
     }
     else if ($dateStart != '') {
         echo '<h2>';
@@ -134,9 +132,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/report_courseCl
             echo $page->getBlankSlate();
         }
         else if ($dateStart > $today || $dateEnd > $today) {
-            echo "<div class='error'>";
-            echo __('The specified date is in the future: it must be today or earlier.');
-            echo '</div>';
+            echo Format::alert(__('The specified date is in the future: it must be today or earlier.'), 'error');
         } else {
             //Produce array of form groups
             $classes = $result->fetchAll();
@@ -294,9 +290,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/report_courseCl
             echo '</table>';
 
             if ($count > 0) {
-                echo "<div class='success'>";
-                    echo '<b>'.__('Total:')." $count</b><br/>";
-                echo "</div>";
+                echo Format::alert('<b>'.__('Total:')." $count</b><br/>", 'success');
             }
         }
     }

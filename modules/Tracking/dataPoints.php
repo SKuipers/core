@@ -20,6 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 //Module includes
+use Gibbon\Services\Format;
 use Gibbon\Domain\System\SettingGateway;
 
 require_once __DIR__ . '/moduleFunctions.php';
@@ -36,13 +37,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Tracking/dataPoints.php') 
     $externalAssessmentDataPoints = unserialize($settingGateway->getSettingByScope('Tracking', 'externalAssessmentDataPoints'));
     $internalAssessmentDataPoints = unserialize($settingGateway->getSettingByScope('Tracking', 'internalAssessmentDataPoints'));
     if (empty($externalAssessmentDataPoints) and empty($internalAssessmentDataPoints)) { //Seems like things are not configured, so give appropriate information according to access
-        echo "<div class='warning'>";
         if (isActionAccessible($guid, $connection2, '/modules/School Admin/trackingSettings.php') == false) { //No access, just give warning
-                echo sprintf(__('Data Points needs to be configured before use, but you do not have permission to do this. Please contact %1$s for help with this issue.'), "<a href='mailto:".$session->get('organisationAdministratorEmail')."'>".$session->get('organisationAdministratorName').'</a>');
+                echo Format::alert(sprintf(__('Data Points needs to be configured before use, but you do not have permission to do this. Please contact %1$s for help with this issue.'), "<a href='mailto:".$session->get('organisationAdministratorEmail')."'>".$session->get('organisationAdministratorName').'</a>'), 'warning');
         } else { //Yes access, give link to settings.
-                echo sprintf(__('Data Points needs to be configured before use. Please take a look at %1$sTracking Settings%2$s to set up what data points to use.'), "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/School Admin/trackingSettings.php'>", '</a>');
+                echo Format::alert(sprintf(__('Data Points needs to be configured before use. Please take a look at %1$sTracking Settings%2$s to set up what data points to use.'), "<a href='".$session->get('absoluteURL')."/index.php?q=/modules/School Admin/trackingSettings.php'>", '</a>'), 'warning');
         }
-        echo '</div>';
     } else { //Seems like things are configured, so give welcome message.
         echo '<p>';
         if (isActionAccessible($guid, $connection2, '/modules/School Admin/trackingSettings.php') == false) { //No access, just give warning
@@ -52,11 +51,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Tracking/dataPoints.php') 
         }
         echo '<br/>';
         echo '</p>';
-        echo "<div class='warning'>";
-        echo __('Warning, please note that this process is resource intensive, and may slow down access to the system for other users. Please be patient as the download might take a few minutes to prepare.');
-        echo "<p class='text-right mt-4 text-xs'>";
-        echo "<a href='".$session->get('absoluteURL').'/modules/'.$session->get('module')."/dataPoints_contents.php'>".__('Export to Excel')." <img title='".__('Export to Excel')."' src='./themes/".$session->get('gibbonThemeName')."/img/download.png'/></a>";
-        echo '</p>';
-        echo '</div>';
+        echo Format::alert(__('Warning, please note that this process is resource intensive, and may slow down access to the system for other users. Please be patient as the download might take a few minutes to prepare.')."<p class='text-right mt-4 text-xs'>"."<a href='".$session->get('absoluteURL').'/modules/'.$session->get('module')."/dataPoints_contents.php'>".__('Export to Excel')." <img title='".__('Export to Excel')."' src='./themes/".$session->get('gibbonThemeName')."/img/download.png'/></a>".'</p>', 'warning');
     }
 }

@@ -21,6 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 //Module includes from User Admin (for custom fields)
 use Gibbon\Domain\System\SettingGateway;
+use Gibbon\Services\Format;
 
 include './modules/User Admin/moduleFunctions.php';
 
@@ -58,9 +59,7 @@ if ($proceed == false) {
     }
 
     if ($result->rowCount() < 1) {
-        echo "<div class='error'>";
-        echo __('There are no job openings at this time: please try again later.');
-        echo '</div>';
+        echo Format::alert(__('There are no job openings at this time: please try again later.'), 'error');
     } else {
         $jobOpenings = $result->fetchAll();
 

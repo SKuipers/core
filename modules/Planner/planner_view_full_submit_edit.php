@@ -63,9 +63,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full_
         $gibbonPlannerEntryID = $_GET['gibbonPlannerEntryID'] ?? '';
 
         if ($gibbonPlannerEntryID == '') {
-            echo "<div class='warning'>";
-            echo __('The selected record does not exist, or you do not have access to it.');
-            echo '</div>';
+            echo Format::alert(__('The selected record does not exist, or you do not have access to it.'), 'warning');
         }
         //Check existence of and access to this class.
         else {
@@ -83,9 +81,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full_
             }
 
             if ($result->rowCount() != 1) {
-                echo "<div class='warning'>";
-                echo __('The selected record does not exist, or you do not have access to it.');
-                echo '</div>';
+                echo Format::alert(__('The selected record does not exist, or you do not have access to it.'), 'warning');
             } else {
                 $values = $result->fetch();
 
@@ -114,9 +110,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full_
                     ->add(__('Add Submission'));
 
                 if ($_GET['submission'] != 'true' and $_GET['submission'] != 'false') {
-                    echo "<div class='warning'>";
-                    echo __('You have not specified one or more required parameters.');
-                    echo '</div>';
+                    echo Format::alert(__('You have not specified one or more required parameters.'), 'warning');
                 } else {
                     $gibbonPersonID = '';
                     $gibbonPlannerEntryHomeworkID = '';
@@ -130,9 +124,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full_
                     }
 
                     if (($submission == true and $gibbonPlannerEntryHomeworkID == '') or ($submission == false and $gibbonPersonID == '')) {
-                        echo "<div class='warning'>";
-                        echo __('You have not specified one or more required parameters.');
-                        echo '</div>';
+                        echo Format::alert(__('You have not specified one or more required parameters.'), 'warning');
                     } else {
                         if ($submission == true) {
                             echo '<h2>';
@@ -146,9 +138,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full_
                                 $resultSubmission->execute($dataSubmission);
 
                             if ($resultSubmission->rowCount() != 1) {
-                                echo "<div class='warning'>";
-                                echo __('The selected record does not exist, or you do not have access to it.');
-                                echo '</div>';
+                                echo Format::alert(__('The selected record does not exist, or you do not have access to it.'), 'warning');
                             } else {
                                 $rowSubmission = $resultSubmission->fetch();
 
@@ -193,9 +183,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full_
                                 $resultSubmission->execute($dataSubmission);
 
                             if ($resultSubmission->rowCount() != 1) {
-                                echo "<div class='warning'>";
-                                echo 'There are no records to display.';
-                                echo '</div>';
+                                echo Format::alert('There are no records to display.', 'warning');
                             } else {
                                 $rowSubmission = $resultSubmission->fetch();
 

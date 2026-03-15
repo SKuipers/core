@@ -20,6 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
+use Gibbon\Services\Format;
 
 if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/ttDates_edit_add.php') == false) {
     // Access denied
@@ -32,9 +33,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/ttDates_ed
         $page->addError(__('You have not specified one or more required parameters.'));
     } else {
         if (isSchoolOpen($guid, date('Y-m-d', $dateStamp), $connection2, true) != true) {
-            echo "<div class='error'>";
-            echo __('School is not open on the specified day.');
-            echo '</div>';
+            echo Format::alert(__('School is not open on the specified day.'), 'error');
         } else {
             
                 $data = array('gibbonSchoolYearID' => $gibbonSchoolYearID);

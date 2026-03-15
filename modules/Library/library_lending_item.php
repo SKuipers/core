@@ -55,9 +55,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Library/library_lending_it
 
             $overdue = !empty($row['returnExpected']) ? (strtotime(date('Y-m-d')) - strtotime($row['returnExpected'])) / (60 * 60 * 24) : 0;
             if ($overdue > 0 and $row['status'] == 'On Loan') {
-                echo "<div class='error'>";
-                echo sprintf(__('This item is now %1$s%2$s days overdue'), '<u><b>', $overdue).'</b></u>.';
-                echo '</div>';
+                echo Format::alert(sprintf(__('This item is now %1$s%2$s days overdue'), '<u><b>', $overdue).'</b></u>.', 'error');
             }
 
             $name = '';

@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+
 //Gibbon system-wide includes
 include '../../gibbon.php';
 
@@ -45,9 +47,7 @@ echo "<link rel='stylesheet' type='text/css' href='".$session->get('absoluteURL'
                 //Get class variable
                 $gibbonResourceID = $_GET['gibbonResourceID'] ?? '';
                 if ($gibbonResourceID == '') {
-                    echo "<div class='warning'>";
-                    echo 'Resource has not been specified .';
-                    echo '</div>';
+                    echo Format::alert('Resource has not been specified .', 'warning');
                 }
                 //Check existence of and access to this resource.
                 else {
@@ -58,9 +58,7 @@ echo "<link rel='stylesheet' type='text/css' href='".$session->get('absoluteURL'
                         $result->execute($data);
 
                     if ($result->rowCount() != 1) {
-                        echo "<div class='warning'>";
-                        echo __('The specified record does not exist.');
-                        echo '</div>';
+                        echo Format::alert(__('The specified record does not exist.'), 'warning');
                     } else {
                         $row = $result->fetch();
 

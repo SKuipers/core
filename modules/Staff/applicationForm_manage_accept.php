@@ -54,9 +54,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
         $result->execute($data);
 
         if ($result->rowCount() != 1) {
-            echo "<div class='error'>";
-            echo __('The selected application does not exist or has already been processed.');
-            echo '</div>';
+            echo Format::alert(__('The selected application does not exist or has already been processed.'), 'error');
         } else {
             //Let's go!
             $values = $result->fetch();
@@ -211,13 +209,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
                             ]);
 
                             if ($mail->Send()) {
-                                echo "<div class='success'>";
-                                echo sprintf(__('A request to create a applicant email address and/or website address was successfully sent to %1$s.'), $session->get('organisationHRName'));
-                                echo '</div>';
+                                echo Format::alert(sprintf(__('A request to create a applicant email address and/or website address was successfully sent to %1$s.'), $session->get('organisationHRName')), 'success');
                             } else {
-                                echo "<div class='error'>";
-                                echo sprintf(__('A request to create a applicant email address and/or website address failed. Please contact %1$s to request these manually.'), $session->get('organisationHRName'));
-                                echo '</div>';
+                                echo Format::alert(sprintf(__('A request to create a applicant email address and/or website address failed. Please contact %1$s to request these manually.'), $session->get('organisationHRName')), 'error');
                             }
                         }
 
@@ -251,9 +245,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
                         }
 
                         if ($failapplicant == true) {
-                            echo "<div class='error'>";
-                            echo __('Applicant could not be created!');
-                            echo '</div>';
+                            echo Format::alert(__('Applicant could not be created!'), 'error');
                         } else {
                             echo '<h4>';
                             echo __('Applicant Details');
@@ -280,9 +272,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
 
                             //Report back
                             if ($enrolmentOK == false) {
-                                echo "<div class='warning'>";
-                                echo __('Applicant could not be added to staff listing, so this will have to be done manually at a later date.');
-                                echo '</div>';
+                                echo Format::alert(__('Applicant could not be added to staff listing, so this will have to be done manually at a later date.'), 'warning');
                             } else {
                                 echo '<h4>';
                                 echo 'Applicant Enrolment';
@@ -318,13 +308,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
                                         ]);
 
                                         if ($mail->Send()) {
-                                            echo "<div class='success'>";
-                                            echo __('A welcome email was successfully sent to').' '.Format::name('', $informApplicantEntry['preferredName'], $informApplicantEntry['surname'], 'Student').'.';
-                                            echo '</div>';
+                                            echo Format::alert(__('A welcome email was successfully sent to').' '.Format::name('', $informApplicantEntry['preferredName'], $informApplicantEntry['surname'], 'Student').'.', 'success');
                                         } else {
-                                            echo "<div class='error'>";
-                                            echo __('A welcome email could not be sent to').' '.Format::name('', $informApplicantEntry['preferredName'], $informApplicantEntry['surname'], 'Student').'.';
-                                            echo '</div>';
+                                            echo Format::alert(__('A welcome email could not be sent to').' '.Format::name('', $informApplicantEntry['preferredName'], $informApplicantEntry['surname'], 'Student').'.', 'error');
                                         }
                                     }
                                 }
@@ -349,13 +335,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
                             $alreadyEnrolled = true;
                         }
                         if ($enrolmentCheckFail) { //Enrolment check did not work, so report error
-                            echo "<div class='warning'>";
-                            echo __('Applicant could not be added to staff listing, so this will have to be done manually at a later date.');
-                            echo '</div>';
+                            echo Format::alert(__('Applicant could not be added to staff listing, so this will have to be done manually at a later date.'), 'warning');
                         } elseif ($alreadyEnrolled) { //User is already enrolled, so display message
-                            echo "<div class='warning'>";
-                            echo __('Applicant already exists in staff listing.');
-                            echo '</div>';
+                            echo Format::alert(__('Applicant already exists in staff listing.'), 'warning');
                         } else { //User is not yet enrolled, so try and enrol them.
                             $enrolmentOK = true;
 
@@ -370,9 +352,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
 
                             //Report back
                             if ($enrolmentOK == false) {
-                                echo "<div class='warning'>";
-                                echo __('Applicant could not be added to staff listing, so this will have to be done manually at a later date.');
-                                echo '</div>';
+                                echo Format::alert(__('Applicant could not be added to staff listing, so this will have to be done manually at a later date.'), 'warning');
                             } else {
                                 echo '<ul>';
                                 echo '<li>'.__('The applicant has successfully been added to staff listing.').'</li>';
@@ -394,9 +374,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
                 }
 
                 if ($failStatus == true) {
-                    echo "<div class='error'>";
-                    echo __('Applicant status could not be updated: applicant is in the system, but acceptance has failed.');
-                    echo '</div>';
+                    echo Format::alert(__('Applicant status could not be updated: applicant is in the system, but acceptance has failed.'), 'error');
                 } else {
                     echo '<h4>';
                     echo __('Application Status');
@@ -405,13 +383,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
                     echo '<li><b>'.__('Status').'</b>: '.__('Accepted').'</li>';
                     echo '</ul>';
 
-                    echo "<div class='success' style='margin-bottom: 20px'>";
-                    echo sprintf(__('Applicant has been successfully accepted into %1$s.'), $session->get('organisationName')).' <i><u>'.__('You may wish to now do the following:').'</u></i><br/>';
-                    echo '<ol>';
-                    echo '<li>'.__('Adjust the user\'s roles within the system.').'</li>';
-                    echo '<li>'.__('Create a timetable for the applicant.').'</li>';
-                    echo '</ol>';
-                    echo '</div>';
+                    echo Format::alert(sprintf(__('Applicant has been successfully accepted into %1$s.'), $session->get('organisationName')).' <i><u>'.__('You may wish to now do the following:').'</u></i><br/><ol><li>'.__('Adjust the user\'s roles within the system.').'</li><li>'.__('Create a timetable for the applicant.').'</li></ol>', 'success');
                 }
             }
         }

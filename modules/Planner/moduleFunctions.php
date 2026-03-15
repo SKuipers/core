@@ -221,9 +221,7 @@ function getThread($guid, $connection2, $gibbonPlannerEntryID, $parent, $level, 
     }
 
     if ($level == 0 and $resultDiscuss->rowCount() == 0) {
-        $output .= "<div class='message'>";
-        $output .= __('There are no records to display.');
-        $output .= '</div>';
+        $output .= Format::alert(__('There are no records to display.'), 'message');
     } else {
         while ($rowDiscuss = $resultDiscuss->fetch()) {
             $classExtra = '';
@@ -289,9 +287,7 @@ function sidebarExtra($guid, $connection2, $todayStamp, $gibbonPersonID, $dateSt
 
     $highestAction = getHighestGroupedAction($guid, $_GET['q'], $connection2);
     if ($highestAction == false) {
-        $output = "<div class='error'>";
-        $output .= __('The highest grouped action cannot be determined.');
-        $output .= '</div>';
+        $output = Format::alert(__('The highest grouped action cannot be determined.'), 'error');
     } else {
         //Show date picker in sidebar
         $output = '<div class="column-no-break">';
@@ -650,9 +646,7 @@ function getTagCloud($guid, $connection2, $gibbonSchoolYearID = null) {
         $output .= implode("\n", $cloud_tags)."\n";
         $output .= '</p>';
     } else {
-        $output .= "<div class='warning'>";
-        $output .= __('There are no concepts in the system.');
-        $output .= '</div>';
+        $output .= Format::alert(__('There are no concepts in the system.'), 'warning');
     }
 
     return $output;
@@ -714,9 +708,7 @@ function getResourcesTagCloud($guid, $connection2, $tagCount = 50) {
         $output .= implode("\n", $cloud_tags)."\n";
         $output .= '</p>';
     } else {
-        $output .= "<div class='warning'>";
-        $output .= __('There are no resources in the system.');
-        $output .= '</div>';
+        $output .= Format::alert(__('There are no resources in the system.'), 'warning');
     }
 
     return $output;

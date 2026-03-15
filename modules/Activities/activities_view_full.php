@@ -50,9 +50,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
             //Get class variable
             $gibbonActivityID = $_GET['gibbonActivityID'] ?? '';
             if ($gibbonActivityID == '') {
-                echo "<div class='warning'>";
-                echo __('Your request failed because your inputs were invalid.');
-                echo '</div>';
+                echo Format::alert(__('Your request failed because your inputs were invalid.'), 'warning');
             }
             //Check existence of and access to this class.
             else {
@@ -72,9 +70,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                 }
 
                 if ($result->rowCount() != 1) {
-                    echo "<div class='warning'>";
-                    echo __('The selected record does not exist, or you do not have access to it.');
-                    echo '</div>';
+                    echo Format::alert(__('The selected record does not exist, or you do not have access to it.'), 'warning');
                 } else {
                     $row = $result->fetch();
                     //Should we show date as term or date?

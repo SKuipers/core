@@ -106,9 +106,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable/tt_master.php') 
                     $ttDayRowClasses = $timetableDayGateway->selectTTDayRowClassesByID($ttDay['gibbonTTDayID'], $ttDayRow['gibbonTTColumnRowID']);
 
                     if ($ttDayRowClasses->isEmpty()) {
-                        echo '<div class="warning">';
-                        echo __('There are no classes associated with this period on this day.');
-                        echo '</div>';
+                        echo Format::alert(__('There are no classes associated with this period on this day.'), 'warning');
                     } else {
                         $table = DataTable::create('timetableDayRowClasses');
 

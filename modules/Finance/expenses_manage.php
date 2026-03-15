@@ -111,9 +111,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenses_manage.ph
             $result = $connection2->prepare($sql);
             $result->execute($data);
         if ($result->rowcount() != 1) {
-            echo "<div class='error'>";
-            echo __('The Current budget cycle cannot be determined.');
-            echo '</div>';
+            echo Format::alert(__('The Current budget cycle cannot be determined.'), 'error');
         } else {
             $row = $result->fetch();
             $gibbonFinanceBudgetCycleID = $row['gibbonFinanceBudgetCycleID'];
@@ -127,9 +125,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenses_manage.ph
     $result = $container->get(FinanceBudgetCycleGateway::class)->getByID($gibbonFinanceBudgetCycleID);
 
     if (empty($result)) {
-        echo "<div class='error'>";
-        echo __('The specified budget cycle cannot be determined.');
-        echo '</div>';
+        echo Format::alert(__('The specified budget cycle cannot be determined.'), 'error');
     } else {
         $row = $result;
         $gibbonFinanceBudgetCycleName = $row['name'];

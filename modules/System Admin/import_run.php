@@ -61,7 +61,8 @@ if (isActionAccessible($guid, $connection2, "/modules/System Admin/import_run.ph
         echo Format::alert(__('Your request failed because your inputs were invalid.'));
         return;
     } elseif (!$importType->isValid()) {
-        echo Format::alert(__('There was an error reading the file {value}.', ['value' => $type]));
+        $invalidReasons = Format::list($importType->getInvalidFields());
+        echo Format::alert(__('There was an error reading the file {value}.', ['value' => $type]).$invalidReasons);
         return;
     }
 

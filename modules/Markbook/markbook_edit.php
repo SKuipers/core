@@ -50,9 +50,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_edit.php
             echo '<h1>';
             echo __('Edit Markbook');
             echo '</h1>';
-            echo "<div class='warning'>";
-            echo __('The selected record does not exist, or you do not have access to it.');
-            echo '</div>';
+            echo Format::alert(__('The selected record does not exist, or you do not have access to it.'), 'warning');
 
             //Get class chooser
             echo classChooser($guid, $pdo, $gibbonCourseClassID);

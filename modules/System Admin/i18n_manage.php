@@ -118,9 +118,8 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/i18n_manage.p
     }, 0);
 
     if ($installedCount == 0) {
-        echo '<div class="message">';
-        echo __('There are no language files installed. Your system is currently using the default language.').' '.__('Use the list below to install a new language.');
-        echo '</div><br/>';
+        echo Format::alert(__('There are no language files installed. Your system is currently using the default language.').' '.__('Use the list below to install a new language.'), 'message');
+        echo '<br/>';
     } else {
         echo $form->getOutput();
     }

@@ -22,6 +22,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
+use Gibbon\Services\Format;
 
 //Gibbon system-wide includes
 include '../../gibbon.php';
@@ -60,15 +61,11 @@ if (isset($_GET['alpha'])) {
 
 if (isActionAccessible($guid, $connection2, '/modules/Planner/resources_manage_add.php') == false) {
     //Acess denied
-    $output .= "<div class='error'>";
-    $output .= __('Your request failed because you do not have access to this action.');
-    $output .= '</div>';
+    $output .= Format::alert(__('Your request failed because you do not have access to this action.'), 'error');
 } else {
     $highestAction = getHighestGroupedAction($guid, '/modules/Planner/resources_manage.php', $connection2);
     if ($highestAction == false) {
-        $output .= "<div class='error'>";
-        $output .= __('The highest grouped action cannot be determined.');
-        $output .= '</div>';
+        $output .= Format::alert(__('The highest grouped action cannot be determined.'), 'error');
     } else {
         $output .= "<script type='text/javascript'>";
         $output .= '$(document).ready(function() {';

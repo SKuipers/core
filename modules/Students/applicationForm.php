@@ -95,9 +95,7 @@ if ($proceed == false) {
             $application = $resultID->fetch();
             $gibbonApplicationFormID = str_pad( intval($application['gibbonApplicationFormID']), 7, '0', STR_PAD_LEFT);
         } else {
-        	echo "<div class='error'>";
-		    echo __('The application link does not match an existing record in our system. The record may have been removed or the link is no longer valid.');
-		    echo '</div>';
+        	echo Format::alert(__('The application link does not match an existing record in our system. The record may have been removed or the link is no longer valid.'), 'error');
         }
 
         $returnExtra = '<br/><br/>'.__('If you need to contact the school in reference to this application, please quote the following number:').' <b><u>'.$gibbonApplicationFormID.'</b></u>.';
@@ -148,6 +146,7 @@ if ($proceed == false) {
     $paymentGateway = $settingGateway->getSettingByScope('System', 'paymentGateway');
 
     if (!empty($applicationFee) || !empty($applicationProcessFee)) {
+        // TODO: Manual review needed - conditional_logic pattern
         echo "<div class='warning'>";
         if ($applicationFee > 0 and is_numeric($applicationFee)) {
             echo __('Please note that there is an application fee of:').' <b><u>'.$currency.$applicationFee.'</u></b>. ';

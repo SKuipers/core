@@ -20,6 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
+use Gibbon\Services\Format;
 
 if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/tt_delete.php') == false) {
     // Access denied
@@ -45,9 +46,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/tt_delete.
         } elseif ($importReturn == 'fail3') {
             $importReturnMessage = __('Your request failed because your inputs were invalid.');
         }
-        echo "<div class='$class'>";
-        echo $importReturnMessage;
-        echo '</div>';
+        echo Format::alert($importReturnMessage, $class);
     }
 
     //Check if gibbonTTID and gibbonSchoolYearID specified
@@ -135,18 +134,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/tt_delete.
 
                 //Check file type
                 if (($_FILES['file']['type'] != 'text/csv') and ($_FILES['file']['type'] != 'text/comma-separated-values') and ($_FILES['file']['type'] != 'text/x-comma-separated-values') and ($_FILES['file']['type'] != 'application/vnd.ms-excel') and ($_FILES['file']['type'] != 'application/csv')) {
-                    ?>
-					<div class='error'>
-						<?php echo sprintf(__('Import cannot proceed, as the submitted file has a MIME-TYPE of %1$s, and as such does not appear to be a CSV file.'), $_FILES['file']['type']) ?><br/>
-					</div>
-					<?php
+                    echo Format::alert(sprintf(__('Import cannot proceed, as the submitted file has a MIME-TYPE of %1$s, and as such does not appear to be a CSV file.'), $_FILES['file']['type']), 'error');
 
                 } elseif (($_POST['fieldDelimiter'] == '') or ($_POST['stringEnclosure'] == '')) {
-                    ?>
-					<div class='error'>
-						<?php echo __('Import cannot proceed, as the "Field Delimiter" and/or "String Enclosure" fields have been left blank.') ?><br/>
-					</div>
-					<?php
+                    echo Format::alert(__('Import cannot proceed, as the "Field Delimiter" and/or "String Enclosure" fields have been left blank.'), 'error');
 
                 } else {
                     $proceed = true;
@@ -176,13 +167,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/tt_delete.
                         $proceed = false;
                     }
                     if ($lockFail == true) {
-                        echo "<div class='error'>";
-                        echo __('The database could not be locked for use.');
-                        echo '</div>';
+                        echo Format::alert(__('The database could not be locked for use.'), 'error');
                     } elseif ($lockFail == false) {
-                        echo "<div class='success'>";
-                        echo __('The database was successfully locked.');
-                        echo '</div>';
+                        echo Format::alert(__('The database was successfully locked.'), 'success');
                     }
                     //Empty table gibbonTTImport
                     $emptyFail = false;
@@ -194,13 +181,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/tt_delete.
                         $proceed = false;
                     }
                     if ($emptyFail == true) {
-                        echo "<div class='error'>";
-                        echo __('The database tables could not be emptied.');
-                        echo '</div>';
+                        echo Format::alert(__('The database tables could not be emptied.'), 'error');
                     } elseif ($emptyFail == false) {
-                        echo "<div class='success'>";
-                        echo __('The database tables were successfully emptied.');
-                        echo '</div>';
+                        echo Format::alert(__('The database tables were successfully emptied.'), 'success');
                     }
 
                     //TURN IMPORT FILE INTO gibbonTTImport
@@ -224,13 +207,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/tt_delete.
                         }
                         fclose($handle);
                         if ($importFail == true) {
-                            echo "<div class='error'>";
-                            echo __('The import file could not be temporarily stored in the database for analysis.');
-                            echo '</div>';
+                            echo Format::alert(__('The import file could not be temporarily stored in the database for analysis.'), 'error');
                         } elseif ($importFail == false) {
-                            echo "<div class='success'>";
-                            echo __('The import file was successfully stored in the database for analysis.');
-                            echo '</div>';
+                            echo Format::alert(__('The import file was successfully stored in the database for analysis.'), 'success');
                         }
                     }
 
@@ -280,13 +259,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/tt_delete.
                             }
                         }
                         if ($staffCheckFail == true) {
-                            echo "<div class='error'>";
-                            echo sprintf(__('Staff check failed. The following staff were in the import file but could not be found in Gibbon: %1$s. Add the staff into Gibbon and then try the import again.'), substr($errorList, 0, -2));
-                            echo '</div>';
+                            echo Format::alert(sprintf(__('Staff check failed. The following staff were in the import file but could not be found in Gibbon: %1$s. Add the staff into Gibbon and then try the import again.'), substr($errorList, 0, -2)), 'error');
                         } elseif ($staffCheckFail == false) {
-                            echo "<div class='success'>";
-                            echo __('The staff check was successfully completed: all staff in the import file were found in Gibbon.');
-                            echo '</div>';
+                            echo Format::alert(__('The staff check was successfully completed: all staff in the import file were found in Gibbon.'), 'success');
                         }
                     }
 
@@ -324,13 +299,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/tt_delete.
                             }
                         }
                         if ($spaceCheckFail == true) {
-                            echo "<div class='error'>";
-                            echo sprintf(__('Space check failed. The following spaces were in the import file but could not be found in Gibbon: %1$s. Add the spaces into Gibbon and then try the import again.'), substr($errorList, 0, -2));
-                            echo '</div>';
+                            echo Format::alert(sprintf(__('Space check failed. The following spaces were in the import file but could not be found in Gibbon: %1$s. Add the spaces into Gibbon and then try the import again.'), substr($errorList, 0, -2)), 'error');
                         } elseif ($spaceCheckFail == false) {
-                            echo "<div class='success'>";
-                            echo __('The space check was successfully completed: all spaces in the import file were found in Gibbon.');
-                            echo '</div>';
+                            echo Format::alert(__('The space check was successfully completed: all spaces in the import file were found in Gibbon.'), 'success');
                         }
                     }
 
@@ -368,13 +339,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/tt_delete.
                             }
                         }
                         if ($dayCheckFail == true) {
-                            echo "<div class='error'>";
-                            echo sprintf(__('Day check failed. The following days were in the import file but could not be found in Gibbon: %1$s. Add the days into Gibbon and then try the import again.'), substr($errorList, 0, -2));
-                            echo '</div>';
+                            echo Format::alert(sprintf(__('Day check failed. The following days were in the import file but could not be found in Gibbon: %1$s. Add the days into Gibbon and then try the import again.'), substr($errorList, 0, -2)), 'error');
                         } elseif ($dayCheckFail == false) {
-                            echo "<div class='success'>";
-                            echo __('The day check was successfully completed: all days in the import file were found in Gibbon in the specified timetable.');
-                            echo '</div>';
+                            echo Format::alert(__('The day check was successfully completed: all days in the import file were found in Gibbon in the specified timetable.'), 'success');
                         }
                     }
 
@@ -412,13 +379,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/tt_delete.
                             }
                         }
                         if ($rowCheckFail == true) {
-                            echo "<div class='error'>";
-                            echo sprintf(__('Row check failed. The following rows were in the import file but could not be found in Gibbon: %1$s. Add the rows into Gibbon and then try the import again.'), substr($errorList, 0, -2));
-                            echo '</div>';
+                            echo Format::alert(sprintf(__('Row check failed. The following rows were in the import file but could not be found in Gibbon: %1$s. Add the rows into Gibbon and then try the import again.'), substr($errorList, 0, -2)), 'error');
                         } elseif ($rowCheckFail == false) {
-                            echo "<div class='success'>";
-                            echo __('The row check was successfully completed: all rows in the import file were found in Gibbon in the specified timetable on the specified days.');
-                            echo '</div>';
+                            echo Format::alert(__('The row check was successfully completed: all rows in the import file were found in Gibbon in the specified timetable on the specified days.'), 'success');
                         }
                     }
 
@@ -470,10 +433,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/tt_delete.
                             }
                         }
                         if ($courseCheckFail == true) {
-                            echo "<div class='error'>";
-                            echo sprintf(__('Course check failed. The following courses were in the import file but could not be found or made in Gibbon: %1$s. Add the courses into Gibbon and then try the import again.'), substr($errorList, 0, -2));
-                            echo '</div>';
+                            echo Format::alert(sprintf(__('Course check failed. The following courses were in the import file but could not be found or made in Gibbon: %1$s. Add the courses into Gibbon and then try the import again.'), substr($errorList, 0, -2)), 'error');
                         } elseif ($courseCheckFail == false) {
+                            // TODO: Manual review needed - conditional_logic pattern
                             echo "<div class='success'>";
                             echo __('The course check was successfully completed: all courses in the import file were found in or added to Gibbon.');
                             if ($makeList != '') {
@@ -531,10 +493,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/tt_delete.
                             }
                         }
                         if ($classCheckFail == true) {
-                            echo "<div class='error'>";
-                            echo sprintf(__('Class check failed. The following classes were in the import file but could not be found or made in Gibbon: %1$s. Add the classes into Gibbon and then try the import again.'), substr($errorList, 0, -2));
-                            echo '</div>';
+                            echo Format::alert(sprintf(__('Class check failed. The following classes were in the import file but could not be found or made in Gibbon: %1$s. Add the classes into Gibbon and then try the import again.'), substr($errorList, 0, -2)), 'error');
                         } elseif ($classCheckFail == false) {
+                            // TODO: Manual review needed - conditional_logic pattern
                             echo "<div class='success'>";
                             echo __('The class check was successfully completed: all classes in the import file were found in or added to Gibbon.');
                             if ($makeList != '') {
@@ -662,13 +623,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/tt_delete.
                             }
                         }
                         if ($teacherSyncFail == true) {
-                            echo "<div class='error'>";
-                            echo sprintf(__('Teacher sync failed. The following classes/teachers (and possibly some others) had problems: %1$s.'), substr($errorList, 0, -2));
-                            echo '</div>';
+                            echo Format::alert(sprintf(__('Teacher sync failed. The following classes/teachers (and possibly some others) had problems: %1$s.'), substr($errorList, 0, -2)), 'error');
                         } elseif ($teacherSyncFail == false) {
-                            echo "<div class='success'>";
-                            echo __('The teacher sync was successfully completed: all teachers in the import file were added to the relevant classes in Gibbon.');
-                            echo '</div>';
+                            echo Format::alert(__('The teacher sync was successfully completed: all teachers in the import file were added to the relevant classes in Gibbon.'), 'success');
                         }
                     }
 
@@ -682,13 +639,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/tt_delete.
                     echo __('Final Decision');
                     echo '</h4>';
                     if ($proceed == false) {
-                        echo "<div class='error'>";
-                        echo '<b><u>'.__('You cannot proceed. Fix the issues listed above and try again.').'</u></b>';
-                        echo '</div>';
+                        echo Format::alert('<b><u>'.__('You cannot proceed. Fix the issues listed above and try again.').'</u></b>', 'error');
                     } elseif ($proceed == true) {
-                        echo "<div class='success'>";
-                        echo '<b><u>'.sprintf(__('You are ready to go. %1$sClick here to import the timetable. Your old timetable will be obliterated%2$s.'), "<a href='".$session->get('absoluteURL').'/index.php?q=/modules/'.$session->get('module')."/tt_import.php&gibbonTTID=$gibbonTTID&gibbonSchoolYearID=$gibbonSchoolYearID&step=3'>", '</a>').'</u></b>';
-                        echo '</div>';
+                        echo Format::alert('<b><u>'.sprintf(__('You are ready to go. %1$sClick here to import the timetable. Your old timetable will be obliterated%2$s.'), "<a href='".$session->get('absoluteURL').'/index.php?q=/modules/'.$session->get('module')."/tt_import.php&gibbonTTID=$gibbonTTID&gibbonSchoolYearID=$gibbonSchoolYearID&step=3'>", '</a>').'</u></b>', 'success');
                     }
                 }
             } elseif ($step == 3) {
@@ -756,13 +709,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/tt_delete.
                     }
 
                     if ($ttSyncRemoveFail == true) {
-                        echo "<div class='error'>";
-                        echo __('Removal of old periods failed.');
-                        echo '</div>';
+                        echo Format::alert(__('Removal of old periods failed.'), 'error');
                     } elseif ($ttSyncRemoveFail == false) {
-                        echo "<div class='success'>";
-                        echo __('Removal of old periods was successful.');
-                        echo '</div>';
+                        echo Format::alert(__('Removal of old periods was successful.'), 'success');
                     }
                 }
 
@@ -906,13 +855,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/tt_delete.
                         }
 
                         if ($ttSyncFail == true) {
-                            echo "<div class='error'>";
-                            echo __('Add/update of periods from import failed. Parts of your timetable may display correctly, but others may be missing, incomplete or incorrect.');
-                            echo '</div>';
+                            echo Format::alert(__('Add/update of periods from import failed. Parts of your timetable may display correctly, but others may be missing, incomplete or incorrect.'), 'error');
                         } elseif ($ttSyncFail == false) {
-                            echo "<div class='success'>";
-                            echo __('Add/update of periods from import was successful. You may now wish to set long name, learning area and year groups for any new courses created in Step 2.');
-                            echo '</div>';
+                            echo Format::alert(__('Add/update of periods from import was successful. You may now wish to set long name, learning area and year groups for any new courses created in Step 2.'), 'success');
                         }
                     }
                 }
@@ -922,13 +867,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/tt_delete.
                 echo __('Final Result');
                 echo '</h4>';
                 if ($proceed == false) {
-                    echo "<div class='error'>";
-                    echo '<b><u>'.__('Your input was partially or entirely unsuccessful.').'</u></b>';
-                    echo '</div>';
+                    echo Format::alert('<b><u>'.__('Your input was partially or entirely unsuccessful.').'</u></b>', 'error');
                 } elseif ($proceed == true) {
-                    echo "<div class='success'>";
-                    echo '<b><u>'.__('Success! Your new timetable is in place.').'</u></b>';
-                    echo '</div>';
+                    echo Format::alert('<b><u>'.__('Success! Your new timetable is in place.').'</u></b>', 'success');
                 }
             }
         }

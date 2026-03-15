@@ -69,16 +69,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
             echo Format::alert(__('Activity listing is currently closed.'), 'error');
         } else {
             if ($allActivityAccess == 'View' && $canAccessRegistration) {
-                echo "<div class='warning'>";
-                echo __('Registration is currently closed, but you can still view activities.');
-                echo '</div>';
+                echo Format::alert(__('Registration is currently closed, but you can still view activities.'), 'warning');
             }
 
             $disableExternalProviderSignup = $settingGateway->getSettingByScope('Activities', 'disableExternalProviderSignup');
             if ($disableExternalProviderSignup == 'Y') {
-                echo "<div class='warning'>";
-                echo __('Please check activity details for instructions on how to register for activities offered by outside providers.');
-                echo '</div>';
+                echo Format::alert(__('Please check activity details for instructions on how to register for activities offered by outside providers.'), 'warning');
             }
 
             // IF PARENT, SET UP LIST OF CHILDREN
@@ -187,9 +183,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                     }
 
                 } else {
-                    echo '<div class="message">';
-                    echo __('Select a child in your family view their available activities.');
-                    echo '</div>';
+                    echo Format::alert(__('Select a child in your family view their available activities.'), 'message');
                     $continue = true;
                 }
             }
@@ -230,6 +224,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                 // Registration Limit Check
                 if ($allActivityAccess == 'Register' && $canAccessRegistration && $activities->count() > 0) {
                     if ($dateType == 'Term' and $maxPerTerm > 0) {
+                        // TODO: Manual review needed - conditional_logic pattern
                         echo "<div class='warning'>";
                         echo __("Remember, each student can register for no more than $maxPerTerm activities per term. Your current registration count by term is:");
 
@@ -263,17 +258,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                                 $activityCountRemaining = max(0, $activity['maxPerStudent'] - $activityCountByType);
 
                                 if ($activityCountRemaining > 0) {
-                                    echo '<div class="warning">';
-                                        echo '<strong>'.$activity['name'].' '.__('Registration Available').':</strong> ';
-                                        echo sprintf(__('Each student can register for %1$s %2$s activities.'), $activity['maxPerStudent'], $activity['name']).'<br/>&nbsp;<br/>';
-                                        echo sprintf(__('Your current registration count is: %1$s'), $activityCountByType).'<br/>&nbsp;<br/>';
-                                        echo '<span style="font-weight: bold; color: #444;">'.sprintf(__('You can register for %1$s more %2$s activities.'), $activityCountRemaining, $activity['name']).'</span>';
-                                    echo '</div>';
+                                    echo Format::alert('<strong>'.$activity['name'].' '.__('Registration Available').':</strong> '.sprintf(__('Each student can register for %1$s %2$s activities.'), $activity['maxPerStudent'], $activity['name']).'<br/>&nbsp;<br/>'.sprintf(__('Your current registration count is: %1$s'), $activityCountByType).'<br/>&nbsp;<br/>'.'<span style="font-weight: bold; color: #444;">'.sprintf(__('You can register for %1$s more %2$s activities.'), $activityCountRemaining, $activity['name']).'</span>', 'warning');
                                 } else if ($activityCountByType > 0) {
-                                    echo '<div class="success">';
-                                        echo '<strong>'.$activity['name'].' '.__('Registration Complete').':</strong> ';
-                                        echo sprintf(__('You have registered for %1$s %2$s activities.'), $activityCountByType, $activity['name']);
-                                    echo '</div>';
+                                    echo Format::alert('<strong>'.$activity['name'].' '.__('Registration Complete').':</strong> '.sprintf(__('You have registered for %1$s %2$s activities.'), $activityCountByType, $activity['name']), 'success');
                                 }
                             }
                         }

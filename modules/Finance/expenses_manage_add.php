@@ -21,6 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Http\Url;
 use Gibbon\Forms\Form;
+use Gibbon\Services\Format;
 use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Domain\System\SettingGateway;
 
@@ -46,9 +47,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenses_manage_ad
             ->add(__('Manage Expenses'), 'expenses_manage.php',  $urlParams)
             ->add(__('Add Expense'));
 
-        echo "<div class='warning'>";
-        echo __('Expenses added here do not require authorisation: this is for pre-authorised, or recurring expenses only.');
-        echo '</div>';
+        echo Format::alert(__('Expenses added here do not require authorisation: this is for pre-authorised, or recurring expenses only.'), 'warning');
 
         $editLink = '';
         if (isset($_GET['editID'])) {

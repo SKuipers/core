@@ -34,9 +34,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Finance/expenses_manage.ph
     $gibbonFinanceBudgetCycleID = $_GET['gibbonFinanceBudgetCycleID'] ?? '';
 
     if ($financeExpenseExportIDs == '' or $gibbonFinanceBudgetCycleID == '') {
-        echo "<div class='error'>";
-        echo __('List of invoices or budget cycle have not been specified, and so this export cannot be completed.');
-        echo '</div>';
+        echo Format::alert(__('List of invoices or budget cycle have not been specified, and so this export cannot be completed.'), 'error');
     } else {
         try {
             $whereCount = 0;

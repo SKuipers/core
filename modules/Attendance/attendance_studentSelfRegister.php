@@ -21,6 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
+use Gibbon\Services\Format;
 use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Domain\Attendance\AttendanceLogPersonGateway;
 
@@ -49,9 +50,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_stud
         //Check if school day
         $currentDate = date('Y-m-d');
         if (isSchoolOpen($guid, $currentDate, $connection2, true) == false) {
-            print "<div class='error'>" ;
-                print __("School is closed on the specified date, and so attendance information cannot be recorded.") ;
-            print "</div>" ;
+            echo Format::alert(__('School is closed on the specified date, and so attendance information cannot be recorded.'), 'error');
         }
         else {
             // Check for existence of records today
@@ -59,9 +58,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_stud
 
             if ($result->rowCount() > 0) { //Records! Output current status
                 $row = $result->fetch();
-                print "<div class='message'>" ;
-                    print sprintf(__('Attendance has been taken for you today. Your current status is: %1$s'), "<b>".$row['type']."</b>") ;
-                print "</div>" ;
+                echo Format::alert(sprintf(__('Attendance has been taken for you today. Your current status is: %1$s'), '<b>'.$row['type'].'</b>'), 'message');
             }
             else { //If no records, give option to self register
                 $inRange = false ;

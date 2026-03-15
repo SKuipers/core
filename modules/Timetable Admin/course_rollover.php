@@ -21,6 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Domain\School\SchoolYearGateway;
 use Gibbon\Forms\Form;
+use Gibbon\Services\Format;
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -52,9 +53,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/course_rol
 
         $nextYearBySession = $schoolYearGateway->getNextSchoolYearByID($session->get('gibbonSchoolYearID'));
         if ($nextYearBySession == false) {
-            echo "<div class='error'>";
-            echo __('The next school year cannot be determined, so this action cannot be performed.');
-            echo '</div>';
+            echo Format::alert(__('The next school year cannot be determined, so this action cannot be performed.'), 'error');
         } else {
                 $dataNext = array('gibbonSchoolYearID' => $nextYearBySession['gibbonSchoolYearID']);
                 $sqlNext = 'SELECT * FROM gibbonSchoolYear WHERE gibbonSchoolYearID=:gibbonSchoolYearID';
@@ -65,9 +64,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/course_rol
             }
             $nameNext = $rowNext['name'];
             if ($nameNext == '') {
-                echo "<div class='error'>";
-                echo __('The next school year cannot be determined, so this action cannot be performed.');
-                echo '</div>';
+                echo Format::alert(__('The next school year cannot be determined, so this action cannot be performed.'), 'error');
             } else {
 
                 $form = Form::create('courseRollover', $session->get('absoluteURL').'/index.php?q=/modules/'.$session->get('module').'/course_rollover.php&step=2');
@@ -91,9 +88,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/course_rol
         $nextYearID = $_POST['nextYear'] ?? '';
         $nextYearBySession = $schoolYearGateway->getNextSchoolYearByID($session->get('gibbonSchoolYearID'));
         if (empty($nextYearID) or $nextYearBySession === false or $nextYearID != $nextYearBySession['gibbonSchoolYearID']) {
-            echo "<div class='error'>";
-            echo __('The next school year cannot be determined, so this action cannot be performed.');
-            echo '</div>';
+            echo Format::alert(__('The next school year cannot be determined, so this action cannot be performed.'), 'error');
         } else {
                 $dataNext = array('gibbonSchoolYearID' => $nextYearID);
                 $sqlNext = 'SELECT * FROM gibbonSchoolYear WHERE gibbonSchoolYearID=:gibbonSchoolYearID';
@@ -105,9 +100,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/course_rol
             $nameNext = $rowNext['name'];
             $sequenceNext = $rowNext['sequenceNumber'];
             if ($nameNext == '' or $sequenceNext == '') {
-                echo "<div class='error'>";
-                echo __('The next school year cannot be determined, so this action cannot be performed.');
-                echo '</div>';
+                echo Format::alert(__('The next school year cannot be determined, so this action cannot be performed.'), 'error');
             } else {
                 echo '<p>';
                 echo sprintf(__('In rolling over to %1$s, the following actions will take place. You may need to adjust some fields below to get the result you desire.'), $nameNext);
@@ -184,9 +177,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/course_rol
         $nextYearID = $_POST['nextYear'] ?? '';
         $nextYearBySession = $schoolYearGateway->getNextSchoolYearByID($session->get('gibbonSchoolYearID'));
         if (empty($nextYearID) or $nextYearBySession === false or $nextYearID != $nextYearBySession['gibbonSchoolYearID']) {
-            echo "<div class='error'>";
-            echo __('The next school year cannot be determined, so this action cannot be performed.');
-            echo '</div>';
+            echo Format::alert(__('The next school year cannot be determined, so this action cannot be performed.'), 'error');
         } else {
             $dataNext = array('gibbonSchoolYearID' => $nextYearID);
             $sqlNext = 'SELECT * FROM gibbonSchoolYear WHERE gibbonSchoolYearID=:gibbonSchoolYearID';
@@ -195,9 +186,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/course_rol
             $nameNext = $rowNext['name'];
             $sequenceNext = $rowNext['sequenceNumber'];
             if ($nameNext == '' or $sequenceNext == '') {
-                echo "<div class='error'>";
-                echo __('The next school year cannot be determined, so this action cannot be performed.');
-                echo '</div>';
+                echo Format::alert(__('The next school year cannot be determined, so this action cannot be performed.'), 'error');
             } else {
                 echo '<h3>';
                 echo __('Step 3');
@@ -257,13 +246,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable Admin/course_rol
 
                     //Feedback result!
                     if ($partialFail == true) {
-                        echo "<div class='error'>";
-                        echo __('Your request was successful, but some data was not properly saved.');
-                        echo '</div>';
+                        echo Format::alert(__('Your request was successful, but some data was not properly saved.'), 'error');
                     } else {
-                        echo "<div class='success'>";
-                        echo __('Your request was completed successfully.');
-                        echo '</div>';
+                        echo Format::alert(__('Your request was completed successfully.'), 'success');
                     }
                 }
             }

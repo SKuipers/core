@@ -74,9 +74,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/markbook_view.php
 	$result = $pdo->executeQuery($data, $sql, '_');
     $columns = $result->rowCount();
     if ($columns < 1) {
-        echo "<div class='warning'>";
-        echo __('There are no records to display.');
-        echo '</div>';
+        echo Format::alert(__('There are no records to display.'), 'warning');
     } else {
 
         require_once __DIR__ . '/src/MarkbookView.php';

@@ -54,9 +54,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/weighting_manage.
             echo '<h1>';
             echo __('Manage Weighting');
             echo '</h1>';
-            echo "<div class='warning'>";
-            echo __('The selected record does not exist, or you do not have access to it.');
-            echo '</div>';
+            echo Format::alert(__('The selected record does not exist, or you do not have access to it.'), 'warning');
 
             //Get class chooser
             echo classChooser($guid, $pdo, $gibbonCourseClassID);
@@ -187,6 +185,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/weighting_manage.
                         echo '</h4>';
 
                         if ($totalTermWeight != 100) {
+                            // TODO: Manual review needed - conditional_logic pattern
                             echo "<div class='warning'>";
                             printf ( __('Total cumulative weighting is %s. Calculated averages may not be accurate if the total weighting does not add up to 100%%.'), floatval($totalTermWeight).'%' );
                             echo '</div>';
@@ -220,6 +219,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Markbook/weighting_manage.
                         echo '</h4>';
 
                         if ($totalYearWeight >= 100 || (100 - $totalYearWeight) <= 0) {
+                            // TODO: Manual review needed - conditional_logic pattern
                             echo "<div class='warning'>";
                             printf ( __('Total final grade weighting is %s. Calculated averages may not be accurate if the total weighting  exceeds 100%%.'), floatval($totalYearWeight).'%' );
                             echo '</div>';

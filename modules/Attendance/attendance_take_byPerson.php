@@ -71,14 +71,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_take
 
     if ($gibbonPersonID != '') {
         if ($currentDate > $today) {
-            echo "<div class='error'>";
-            echo __('The specified date is in the future: it must be today or earlier.');
-            echo '</div>';
+            echo Format::alert(__('The specified date is in the future: it must be today or earlier.'), 'error');
         } else {
             if (isSchoolOpen($guid, $currentDate, $connection2) == false) {
-                echo "<div class='error'>";
-                echo __('School is closed on the specified date, and so attendance information cannot be recorded.');
-                echo '</div>';
+                echo Format::alert(__('School is closed on the specified date, and so attendance information cannot be recorded.'), 'error');
             } else {
                 $countClassAsSchool = $settingGateway->getSettingByScope('Attendance', 'countClassAsSchool');
 

@@ -44,9 +44,7 @@ $tags = isset($_POST['tags'.$id])? $_POST['tags'.$id] : (isset($_GET['tags'])? $
 
 if (isActionAccessible($guid, $connection2, '/modules/Planner/resources_view.php') == false) {
     //Acess denied
-    $output .= "<div class='error'>";
-    $output .= __('Your request failed because you do not have access to this action.');
-    $output .= '</div>';
+    $output .= Format::alert(__('Your request failed because you do not have access to this action.'), 'error');
 } else {
     $highestAction = getHighestGroupedAction($guid, '/modules/Planner/resources_manage.php', $connection2);
 
@@ -152,9 +150,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/resources_view.php
 	}
 
     if ($result->rowCount() < 1) {
-        $output .= "<div class='error'>";
-        $output .= __('There are no records to display.');
-        $output .= '</div>';
+        $output .= Format::alert(__('There are no records to display.'), 'error');
     } else {
         $output .= "<table cellspacing='0' style='width: 100%'>";
         $output .= "<tr class='head'>";

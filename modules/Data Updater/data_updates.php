@@ -67,6 +67,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_updates.
         $updatesRequiredCount = $dataUpdaterGateway->countAllRequiredUpdatesByPerson($gibbonPersonID);
 
         if ($updatesRequiredCount > 0) {
+            // TODO: Manual review needed - conditional_logic pattern
             echo '<div class="warning">';
             if (isset($_GET['redirect'])) {
                 echo '<b>'.__("You have been redirected upon login because there are pending data updates.").'</b> ';
@@ -74,9 +75,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_updates.
             echo __("Please take a moment to view and submit the required updates. Even if you don't change your data, submitting the form will indicate you've reviewed the data and have confirmed it is correct.");
             echo '</div>';
         } else {
-            echo '<div class="success">';
-            echo __('Your data is up to date. Please note any recent changes will not appear in the system until they have been approved.');
-            echo '</div>';
+            echo Format::alert(__('Your data is up to date. Please note any recent changes will not appear in the system until they have been approved.'), 'success');
         }
     }
 

@@ -23,6 +23,7 @@ use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Forms\Form;
 use Gibbon\Domain\Timetable\CourseGateway;
 use Gibbon\Module\Planner\Forms\PlannerFormFactory;
+use Gibbon\Services\Format;
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -75,9 +76,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_add.php') ==
                     }
 
                     if ($resultCourse->rowCount() != 1) {
-                        echo "<div class='error'>";
-                        echo 'The selected record does not exist, or you do not have access to it.';
-                        echo '</div>';
+                        echo Format::alert('The selected record does not exist, or you do not have access to it.', 'error');
                     } else {
                         $rowCourse = $resultCourse->fetch();
                         $gibbonYearGroupIDList = $rowCourse['gibbonYearGroupIDList'];

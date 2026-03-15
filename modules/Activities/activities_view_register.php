@@ -62,9 +62,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
             $search = $_GET['search'] ?? '';
 
             if ($access != 'Register') {
-                echo "<div class='error'>";
-                echo __('Registration is closed, or you do not have permission to register.');
-                echo '</div>';
+                echo Format::alert(__('Registration is closed, or you do not have permission to register.'), 'error');
             } else {
                 //Check if gibbonActivityID specified
                 $gibbonActivityID = $_GET['gibbonActivityID'] ?? '';
@@ -166,13 +164,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                                     $resultReg->execute($dataReg);
 
                                 if (!empty($values['access']) && $values['access'] != 'Register') {
-                                    echo "<div class='error'>";
-                                    echo __('Registration is closed, or you do not have permission to register.');
-                                    echo '</div>';
+                                    echo Format::alert(__('Registration is closed, or you do not have permission to register.'), 'error');
                                 } else if ($resultReg->rowCount() > 0) {
-                                    echo "<div class='error'>";
-                                    echo __('You are already registered for this activity and so cannot register again.');
-                                    echo '</div>';
+                                    echo Format::alert(__('You are already registered for this activity and so cannot register again.'), 'error');
                                 } else {
                                     $page->return->addReturns(['error3' => __('Registration failed because you are already registered in this activity.')]);
 
@@ -200,13 +194,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
 
                                     $activityCountByType = $activityGateway->getStudentActivityCountByType($values['type'], $gibbonPersonID);
                                     if ($values['maxPerStudent'] > 0 && $activityCountByType >= $values['maxPerStudent']) {
-                                        echo "<div class='error'>";
-                                        echo __('You have subscribed for the maximum number of activities of this type, and so cannot register for this activity.');
-                                        echo '</div>';
+                                        echo Format::alert(__('You have subscribed for the maximum number of activities of this type, and so cannot register for this activity.'), 'error');
                                     } elseif ($proceed == false) {
-                                        echo "<div class='error'>";
-                                        echo __('You have subscribed for the maximum number of activities in a term, and so cannot register for this activity.');
-                                        echo '</div>';
+                                        echo Format::alert(__('You have subscribed for the maximum number of activities in a term, and so cannot register for this activity.'), 'error');
                                     } else {
                                         // Load the enrolmentType system setting, optionally override with the Activity Type setting
                                         $enrolment = $settingGateway->getSettingByScope('Activities', 'enrolmentType');
@@ -328,13 +318,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Activities/activities_view
                                     $resultReg->execute($dataReg);
 
                                 if (!empty($values['access']) && $values['access'] != 'Register') {
-                                    echo "<div class='error'>";
-                                    echo __('Registration is closed, or you do not have permission to register.');
-                                    echo '</div>';
+                                    echo Format::alert(__('Registration is closed, or you do not have permission to register.'), 'error');
                                 } elseif ($resultReg->rowCount() < 1) {
-                                    echo "<div class='error'>";
-                                    echo __('You are not currently registered for this activity and so cannot unregister.');
-                                    echo '</div>';
+                                    echo Format::alert(__('You are not currently registered for this activity and so cannot unregister.'), 'error');
                                 } else {
                                     $form = Form::create('courseEdit', $session->get('absoluteURL').'/modules/'.$session->get('module').'/activities_view_registerProcess.php?search='.$search);
                                     $form->removeClass('smallIntBorder');

@@ -104,14 +104,10 @@ if (isActionAccessible($guid, $connection2, "/modules/Attendance/attendance_take
 
     if (!empty($gibbonCourseClassID)) {
         if ($currentDate > $today) {
-            echo "<div class='error'>";
-            echo __("The specified date is in the future: it must be today or earlier.");
-            echo "</div>";
+            echo Format::alert(__("The specified date is in the future: it must be today or earlier."), 'error');
         } else {
             if (isSchoolOpen($guid, $currentDate, $connection2) == false) {
-                echo "<div class='error'>";
-                echo __("School is closed on the specified date, and so attendance information cannot be recorded.");
-                echo "</div>";
+                echo Format::alert(__("School is closed on the specified date, and so attendance information cannot be recorded."), 'error');
             } else {
                 $defaultAttendanceType = $settingGateway->getSettingByScope('Attendance', 'defaultClassAttendanceType');
                 $crossFillClasses = $settingGateway->getSettingByScope('Attendance', 'crossFillClasses');
@@ -126,9 +122,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Attendance/attendance_take
                 $class = $result;
 
                 if ($class["attendance"] == 'N') {
-                    echo '<div class="error">';
-                    echo __('Attendance taking has been disabled for this class.');
-                    echo '</div>';
+                    echo Format::alert(__('Attendance taking has been disabled for this class.'), 'error');
                 } elseif (!empty($ttPeriods) && count($ttPeriods) > 1 && empty($gibbonTTDayRowClassID)) {
                     echo Format::alert(__('This class has more than one timetabled lesson on the selected date. Please choose a period above to take attendance for the desired lesson.'), 'message');
                 } else {
@@ -141,18 +135,14 @@ if (isActionAccessible($guid, $connection2, "/modules/Attendance/attendance_take
                     $resultLog = $container->get(AttendanceLogCourseClassGateway::class)->selectAttendanceLogByClassAndDate($gibbonCourseClassID, $currentDate . "%", $gibbonTTDayRowClassID);
 
                     if ($resultLog->rowCount() < 1) {
-                        echo "<div class='error'>";
-                        echo __("Attendance has not been taken for this group yet for the specified date. The entries below are a best-guess based on defaults and information put into the system in advance, not actual data.");
-                        echo "</div>";
+                        echo Format::alert(__("Attendance has not been taken for this group yet for the specified date. The entries below are a best-guess based on defaults and information put into the system in advance, not actual data."), 'error');
                     } else {
-                        echo "<div class='success'>";
-                        echo __("Attendance has been taken at the following times for the specified date for this group:");
-                        echo "<ul>";
+                        $successMessage = __("Attendance has been taken at the following times for the specified date for this group:")."<ul>";
                         while ($rowLog = $resultLog->fetch()) {
-                            echo "<li>" . sprintf(__('Recorded at %1$s on %2$s by %3$s.'), substr($rowLog["timestampTaken"], 11), Format::date(substr($rowLog["timestampTaken"], 0, 10)), Format::name("", $rowLog["preferredName"], $rowLog["surname"], "Staff", false, true)) . "</li>";
+                            $successMessage .= "<li>" . sprintf(__('Recorded at %1$s on %2$s by %3$s.'), substr($rowLog["timestampTaken"], 11), Format::date(substr($rowLog["timestampTaken"], 0, 10)), Format::name("", $rowLog["preferredName"], $rowLog["surname"], "Staff", false, true)) . "</li>";
                         }
-                        echo "</ul>";
-                        echo "</div>";
+                        $successMessage .= "</ul>";
+                        echo Format::alert($successMessage, 'success');
                     }
 
                     if (!empty($gibbonTTDayRowClassID)) {

@@ -62,9 +62,7 @@ function getPaymentLog($connection2, $guid, $foreignTable, $foreignTableID, $gib
     }
 
     if ($result->rowCount() < 1) {
-        $return .= "<div class='error'>";
-        $return .= __('There are no records to display.');
-        $return .= '</div>';
+        $return .= Format::alert(__('There are no records to display.'), 'error');
     } else {
         $return .= "<table cellspacing='0' style='width: 100%'>";
         $return .= "<tr class='head'>";
@@ -726,7 +724,7 @@ function invoiceContents($guid, $connection2, $gibbonFinanceInvoiceID, $gibbonSc
             } catch (PDOException $e) {
             }
             if ($resultParents->rowCount() < 1) {
-                $return .= "<div class='warning'>".__('There are no family members available to send this receipt to.').'</div>';
+                $return .= Format::alert(__('There are no family members available to send this receipt to.'), 'warning');
             } else {
                 $return .= "<ul style='margin-top: 3px; margin-bottom: 3px'>";
                 while ($rowParents = $resultParents->fetch()) {
@@ -849,9 +847,7 @@ function invoiceContents($guid, $connection2, $gibbonFinanceInvoiceID, $gibbonSc
         } catch (PDOException $e) {
         }
         if ($resultFees->rowCount() < 1) {
-            $return .= "<div class='error'>";
-            $return .= __('There are no records to display.');
-            $return .= '</div>';
+            $return .= Format::alert(__('There are no records to display.'), 'error');
         } else {
             $feeTotal = 0;
 
@@ -951,7 +947,7 @@ function invoiceContents($guid, $connection2, $gibbonFinanceInvoiceID, $gibbonSc
                     $return .= sprintf(__('Payment can be made by credit card, using our secure %2$s payment gateway. When you press Pay Now below, you will be directed to a %1$s page from where you can use %2$s in order to make payment. You can continue with payment through %1$s whether you are logged in or not. During this process we do not see or store your credit card details.'), $session->get('systemName'), $paymentGateway).' ';
                     $return .= "<a style='font-weight: bold' href='".$session->get('absoluteURL')."/index.php?q=/modules/Finance/invoices_payOnline.php&gibbonFinanceInvoiceID=$gibbonFinanceInvoiceID&key=".$row['key']."'>".__('Pay Now').'.</a>';
                 } else {
-                    $return .= "<div class='warning'>".__('Payment is not permitted for this invoice, as the total amount is greater than the permitted online payment threshold.').'</div>';
+                    $return .= Format::alert(__('Payment is not permitted for this invoice, as the total amount is greater than the permitted online payment threshold.'), 'warning');
                 }
                 $return .= '</p>';
             }
@@ -1059,7 +1055,7 @@ function receiptContents($guid, $connection2, $gibbonFinanceInvoiceID, $gibbonSc
             } catch (PDOException $e) {
             }
             if ($resultParents->rowCount() < 1) {
-                $return .= "<div class='warning'>".__('There are no family members available to send this receipt to.').'</div>';
+                $return .= Format::alert(__('There are no family members available to send this receipt to.'), 'warning');
             } else {
                 $return .= "<ul style='margin-top: 3px; margin-bottom: 3px'>";
                 while ($rowParents = $resultParents->fetch()) {
@@ -1204,9 +1200,7 @@ function receiptContents($guid, $connection2, $gibbonFinanceInvoiceID, $gibbonSc
         } catch (PDOException $e) {
         }
         if ($resultFees->rowCount() < 1) {
-            $return .= "<div class='error'>";
-            $return .= __('There are no records to display.');
-            $return .= '</div>';
+            $return .= Format::alert(__('There are no records to display.'), 'error');
         } else {
             $feeTotal = 0;
 
@@ -1311,9 +1305,7 @@ function receiptContents($guid, $connection2, $gibbonFinanceInvoiceID, $gibbonSc
                 $return .= __('Payment Details');
                 $return .= '</h3>';
                 if ($paymentFail) {
-                    $return .= "<div class='error'>";
-                    $return .= __('There are no records to display.');
-                    $return .= '</div>';
+                    $return .= Format::alert(__('There are no records to display.'), 'error');
                 } else {
                     $return .= "<div style='font-size: 12px; $style4'>";
                     $return .= getPaymentLog($connection2, $guid, 'gibbonFinanceInvoice', $gibbonFinanceInvoiceID, $rowPayment['gibbonPaymentID']);
@@ -1325,9 +1317,7 @@ function receiptContents($guid, $connection2, $gibbonFinanceInvoiceID, $gibbonSc
                 $return .= '</h3>';
                 $return .= "<div style='font-size: 12px; $style4'>";
                 if ($paymentFail) {
-                    $return .= "<div class='error'>";
-                    $return .= __('There are no records to display.');
-                    $return .= '</div>';
+                    $return .= Format::alert(__('There are no records to display.'), 'error');
                 } else {
                     $return .= "<p style='margin-top: 10px; text-align: right'>";
                     $return .= __('Payment Total').': ';

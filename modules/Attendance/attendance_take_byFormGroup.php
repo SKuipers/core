@@ -87,14 +87,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_take
 
         if ($gibbonFormGroupID != '') {
             if ($currentDate > $today) {
-                echo "<div class='error'>";
-                echo __('The specified date is in the future: it must be today or earlier.');
-                echo '</div>';
+                echo Format::alert(__('The specified date is in the future: it must be today or earlier.'), 'error');
             } else {
                 if (isSchoolOpen($guid, $currentDate, $connection2) == false) {
-                    echo "<div class='error'>";
-                    echo __('School is closed on the specified date, and so attendance information cannot be recorded.');
-                    echo '</div>';
+                    echo Format::alert(__('School is closed on the specified date, and so attendance information cannot be recorded.'), 'error');
                 } else {
                     $countClassAsSchool = $settingGateway->getSettingByScope('Attendance', 'countClassAsSchool');
                     $defaultAttendanceType = $settingGateway->getSettingByScope('Attendance', 'defaultFormGroupAttendanceType');
@@ -114,9 +110,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_take
                     $formGroup = $result->fetch();
 
                     if ($formGroup['attendance'] == 'N') {
-                        print "<div class='error'>" ;
-                            print __("Attendance taking has been disabled for this form group.") ;
-                        print "</div>" ;
+                        echo Format::alert(__("Attendance taking has been disabled for this form group."), 'error');
                     } else {
 
                         //Show attendance log for the current day
@@ -126,18 +120,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Attendance/attendance_take
                             $resultLog->execute($dataLog);
 
                         if ($resultLog->rowCount() < 1) {
-                            echo "<div class='error'>";
-                            echo __('Attendance has not been taken for this group yet for the specified date. The entries below are a best-guess based on defaults and information put into the system in advance, not actual data.');
-                            echo '</div>';
+                            echo Format::alert(__('Attendance has not been taken for this group yet for the specified date. The entries below are a best-guess based on defaults and information put into the system in advance, not actual data.'), 'error');
                         } else {
-                            echo "<div class='success'>";
-                            echo __('Attendance has been taken at the following times for the specified date for this group:');
-                            echo '<ul>';
+                            $successMessage = __('Attendance has been taken at the following times for the specified date for this group:').'<ul>';
                             while ($rowLog = $resultLog->fetch()) {
-                                echo '<li>'.sprintf(__('Recorded at %1$s on %2$s by %3$s.'), substr($rowLog['timestampTaken'], 11), Format::date(substr($rowLog['timestampTaken'], 0, 10)), Format::name('', $rowLog['preferredName'], $rowLog['surname'], 'Staff', false, true)).'</li>';
+                                $successMessage .= '<li>'.sprintf(__('Recorded at %1$s on %2$s by %3$s.'), substr($rowLog['timestampTaken'], 11), Format::date(substr($rowLog['timestampTaken'], 0, 10)), Format::name('', $rowLog['preferredName'], $rowLog['surname'], 'Staff', false, true)).'</li>';
                             }
-                            echo '</ul>';
-                            echo '</div>';
+                            $successMessage .= '</ul>';
+                            echo Format::alert($successMessage, 'success');
                         }
 
                         //Show form group grid

@@ -23,6 +23,7 @@ use Gibbon\Data\Validator;
 use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
+use Gibbon\Services\Format;
 
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -303,9 +304,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Tracking/graphing.php') ==
                     }
 
                     if (count($grades) < 4) {
-                        echo "<div class='warning'>";
-                        echo __('There are less than 4 data points, so no graph can be produced.');
-                        echo '</div>';
+                        echo Format::alert(__('There are less than 4 data points, so no graph can be produced.'), 'warning');
                     } else {
                         //PLOT DATA
                         echo '<script type="text/javascript" src="'.$session->get('absoluteURL').'/lib/Chart.js/3.0/chart.min.js"></script>';

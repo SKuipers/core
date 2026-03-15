@@ -47,9 +47,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internal
         echo '<h1>';
         echo 'Manage Internal Assessment';
         echo '</h1>';
-        echo "<div class='warning'>";
-        echo __('Use the class listing on the right to choose an Internal Assessment to edit.');
-        echo '</div>';
+        echo Format::alert(__('Use the class listing on the right to choose an Internal Assessment to edit.'), 'warning');
     }
     //Check existence of and access to this class.
     else {

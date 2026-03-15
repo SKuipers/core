@@ -124,9 +124,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Admissions/report_graph_st
         $dateRange = getDateRange($dateStart, $dateEnd, $interval);
 
         if (count($dateRange) > 100) {
-            echo "<div class='error'>";
-                echo __('Too many data points. Choose a longer interval of time.');
-            echo '</div>';
+            echo Format::alert(__('Too many data points. Choose a longer interval of time.'), 'error');
             return;
         }
 

@@ -50,9 +50,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/applicationForm_mana
             $result->execute($data);
 
         if ($result->rowCount() != 1) {
-            echo "<div class='error'>";
-            echo __('There is no data to display, or an error has occurred.');
-            echo '</div>';
+            echo Format::alert(__('There is no data to display, or an error has occurred.'), 'error');
         } else {
             $row = $result->fetch();
             echo '<h4>'.__('For Office Use').'</h4>';

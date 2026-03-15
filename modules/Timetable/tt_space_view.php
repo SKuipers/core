@@ -48,9 +48,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Timetable/tt_space_view.ph
             $result->execute($data);
 
         if ($result->rowCount() != 1) {
-            echo "<div class='error'>";
-            echo __('The specified room does not seem to exist.');
-            echo '</div>';
+            echo Format::alert(__('The specified room does not seem to exist.'), 'error');
         } else {
             $row = $result->fetch();
 

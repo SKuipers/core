@@ -71,9 +71,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internal
         }
         if ($gibbonCourseClassID == '') {
             $page->breadcrumbs->add(__('Write Internal Assessments'));
-            echo "<div class='warning'>";
-            echo __('Use the class listing on the right to choose an Internal Assessment to write.');
-            echo '</div>';
+            echo Format::alert(__('Use the class listing on the right to choose an Internal Assessment to write.'), 'warning');
         }
         // Check existence of and access to this class.
         else {
@@ -124,9 +122,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internal
                     
                 $columns = $result->rowCount();
                 if ($columns < 1) {
-                    echo "<div class='warning'>";
-                    echo __('There are no records to display.');
-                    echo '</div>';
+                    echo Format::alert(__('There are no records to display.'), 'warning');
                 } else {
                     $x = null;
                     if (isset($_GET['page'])) {
@@ -139,9 +135,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Formal Assessment/internal
                     $columnsThisPage = 3;
 
                     if ($columns < 1) {
-                        echo "<div class='warning'>";
-                        echo __('There are no records to display.');
-                        echo '</div>';
+                        echo Format::alert(__('There are no records to display.'), 'warning');
                     } else {
                         if ($columns < 3) {
                             $columnsThisPage = $columns;

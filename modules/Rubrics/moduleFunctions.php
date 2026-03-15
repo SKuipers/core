@@ -57,9 +57,7 @@ function rubricEdit($guid, $connection2, $gibbonRubricID, $scaleName = '', $sear
     $outcomes = ($resultOutcomes->rowCount() > 0)? $resultOutcomes->fetchAll(\PDO::FETCH_GROUP|\PDO::FETCH_UNIQUE) : array();
 
     if ($rowCount <= 0 or $columnCount <= 0) {
-        $output .= "<div class='error'>";
-        $output .= __('The rubric cannot be drawn.');
-        $output .= '</div>';
+        $output .= Format::alert(__('The rubric cannot be drawn.'), 'error');
     } else {
         $rows = $resultRows->fetchAll();
         $columns = $resultColumns->fetchAll();
@@ -237,9 +235,7 @@ function rubricView($guid, $connection2, $gibbonRubricID, $mark, $gibbonPersonID
 
 
         if ($rowCount <= 0 or $columnCount <= 0) {
-            $output .= "<div class='error'>";
-            $output .= __('The rubric cannot be drawn.');
-            $output .= '</div>';
+            $output .= Format::alert(__('The rubric cannot be drawn.'), 'error');
         } else {
             $rows = $resultRows->fetchAll();
             $columns = $resultColumns->fetchAll();

@@ -25,6 +25,7 @@ use Gibbon\Core;
 use Gibbon\Domain\DataSet;
 use Gibbon\Contracts\Database\Connection;
 use Gibbon\Domain\System\SettingGateway;
+use Gibbon\Services\Format;
 
 /**
  * Markbook display & edit class
@@ -1091,6 +1092,6 @@ class MarkbookView
      */
     protected function error(string $message)
     {
-        echo "<div class='error'>" . $message . '</div>';
+        echo Format::alert($message, 'error');
     }
 }

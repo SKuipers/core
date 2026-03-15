@@ -162,9 +162,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Data Updater/data_finance.
                     $page->addError(__('Your request failed due to a database error.'));
                 } elseif ($result->rowCount() == 1) {
                     $existing = true;
-                    echo "<div class='warning'>";
-                    echo __('You have already submitted a form, which is awaiting processing by an administrator. If you wish to make changes, please edit the data below, but remember your data will not appear in the system until it has been processed.');
-                    echo '</div>';
+                    echo Format::alert(__('You have already submitted a form, which is awaiting processing by an administrator. If you wish to make changes, please edit the data below, but remember your data will not appear in the system until it has been processed.'), 'warning');
                     $proceed = true;
                 } else {
                     //Get user's data

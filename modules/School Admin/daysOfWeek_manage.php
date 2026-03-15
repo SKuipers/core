@@ -20,6 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
+use Gibbon\Services\Format;
 
 if (isActionAccessible($guid, $connection2, '/modules/School Admin/daysOfWeek_manage.php') == false) {
     //Access denied
@@ -35,9 +36,7 @@ if (isActionAccessible($guid, $connection2, '/modules/School Admin/daysOfWeek_ma
         $result->execute($data);
 
     if ($result->rowCount() != 7) {
-        echo "<div class='error'>";
-        echo __('There is a problem with your database information for school days.');
-        echo '</div>';
+        echo Format::alert(__('There is a problem with your database information for school days.'), 'error');
     } else {
         //Let's go!
 

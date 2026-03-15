@@ -21,6 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Forms\Form;
+use Gibbon\Services\Format;
 use Gibbon\Contracts\Services\Payment;
 
 //Get variables
@@ -101,7 +102,7 @@ if (!isset($_GET['return']) || stripos($_GET['return'], 'success') === false) { 
 
                             echo $form->getOutput();
                         } else {
-                            echo "<div class='error'>".__('Payment is not permitted for this invoice, as the total amount is greater than the permitted online payment threshold.').'</div>';
+                            echo Format::alert(__('Payment is not permitted for this invoice, as the total amount is greater than the permitted online payment threshold.'), 'error');
                         }
                         echo '</p>';
                     } else {

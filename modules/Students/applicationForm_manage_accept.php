@@ -60,9 +60,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
             $result->execute($data);
 
         if ($result->rowCount() != 1) {
-            echo "<div class='error'>";
-            echo __('The selected application does not exist or has already been processed.');
-            echo '</div>';
+            echo Format::alert(__('The selected application does not exist or has already been processed.'), 'error');
         } else {
             // Grab family ID from Sibling Applications that have been accepted
             $data = array( 'gibbonApplicationFormID' => $gibbonApplicationFormID );
@@ -337,13 +335,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                     ]);
 
                     if ($mail->Send()) {
-                        echo "<div class='success'>";
-                        echo sprintf(__('A request to create a student email address and/or website address was successfully sent to %1$s.'), $session->get('organisationAdministratorName'));
-                        echo '</div>';
+                        echo Format::alert(sprintf(__('A request to create a student email address and/or website address was successfully sent to %1$s.'), $session->get('organisationAdministratorName')), 'success');
                     } else {
-                        echo "<div class='error'>";
-                        echo sprintf(__('A request to create a student email address and/or website address failed. Please contact %1$s to request these manually.'), $session->get('organisationAdministratorName'));
-                        echo '</div>';
+                        echo Format::alert(sprintf(__('A request to create a student email address and/or website address failed. Please contact %1$s to request these manually.'), $session->get('organisationAdministratorName')), 'error');
                     }
                 }
 
@@ -385,13 +379,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                     }
 
                     if ($houseFail == true) {
-                        echo "<div class='warning'>";
-                        echo __('The student could not automatically be added to a house, you may wish to manually add them to a house.');
-                        echo '</div>';
+                        echo Format::alert(__('The student could not automatically be added to a house, you may wish to manually add them to a house.'), 'warning');
                     } else {
-                        echo "<div class='success'>";
-                        echo sprintf(__('The student has automatically been assigned to %1$s house.'), $house);
-                        echo '</div>';
+                        echo Format::alert(sprintf(__('The student has automatically been assigned to %1$s house.'), $house), 'success');
                     }
                 }
 
@@ -427,9 +417,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
 
 
                 if ($failStudent == true) {
-                    echo "<div class='error'>";
-                    echo __('Student could not be created!');
-                    echo '</div>';
+                    echo Format::alert(__('Student could not be created!'), 'error');
                 } else {
                     echo '<h4>';
                     echo __('Student Details');
@@ -487,9 +475,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
 
                         //Report back
                         if ($enrolmentOK == false) {
-                            echo "<div class='warning'>";
-                            echo __('Student could not be enrolled, so this will have to be done manually at a later date.');
-                            echo '</div>';
+                            echo Format::alert(__('Student could not be enrolled, so this will have to be done manually at a later date.'), 'warning');
                         } else {
                             echo '<h4>';
                             echo __('Student Enrolment');
@@ -558,9 +544,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                     }
 
                     if ($paymentOK == false) {
-                        echo "<div class='warning'>";
-                        echo __('Student payment details could not be saved, but we will continue, as this is a minor issue.');
-                        echo '</div>';
+                        echo Format::alert(__('Student payment details could not be saved, but we will continue, as this is a minor issue.'), 'warning');
                     }
 
                     $failFamily = true;
@@ -677,9 +661,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                         }
 
                         if ($failFamily == true) {
-                            echo "<div class='warning'>";
-                            echo __('Student could not be linked to family!');
-                            echo '</div>';
+                            echo Format::alert(__('Student could not be linked to family!'), 'warning');
                             $partialFailures[] = 'failFamily2';
                         } else {
                             echo '<h4>';
@@ -733,9 +715,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                         }
 
                         if ($failFamily == true) {
-                            echo "<div class='error'>";
-                            echo __('Family could not be created!');
-                            echo '</div>';
+                            echo Format::alert(__('Family could not be created!'), 'error');
                         } else {
                             echo '<h4>';
                             echo __('Family Details');
@@ -776,9 +756,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                                 }
 
                                 if ($failFamily == true) {
-                                    echo "<div class='warning'>";
-                                    echo __('Student could not be linked to family!');
-                                    echo '</div>';
+                                    echo Format::alert(__('Student could not be linked to family!'), 'warning');
                                 } else {
                                     // Update the application information with the newly created family ID, for Sibling Applications to use
                                     $data = array('gibbonApplicationFormID' => $gibbonApplicationFormID, 'gibbonFamilyID' => $gibbonFamilyID);
@@ -828,9 +806,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                                     }
 
                                     if ($failFamily == true) {
-                                        echo "<div class='warning'>";
-                                        echo __('Parent 1 could not be linked to family!');
-                                        echo '</div>';
+                                        echo Format::alert(__('Parent 1 could not be linked to family!'), 'warning');
                                         $partialFailures[] = 'failFamily5';
                                     }
                                 }
@@ -887,9 +863,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                                 }
 
                                 if ($failParent1 == true) {
-                                    echo "<div class='error'>";
-                                    echo __('Parent 1 could not be created!');
-                                    echo '</div>';
+                                    echo Format::alert(__('Parent 1 could not be created!'), 'error');
                                     $partialFailures[] = 'failFamily6';
                                 } else {
                                     echo '<h4>';
@@ -931,9 +905,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                                         }
 
                                         if ($failFamily == true) {
-                                            echo "<div class='warning'>";
-                                            echo __('Parent 1 could not be linked to family!');
-                                            echo '</div>';
+                                            echo Format::alert(__('Parent 1 could not be linked to family!'), 'warning');
                                             $partialFailures[] = 'failFamily7';
                                         }
 
@@ -996,9 +968,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                                 }
 
                                 if ($failParent2 == true) {
-                                    echo "<div class='error'>";
-                                    echo __('Parent 2 could not be created!');
-                                    echo '</div>';
+                                    echo Format::alert(__('Parent 2 could not be created!'), 'error');
                                     $partialFailures[] = 'failFamily8';
                                 } else {
                                     echo '<h4>';
@@ -1040,9 +1010,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                                         }
 
                                         if ($failFamily == true) {
-                                            echo "<div class='warning'>";
-                                            echo __('Parent 2 could not be linked to family!');
-                                            echo '</div>';
+                                            echo Format::alert(__('Parent 2 could not be linked to family!'), 'warning');
                                             $partialFailures[] = 'failFamily9';
                                         }
 
@@ -1085,21 +1053,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                                 ]);
 
                                 if ($mail->Send()) {
-                                    echo "<div class='success'>";
-                                    echo __('A welcome email was successfully sent to').' '.Format::name('', $informStudentEntry['preferredName'], $informStudentEntry['surname'], 'Student').'.';
-                                    echo '</div>';
+                                    echo Format::alert(__('A welcome email was successfully sent to').' '.Format::name('', $informStudentEntry['preferredName'], $informStudentEntry['surname'], 'Student').'.', 'success');
                                 } else {
-                                    echo "<div class='error'>";
-                                    echo __('A welcome email could not be sent to').' '.Format::name('', $informStudentEntry['preferredName'], $informStudentEntry['surname'], 'Student').'.';
-                                    echo '</div>';
+                                    echo Format::alert(__('A welcome email could not be sent to').' '.Format::name('', $informStudentEntry['preferredName'], $informStudentEntry['surname'], 'Student').'.', 'error');
                                 }
                                 $emailCount++ ;
                             }
                         }
                         if ($emailCount == 0) {
-                            echo '<div class=\'warning\'>';
-                            echo __('There are no student email addresses to send to.');
-                            echo '</div>';
+                            echo Format::alert(__('There are no student email addresses to send to.'), 'warning');
                         }
                     }
 
@@ -1130,21 +1092,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                                 ]);
 
                                 if ($mail->Send()) {
-                                    echo "<div class='success'>";
-                                    echo __('A welcome email was successfully sent to').' '.Format::name('', $informParentsEntry['preferredName'], $informParentsEntry['surname'], 'Student').'.';
-                                    echo '</div>';
+                                    echo Format::alert(__('A welcome email was successfully sent to').' '.Format::name('', $informParentsEntry['preferredName'], $informParentsEntry['surname'], 'Student').'.', 'success');
                                 } else {
-                                    echo "<div class='error'>";
-                                    echo __('A welcome email could not be sent to').' '.Format::name('', $informParentsEntry['preferredName'], $informParentsEntry['surname'], 'Student').'.';
-                                    echo '</div>';
+                                    echo Format::alert(__('A welcome email could not be sent to').' '.Format::name('', $informParentsEntry['preferredName'], $informParentsEntry['surname'], 'Student').'.', 'error');
                                 }
                                 $emailCount++ ;
                             }
                         }
                         if ($emailCount == 0) {
-                            echo '<div class=\'warning\'>';
-                            echo __('There are no parent email addresses to send to.');
-                            echo '</div>';
+                            echo Format::alert(__('There are no parent email addresses to send to.'), 'warning');
                         }
                     }
 
@@ -1202,9 +1158,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                     }
 
                     if ($failStatus == true) {
-                        echo "<div class='error'>";
-                        echo __('Student status could not be updated: student is in the system, but acceptance has failed.');
-                        echo '</div>';
+                        echo Format::alert(__('Student status could not be updated: student is in the system, but acceptance has failed.'), 'error');
 
 
                     } else {
@@ -1215,18 +1169,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/applicationForm_m
                         echo '<li><b>'.__('Status').'</b>: '.__('Accepted').'</li>';
                         echo '</ul>';
 
-                        echo "<div class='success' style='margin-bottom: 20px'>";
-                        echo str_replace('ICHK', $session->get('organisationNameShort'), __('Applicant has been successfully accepted into ICHK.') );
-                        echo ' <i><u>'.__('You may wish to now do the following:').'</u></i><br/>';
-                        echo '<ol>';
-                        echo '<li>'.__('Enrol the student in the relevant academic year.').'</li>';
-                        echo '<li>'.__('Create a medical record for the student.').'</li>';
-                        echo '<li>'.__('Create an individual needs record for the student.').'</li>';
-                        echo '<li>'.__('Create a note of the student\'s scholarship information outside of Gibbon.').'</li>';
-                        echo '<li>'.__('Create a timetable for the student.').'</li>';
-                        echo '<li>'.__('Inform the student and parents of their Gibbon login details (if this was not done automatically).').'</li>';
-                        echo '</ol>';
-                        echo '</div>';
+                        echo Format::alert(str_replace('ICHK', $session->get('organisationNameShort'), __('Applicant has been successfully accepted into ICHK.')).' <i><u>'.__('You may wish to now do the following:').'</u></i><br/><ol><li>'.__('Enrol the student in the relevant academic year.').'</li><li>'.__('Create a medical record for the student.').'</li><li>'.__('Create an individual needs record for the student.').'</li><li>'.__('Create a note of the student\'s scholarship information outside of Gibbon.').'</li><li>'.__('Create a timetable for the student.').'</li><li>'.__('Inform the student and parents of their Gibbon login details (if this was not done automatically).').'</li></ol>', 'success');
                     }
                 }
             }

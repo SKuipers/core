@@ -84,9 +84,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_students_I
         }
 
         if ($result->rowCount() < 1) {
-            echo "<div class='error'>";
-            echo 'There is not data to display in this report';
-            echo '</div>';
+            echo Format::alert('There is not data to display in this report', 'error');
         } else {
             echo '<p>';
             echo __('These cards are designed to be printed to credit-card size, however, they will look bigger on screen. To print in high quality (144dpi) and at true size, save the cards as an image, and print to 50% scale.');
@@ -103,10 +101,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Students/report_students_I
                 $attachment = $fileUploader->uploadFromPost($file, 'Card_BG');
 
                 if (empty($attachment)) {
-                    echo '<div class="error">';
-                        echo __('Your request failed due to an attachment error.');
-                        echo ' '.$fileUploader->getLastError();
-                    echo '</div>';
+                    echo Format::alert(__('Your request failed due to an attachment error.').' '.$fileUploader->getLastError(), 'error');
                 } else {
                     $bg = 'background: url("'.$session->get('absoluteURL')."/$attachment\") no-repeat left top #fff; background-size: cover;";
                 }

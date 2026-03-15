@@ -24,6 +24,7 @@ use Gibbon\Forms\Form;
 use Gibbon\Forms\CustomFieldHandler;
 use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Forms\PersonalDocumentHandler;
+use Gibbon\Services\Format;
 
 //Module includes from User Admin (for custom fields)
 include './modules/User Admin/moduleFunctions.php';
@@ -67,7 +68,7 @@ if ($proceed == false) {
     }
 
     if (!$session->has('username')) {
-        echo "<div class='warning' style='font-weight: bold'>".sprintf(__('If you already have an account for %1$s %2$s, please log in now to prevent creation of duplicate data about you! Once logged in, you can find the form under People > Staff in the main menu.'), $session->get('organisationNameShort'), $session->get('systemName')).' '.sprintf(__('If you do not have an account for %1$s %2$s, please use the form below.'), $session->get('organisationNameShort'), $session->get('systemName')).'</div>';
+        echo Format::alert(sprintf(__('If you already have an account for %1$s %2$s, please log in now to prevent creation of duplicate data about you! Once logged in, you can find the form under People > Staff in the main menu.'), $session->get('organisationNameShort'), $session->get('systemName')).' '.sprintf(__('If you do not have an account for %1$s %2$s, please use the form below.'), $session->get('organisationNameShort'), $session->get('systemName')), 'warning');
     }
 
     $returnExtra = '';
@@ -96,9 +97,7 @@ if ($proceed == false) {
     }
 
     if ($result->rowCount() < 1) {
-        echo "<div class='warning'>";
-        echo __('There are no job openings at this time: please try again later.');
-        echo '</div>';
+        echo Format::alert(__('There are no job openings at this time: please try again later.'), 'warning');
     } else {
         $jobOpenings = $result->fetchAll();
 

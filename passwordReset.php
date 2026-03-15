@@ -22,6 +22,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Data\PasswordPolicy;
 use Gibbon\Forms\Form;
 use Gibbon\Data\Validator;
+use Gibbon\Services\Format;
 
 $page->breadcrumbs->add(__('Password Reset'));
 
@@ -87,9 +88,7 @@ else {
     if ($result->rowCount() != 1) {
         $page->addError(__('Your reset request is invalid: you may not proceed.'));
     } else {
-        echo "<div class='success'>";
-        echo __('Your reset request is valid: you may proceed.');
-        echo '</div>';
+        echo Format::alert(__('Your reset request is valid: you may proceed.'), 'success');
 
         $form = Form::create('action', $session->get('absoluteURL').'/passwordResetProcess.php?'.http_build_query($urlParams));
         $form->addClass('disable-warnings');

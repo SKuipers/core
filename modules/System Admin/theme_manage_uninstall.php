@@ -20,6 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Prefab\DeleteForm;
+use Gibbon\Services\Format;
 use Gibbon\Domain\System\ThemeGateway;
 
 $gibbonThemeID = $_GET['gibbonThemeID'] ?? '';
@@ -44,9 +45,7 @@ if (isActionAccessible($guid, $connection2, '/modules/System Admin/theme_manage_
         $existsTheme = $themeGateway->selectBy($dataTheme)->rowCount();
 
         if ($existsTheme == 0) {
-            echo "<div class='error'>";
-            echo __('The specified theme cannot be found or is active and so cannot be removed.');
-            echo '</div>';
+            echo Format::alert(__('The specified theme cannot be found or is active and so cannot be removed.'), 'error');
         } else {
             $form = DeleteForm::createForm($session->get('absoluteURL').'/modules/'.$session->get('module')."/theme_manage_uninstallProcess.php?gibbonThemeID=$gibbonThemeID&orphaned=$orphaned");
             echo $form->getOutput();

@@ -54,9 +54,7 @@ function getBehaviourRecord(ContainerInterface $container, $gibbonPersonID, $gib
     }
 
     if (empty($schoolYears)) {
-        $output .= "<div class='error'>";
-        $output .= __('There are no records to display.');
-        $output .= '</div>';
+        $output .= Format::alert(__('There are no records to display.'), 'error');
     } else {
 
         foreach ($schoolYears as $schoolYear) {

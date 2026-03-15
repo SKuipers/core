@@ -27,6 +27,7 @@ use Gibbon\Tables\Columns\Column;
 use Gibbon\Tables\Renderer\RendererInterface;
 use Gibbon\Forms\Traits\BasicAttributesTrait;
 use Gibbon\Forms\Layout\Element;
+use Gibbon\Services\Format;
 
 /**
  * SimpleRenderer
@@ -70,13 +71,9 @@ class SimpleRenderer implements RendererInterface
 
         if ($dataSet->count() == 0) {
             if ($dataSet->isSubset() && $dataSet->getPageSize() > 0) {
-                $output .= '<div class="warning">';
-                $output .= __('No results matched your search.');
-                $output .= '</div>';
+                $output .= Format::alert(__('No results matched your search.'), 'warning');
             } else {
-                $output .= '<div class="error">';
-                $output .= __('There are no records to display.');
-                $output .= '</div>';
+                $output .= Format::alert(__('There are no records to display.'), 'error');
             }
         } else {
             $this->addClass('w-full');

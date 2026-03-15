@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
+
 //Module includes
 require_once __DIR__ . '/moduleFunctions.php';
 
@@ -399,9 +401,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/units_dump.php') =
                                 $resultLessons->execute($dataLessons);
 
                                 if ($resultLessons->rowCount() < 1) {
-                                    echo "<div class='warning'>";
-                                    echo __('There are no records to display.');
-                                    echo '</div>';
+                                    echo Format::alert(__('There are no records to display.'), 'warning');
                                 } else {
                                     while ($rowLessons = $resultLessons->fetch()) {
                                         echo '<h3>'.$rowLessons['name'].'</h3>';

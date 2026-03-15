@@ -425,9 +425,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Staff/staff_view_details.p
                             $resultFamily->execute($dataFamily);
 
                             if ($resultFamily->rowCount() != 1) {
-                                echo "<div class='error'>";
-                                echo __('There is no family information available for the current staff member.');
-                                echo '</div>';
+                                echo Format::alert(__('There is no family information available for the current staff member.'), 'error');
                             } else {
                                 $rowFamily = $resultFamily->fetch();
                                 $count = 1;

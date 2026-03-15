@@ -75,17 +75,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full_
         $gibbonPlannerEntryID = $_GET['gibbonPlannerEntryID'] ?? '';
 
         if ($gibbonPlannerEntryID == '') {
-            echo "<div class='warning'>";
-            echo __('You have not specified one or more required parameters.');
-            echo '</div>';
+            echo Format::alert(__('You have not specified one or more required parameters.'), 'warning');
         }
         //Check existence of and access to this class.
         else {
             if ($highestAction == 'Lesson Planner_viewMyChildrensClasses') {
                 if ($_GET['search'] == '') {
-                    echo "<div class='warning'>";
-                    echo __('You have not specified one or more required parameters.');
-                    echo '</div>';
+                    echo Format::alert(__('You have not specified one or more required parameters.'), 'warning');
                 } else {
                     $gibbonPersonID = $_GET['search'] ?? '';
                     
@@ -112,9 +108,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full_
                 $result->execute($data);
 
             if ($result->rowCount() != 1) {
-                echo "<div class='warning'>";
-                echo __('The selected record does not exist, or you do not have access to it.');
-                echo '</div>';
+                echo Format::alert(__('The selected record does not exist, or you do not have access to it.'), 'warning');
             } else {
                 $row = $result->fetch();
 
@@ -143,9 +137,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full_
                     ->add(__('Add Comment'));
 
                 if (($row['role'] == 'Student' and $row['viewableStudents'] == 'N') and ($highestAction == 'Lesson Planner_viewMyChildrensClasses' and $row['viewableParents'] == 'N')) {
-                    echo "<div class='warning'>";
-                    echo __('The selected record does not exist, or you do not have access to it.');
-                    echo '</div>';
+                    echo Format::alert(__('The selected record does not exist, or you do not have access to it.'), 'warning');
                 } else {
                     echo '<h2>';
                     echo __('Planner Discussion Post');

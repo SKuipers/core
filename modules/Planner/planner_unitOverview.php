@@ -77,17 +77,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_unitOvervi
             $gibbonPlannerEntryID = $_GET['gibbonPlannerEntryID'] ?? '';
         }
         if ($gibbonPlannerEntryID == '') {
-            echo "<div class='warning'>";
-            echo __('You have not specified one or more required parameters.');
-            echo '</div>';
+            echo Format::alert(__('You have not specified one or more required parameters.'), 'warning');
         }
         //Check existence of and access to this class.
         else {
             if ($highestAction == 'Lesson Planner_viewMyChildrensClasses') {
                 if ($_GET['search'] == '') {
-                    echo "<div class='warning'>";
-                    echo __('You have not specified one or more required parameters.');
-                    echo '</div>';
+                    echo Format::alert(__('You have not specified one or more required parameters.'), 'warning');
                 } else {
 
                         $dataChild = array('gibbonPersonID1' => $gibbonPersonID, 'gibbonPersonID2' => $session->get('gibbonPersonID'));
@@ -400,9 +396,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_unitOvervi
                                 $resultLessons->execute($dataLessons);
 
                             if ($resultLessons->rowCount() < 1) {
-                                echo "<div class='warning'>";
-                                echo __('There are no records to display.');
-                                echo '</div>';
+                                echo Format::alert(__('There are no records to display.'), 'warning');
                             } else {
                                 while ($rowLessons = $resultLessons->fetch()) {
                                     echo '<h3>'.$rowLessons['name'].'</h3>';

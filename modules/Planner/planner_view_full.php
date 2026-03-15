@@ -93,9 +93,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full.
         //Get class variable
         $gibbonPlannerEntryID = $_GET['gibbonPlannerEntryID'] ?? '';
         if ($gibbonPlannerEntryID == '') {
-            echo "<div class='warning'>";
-            echo __('The selected record does not exist, or you do not have access to it.');
-            echo '</div>';
+            echo Format::alert(__('The selected record does not exist, or you do not have access to it.'), 'warning');
         }
         //Check existence of and access to this class.
         else {
@@ -107,9 +105,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full.
             }
             if ($highestAction == 'Lesson Planner_viewMyChildrensClasses') {
                 if ($gibbonPersonID == '') {
-                    echo "<div class='warning'>";
-                    echo __('Your request failed because some required values were not unique.');
-                    echo '</div>';
+                    echo Format::alert(__('Your request failed because some required values were not unique.'), 'warning');
                 } else {
                     
                         $resultChild = $container->get(FamilyChildGateway::class)->selectChildByFamilyAdultID($gibbonPersonID, $session->get('gibbonPersonID'));
@@ -165,9 +161,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full.
                     $result = $connection2->prepare($sql);
                     $result->execute($data);
                 if ($result->rowCount() != 1) {
-                    echo "<div class='warning'>";
-                    echo __('The selected record does not exist, or you do not have access to it.');
-                    echo '</div>';
+                    echo Format::alert(__('The selected record does not exist, or you do not have access to it.'), 'warning');
                 } else {
                     $values = $result->fetch();
 
@@ -219,9 +213,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Planner/planner_view_full.
                         $gibbonCourseClassID = $values['gibbonCourseClassID'];
                     }
                     if (($values['role'] == 'Student' and $values['viewableStudents'] == 'N') and ($highestAction == 'Lesson Planner_viewMyChildrensClasses' and $values['viewableParents'] == 'N')) {
-                        echo "<div class='warning'>";
-                        echo __('The selected record does not exist, or you do not have access to it.');
-                        echo '</div>';
+                        echo Format::alert(__('The selected record does not exist, or you do not have access to it.'), 'warning');
                     } else {
                         echo "<div style='height:50px'>";
                         echo '<h2>';
