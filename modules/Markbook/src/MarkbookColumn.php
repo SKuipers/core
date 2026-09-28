@@ -41,7 +41,13 @@ class MarkbookColumn
      * A count of the number of columns, so header can be spanned correctly
      * @var int
      */
-    protected $spanCount;
+    protected $spanCount = 0;
+
+    /**
+     * A count of entries for this column that have a modified assessment.
+     * @var int
+     */
+    protected $modifiedCount = 0;
 
     /**
      * Y/N to enable/disable effort in column
@@ -71,7 +77,6 @@ class MarkbookColumn
         $this->gibbonMarkbookColumnID = $row['gibbonMarkbookColumnID'];
 
         $this->data = $row;
-        $this->spanCount = 0;
 
         $this->enableEffort = $enableEffort;
         $this->enableRubrics = $enableRubrics;
@@ -275,6 +280,24 @@ class MarkbookColumn
         return $this->spanCount;
     }
 
+    /**
+     * Get Modified Count
+     * @return  int
+     */
+    public function getModifiedCount()
+    {
+        return $this->modifiedCount;
+    }
+
+    /**
+     * Add to Modified Count
+     * @param   int  $count
+     */
+    public function addModifiedCount($count)
+    {
+        $this->modifiedCount += $count;
+    }
+    
     /**
      * Set Submission Details
      * @version 4th May 2016

@@ -241,7 +241,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                     {% endif %}
                     
                     <a class="text-indigo-900 font-medium hover:underline pr-4 flex-1" href="index.php?q=/modules/Students/student_view_details.php&gibbonPersonID={{ student.gibbonPersonID }}&subpage=Markbook#{{ gibbonCourseClassID }}">
-                         {{ formatUsing('name', student.title, student.preferredName, student.surname, 'Student', false) }}
+                         {{ formatUsing('name', student.title, student.preferredName, student.surname, 'Student', studentOrderBy != 'preferredName') }}
                      </a>
 
                      <div class="h-6 w-5">
@@ -467,7 +467,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                         
                         {# Sub-header labels for attainment, effort, comment, etc. #}
                         <div class="subcell-grid items-center justify-around text-xs font-bold text-gray-900/80 backdrop-saturate-150 backdrop-brightness-90" style="{{ columnColorStyle }}88;">
-                            {% if enableModifiedAssessment == 'Y' %}
+                            {% if enableModifiedAssessment == 'Y' and column.getModifiedCount > 0 %}
                                 <div class="col-mod p-1 text-center" title="{{ __('Modified') }}">
                                     {{ __('Mod') }}
                                 </div>
@@ -535,7 +535,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                             {% elseif entry.exists %}
                                 
                                     {# Modified assessment indicator #}
-                                    {% if enableModifiedAssessment == 'Y' %}
+                                    {% if enableModifiedAssessment == 'Y' and column.getModifiedCount > 0 %}
                                         <div class="col-mod p-1 flex items-center justify-center">
                                             {{ entry.modifiedAssessment }}
                                         </div>
@@ -702,7 +702,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                                 
                                 
                                     {# Modified assessment cell with Add link #}
-                                    {% if enableModifiedAssessment == 'Y' %}
+                                    {% if enableModifiedAssessment == 'Y' and column.getModifiedCount > 0 %}
                                         <div class="col-mod p-1  text-center">{{ editLink|raw }}</div>
                                     {% endif %}
                                     
@@ -743,7 +743,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
                         <div class="p-2 border-b flex items-center justify-center font-bold {{ students|length is odd ? 'bg-white' : 'bg-gray-50' }}" >
                             <div class="subcell-grid text-gray-800">
                                 {# Empty modified assessment cell #}
-                                {% if enableModifiedAssessment == 'Y' %}
+                                {% if enableModifiedAssessment == 'Y' and column.getModifiedCount > 0 %}
                                     <div class="col-mod p-1  text-center"></div>
                                 {% endif %}
                                 

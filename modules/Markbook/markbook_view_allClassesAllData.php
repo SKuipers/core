@@ -515,6 +515,10 @@ if ($resultStudents->rowCount() < 1) {
                 if ($entryData['effortValue'] == 'Complete') $entryData['effortValue'] = __('Com');
                 if ($entryData['effortValue'] == 'Incomplete') $entryData['effortValue'] = __('Inc');
 
+                if ($entryData['modifiedAssessment'] == 'Y') {  
+                    $column->addModifiedCount(1);
+                }
+
                 // Calculate totals for attainment
                 if ($column->hasAttainmentGrade()) {
                     $attainment = '';
