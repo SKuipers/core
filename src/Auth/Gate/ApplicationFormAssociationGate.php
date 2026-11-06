@@ -26,41 +26,27 @@ use Gibbon\Auth\Access\Access;
 use Gibbon\Contracts\Services\Session;
 use Gibbon\Domain\User\FamilyGateway;
 use Gibbon\Domain\User\UserGateway;
+use Gibbon\Forms\FormFactory;
 
 /**
  * Authorizes and validates family associations submitted with a Student Application Form.
  */
 final class ApplicationFormAssociationGate extends Gate
 {
+    private Session $session;
+
     private Access $access;
 
     private FamilyGateway $familyGateway;
 
     private UserGateway $userGateway;
 
-    /**
-     * The values accepted by FormFactory::createSelectRelationship().
-     *
-     * @var array<int, string>
-     */
-    private const ALLOWED_RELATIONSHIPS = [
-        'Mother',
-        'Father',
-        'Step-Mother',
-        'Step-Father',
-        'Adoptive Parent',
-        'Guardian',
-        'Grandmother',
-        'Grandfather',
-        'Aunt',
-        'Uncle',
-        'Nanny/Helper',
-        'Other',
-    ];
+    protected $allowedRelationships = [];
 
     public function __construct(
         Session $session,
         Access $access,
+        FormFactory $formFactory,
         FamilyGateway $familyGateway,
         UserGateway $userGateway
     ) {
@@ -69,6 +55,8 @@ final class ApplicationFormAssociationGate extends Gate
         $this->access = $access;
         $this->familyGateway = $familyGateway;
         $this->userGateway = $userGateway;
+
+        $this->allowedRelationships = array_keys($formFactory->createSelectRelationship()->getOptions());
     }
 
     /**
@@ -96,12 +84,15 @@ final class ApplicationFormAssociationGate extends Gate
         $submittedRelationships
     ): array {
         try {
+            // Public requests cannot attach to an existing family or person.
             if (!$this->session->has('username')) {
                 return $this->emptyResult();
             }
 
+            // Normalize before any lookup so malformed input never reaches a gateway.
             $familyID = $this->normalizeIdentifier($submittedFamilyID);
             if ($familyID === null) {
+                // A blank family is valid for an authenticated user's own parent record.
                 return $this->blankFamilyResult(
                     $this->validateBlankFamilyParent($submittedParentPersonID)
                 );
@@ -112,6 +103,8 @@ final class ApplicationFormAssociationGate extends Gate
                 return $this->emptyResult();
             }
 
+            // Family IDs are zero-filled in the database. Preserve that form for
+            // FIND_IN_SET membership queries while returning the canonical ID.
             $familyLookupID = $family['gibbonFamilyID'] ?? $familyID;
             if ($familyLookupID === ''
                 || (!is_string($familyLookupID) && !is_int($familyLookupID))
@@ -125,10 +118,12 @@ final class ApplicationFormAssociationGate extends Gate
             $sessionPersonID = $this->normalizeIdentifier($this->session->get('gibbonPersonID'));
             $managementAuthorized = $this->access->allows('Students', 'applicationForm_manage');
 
+            // Non-management callers must be an adult member of this family.
             if (!$managementAuthorized && ($sessionPersonID === null || !isset($adultIDs[$sessionPersonID]))) {
                 return $this->emptyResult();
             }
 
+            // Use the accepted family's adult and child sets for every association.
             $children = $this->familyGateway->selectChildrenByFamily($familyLookupID, true);
             $childIDs = $this->membershipSet($children);
 
@@ -144,12 +139,15 @@ final class ApplicationFormAssociationGate extends Gate
                     $childIDs
                 ),
             ];
-        } catch (\Throwable $exception) {
+        } catch (\Throwable) {
+            // Fail closed on infrastructure errors; never return unverified IDs.
             return $this->errorResult();
         }
     }
 
     /**
+     * Keep an authenticated user's own existing person association for a new family.
+     *
      * @param mixed $submittedPersonID
      */
     private function validateBlankFamilyParent($submittedPersonID): ?string
@@ -165,6 +163,8 @@ final class ApplicationFormAssociationGate extends Gate
     }
 
     /**
+     * Return the effective new-family state with only the caller's safe parent ID.
+     *
      * @param string|null $parentPersonID
      * @return array{
      *     error: bool,
@@ -186,6 +186,8 @@ final class ApplicationFormAssociationGate extends Gate
     }
 
     /**
+     * Validate a parent against the accepted family's adult membership and person table.
+     *
      * @param mixed $submittedPersonID
      * @param array<string, bool> $adultIDs
      */
@@ -200,6 +202,8 @@ final class ApplicationFormAssociationGate extends Gate
     }
 
     /**
+     * Filter relationship pairs independently against accepted membership and allowed values.
+     *
      * @param mixed $submittedPersonIDs
      * @param mixed $submittedRelationships
      * @param array<string, bool> $adultIDs
@@ -231,7 +235,7 @@ final class ApplicationFormAssociationGate extends Gate
                 continue;
             }
 
-            if (!is_string($relationship) || !in_array($relationship, self::ALLOWED_RELATIONSHIPS, true)) {
+            if (!is_string($relationship) || !in_array($relationship, $this->allowedRelationships, true)) {
                 continue;
             }
 
@@ -247,6 +251,8 @@ final class ApplicationFormAssociationGate extends Gate
     }
 
     /**
+     * Convert a positive scalar identifier to its canonical, unpadded form.
+     *
      * @param mixed $value
      */
     private function normalizeIdentifier($value): ?string
@@ -269,6 +275,8 @@ final class ApplicationFormAssociationGate extends Gate
     }
 
     /**
+     * Build a canonical membership set from arrays or gateway result objects.
+     *
      * @param mixed $memberships
      * @return array<string, bool>
      */
@@ -298,6 +306,8 @@ final class ApplicationFormAssociationGate extends Gate
     }
 
     /**
+     * Return the normal non-error result when no existing association is accepted.
+     *
      * @return array{
      *     error: bool,
      *     usesExistingFamily: bool,
@@ -318,6 +328,8 @@ final class ApplicationFormAssociationGate extends Gate
     }
 
     /**
+     * Return a cleared result when infrastructure prevented validation.
+     *
      * @return array{
      *     error: bool,
      *     usesExistingFamily: bool,

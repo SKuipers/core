@@ -159,26 +159,15 @@ if ($proceed == false) {
                 : [];
         }
 
-        $homeAddress = $_POST['homeAddress'] ?? null;
-        $homeAddressDistrict = $_POST['homeAddressDistrict'] ?? null;
-        $homeAddressCountry = $_POST['homeAddressCountry'] ?? null;
-
         //GET PARENT1 FEILDS
         $submittedParentPersonID = $_POST['parent1gibbonPersonID'] ?? null;
 
-        try {
-            $associationGate = $container->get(ApplicationFormAssociationGate::class);
-            $associations = $associationGate->getValidatedAssociations(
-                $canonicalFamilyID,
-                $submittedParentPersonID,
-                $submittedRelationshipPersonIDs,
-                $submittedRelationships
-            );
-        } catch (\Throwable $exception) {
-            $URL .= '&return=error2';
-            header("Location: {$URL}");
-            exit();
-        }
+        $associations = $container->get(ApplicationFormAssociationGate::class)->getValidatedAssociations(
+            $canonicalFamilyID,
+            $submittedParentPersonID,
+            $submittedRelationshipPersonIDs,
+            $submittedRelationships
+        );
 
         if (($associations['error'] ?? false) === true) {
             $URL .= '&return=error2';
@@ -190,6 +179,10 @@ if ($proceed == false) {
         $gibbonFamilyID = $associations['familyID'];
         $parent1gibbonPersonID = $associations['parentPersonID'];
         $validatedRelationships = $associations['relationships'];
+
+        $homeAddress = $_POST['homeAddress'] ?? null;
+        $homeAddressDistrict = $_POST['homeAddressDistrict'] ?? null;
+        $homeAddressCountry = $_POST['homeAddressCountry'] ?? null;
 
         $parent1title = $_POST['parent1title'] ?? null;
         $parent1surname = $validator->sanitizeName($_POST['parent1surname'] ?? '');
