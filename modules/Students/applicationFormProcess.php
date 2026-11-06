@@ -162,7 +162,7 @@ if ($proceed == false) {
         //GET PARENT1 FEILDS
         $submittedParentPersonID = $_POST['parent1gibbonPersonID'] ?? null;
 
-        $associations = $container->get(ApplicationFormAssociationGate::class)->getValidatedAssociations(
+        $associations = $container->get(ApplicationFormAssociationGate::class)->getAllowedAssociations(
             $canonicalFamilyID,
             $submittedParentPersonID,
             $submittedRelationshipPersonIDs,
