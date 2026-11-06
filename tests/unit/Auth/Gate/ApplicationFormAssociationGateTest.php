@@ -231,6 +231,85 @@ class ApplicationFormAssociationGateTest extends TestCase
 
     /**
      * Feature: student-application-form-association-authorization,
+     * Example coverage: authenticated blank-family parent association
+     *
+     * A blank-family application may retain only the authenticated caller's
+     * existing person record. Public callers, unrelated parents, malformed
+     * session identifiers, and nonexistent users must remain unassociated.
+     */
+    public function testAuthenticatedBlankFamilyParentAssociationIsScopedToSessionPerson(): void
+    {
+        $cases = [
+            'matching normalized identifiers' => [
+                'authenticated' => true,
+                'management' => false,
+                'sessionPersonID' => '00101',
+                'submittedParentPersonID' => ' 000101 ',
+                'expectedParentPersonID' => '101',
+            ],
+            'unrelated existing parent' => [
+                'authenticated' => true,
+                'management' => true,
+                'sessionPersonID' => '101',
+                'submittedParentPersonID' => '102',
+                'expectedParentPersonID' => null,
+            ],
+            'matching nonexistent user' => [
+                'authenticated' => true,
+                'management' => false,
+                'sessionPersonID' => '103',
+                'submittedParentPersonID' => '00103',
+                'expectedParentPersonID' => null,
+            ],
+            'malformed session identifier' => [
+                'authenticated' => true,
+                'management' => false,
+                'sessionPersonID' => ['101'],
+                'submittedParentPersonID' => '101',
+                'expectedParentPersonID' => null,
+            ],
+            'zero session identifier' => [
+                'authenticated' => true,
+                'management' => false,
+                'sessionPersonID' => 0,
+                'submittedParentPersonID' => '0',
+                'expectedParentPersonID' => null,
+            ],
+            'public matching parent' => [
+                'authenticated' => false,
+                'management' => true,
+                'sessionPersonID' => '101',
+                'submittedParentPersonID' => '101',
+                'expectedParentPersonID' => null,
+            ],
+        ];
+
+        foreach ($cases as $name => $case) {
+            $result = $this->createGate(
+                $case,
+                [],
+                [],
+                [
+                    '101' => ['gibbonPersonID' => '101'],
+                    '102' => ['gibbonPersonID' => '102'],
+                ]
+            )->getValidatedAssociations(
+                null,
+                $case['submittedParentPersonID'],
+                ['101'],
+                ['Mother']
+            );
+
+            $this->assertFalse($result['error'], $name);
+            $this->assertFalse($result['usesExistingFamily'], $name);
+            $this->assertNull($result['familyID'], $name);
+            $this->assertSame($case['expectedParentPersonID'], $result['parentPersonID'], $name);
+            $this->assertSame([], $result['relationships'], $name);
+        }
+    }
+
+    /**
+     * Feature: student-application-form-association-authorization,
      * Property 2: Association identifiers are existence-checked before emission
      *
      * The 120 deterministic cases exercise valid, nonexistent, empty, whitespace,
@@ -549,10 +628,16 @@ class ApplicationFormAssociationGateTest extends TestCase
                         && ($context['management']
                             || ($sessionPersonID !== null && isset($adultIDs[$sessionPersonID])));
                     $parentID = $this->normalizeIdentifier($submittedParentPersonID);
-                    $parentAccepted = $familyAccepted
+                    $blankFamilyParentAccepted = $canonicalFamilyID === null
+                        && $context['authenticated']
+                        && $parentID !== null
+                        && $parentID === $sessionPersonID
+                        && isset($existingPersons[$parentID]);
+                    $parentAccepted = ($familyAccepted
                         && $parentID !== null
                         && isset($existingPersons[$parentID])
-                        && isset($adultIDs[$parentID]);
+                        && isset($adultIDs[$parentID]))
+                        || $blankFamilyParentAccepted;
                     $expectedParentID = $parentAccepted ? $parentID : null;
 
                     $gate = $this->createGate(
@@ -1377,7 +1462,7 @@ class ApplicationFormAssociationGateTest extends TestCase
         $this->assertStringNotContainsString('database details', serialize($result));
     }
 
-    public function testFetchAllMembershipResultsAreCanonicalizedAndValidated(): void
+    public function testZeroFilledFamilyMembershipResultsAreCanonicalizedAndValidated(): void
     {
         $session = $this->createMock(Session::class);
         $session->method('has')->willReturn(true);
@@ -1387,28 +1472,38 @@ class ApplicationFormAssociationGateTest extends TestCase
         $access->method('allows')->willReturn(false);
 
         $familyGateway = $this->createMock(FamilyGateway::class);
-        $familyGateway->method('getByID')->willReturn(['gibbonFamilyID' => '10']);
-        $familyGateway->method('selectAdultsByFamily')->willReturn(
-            new class {
-                public function fetchAll(): array
-                {
-                    return [['gibbonPersonID' => '00101']];
+        $familyGateway->method('getByID')->willReturn(['gibbonFamilyID' => '0000010']);
+        $familyGateway->expects($this->once())
+            ->method('selectAdultsByFamily')
+            ->with('0000010', true)
+            ->willReturn(
+                new class {
+                    public function fetchAll(): array
+                    {
+                        return [
+                            ['gibbonPersonID' => '00101'],
+                        ];
+                    }
                 }
-            }
-        );
-        $familyGateway->method('selectChildrenByFamily')->willReturn(
-            new class {
-                public function fetchAll(): array
-                {
-                    return [['gibbonPersonID' => '00201']];
+            );
+        $familyGateway->expects($this->once())
+            ->method('selectChildrenByFamily')
+            ->with('0000010', true)
+            ->willReturn(
+                new class {
+                    public function fetchAll(): array
+                    {
+                        return [
+                            ['gibbonPersonID' => '00201'],
+                        ];
+                    }
                 }
-            }
-        );
+            );
 
         $userGateway = $this->createMock(UserGateway::class);
         $userGateway->method('getByID')->willReturnCallback(
             static function (string $personID): array {
-                return in_array($personID, ['101', '201'], true)
+                return in_array($personID, ['101', '201', '301', '401'], true)
                     ? ['gibbonPersonID' => $personID]
                     : [];
             }
@@ -1421,10 +1516,10 @@ class ApplicationFormAssociationGateTest extends TestCase
             $userGateway
         );
         $result = $gate->getValidatedAssociations(
-            '0010',
+            '10',
             '00101',
-            ['00201'],
-            ['Mother']
+            ['00201', '00301', '00401'],
+            ['Mother', 'Father', 'Guardian']
         );
 
         $this->assertSame([

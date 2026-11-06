@@ -101,11 +101,26 @@ final class ApplicationFormAssociationGate extends Gate
             }
 
             $familyID = $this->normalizeIdentifier($submittedFamilyID);
-            if ($familyID === null || empty($this->familyGateway->getByID($familyID))) {
+            if ($familyID === null) {
+                return $this->blankFamilyResult(
+                    $this->validateBlankFamilyParent($submittedParentPersonID)
+                );
+            }
+
+            $family = $this->familyGateway->getByID($familyID);
+            if (empty($family)) {
                 return $this->emptyResult();
             }
 
-            $adults = $this->familyGateway->selectAdultsByFamily($familyID, true);
+            $familyLookupID = $family['gibbonFamilyID'] ?? $familyID;
+            if ($familyLookupID === ''
+                || (!is_string($familyLookupID) && !is_int($familyLookupID))
+                || (is_int($familyLookupID) && $familyLookupID <= 0)
+            ) {
+                $familyLookupID = $familyID;
+            }
+
+            $adults = $this->familyGateway->selectAdultsByFamily($familyLookupID, true);
             $adultIDs = $this->membershipSet($adults);
             $sessionPersonID = $this->normalizeIdentifier($this->session->get('gibbonPersonID'));
             $managementAuthorized = $this->access->allows('Students', 'applicationForm_manage');
@@ -114,7 +129,7 @@ final class ApplicationFormAssociationGate extends Gate
                 return $this->emptyResult();
             }
 
-            $children = $this->familyGateway->selectChildrenByFamily($familyID, true);
+            $children = $this->familyGateway->selectChildrenByFamily($familyLookupID, true);
             $childIDs = $this->membershipSet($children);
 
             return [
@@ -132,6 +147,42 @@ final class ApplicationFormAssociationGate extends Gate
         } catch (\Throwable $exception) {
             return $this->errorResult();
         }
+    }
+
+    /**
+     * @param mixed $submittedPersonID
+     */
+    private function validateBlankFamilyParent($submittedPersonID): ?string
+    {
+        $sessionPersonID = $this->normalizeIdentifier($this->session->get('gibbonPersonID'));
+        $personID = $this->normalizeIdentifier($submittedPersonID);
+
+        if ($sessionPersonID === null || $personID !== $sessionPersonID) {
+            return null;
+        }
+
+        return empty($this->userGateway->getByID($personID)) ? null : $personID;
+    }
+
+    /**
+     * @param string|null $parentPersonID
+     * @return array{
+     *     error: bool,
+     *     usesExistingFamily: bool,
+     *     familyID: null,
+     *     parentPersonID: string|null,
+     *     relationships: array{}
+     * }
+     */
+    private function blankFamilyResult(?string $parentPersonID): array
+    {
+        return [
+            'error' => false,
+            'usesExistingFamily' => false,
+            'familyID' => null,
+            'parentPersonID' => $parentPersonID,
+            'relationships' => [],
+        ];
     }
 
     /**

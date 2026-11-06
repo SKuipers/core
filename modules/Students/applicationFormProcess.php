@@ -135,21 +135,24 @@ if ($proceed == false) {
 
         //GET FAMILY FEILDS
         $submittedFamilyID = $_POST['gibbonFamilyID'] ?? null;
+        $submittedFamilyKey = null;
         $canonicalFamilyID = null;
         $submittedRelationships = [];
         $submittedRelationshipPersonIDs = [];
 
         if (is_scalar($submittedFamilyID) && (is_string($submittedFamilyID) || is_int($submittedFamilyID))) {
-            $submittedFamilyID = trim((string) $submittedFamilyID);
-            if ($submittedFamilyID !== '' && ctype_digit($submittedFamilyID)) {
-                $canonicalFamilyID = ltrim($submittedFamilyID, '0');
+            $submittedFamilyKey = trim((string) $submittedFamilyID);
+            if ($submittedFamilyKey !== '' && ctype_digit($submittedFamilyKey)) {
+                $canonicalFamilyID = ltrim($submittedFamilyKey, '0');
                 $canonicalFamilyID = $canonicalFamilyID === '' ? null : $canonicalFamilyID;
+            } else {
+                $submittedFamilyKey = null;
             }
         }
 
         if ($canonicalFamilyID !== null) {
-            $submittedRelationships = $_POST[$canonicalFamilyID.'-relationships'] ?? null;
-            $submittedRelationshipPersonIDs = $_POST[$canonicalFamilyID.'-relationshipsGibbonPersonID'] ?? null;
+            $submittedRelationships = $_POST[$submittedFamilyKey.'-relationships'] ?? null;
+            $submittedRelationshipPersonIDs = $_POST[$submittedFamilyKey.'-relationshipsGibbonPersonID'] ?? null;
             $submittedRelationships = is_array($submittedRelationships) ? $submittedRelationships : [];
             $submittedRelationshipPersonIDs = is_array($submittedRelationshipPersonIDs)
                 ? $submittedRelationshipPersonIDs
