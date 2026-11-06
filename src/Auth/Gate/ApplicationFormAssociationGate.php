@@ -33,13 +33,11 @@ use Gibbon\Forms\FormFactory;
  */
 final class ApplicationFormAssociationGate extends Gate
 {
-    private Session $session;
+    protected Access $access;
 
-    private Access $access;
+    protected FamilyGateway $familyGateway;
 
-    private FamilyGateway $familyGateway;
-
-    private UserGateway $userGateway;
+    protected UserGateway $userGateway;
 
     protected $allowedRelationships = [];
 
@@ -56,7 +54,7 @@ final class ApplicationFormAssociationGate extends Gate
         $this->familyGateway = $familyGateway;
         $this->userGateway = $userGateway;
 
-        $this->allowedRelationships = array_keys($formFactory->createSelectRelationship()->getOptions());
+        $this->allowedRelationships = array_keys($formFactory->createSelectRelationship('values')->getOptions());
     }
 
     /**
@@ -77,7 +75,7 @@ final class ApplicationFormAssociationGate extends Gate
      *     relationships: array<int, array{gibbonPersonID: string, relationship: string}>
      * }
      */
-    public function getValidatedAssociations(
+    public function getAllowedAssociations(
         $submittedFamilyID,
         $submittedParentPersonID,
         $submittedRelationshipPersonIDs,

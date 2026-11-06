@@ -183,7 +183,7 @@ class ApplicationFormAssociationGateTest extends TestCase
                             $existingFamilies,
                             $adultMembers
                         );
-                        $result = $gate->getValidatedAssociations($submittedFamilyID, null, [], []);
+                        $result = $gate->getAllowedAssociations($submittedFamilyID, null, [], []);
                         $actualFamilyID = $result['familyID'];
 
                         $this->assertSame(
@@ -293,7 +293,7 @@ class ApplicationFormAssociationGateTest extends TestCase
                     '101' => ['gibbonPersonID' => '101'],
                     '102' => ['gibbonPersonID' => '102'],
                 ]
-            )->getValidatedAssociations(
+            )->getAllowedAssociations(
                 null,
                 $case['submittedParentPersonID'],
                 ['101'],
@@ -404,7 +404,7 @@ class ApplicationFormAssociationGateTest extends TestCase
                     $existingPersons,
                     $childMembers
                 );
-                $result = $gate->getValidatedAssociations(
+                $result = $gate->getAllowedAssociations(
                     '10',
                     $parentInput,
                     $relationshipPersonIDs,
@@ -646,7 +646,7 @@ class ApplicationFormAssociationGateTest extends TestCase
                         $adultMembers,
                         $existingPersons
                     );
-                    $result = $gate->getValidatedAssociations(
+                    $result = $gate->getAllowedAssociations(
                         $submittedFamilyID,
                         $submittedParentPersonID,
                         [],
@@ -1004,7 +1004,7 @@ class ApplicationFormAssociationGateTest extends TestCase
                 $existingPersons,
                 $childMembers
             );
-            $result = $gate->getValidatedAssociations(
+            $result = $gate->getAllowedAssociations(
                 '10',
                 null,
                 $relationshipPersonIDs,
@@ -1138,7 +1138,7 @@ class ApplicationFormAssociationGateTest extends TestCase
                     $adultMembers,
                     $existingPersons
                 );
-                $result = $gate->getValidatedAssociations(
+                $result = $gate->getAllowedAssociations(
                     $familyID,
                     $parentPersonID,
                     $relationshipPersonIDs,
@@ -1230,7 +1230,7 @@ class ApplicationFormAssociationGateTest extends TestCase
 
         try {
             try {
-                $result = $gate->getValidatedAssociations(
+                $result = $gate->getAllowedAssociations(
                     $familyID,
                     $parentPersonID,
                     $relationshipPersonIDs,
@@ -1445,7 +1445,7 @@ class ApplicationFormAssociationGateTest extends TestCase
             $userGateway
         );
 
-        $result = $gate->getValidatedAssociations(
+        $result = $gate->getAllowedAssociations(
             '10',
             '101',
             ['201'],
@@ -1515,7 +1515,7 @@ class ApplicationFormAssociationGateTest extends TestCase
             $familyGateway,
             $userGateway
         );
-        $result = $gate->getValidatedAssociations(
+        $result = $gate->getAllowedAssociations(
             '10',
             '00101',
             ['00201', '00301', '00401'],
