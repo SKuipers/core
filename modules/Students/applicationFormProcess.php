@@ -20,6 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Data\Validator;
+use Gibbon\Auth\Gate\ApplicationFormAssociationGate;
 use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Services\Format;
 use Gibbon\Contracts\Comms\Mailer;
@@ -133,14 +134,60 @@ if ($proceed == false) {
         $schoolDate2 = !empty($_POST['schoolDate2']) ? Format::dateConvert($_POST['schoolDate2']) : null;
 
         //GET FAMILY FEILDS
-        $gibbonFamily = $_POST['gibbonFamily'] ?? '';
-        $gibbonFamilyID = $gibbonFamily == 'TRUE' && !empty($_POST['gibbonFamilyID']) ? $_POST['gibbonFamilyID'] : null;
+        $submittedFamilyID = $_POST['gibbonFamilyID'] ?? null;
+        $canonicalFamilyID = null;
+        $submittedRelationships = [];
+        $submittedRelationshipPersonIDs = [];
+
+        if (is_scalar($submittedFamilyID) && (is_string($submittedFamilyID) || is_int($submittedFamilyID))) {
+            $submittedFamilyID = trim((string) $submittedFamilyID);
+            if ($submittedFamilyID !== '' && ctype_digit($submittedFamilyID)) {
+                $canonicalFamilyID = ltrim($submittedFamilyID, '0');
+                $canonicalFamilyID = $canonicalFamilyID === '' ? null : $canonicalFamilyID;
+            }
+        }
+
+        if ($canonicalFamilyID !== null) {
+            $submittedRelationships = $_POST[$canonicalFamilyID.'-relationships'] ?? null;
+            $submittedRelationshipPersonIDs = $_POST[$canonicalFamilyID.'-relationshipsGibbonPersonID'] ?? null;
+            $submittedRelationships = is_array($submittedRelationships) ? $submittedRelationships : [];
+            $submittedRelationshipPersonIDs = is_array($submittedRelationshipPersonIDs)
+                ? $submittedRelationshipPersonIDs
+                : [];
+        }
+
         $homeAddress = $_POST['homeAddress'] ?? null;
         $homeAddressDistrict = $_POST['homeAddressDistrict'] ?? null;
         $homeAddressCountry = $_POST['homeAddressCountry'] ?? null;
 
         //GET PARENT1 FEILDS
-        $parent1gibbonPersonID = $_POST['parent1gibbonPersonID'] ?? null;
+        $submittedParentPersonID = $_POST['parent1gibbonPersonID'] ?? null;
+
+        try {
+            $associationGate = $container->get(ApplicationFormAssociationGate::class);
+            $associations = $associationGate->getValidatedAssociations(
+                $canonicalFamilyID,
+                $submittedParentPersonID,
+                $submittedRelationshipPersonIDs,
+                $submittedRelationships
+            );
+        } catch (\Throwable $exception) {
+            $URL .= '&return=error2';
+            header("Location: {$URL}");
+            exit();
+        }
+
+        if (($associations['error'] ?? false) === true) {
+            $URL .= '&return=error2';
+            header("Location: {$URL}");
+            exit();
+        }
+
+        $gibbonFamily = $associations['usesExistingFamily'] ? 'TRUE' : 'FALSE';
+        $gibbonFamilyID = $associations['familyID'];
+        $parent1gibbonPersonID = $associations['parentPersonID'];
+        $validatedRelationships = $associations['relationships'];
+
         $parent1title = $_POST['parent1title'] ?? null;
         $parent1surname = $validator->sanitizeName($_POST['parent1surname'] ?? '');
         $parent1firstName = $validator->sanitizeName($_POST['parent1firstName'] ?? '');
@@ -329,16 +376,15 @@ if ($proceed == false) {
 
                 //Deal with family relationships
                 if ($gibbonFamily == 'TRUE') {
-                    $relationships = $_POST[$gibbonFamilyID.'-relationships'];
-                    $relationshipsGibbonPersonIDs = $_POST[$gibbonFamilyID.'-relationshipsGibbonPersonID'];
-                    $count = 0;
-                    foreach ($relationships as $relationship) {
-
-                            $data = array('gibbonApplicationFormID' => $AI, 'gibbonPersonID' => $relationshipsGibbonPersonIDs[$count], 'relationship' => $relationship);
-                            $sql = 'INSERT INTO gibbonApplicationFormRelationship SET gibbonApplicationFormID=:gibbonApplicationFormID, gibbonPersonID=:gibbonPersonID, relationship=:relationship';
-                            $result = $connection2->prepare($sql);
-                            $result->execute($data);
-                        ++$count;
+                    foreach ($validatedRelationships as $relationship) {
+                        $data = [
+                            'gibbonApplicationFormID' => $AI,
+                            'gibbonPersonID' => $relationship['gibbonPersonID'],
+                            'relationship' => $relationship['relationship'],
+                        ];
+                        $sql = 'INSERT INTO gibbonApplicationFormRelationship SET gibbonApplicationFormID=:gibbonApplicationFormID, gibbonPersonID=:gibbonPersonID, relationship=:relationship';
+                        $result = $connection2->prepare($sql);
+                        $result->execute($data);
                     }
                 }
 
