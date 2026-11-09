@@ -14,6 +14,8 @@ use Gibbon\Auth\Access\Access;
 use Gibbon\Contracts\Services\Session;
 use Gibbon\Domain\User\FamilyGateway;
 use Gibbon\Domain\User\UserGateway;
+use Gibbon\Forms\FormFactory;
+use Gibbon\Forms\Input\Select;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -21,6 +23,21 @@ use PHPUnit\Framework\TestCase;
  */
 class ApplicationFormAssociationGateTest extends TestCase
 {
+    private $familyRelationships = [
+        'Mother' => 'Mother',
+        'Father' => 'Father',
+        'Step-Mother' => 'Step-Mother',
+        'Step-Father' => 'Step-Father',
+        'Adoptive Parent' => 'Adoptive Parent',
+        'Guardian' => 'Guardian',
+        'Grandmother' => 'Grandmother',
+        'Grandfather' => 'Grandfather',
+        'Aunt' => 'Aunt',
+        'Uncle' => 'Uncle',
+        'Nanny/Helper' => 'Nanny/Helper',
+        'Other' => 'Other',
+    ];
+
     /**
      * Feature: student-application-form-association-authorization,
      * Property 1: Caller context determines family acceptance
@@ -1437,10 +1454,19 @@ class ApplicationFormAssociationGateTest extends TestCase
             new \RuntimeException('database details must not be exposed')
         );
 
+        $selector = $this->createMock(Select::class);
+        $selector->method('getOptions')
+            ->willReturn($this->familyRelationships);
+
+        $formFactory = $this->createMock(FormFactory::class);
+        $formFactory->method('createSelectRelationship')->willReturn($selector);
+
         $userGateway = $this->createMock(UserGateway::class);
+
         $gate = new ApplicationFormAssociationGate(
             $session,
             $access,
+            $formFactory,
             $familyGateway,
             $userGateway
         );
@@ -1500,6 +1526,13 @@ class ApplicationFormAssociationGateTest extends TestCase
                 }
             );
 
+        $selector = $this->createMock(Select::class);
+        $selector->method('getOptions')
+            ->willReturn($this->familyRelationships);
+
+        $formFactory = $this->createMock(FormFactory::class);
+        $formFactory->method('createSelectRelationship')->willReturn($selector);
+
         $userGateway = $this->createMock(UserGateway::class);
         $userGateway->method('getByID')->willReturnCallback(
             static function (string $personID): array {
@@ -1512,6 +1545,7 @@ class ApplicationFormAssociationGateTest extends TestCase
         $gate = new ApplicationFormAssociationGate(
             $session,
             $access,
+            $formFactory,
             $familyGateway,
             $userGateway
         );
@@ -1571,6 +1605,13 @@ class ApplicationFormAssociationGateTest extends TestCase
             }
         );
 
+        $selector = $this->createMock(Select::class);
+        $selector->method('getOptions')
+            ->willReturn($this->familyRelationships);
+
+        $formFactory = $this->createMock(FormFactory::class);
+        $formFactory->method('createSelectRelationship')->willReturn($selector);
+
         $userGateway = $this->createMock(UserGateway::class);
         $userGateway->method('getByID')->willReturnCallback(
             static function (string $personID) use ($existingPersons): array {
@@ -1581,6 +1622,7 @@ class ApplicationFormAssociationGateTest extends TestCase
         return new ApplicationFormAssociationGate(
             $session,
             $access,
+            $formFactory,
             $familyGateway,
             $userGateway
         );
